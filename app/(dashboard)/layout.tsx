@@ -1,3 +1,5 @@
+import React from 'react';
+
 export default function DashboardLayout({
   children,
 }: {
@@ -5,7 +7,6 @@ export default function DashboardLayout({
 }) {
   return (
     <section className="dashboard-container">
-      {/* You can add a Sidebar or Navbar here later */}
       <main>{children}</main>
     </section>
   );
