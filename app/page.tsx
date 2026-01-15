@@ -1,32 +1,45 @@
+'use client';
+
 import Link from 'next/link';
+import { useAuth } from './context/AuthContext'; // Import the hook
 
 export default function Home() {
+  const { user, signIn, logOut } = useAuth(); // Access auth functions
+
   return (
     <main className="min-h-screen bg-offwhite flex flex-col font-sans">
       {/* Navigation */}
       <nav className="w-full py-6 px-8 flex justify-between items-center bg-navy text-white">
         <div className="text-2xl font-bold tracking-wide flex items-center gap-2">
-          {/* Using a text emoji for Ik Onkar temporarily to save setup time */}
           <span className="text-kesri">ੴ</span> SikhAI
         </div>
         <div className="hidden md:flex gap-6 text-sm font-medium">
           <Link href="/hukamnama" className="hover:text-kesri transition">Hukamnama</Link>
           <Link href="/chat" className="hover:text-kesri transition">Ask SikhAI</Link>
           <Link href="/seva" className="hover:text-kesri transition">Seva Events</Link>
+          <Link href="/shabad" className="hover:text-kesri transition">Shabad Search</Link>
         </div>
-        <button className="bg-kesri text-navy font-semibold px-4 py-2 rounded-lg hover:bg-white hover:text-kesri transition-all">
-          Sign In
-        </button>
+        
+        {/* DYNAMIC AUTH BUTTON */}
+        {user ? (
+           <div className="flex items-center gap-4">
+             <span className="text-sm text-slate-300">Sat Sri Akal, {user.displayName?.split(' ')[0]}</span>
+             <button onClick={logOut} className="border border-kesri text-kesri text-sm font-semibold px-4 py-2 rounded-lg hover:bg-kesri hover:text-navy transition-all">
+               Sign Out
+             </button>
+           </div>
+        ) : (
+          <button onClick={signIn} className="bg-kesri text-navy font-semibold px-4 py-2 rounded-lg hover:bg-white hover:text-kesri transition-all">
+            Sign In with Google
+          </button>
+        )}
       </nav>
 
-      {/* Hero Section */}
+      {/* Hero Section (Unchanged) */}
       <section className="relative bg-navy text-white py-24 px-6 overflow-hidden flex-grow">
-        {/* Abstract Background Element (Gold glow) */}
         <div className="absolute top-0 right-0 w-1/2 h-full bg-gold/10 blur-3xl rounded-full -translate-y-1/4 translate-x-1/4 pointer-events-none"></div>
 
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center relative z-10">
-          
-          {/* Text Content */}
           <div className="space-y-6">
             <div className="inline-block bg-navy-light border border-gold/30 rounded-full px-4 py-1 text-xs font-semibold tracking-wider text-gold uppercase">
               Powered by Google Gemini
@@ -46,7 +59,6 @@ export default function Home() {
                 className="bg-kesri text-navy font-bold px-8 py-3 rounded-xl shadow-lg shadow-kesri/20 hover:scale-105 transition-transform flex items-center gap-2"
               >
                 Start Chatting
-                {/* Arrow Icon */}
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
@@ -60,7 +72,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Hero Visual Placeholder */}
           <div className="relative hidden md:block">
              <div className="bg-navy-light border border-slate-700 p-6 rounded-2xl shadow-2xl relative">
                 <div className="flex items-center gap-3 mb-4 border-b border-slate-700 pb-4">
