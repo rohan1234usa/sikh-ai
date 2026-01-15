@@ -1,13 +1,9 @@
 import type { NextConfig } from "next";
 
-const nextConfig = {
-  typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if
-    // your project has type errors.
-    // !! WARN !!
-    ignoreBuildErrors: true,
-  },
-}
+const nextConfig: NextConfig = {
+  /* config options here */
+  // If the error persists, uncomment the line below to bypass type checking temporarily
+  // typescript: { ignoreBuildErrors: true },
+};
 
-export default nextConfig; 
+export default nextConfig;
