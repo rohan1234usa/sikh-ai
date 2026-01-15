@@ -13,7 +13,6 @@ Sikh AI is a comprehensive web application designed to serve the Sikh community 
 * **📜 Daily Hukamnama:** Real-time fetching of the daily Hukamnama from Darbar Sahib (Golden Temple) with synchronized English and Punjabi translations.
 * **🤖 Sikh AI Chatbot:** A RAG (Retrieval-Augmented Generation) chatbot powered by **Google Gemini**. It provides answers and advice rooted strictly in the *Guru Granth Sahib* and *Rehat Maryada*, minimizing hallucinations and maintaining theological accuracy.
 * **🔍 Shabad Search:** A robust search engine allowing users to find hymns by keyword, Ang (page number), or writer.
-* **📍 Gurudwara Locator:** Geolocation-based map service using the **Google Maps API** to find the nearest Gurudwaras and community centers.
 * **🤝 Seva Event Organizer:** A community board for organizing and signing up for volunteer (Seva) events, managed via Firebase Auth and Firestore.
 
 ## 🛠️ Tech Stack
@@ -25,7 +24,6 @@ This project is built on a robust, scalable architecture utilizing the full Goog
 * **Database:** Cloud Firestore.
 * **Authentication:** Firebase Auth.
 * **AI & Logic:** Google Cloud Functions, Vertex AI (Gemini Pro).
-* **Maps:** Google Maps Javascript API.
 
 ## 🎨 Design System
 
