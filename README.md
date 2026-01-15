@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sikh AI 🪯
 
-## Getting Started
+**Bridging Heritage and Technology.**
+Sikh AI is a comprehensive web application designed to serve the Sikh community by leveraging modern web technologies and Artificial Intelligence. It provides a peaceful, accessible digital space for daily prayers, community organization, and spiritual guidance grounded strictly in Sikh teachings.
 
-First, run the development server:
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Next.js](https://img.shields.io/badge/Next.js-14-black)
+![Firebase](https://img.shields.io/badge/Firebase-Verified-orange)
+![Gemini](https://img.shields.io/badge/AI-Gemini%20Pro-blueviolet)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## ✨ Core Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+* **📜 Daily Hukamnama:** Real-time fetching of the daily Hukamnama from Darbar Sahib (Golden Temple) with synchronized English and Punjabi translations.
+* **🤖 Sikh AI Chatbot:** A RAG (Retrieval-Augmented Generation) chatbot powered by **Google Gemini**. It provides answers and advice rooted strictly in the *Guru Granth Sahib* and *Rehat Maryada*, minimizing hallucinations and maintaining theological accuracy.
+* **🔍 Shabad Search:** A robust search engine allowing users to find hymns by keyword, Ang (page number), or writer.
+* **📍 Gurudwara Locator:** Geolocation-based map service using the **Google Maps API** to find the nearest Gurudwaras and community centers.
+* **🤝 Seva Event Organizer:** A community board for organizing and signing up for volunteer (Seva) events, managed via Firebase Auth and Firestore.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This project is built on a robust, scalable architecture utilizing the full Google Cloud ecosystem.
 
-## Learn More
+* **Frontend:** Next.js 14 (App Router), React, Tailwind CSS.
+* **Backend:** Firebase (Serverless).
+* **Database:** Cloud Firestore.
+* **Authentication:** Firebase Auth.
+* **AI & Logic:** Google Cloud Functions, Vertex AI (Gemini Pro).
+* **Maps:** Google Maps Javascript API.
 
-To learn more about Next.js, take a look at the following resources:
+## 🎨 Design System
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The UI is designed to be modern yet deeply respectful of Sikh culture, utilizing a high-contrast, accessible palette.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Color Name | Hex Code | Usage |
+| :--- | :--- | :--- |
+| **Nihang Navy** | `#1B2A41` | Primary Backgrounds / Text |
+| **Kesri Saffron** | `#FF9933` | Primary Buttons / Highlights |
+| **Divine Gold** | `#D4AF37` | Accents / Borders / Icons |
+| **Parchment White**| `#F8F9FA` | Text on Dark / Cards |
+| **Slate Grey** | `#64748B` | Secondary Text |
 
-## Deploy on Vercel
+## 🚀 Getting Started
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Prerequisites
+* Node.js 18+
+* A Google Cloud Project with billing enabled (for Maps & Vertex AI).
+* A Firebase project.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Installation
+
+1.  **Clone the repository**
+    ```bash
+    git clone [https://github.com/yourusername/sikh-ai.git](https://github.com/yourusername/sikh-ai.git)
+    cd sikh-ai
+    ```
+
+2.  **Install dependencies**
+    ```bash
+    npm install
+    ```
+
+3.  **Environment Setup**
+    Create a `.env.local` file in the root directory and add your API keys:
+    ```env
+    NEXT_PUBLIC_FIREBASE_API_KEY=your_key
+    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+    NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+    NEXT_PUBLIC_GOOGLE_MAPS_KEY=your_maps_key
+    GOOGLE_GEMINI_API_KEY=your_gemini_key
+    ```
+
+4.  **Run the development server**
+    ```bash
+    npm run dev
+    ```
+    Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## 📂 Project Structure
