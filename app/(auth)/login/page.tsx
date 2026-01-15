@@ -1,5 +1,9 @@
 import React from 'react';
 
+export const metadata = {
+  title: 'Login',
+};
+
 export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center">
