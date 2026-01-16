@@ -18,7 +18,7 @@ Sikh AI is a production-grade web ecosystem designed to serve the Sikh community
 The platform is built on a **Serverless Event-Driven Architecture**, prioritizing low latency and global scalability.
 
 ### System Overview
-```mermaid
+```
 graph TD
     A[User / Client] --> B[Next.js 14 App Router]
     B --> C{Data Requirement}
