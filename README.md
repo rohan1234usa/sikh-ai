@@ -17,17 +17,12 @@ Sikh AI is a production-grade web ecosystem designed to serve the Sikh community
 
 The platform is built on a **Serverless Event-Driven Architecture**, prioritizing low latency and global scalability.
 
-### System Overview
-```
-graph TD
-    A[User / Client] --> B[Next.js 14 App Router]
-    B --> C{Data Requirement}
-    C -->|Static/Auth| D[Firebase Auth / Firestore]
-    C -->|AI Query| E[Firebase Cloud Functions]
-    E --> F[Vertex AI / Gemini Pro]
-    F --> G[(Vector Store / SGGS Corpus)]
-    C -->|Real-time| H[Darbar Sahib API]
-    H --> B### Part 2: The RAG Pipeline
+### System Flow
+```text
+User → Next.js 14 (App Router)
+       ├── Auth/Database  → Firebase Auth & Firestore
+       ├── Live Data      → Darbar Sahib API (Hukamnama)
+       └── AI Orchestration → Cloud Functions → Vertex AI → Vector DB
 ```
 ### 🧠 The RAG Pipeline: Maintaining Theological Integrity
 To prevent model hallucinations—a critical requirement for religious texts—the system utilizes a custom **Retrieval-Augmented Generation (RAG)** pipeline:
