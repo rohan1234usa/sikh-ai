@@ -29,15 +29,24 @@ export default function ChatPage() {
     if (!input.trim()) return;
 
     const userMsg: Message = { role: 'user', text: input };
+
+    // Optimistic UI update
     setMessages((prev) => [...prev, userMsg]);
     setInput('');
     setLoading(true);
 
     try {
+      // Send the NEW message + the HISTORY (excluding the hardcoded initial greeting at index 0)
+      // This prevents "Double Greetings" in the LLM context.
+      const historyPayload = messages.slice(1);
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg.text }),
+        body: JSON.stringify({
+          message: userMsg.text,
+          history: historyPayload
+        }),
       });
 
       const data = await response.json();
@@ -49,7 +58,7 @@ export default function ChatPage() {
       setMessages((prev) => [...prev, { role: 'ai', text: data.text }]);
     } catch (error: any) {
       setMessages((prev) => [
-        ...prev, 
+        ...prev,
         { role: 'ai', text: `Error: ${error.message}`, isError: true }
       ]);
     } finally {
@@ -73,23 +82,22 @@ export default function ChatPage() {
       <div className="flex-grow overflow-y-auto p-4 md:p-8 space-y-6">
         {messages.map((msg, index) => (
           <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div 
-              className={`max-w-[85%] md:max-w-[75%] p-4 rounded-2xl shadow-sm text-sm md:text-base leading-relaxed ${
-                msg.role === 'user' 
-                  ? 'bg-navy text-white rounded-br-none' 
-                  : msg.isError 
-                    ? 'bg-red-50 border border-red-200 text-red-600 rounded-bl-none' 
+            <div
+              className={`max-w-[85%] md:max-w-[75%] p-4 rounded-2xl shadow-sm text-sm md:text-base leading-relaxed ${msg.role === 'user'
+                  ? 'bg-navy text-white rounded-br-none'
+                  : msg.isError
+                    ? 'bg-red-50 border border-red-200 text-red-600 rounded-bl-none'
                     : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none'
-              }`}
+                }`}
             >
               {/* MARKDOWN RENDERER */}
               <ReactMarkdown
                 components={{
-                  strong: ({node, ...props}) => <span className="font-bold" {...props} />,
-                  ul: ({node, ...props}) => <ul className="list-disc pl-4 space-y-2 my-2" {...props} />,
-                  ol: ({node, ...props}) => <ol className="list-decimal pl-4 space-y-2 my-2" {...props} />,
-                  p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
-                  blockquote: ({node, ...props}) => (
+                  strong: ({ node, ...props }) => <span className="font-bold" {...props} />,
+                  ul: ({ node, ...props }) => <ul className="list-disc pl-4 space-y-2 my-2" {...props} />,
+                  ol: ({ node, ...props }) => <ol className="list-decimal pl-4 space-y-2 my-2" {...props} />,
+                  p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+                  blockquote: ({ node, ...props }) => (
                     <blockquote className="border-l-4 border-kesri/40 pl-3 py-1 my-2 text-slate-500 italic bg-slate-50 rounded-r" {...props} />
                   ),
                 }}
@@ -118,7 +126,7 @@ export default function ChatPage() {
             placeholder="Ask a question..."
             className="w-full p-4 pr-14 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-kesri text-slate-800"
           />
-          <button 
+          <button
             type="submit"
             disabled={loading}
             className="absolute right-2 top-2 bottom-2 bg-kesri text-navy hover:bg-navy hover:text-white p-3 rounded-lg transition-all disabled:opacity-50"
