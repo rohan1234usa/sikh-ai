@@ -4,7 +4,7 @@
 [![Firebase](https://img.shields.io/badge/Firebase-Verified-orange?style=for-the-badge&logo=firebase)](https://firebase.google.com/)
 [![Google Gemini](https://img.shields.io/badge/AI-Gemini%20Pro-blueviolet?style=for-the-badge&logo=google-bard)](https://deepmind.google/technologies/gemini/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![Live Demo](https://img.shields.io/badge/Demo-Visit%20Live%20Site-2ea44f?style=for-the-badge&logo=vercel)](https://sikhai.vercel.app)
+[![Live App](https://img.shields.io/badge/Live%20App-Visit%20Live%20Site-2ea44f?style=for-the-badge&logo=vercel)](https://sikhai.vercel.app)
 
 > **Architecting a Modern Bridge Between Ancient Heritage and Generative AI.**
 
