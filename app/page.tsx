@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useAuth } from './context/AuthContext'; // Import the hook
+import Navbar from './components/Navbar';
 
 export default function Home() {
   const { user, signIn, logOut } = useAuth(); // Access auth functions
@@ -9,31 +10,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-offwhite flex flex-col font-sans">
       {/* Navigation */}
-      <nav className="w-full py-6 px-8 flex justify-between items-center bg-navy text-white">
-        <div className="text-2xl font-bold tracking-wide flex items-center gap-2">
-          <span className="text-kesri">ੴ</span> SikhAI
-        </div>
-        <div className="hidden md:flex gap-6 text-sm font-medium">
-          <Link href="/hukamnama" className="hover:text-kesri transition">Hukamnama</Link>
-          <Link href="/chat" className="hover:text-kesri transition">Ask SikhAI</Link>
-          <Link href="/seva" className="hover:text-kesri transition">Seva Events</Link>
-          <Link href="/shabad" className="hover:text-kesri transition">Shabad Search</Link>
-        </div>
-        
-        {/* DYNAMIC AUTH BUTTON */}
-        {user ? (
-           <div className="flex items-center gap-4">
-             <span className="text-sm text-slate-300">Sat Sri Akal, {user.displayName?.split(' ')[0]}</span>
-             <button onClick={logOut} className="border border-kesri text-kesri text-sm font-semibold px-4 py-2 rounded-lg hover:bg-kesri hover:text-navy transition-all">
-               Sign Out
-             </button>
-           </div>
-        ) : (
-          <button onClick={signIn} className="bg-kesri text-navy font-semibold px-4 py-2 rounded-lg hover:bg-white hover:text-kesri transition-all">
-            Sign In with Google
-          </button>
-        )}
-      </nav>
+      <Navbar />
 
       {/* Hero Section (Unchanged) */}
       <section className="relative bg-navy text-white py-24 px-6 overflow-hidden flex-grow">
@@ -49,12 +26,12 @@ export default function Home() {
               <span className="text-kesri">Illuminated by AI.</span>
             </h1>
             <p className="text-lg text-slate-300 max-w-lg leading-relaxed">
-              Explore Gurbani, find local Sangat, and discover daily Hukamnamas 
+              Explore Gurbani, find local Sangat, and discover daily Hukamnamas
               in a space designed for peace, learning, and Seva.
             </p>
-            
+
             <div className="flex flex-wrap gap-4 pt-4">
-              <Link 
+              <Link
                 href="/chat"
                 className="bg-kesri text-navy font-bold px-8 py-3 rounded-xl shadow-lg shadow-kesri/20 hover:scale-105 transition-transform flex items-center gap-2"
               >
@@ -63,7 +40,7 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
               </Link>
-              <Link 
+              <Link
                 href="/hukamnama"
                 className="border border-slate-600 hover:border-gold hover:text-gold text-slate-300 font-semibold px-8 py-3 rounded-xl transition-colors"
               >
@@ -73,22 +50,22 @@ export default function Home() {
           </div>
 
           <div className="relative hidden md:block">
-             <div className="bg-navy-light border border-slate-700 p-6 rounded-2xl shadow-2xl relative">
-                <div className="flex items-center gap-3 mb-4 border-b border-slate-700 pb-4">
-                   <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                   <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                   <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                   <span className="ml-auto text-xs text-slate-500">Sikh AI Chat</span>
+            <div className="bg-navy-light border border-slate-700 p-6 rounded-2xl shadow-2xl relative">
+              <div className="flex items-center gap-3 mb-4 border-b border-slate-700 pb-4">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <span className="ml-auto text-xs text-slate-500">Sikh AI Chat</span>
+              </div>
+              <div className="space-y-4">
+                <div className="bg-slate-800/50 p-3 rounded-lg rounded-tl-none border border-slate-700 w-3/4">
+                  <p className="text-sm text-slate-300">Waheguru Ji Ka Khalsa... How can I help you understand Gurbani today?</p>
                 </div>
-                <div className="space-y-4">
-                  <div className="bg-slate-800/50 p-3 rounded-lg rounded-tl-none border border-slate-700 w-3/4">
-                    <p className="text-sm text-slate-300">Waheguru Ji Ka Khalsa... How can I help you understand Gurbani today?</p>
-                  </div>
-                  <div className="bg-kesri/10 p-3 rounded-lg rounded-tr-none border border-kesri/20 w-3/4 ml-auto">
-                    <p className="text-sm text-kesri">What does the Guru Granth Sahib say about humility?</p>
-                  </div>
+                <div className="bg-kesri/10 p-3 rounded-lg rounded-tr-none border border-kesri/20 w-3/4 ml-auto">
+                  <p className="text-sm text-kesri">What does the Guru Granth Sahib say about humility?</p>
                 </div>
-             </div>
+              </div>
+            </div>
           </div>
 
         </div>
