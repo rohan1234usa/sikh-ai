@@ -1,8 +1,9 @@
 # Sikh AI: Engineering Spiritual Intelligence 🪯
 
-[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![Firebase](https://img.shields.io/badge/Firebase-Verified-orange?style=for-the-badge&logo=firebase)](https://firebase.google.com/)
-[![Google Gemini](https://img.shields.io/badge/AI-Gemini%20Pro-blueviolet?style=for-the-badge&logo=google-bard)](https://deepmind.google/technologies/gemini/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Firebase](https://img.shields.io/badge/Firebase-Auth%20%2B%20Firestore-orange?style=for-the-badge&logo=firebase)](https://firebase.google.com/)
+[![Google Gemini](https://img.shields.io/badge/AI-Gemini-blueviolet?style=for-the-badge&logo=google-gemini)](https://deepmind.google/technologies/gemini/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 [![Live Demo](https://img.shields.io/badge/Demo-Visit%20Live%20Site-2ea44f?style=for-the-badge&logo=vercel)](https://sikhai.vercel.app)
 
@@ -10,57 +11,57 @@
 
 ## 📖 About The Project
 
-**Sikh AI** is a production-grade web ecosystem designed to modernize how the Sikh community interacts with spiritual heritage. In an era of generic LLMs, religious hallucinations are a critical risk. Sikh AI solves this by coupling the power of **Google Gemini Pro** with a rigorous **Retrieval-Augmented Generation (RAG)** pipeline, ensuring every insight is theologically grounded and halluncination-free.
+**Sikh AI** is a web platform designed to modernize how the Sikh community interacts with its spiritual heritage. It pairs **Google Gemini** with a carefully-tuned Sikhi system prompt and streaming responses, so answers stay rooted in the teachings of the *Sri Guru Granth Sahib Ji* rather than drifting into generic advice.
 
-Whether it's fetching the daily *Hukamnama* in real-time, coordinating *Seva* (community service) events, or exploring the *Guru Granth Sahib* through semantic search, Sikh AI delivers a seamless, culturally immersive experience.
+Whether it's fetching the daily *Hukamnama* from Darbar Sahib, coordinating *Seva* (community service) events, or looking up Shabads from the *Guru Granth Sahib* by Ang, Sikh AI aims for a calm, culturally-considered experience — now with light/dark theming and an accessible, mobile-friendly interface.
 
 ### 🌟 Key Features
 
-*   **🛡️ Hallucination-Proof RAG Pipeline**: Custom vector search implementation that explicitly grounds AI responses in verified Gurbani texts, rejecting generic or incorrect spiritual advice.
-*   **⚡ Real-Time Hukamnama**: Fetches, caches, and renders the daily decree from Darbar Sahib with sub-second latency using Next.js Data Cache.
-*   **🧠 Context-Aware Chat**: A "Granthi-in-the-loop" style AI chat that understands nuance, context, and history, powered by Vertex AI.
-*   **🤝 Seva Event Coordination**: Real-time event management system using Firestore to organize and track community volunteering.
-*   **🎨 accessible & Culturally Rich UI**: A bespoke design system featuring "Nihang Navy" and "Kesri Saffron" explicitly designed for WCAG accessibility (18:1 contrast ratios).
+*   **💬 Streaming, Gurbani-Guided Chat**: Responses stream token-by-token from Google Gemini (`gemini-flash-latest`), steered by a system instruction to stay grounded in Guru Granth Sahib teachings. Conversations persist locally (`localStorage`) and include starter prompts, copy, regenerate, and a stop control.
+*   **⚡ Daily Hukamnama**: Server-rendered fetch of the day's decree from Darbar Sahib (via the GurbaniNow API), rendered in Gurmukhi with English translation.
+*   **📖 Shabad Lookup**: Browse any Ang (1–1430) of the Guru Granth Sahib through a validated proxy to the GurbaniNow API.
+*   **🤝 Seva Event Coordination**: A real-time event board backed by Firestore, with Google sign-in (Firebase Auth) so Sangat can post and join volunteering opportunities.
+*   **🎨 Accessible, Themeable UI**: A bespoke design system in "Nihang Navy" and "Kesri Saffron" with class-based light/dark mode (no-flash theme script, semantic CSS-variable tokens), keyboard focus-visible rings, ARIA-labelled controls, `prefers-reduced-motion` support, and an AA-contrast accent token.
 
 ## 🏗️ Technical Architecture
 
-This project is not just a wrapper; it's a showcase of modern **Serverless Event-Driven Architecture**.
+A **Next.js 16 App Router** application (React 19, Tailwind CSS v4) that talks directly to Gemini and Firebase — no intermediate services to keep the stack lean.
 
 ```mermaid
 graph TD
-    User([User]) --> Next[Next.js 14 App Router]
+    User([User]) --> Next[Next.js 16 App Router]
     Next --> Auth[Firebase Auth]
     Next --> DB[Firestore Real-time DB]
-    Next --> Hukam[Darbar Sahib API]
-    
+    Next --> Hukam[GurbaniNow / Darbar Sahib API]
+
     subgraph "AI Core"
-    Next --> Functions[Cloud Functions]
-    Functions --> Vector[Vector DB]
-    Vector <--> Gemini[Gemini Pro Model]
+    Next --> Route["/api/chat Route (streaming)"]
+    Route --> Gemini[Google Gemini API]
     end
 ```
 
 ### Engineering Highlights
-*   **Hybrid Rendering**: Uses **React Server Components (RSC)** for static content and Client Components for interactive AI streams.
-*   **Edge Optimization**: API routes are optimized for edge deployment to minimize TTFB (Time To First Byte).
-*   **Zero-Layout Shift**: Advanced caching strategies to normalize multilingual text (Gurmukhi/English) before render.
+*   **Hybrid Rendering**: React Server Components for static/data-fetched content (e.g. the server-rendered Hukamnama) with Client Components for the interactive AI chat.
+*   **Streamed Responses**: The chat API returns a raw `text/plain` `ReadableStream`, so tokens render as they generate — minimizing time-to-first-token.
+*   **Theming without flash**: An inline pre-paint script applies the stored/system theme before first paint; semantic `@theme inline` tokens drive both light and dark modes.
+*   **Multilingual typography**: Geist / Geist Mono for Latin text and Noto Sans Gurmukhi for Gurmukhi script, wired through Tailwind v4 font tokens.
 
 ## 🚀 Getting Started
 
-Follow these steps to set up the temple of knowledge locally.
+Follow these steps to set up the project locally.
 
 ### Prerequisites
 
 *   Node.js 18+
 *   npm or yarn
-*   A Firebase Project
-*   Google Cloud Console Account (for Gemini API)
+*   A Firebase project (Auth + Firestore)
+*   A Google Gemini API key ([Google AI Studio](https://aistudio.google.com/))
 
 ### Installation
 
 1.  **Clone the repository**
     ```bash
-    git clone https://github.com/yourusername/sikh-ai.git
+    git clone https://github.com/rohan1234usa/sikh-ai.git
     cd sikh-ai
     ```
 
@@ -72,13 +73,19 @@ Follow these steps to set up the temple of knowledge locally.
 3.  **Set up Environment Variables**
     Create a `.env.local` file in the root directory:
     ```env
+    # Google Gemini (server-side)
+    GEMINI_API_KEY=your_gemini_key
+
+    # Firebase (client-side)
     NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
     NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-    GOOGLE_GEMINI_API_KEY=your_gemini_key
+    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+    NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
     ```
 
-4.  **Ignite the Engine**
+4.  **Run the dev server**
     ```bash
     npm run dev
     ```
@@ -86,52 +93,52 @@ Follow these steps to set up the temple of knowledge locally.
 ## 💻 Usage Examples
 
 ### 1. The Hukamnama Fetcher (Server-Side)
-We use Next.js `fetch` with caching to ensure the daily decree is loaded instantly.
+A server component fetches the daily decree fresh on each request.
 
 ```typescript
 // app/hukamnama/page.tsx
 async function getHukamnama() {
   const res = await fetch('https://api.gurbaninow.com/v2/hukamnama/today', {
-    next: { revalidate: 3600 } // Cache for 1 hour
+    cache: 'no-store', // always the current day's Hukamnama
   });
-  
-  if (!res.ok) throw new Error('Failed to fetch divine decree');
+
+  if (!res.ok) throw new Error('Failed to fetch');
   return res.json();
 }
 ```
 
-### 2. The AI Proxy Route (Edge Ready)
-Handling the Shabad lookup with input validation before hitting our RAG layer.
+### 2. The Streaming Chat Route
+The chat endpoint streams Gemini's output back as `text/plain`, steered by a Sikhi system instruction and the recent conversation history.
 
 ```typescript
-// app/api/shabad/route.ts
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const query = searchParams.get('query');
+// app/api/chat/route.ts
+const chat = model.startChat({ history: chatHistory });
+const result = await chat.sendMessageStream(message);
 
-  if (!query || !/^\d+$/.test(query)) {
-    return NextResponse.json({ error: 'Invalid Ang number' }, { status: 400 });
-  }
+const stream = new ReadableStream<Uint8Array>({
+  async start(controller) {
+    for await (const chunk of result.stream) {
+      controller.enqueue(new TextEncoder().encode(chunk.text()));
+    }
+    controller.close();
+  },
+});
 
-  // Proxy to GurbaniNow API with error handling
-  try {
-    const res = await fetch(`https://api.gurbaninow.com/v2/ang/${query}`);
-    return NextResponse.json(await res.json());
-  } catch (error) {
-    return NextResponse.json({ error: 'Source Unavailable' }, { status: 500 });
-  }
-}
+return new Response(stream, {
+  headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+});
 ```
 
 ## 🗺️ Roadmap
 
-*   [ ] **Voice Mode**: Implement speech-to-text for audio queries in Punjabi.
+*   [ ] **Voice Mode**: Speech-to-text for audio queries in Punjabi.
+*   [ ] **Retrieval grounding**: A real citation/retrieval layer over Gurbani texts to anchor answers to specific Shabads.
+*   [ ] **Cloud-synced history**: Optional Firestore-backed chat history across devices (currently local only).
 *   [ ] **Mobile App**: React Native export for iOS/Android.
-*   [ ] **Sanocya Integration**: Calendar integration for historical Sikh events.
 
 ## 🤝 Contributing
 
-Contributions make the software community amazing. Any contributions you make are **greatly appreciated**.
+Contributions are welcome. Any contributions you make are **greatly appreciated**.
 
 1.  Fork the Project
 2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
@@ -145,6 +152,6 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 👤 Contact
 
-**Rohan** - [LinkedIn](https://linkedin.com) - [Twitter](https://twitter.com)
+**Rohan Singh** — [Portfolio](https://built-by-rohan.vercel.app/) · [LinkedIn](https://www.linkedin.com/in/rohan123/)
 
-Project Link: [https://github.com/rohan/sikh-ai](https://github.com/rohan/sikh-ai)
+Project Link: [https://github.com/rohan1234usa/sikh-ai](https://github.com/rohan1234usa/sikh-ai)

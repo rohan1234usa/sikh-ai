@@ -23,8 +23,6 @@ export async function GET(request: Request) {
     // ANG SEARCH ONLY
     // -------------------------
     const url = `${BASE_URL}/ang/${cleanQuery}`;
-    console.log(`[Proxy] Fetching Ang: ${url}`);
-
     const res = await fetch(url);
     if (!res.ok) {
       // Ang 1 should definitely exist. If 404, API is misbehaving or out of range (though client checks range).
@@ -33,10 +31,11 @@ export async function GET(request: Request) {
     const data = await res.json();
     return NextResponse.json(data);
 
-  } catch (error: any) {
-    console.error('[Proxy] Critical Error:', error.message);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[Proxy] Critical Error:', message);
     return NextResponse.json(
-      { error: `Gurbani Source Error: ${error.message}` },
+      { error: `Gurbani Source Error: ${message}` },
       { status: 500 }
     );
   }

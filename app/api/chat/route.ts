@@ -1,13 +1,15 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
+export const maxDuration = 30;
+
 const SYSTEM_INSTRUCTION = `
-You are Sikh AI, a digital seva (service) dedicated to sharing the wisdom of Sikhi. 
+You are Sikh AI, a digital seva (service) dedicated to sharing the wisdom of Sikhi.
 
 GUIDELINES:
 1. Your answers must be rooted in the teachings of the Sri Guru Granth Sahib Ji.
 2. When explaining concepts (like Seva, Simran, Hukam), try to include a relevant Gurbani quote or reference in English.
-3. Be humble, respectful, and concise. 
+3. Be humble, respectful, and concise.
 4. If you are asked a political or controversial question, steer the answer back to spiritual principles (Gurmat).
 5. Maintain context of the ongoing conversation. If the user refers to "he", "her", or "it" from a previous message, infer the context correctly.
 
@@ -16,13 +18,20 @@ Now, please introduce yourself.
 
 const INITIAL_GREETING = "Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh. I am Sikh AI. I am here to help you explore the wisdom of the Gurus. How can I serve you today?";
 
+const FRIENDLY_ERROR = "Sorry, something went wrong on our end. Please try again.";
+
 export async function POST(req: Request) {
   try {
     const { message, history } = await req.json();
-    const apiKey = process.env.GEMINI_API_KEY;
 
+    if (typeof message !== 'string' || message.trim() === '') {
+      return NextResponse.json({ error: "Please enter a message." }, { status: 400 });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: "API Key is missing" }, { status: 500 });
+      console.error("Chat Error: GEMINI_API_KEY is missing");
+      return NextResponse.json({ error: FRIENDLY_ERROR }, { status: 500 });
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
@@ -40,36 +49,47 @@ export async function POST(req: Request) {
       },
     ];
 
-    // 2. Format User History (Limit to last 10 turns to save context/tokens if needed, 
-    // though Gemini has a large window, this is good hygiene)
-    // We expect history from frontend to be: [{ role: 'user' | 'ai', text: '...' }, ...]
+    // 2. Format User History (limit to the last 10 turns to keep context lean)
+    // We expect history from the frontend as: [{ role: 'user' | 'ai', text: '...' }, ...]
     const formattedUserHistory = (Array.isArray(history) ? history : [])
-      .slice(-10) // Take last 10 messages
-      .map((msg: any) => ({
+      .slice(-10)
+      .map((msg: { role?: string; text?: string }) => ({
         role: msg.role === 'ai' ? 'model' : 'user',
         parts: [{ text: msg.text || "" }],
       }))
-      // Filter out any messages that might be invalid or empty
       .filter(msg => msg.parts[0].text.trim() !== "");
 
-    // 3. specific check: passing the exact same message as the last history item 
-    // can sometimes confuse models if logic isn't clean, but here we just append.
-
-    // Combine Base + User History
     const chatHistory = [...baseHistory, ...formattedUserHistory];
 
-    const chat = model.startChat({
-      history: chatHistory,
+    const chat = model.startChat({ history: chatHistory });
+    const result = await chat.sendMessageStream(message);
+
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        try {
+          for await (const chunk of result.stream) {
+            controller.enqueue(encoder.encode(chunk.text()));
+          }
+          controller.close();
+        } catch (err) {
+          console.error("Stream error:", err);
+          // Aborts the HTTP body; the client's reader throws and keeps partial text
+          controller.error(err);
+        }
+      },
     });
 
-    const result = await chat.sendMessage(message);
-    const response = await result.response;
-    const text = response.text();
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-store",
+        "X-Accel-Buffering": "no",
+      },
+    });
 
-    return NextResponse.json({ text });
-
-  } catch (error: any) {
+  } catch (error) {
     console.error("Chat Error:", error);
-    return NextResponse.json({ error: error.message || "Unknown Error" }, { status: 500 });
+    return NextResponse.json({ error: FRIENDLY_ERROR }, { status: 500 });
   }
 }

@@ -9,6 +9,7 @@ import { collection, addDoc } from 'firebase/firestore';
 export default function CreateSevaPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   // Form State
   const [formData, setFormData] = useState({
@@ -27,41 +28,36 @@ export default function CreateSevaPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
 
     try {
-      let colorClass = "bg-blue-100 text-blue-700 border-blue-200";
-      if (formData.category === 'Langar') colorClass = "bg-orange-100 text-orange-700 border-orange-200";
-      if (formData.category === 'Education') colorClass = "bg-green-100 text-green-700 border-green-200";
-
       await addDoc(collection(db, "seva_events"), {
         title: formData.title,
         location: formData.location,
         date: formData.date,
         needed: Number(formData.needed),
-        volunteers: 0,
+        attendees: [],
         category: formData.category,
-        color: colorClass,
+        description: formData.description,
         createdAt: new Date()
       });
 
       router.push('/seva');
-      
-    } catch (error) {
-      console.error("Error adding document: ", error);
-      alert("Error creating event. Check console.");
-    } finally {
+
+    } catch (err) {
+      console.error("Error adding document: ", err);
+      setError('Something went wrong creating the event. Please try again.');
       setLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen bg-offwhite font-sans p-6">
-      <div className="max-w-xl mx-auto bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden">
-        
+    <main className="flex-1 p-6 py-8">
+      <div className="max-w-xl mx-auto bg-surface-raised rounded-xl shadow-lg border border-edge overflow-hidden">
+
         {/* Header */}
-        <div className="bg-navy p-6 text-white flex justify-between items-center">
+        <div className="bg-navy dark:bg-navy-light p-6 text-white flex justify-between items-center">
           <h1 className="text-xl font-bold">Post New Seva</h1>
-          {/* Made Cancel button explicitly white/gray so it pops against Navy */}
           <Link href="/seva" className="text-sm text-slate-300 hover:text-white hover:underline transition">
             Cancel
           </Link>
@@ -69,24 +65,23 @@ export default function CreateSevaPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
-          
+
           <div>
-            {/* Added text-navy explicitly */}
-            <label className="block text-sm font-bold text-navy mb-2">Event Title</label>
-            <input 
-              name="title" required
-              className="w-full p-3 rounded-lg border border-slate-200 focus:outline-none focus:border-kesri focus:ring-1 focus:ring-kesri transition text-navy bg-white"
+            <label htmlFor="title" className="block text-sm font-bold text-ink mb-2">Event Title</label>
+            <input
+              id="title" name="title" required
+              className="w-full p-3 rounded-lg border border-edge focus:border-kesri focus:ring-1 focus:ring-kesri transition text-ink bg-surface-raised"
               placeholder="e.g. Weekend Langar Prep"
               onChange={handleChange}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-bold text-navy mb-2">Category</label>
-              <select 
-                name="category" 
-                className="w-full p-3 rounded-lg border border-slate-200 bg-white text-navy"
+              <label htmlFor="category" className="block text-sm font-bold text-ink mb-2">Category</label>
+              <select
+                id="category" name="category"
+                className="w-full p-3 rounded-lg border border-edge bg-surface-raised text-ink"
                 onChange={handleChange}
               >
                 <option value="Langar">Langar</option>
@@ -96,10 +91,10 @@ export default function CreateSevaPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-bold text-navy mb-2">Volunteers Needed</label>
-              <input 
-                name="needed" type="number" required min="1"
-                className="w-full p-3 rounded-lg border border-slate-200 text-navy bg-white"
+              <label htmlFor="needed" className="block text-sm font-bold text-ink mb-2">Volunteers Needed</label>
+              <input
+                id="needed" name="needed" type="number" required min="1"
+                className="w-full p-3 rounded-lg border border-edge text-ink bg-surface-raised"
                 placeholder="e.g. 5"
                 onChange={handleChange}
               />
@@ -107,29 +102,47 @@ export default function CreateSevaPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-navy mb-2">Location (Gurudwara)</label>
-            <input 
-              name="location" required
-              className="w-full p-3 rounded-lg border border-slate-200 text-navy bg-white"
+            <label htmlFor="location" className="block text-sm font-bold text-ink mb-2">Location (Gurudwara)</label>
+            <input
+              id="location" name="location" required
+              className="w-full p-3 rounded-lg border border-edge text-ink bg-surface-raised"
               placeholder="e.g. Gurudwara Singh Sabha"
               onChange={handleChange}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-navy mb-2">Date & Time</label>
-            <input 
-              name="date" required
-              className="w-full p-3 rounded-lg border border-slate-200 text-navy bg-white"
+            <label htmlFor="date" className="block text-sm font-bold text-ink mb-2">Date & Time</label>
+            <input
+              id="date" name="date" required
+              className="w-full p-3 rounded-lg border border-edge text-ink bg-surface-raised"
               placeholder="e.g. Sat, Jan 20 • 4:00 AM"
               onChange={handleChange}
             />
           </div>
 
-          <button 
-            type="submit" 
+          <div>
+            <label htmlFor="description" className="block text-sm font-bold text-ink mb-2">
+              Description <span className="font-normal text-ink-faint">(optional)</span>
+            </label>
+            <textarea
+              id="description" name="description" rows={3}
+              className="w-full p-3 rounded-lg border border-edge text-ink bg-surface-raised resize-none"
+              placeholder="What will volunteers be doing?"
+              onChange={handleChange}
+            />
+          </div>
+
+          {error && (
+            <p role="alert" className="text-sm font-medium text-red-600 dark:text-red-400">
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
             disabled={loading}
-            className="w-full bg-navy text-white font-bold py-4 rounded-lg hover:bg-opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-navy text-white dark:bg-kesri dark:text-navy font-bold py-4 rounded-lg hover:bg-navy-light dark:hover:bg-kesri-hover transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Posting...' : 'Create Seva Event'}
           </button>

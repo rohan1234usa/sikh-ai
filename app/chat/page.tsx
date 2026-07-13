@@ -1,140 +1,249 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
-import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
-import ReactMarkdown from 'react-markdown';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowDownIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
+import ChatMessage from '../components/chat/ChatMessage';
+import ChatInput from '../components/chat/ChatInput';
+import StarterPrompts from '../components/chat/StarterPrompts';
+import { useChatStorage, type Message } from '../components/chat/useChatStorage';
 
-type Message = {
-  role: 'user' | 'ai';
-  text: string;
-  isError?: boolean;
-};
+// Fixed id/timestamp: this message is rendered during SSR, so it must be
+// identical between server and client renders.
+const INITIAL_MESSAGES: Message[] = [
+  {
+    id: 'greeting',
+    role: 'ai',
+    text: 'Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh. How can I help you learn about Sikhism today?',
+    createdAt: 0,
+  },
+];
+
+const FRIENDLY_ERROR = 'Sorry, something went wrong. Please try again.';
 
 export default function ChatPage() {
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'ai', text: 'Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh. How can I help you learn about Sikhism today?' }
-  ]);
-  const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [confirmingClear, setConfirmingClear] = useState(false);
+  const { messages, setMessages, hydrated, save, clear } = useChatStorage(INITIAL_MESSAGES);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const abortRef = useRef<AbortController | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const atBottomRef = useRef(true);
+  const [showJump, setShowJump] = useState(false);
+
+  // Persist once a stream finalizes (not per-token); skip greeting-only state
+  useEffect(() => {
+    if (hydrated && !isStreaming && messages.length > 1) save(messages);
+  }, [messages, isStreaming, hydrated, save]);
+
+  // Stick to bottom while new content arrives, unless the user scrolled up
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el && atBottomRef.current) el.scrollTop = el.scrollHeight;
+  }, [messages]);
+
+  // Abort any in-flight stream on unmount
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  const onScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    atBottomRef.current = atBottom;
+    setShowJump(!atBottom);
   };
-  useEffect(() => { scrollToBottom() }, [messages]);
 
-  const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  const jumpToBottom = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+    atBottomRef.current = true;
+    setShowJump(false);
+  };
 
-    const userMsg: Message = { role: 'user', text: input };
+  async function send(text: string, baseMessages: Message[]) {
+    const trimmed = text.trim();
+    if (!trimmed || isStreaming) return;
 
-    // Optimistic UI update
-    setMessages((prev) => [...prev, userMsg]);
+    const userMsg: Message = { id: crypto.randomUUID(), role: 'user', text: trimmed, createdAt: Date.now() };
+    const aiMsg: Message = { id: crypto.randomUUID(), role: 'ai', text: '', createdAt: Date.now() };
+    setMessages([...baseMessages, userMsg, aiMsg]);
     setInput('');
-    setLoading(true);
+    setConfirmingClear(false);
+    setIsStreaming(true);
+    atBottomRef.current = true;
+
+    // Persist the question immediately so a refresh mid-stream keeps it
+    save([...baseMessages, userMsg]);
+
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     try {
-      // Send the NEW message + the HISTORY (excluding the hardcoded initial greeting at index 0)
-      // This prevents "Double Greetings" in the LLM context.
-      const historyPayload = messages.slice(1);
-
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: userMsg.text,
-          history: historyPayload
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Something went wrong");
+      // History: only completed (user -> non-error AI) exchanges, kept in
+      // strict alternation so Gemini never receives two consecutive same-role
+      // turns (which it rejects with a 400). Unanswered user turns and error
+      // bubbles left behind by a stop/failure are dropped rather than orphaned.
+      const convo = baseMessages.filter(m => m.id !== 'greeting');
+      const history: { role: string; text: string }[] = [];
+      for (let i = 0; i < convo.length; i++) {
+        const m = convo[i];
+        const next = convo[i + 1];
+        if (m.role === 'user' && next && next.role === 'ai' && !next.isError && next.text.trim()) {
+          history.push({ role: 'user', text: m.text }, { role: 'ai', text: next.text });
+          i++; // consume the paired AI turn
+        }
       }
 
-      setMessages((prev) => [...prev, { role: 'ai', text: data.text }]);
-    } catch (error: any) {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'ai', text: `Error: ${error.message}`, isError: true }
-      ]);
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: trimmed, history }),
+        signal: controller.signal,
+      });
+
+      if (!res.ok || !res.body) {
+        let friendly: string | null = null;
+        if (res.headers.get('content-type')?.includes('json')) {
+          friendly = (await res.json()).error;
+        }
+        throw new Error(friendly ?? FRIENDLY_ERROR);
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let received = false;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        if (chunk) received = true;
+        setMessages(prev => prev.map(m => (m.id === aiMsg.id ? { ...m, text: m.text + chunk } : m)));
+      }
+      if (!received) {
+        // Never leave a permanently empty bubble
+        setMessages(prev => prev.map(m =>
+          m.id === aiMsg.id ? { ...m, text: FRIENDLY_ERROR, isError: true } : m
+        ));
+      }
+    } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        // User pressed Stop: keep partial text; drop the bubble if nothing arrived
+        setMessages(prev => prev.flatMap(m =>
+          m.id !== aiMsg.id ? [m] : m.text ? [{ ...m, interrupted: true }] : []
+        ));
+      } else {
+        const friendly = err instanceof Error && err.message ? err.message : FRIENDLY_ERROR;
+        setMessages(prev => prev.map(m =>
+          m.id === aiMsg.id
+            ? (m.text ? { ...m, interrupted: true } : { ...m, text: friendly, isError: true })
+            : m
+        ));
+      }
     } finally {
-      setLoading(false);
+      abortRef.current = null;
+      setIsStreaming(false);
     }
+  }
+
+  const regenerate = () => {
+    if (isStreaming) return;
+    const lastUserIdx = messages.findLastIndex(m => m.role === 'user');
+    if (lastUserIdx === -1) return;
+    // send() re-appends the user message, so slice it off the base
+    send(messages[lastUserIdx].text, messages.slice(0, lastUserIdx));
   };
 
+  const confirmClear = () => {
+    abortRef.current?.abort();
+    clear();
+    setConfirmingClear(false);
+  };
+
+  const lastMessage = messages[messages.length - 1];
+
   return (
-    <main className="flex flex-col h-screen bg-offwhite font-sans">
-      <nav className="bg-navy text-white p-4 shadow-md flex justify-between items-center shrink-0">
-        <Link href="/" className="flex items-center gap-2 hover:text-kesri transition font-bold">
-          <span className="text-kesri">←</span> Home
-        </Link>
-        <div className="text-center">
-          <h1 className="font-bold">Sikh AI Chat</h1>
-          <p className="text-xs text-slate-400">Powered by Gemini</p>
-        </div>
-        <div className="w-16"></div>
-      </nav>
+    <main className="flex flex-col h-[calc(100dvh-4rem)]">
+      <h1 className="sr-only">Ask SikhAI</h1>
 
-      <div className="flex-grow overflow-y-auto p-4 md:p-8 space-y-6">
-        {messages.map((msg, index) => (
-          <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div
-              className={`max-w-[85%] md:max-w-[75%] p-4 rounded-2xl shadow-sm text-sm md:text-base leading-relaxed ${msg.role === 'user'
-                  ? 'bg-navy text-white rounded-br-none'
-                  : msg.isError
-                    ? 'bg-red-50 border border-red-200 text-red-600 rounded-bl-none'
-                    : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none'
-                }`}
+      {/* Slim chat header */}
+      <div className="flex items-center justify-between px-4 py-2 bg-surface-raised border-b border-edge shrink-0">
+        <p className="text-xs text-ink-faint">Powered by Gemini</p>
+        {confirmingClear ? (
+          <div className="flex items-center gap-2 text-sm" role="group" aria-label="Confirm clearing the conversation">
+            <span className="text-ink-muted">Clear this chat?</span>
+            <button
+              type="button"
+              onClick={confirmClear}
+              className="font-semibold text-red-600 dark:text-red-400 hover:underline px-1.5 py-1 rounded-lg"
             >
-              {/* MARKDOWN RENDERER */}
-              <ReactMarkdown
-                components={{
-                  strong: ({ node, ...props }) => <span className="font-bold" {...props} />,
-                  ul: ({ node, ...props }) => <ul className="list-disc pl-4 space-y-2 my-2" {...props} />,
-                  ol: ({ node, ...props }) => <ol className="list-decimal pl-4 space-y-2 my-2" {...props} />,
-                  p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
-                  blockquote: ({ node, ...props }) => (
-                    <blockquote className="border-l-4 border-kesri/40 pl-3 py-1 my-2 text-slate-500 italic bg-slate-50 rounded-r" {...props} />
-                  ),
-                }}
-              >
-                {msg.text}
-              </ReactMarkdown>
-            </div>
+              Clear
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmingClear(false)}
+              className="text-ink-muted hover:text-ink px-1.5 py-1 rounded-lg hover:bg-edge/60 transition-colors"
+            >
+              Cancel
+            </button>
           </div>
-        ))}
-        {loading && (
-          <div className="flex justify-start animate-pulse">
-            <div className="bg-slate-200 h-10 w-24 rounded-full flex items-center justify-center text-xs text-slate-500">
-              Thinking...
-            </div>
-          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setConfirmingClear(true)}
+            disabled={messages.length <= 1}
+            className="flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink disabled:opacity-50 transition-colors p-1.5 rounded-lg hover:bg-edge/60"
+          >
+            <PencilSquareIcon className="w-4 h-4" aria-hidden="true" />
+            New chat
+          </button>
         )}
-        <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 bg-white border-t border-slate-200 shrink-0">
-        <form onSubmit={sendMessage} className="max-w-4xl mx-auto relative flex gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask a question..."
-            className="w-full p-4 pr-14 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-kesri text-slate-800"
-          />
+      {/* Messages */}
+      <div className="relative flex-1 min-h-0">
+        <div ref={scrollRef} onScroll={onScroll} aria-live="polite" aria-atomic="false" className="h-full overflow-y-auto p-4 md:p-8 space-y-6">
+          {hydrated && (
+            <>
+              {messages.map((msg) => (
+                <ChatMessage
+                  key={msg.id}
+                  message={msg}
+                  isTyping={isStreaming && msg.id === lastMessage?.id && msg.role === 'ai' && msg.text === ''}
+                  showActions={msg.role === 'ai' && !msg.isError && msg.id !== 'greeting' && msg.text !== ''}
+                  onRegenerate={
+                    msg.id === lastMessage?.id && msg.role === 'ai' && !msg.isError && !isStreaming && msg.id !== 'greeting'
+                      ? regenerate
+                      : undefined
+                  }
+                />
+              ))}
+              {messages.length <= 1 && !isStreaming && (
+                <StarterPrompts onSelect={(prompt) => send(prompt, messages)} />
+              )}
+            </>
+          )}
+        </div>
+
+        {showJump && (
           <button
-            type="submit"
-            disabled={loading}
-            className="absolute right-2 top-2 bottom-2 bg-kesri text-navy hover:bg-navy hover:text-white p-3 rounded-lg transition-all disabled:opacity-50"
+            type="button"
+            onClick={jumpToBottom}
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-navy text-white dark:bg-kesri dark:text-navy text-xs font-semibold px-3 py-2 rounded-full shadow-lg hover:opacity-90 transition-opacity"
           >
-            <PaperAirplaneIcon className="w-5 h-5" />
+            <ArrowDownIcon className="w-3.5 h-3.5" aria-hidden="true" />
+            Latest
           </button>
-        </form>
+        )}
       </div>
+
+      <ChatInput
+        value={input}
+        onChange={setInput}
+        onSend={() => send(input, messages)}
+        onStop={() => abortRef.current?.abort()}
+        isStreaming={isStreaming}
+      />
     </main>
   );
 }

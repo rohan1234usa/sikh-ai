@@ -1,18 +1,9 @@
-'use client';
-
 import Link from 'next/link';
-import { useAuth } from './context/AuthContext'; // Import the hook
-import Navbar from './components/Navbar';
 
 export default function Home() {
-  const { user, signIn, logOut } = useAuth(); // Access auth functions
-
   return (
-    <main className="min-h-screen bg-offwhite flex flex-col font-sans">
-      {/* Navigation */}
-      <Navbar />
-
-      {/* Hero Section (Unchanged) */}
+    <main className="flex-1 flex flex-col">
+      {/* Hero Section */}
       <section className="relative bg-navy text-white py-24 px-6 overflow-hidden flex-grow">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-gold/10 blur-3xl rounded-full -translate-y-1/4 translate-x-1/4 pointer-events-none"></div>
 
@@ -33,10 +24,10 @@ export default function Home() {
             <div className="flex flex-wrap gap-4 pt-4">
               <Link
                 href="/chat"
-                className="bg-kesri text-navy font-bold px-8 py-3 rounded-xl shadow-lg shadow-kesri/20 hover:scale-105 transition-transform flex items-center gap-2"
+                className="bg-kesri text-navy font-bold px-8 py-3 rounded-xl shadow-lg shadow-kesri/20 motion-safe:hover:scale-105 transition-transform flex items-center gap-2"
               >
                 Start Chatting
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
               </Link>
@@ -44,18 +35,18 @@ export default function Home() {
                 href="/hukamnama"
                 className="border border-slate-600 hover:border-gold hover:text-gold text-slate-300 font-semibold px-8 py-3 rounded-xl transition-colors"
               >
-                Today's Hukamnama
+                Today&apos;s Hukamnama
               </Link>
             </div>
           </div>
 
-          <div className="relative hidden md:block">
-            <div className="bg-navy-light border border-slate-700 p-6 rounded-2xl shadow-2xl relative">
+          <div className="relative mt-4 md:mt-0">
+            <div className="bg-navy-light border border-slate-700 p-4 md:p-6 rounded-2xl shadow-2xl relative">
               <div className="flex items-center gap-3 mb-4 border-b border-slate-700 pb-4">
                 <div className="w-3 h-3 rounded-full bg-red-500"></div>
                 <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <span className="ml-auto text-xs text-slate-500">Sikh AI Chat</span>
+                <span className="ml-auto text-xs text-slate-400">Sikh AI Chat</span>
               </div>
               <div className="space-y-4">
                 <div className="bg-slate-800/50 p-3 rounded-lg rounded-tl-none border border-slate-700 w-3/4">

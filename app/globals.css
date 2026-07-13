@@ -1,23 +1,75 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  /* Define your custom colors here for Tailwind v4 */
+  /* Brand */
   --color-navy: #0F172A;
   --color-navy-light: #1E293B;
-  --color-kesri: #FF9933;
+  --color-kesri: #FF9933;        /* on-navy text, graphics, large text only */
   --color-kesri-hover: #E68A00;
+  --color-kesri-deep: #B45309;   /* AA-safe kesri for text on light surfaces (5.0:1) */
   --color-gold: #F59E0B;
   --color-offwhite: #F8FAFC;
+
+  /* Typography */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-gurmukhi: var(--font-noto-gurmukhi), var(--font-geist-sans), sans-serif;
 }
 
-/* Force Light Mode Appearance */
+/* Semantic tokens — @theme inline so .dark overrides resolve at the usage site */
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-edge: var(--edge);
+  --color-accent-text: var(--accent-text);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #0F172A; /* Navy Text */
+  color-scheme: light;
+  --surface: #F8FAFC;         /* page background */
+  --surface-raised: #FFFFFF;  /* cards */
+  --ink: #0F172A;             /* primary text */
+  --ink-muted: #475569;       /* secondary text */
+  --ink-faint: #64748B;       /* tertiary text */
+  --edge: #E2E8F0;            /* borders */
+  --accent-text: #B45309;     /* kesri-deep on light */
+}
+
+.dark {
+  color-scheme: dark;
+  --surface: #020617;         /* darker than navy so navy panels still read */
+  --surface-raised: #0F172A;
+  --ink: #F1F5F9;
+  --ink-muted: #94A3B8;
+  --ink-faint: #64748B;
+  --edge: #1E293B;
+  --accent-text: #FF9933;     /* full kesri passes on dark */
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+@layer base {
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-kesri);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
