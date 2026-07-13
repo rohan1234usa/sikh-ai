@@ -78,7 +78,9 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="relative mt-4 md:mt-0 animate-fade-up [animation-delay:320ms]">
+          {/* Decorative product preview — hidden from assistive tech (the
+              conversation is illustrative, not real content) */}
+          <div className="relative mt-4 md:mt-0 animate-fade-up [animation-delay:320ms]" aria-hidden="true">
             <div className="bg-navy-light border border-slate-700 p-4 md:p-6 rounded-2xl shadow-2xl relative motion-safe:animate-float">
               <div className="flex items-center gap-3 mb-4 border-b border-slate-700 pb-4">
                 <div className="w-3 h-3 rounded-full bg-red-500"></div>
@@ -94,7 +96,7 @@ export default function Home() {
                   <p className="text-sm text-kesri">What does the Guru Granth Sahib say about humility?</p>
                 </div>
                 <div className="bg-slate-800/50 p-3 rounded-lg rounded-tl-none border border-slate-700 w-fit">
-                  <span className="flex items-center gap-1.5" aria-label="Sikh AI is typing">
+                  <span className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce"></span>
                     <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce [animation-delay:150ms]"></span>
                     <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce [animation-delay:300ms]"></span>
