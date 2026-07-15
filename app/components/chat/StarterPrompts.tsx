@@ -1,16 +1,14 @@
 'use client';
 
-const PROMPTS = [
-    'What is Seva, and why is it central to Sikhi?',
-    'Explain the meaning of the Mool Mantar',
-    "Tell me about Guru Nanak Dev Ji's life",
-    'What does Gurbani teach about facing hardship?',
-];
+type Props = {
+    prompts: string[];
+    onSelect: (prompt: string) => void;
+};
 
-export default function StarterPrompts({ onSelect }: { onSelect: (prompt: string) => void }) {
+export default function StarterPrompts({ prompts, onSelect }: Props) {
     return (
         <div className="flex flex-wrap gap-2 justify-center pt-2">
-            {PROMPTS.map((prompt) => (
+            {prompts.map((prompt) => (
                 <button
                     key={prompt}
                     type="button"

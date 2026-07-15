@@ -18,6 +18,9 @@ Whether it's fetching the daily *Hukamnama* from Darbar Sahib, coordinating *Sev
 ### 🌟 Key Features
 
 *   **💬 Streaming, Gurbani-Guided Chat**: Responses stream token-by-token from Google Gemini (`gemini-flash-latest`), steered by a system instruction to stay grounded in Guru Granth Sahib teachings. Conversations persist locally (`localStorage`) and include starter prompts, copy, regenerate, and a stop control.
+*   **🧭 Guru Teachings-Lenses**: Ask for guidance through the lens of any of the ten Gurus (or the default SikhAI). Each lens shifts emphasis, preferred Bani, and sakhis while never impersonating a Guru — answers stay in the third person with honorifics. Switching mid-conversation drops an in-thread divider and applies from the next message.
+*   **🎛️ Response Styles & Languages**: Orthogonal to the lens, pick a response style (Balanced, Simple/newcomer, Gurbani-first, Vichaar/reflection, Sakhi/story) and a language (English, Punjabi-American bilingual, or Punjabi with Gurmukhi/romanized script-matching). All three axes are composed server-side into one Gemini `systemInstruction`.
+*   **🧩 Guided Prompting**: Per-lens starter chips plus categorized topic packs (Life advice, Hardship & grief, Concepts, History & sakhis, Daily practice), and deep links from the Hukamnama and Shabad pages that open the chat with that passage attached as context.
 *   **⚡ Daily Hukamnama**: Server-rendered fetch of the day's decree from Darbar Sahib (via the GurbaniNow API), rendered in Gurmukhi with English translation.
 *   **📖 Shabad Lookup**: Browse any Ang (1–1430) of the Guru Granth Sahib through a validated proxy to the GurbaniNow API.
 *   **🤝 Seva Event Coordination**: A real-time event board backed by Firestore, with Google sign-in (Firebase Auth) so Sangat can post and join volunteering opportunities.
@@ -36,9 +39,12 @@ graph TD
 
     subgraph "AI Core"
     Next --> Route["/api/chat Route (streaming)"]
-    Route --> Gemini[Google Gemini API]
+    Route --> Compose["composeSystemInstruction()<br/>lens × mode × language"]
+    Compose --> Gemini[Google Gemini API]
     end
 ```
+
+The chat client sends only whitelisted IDs (`lensId` / `modeId` / `languageId`) plus an optional reference passage — never prompt text. The route validates each ID, silently falls back to defaults on anything unknown, and assembles the persona server-side in `lib/chat/`, so prompt fragments never ship to the browser and can't be tampered with from the client.
 
 ### Engineering Highlights
 *   **Hybrid Rendering**: React Server Components for static/data-fetched content (e.g. the server-rendered Hukamnama) with Client Components for the interactive AI chat.
@@ -108,10 +114,18 @@ async function getHukamnama() {
 ```
 
 ### 2. The Streaming Chat Route
-The chat endpoint streams Gemini's output back as `text/plain`, steered by a Sikhi system instruction and the recent conversation history.
+The chat endpoint composes a persona from the selected lens, style, and language, applies it as Gemini's native `systemInstruction`, then streams the output back as `text/plain`.
 
 ```typescript
 // app/api/chat/route.ts
+const systemInstruction = composeSystemInstruction({
+  lensId: isLensId(lensId) ? lensId : DEFAULT_PREFS.lensId,     // whitelisted; else default
+  modeId: isModeId(modeId) ? modeId : DEFAULT_PREFS.modeId,
+  languageId: isLanguageId(languageId) ? languageId : DEFAULT_PREFS.languageId,
+  context: sanitizeContext(context),                            // optional deep-linked passage
+});
+const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest', systemInstruction });
+
 const chat = model.startChat({ history: chatHistory });
 const result = await chat.sendMessageStream(message);
 

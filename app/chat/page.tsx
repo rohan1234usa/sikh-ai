@@ -1,19 +1,26 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ArrowDownIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
+import { ArrowDownIcon, ChevronDownIcon, PencilSquareIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import ChatMessage from '../components/chat/ChatMessage';
 import ChatInput from '../components/chat/ChatInput';
 import StarterPrompts from '../components/chat/StarterPrompts';
+import TopicPacks from '../components/chat/TopicPacks';
+import ContextChip from '../components/chat/ContextChip';
+import ChatSettingsDialog from '../components/chat/ChatSettingsDialog';
 import { useChatStorage, type Message } from '../components/chat/useChatStorage';
+import { useChatPrefs } from '../components/chat/useChatPrefs';
+import { parseDeepLink, fetchChatContext } from '../components/chat/deepLink';
+import { CONTEXT_STARTERS, LANGUAGES, LENSES, MODES, type LensId } from '@/lib/chat/config';
 
 // Fixed id/timestamp: this message is rendered during SSR, so it must be
-// identical between server and client renders.
+// identical between server and client renders. The text is swapped to the
+// selected lens's greeting after hydration (greeting-only conversations only).
 const INITIAL_MESSAGES: Message[] = [
   {
     id: 'greeting',
     role: 'ai',
-    text: 'Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh. How can I help you learn about Sikhism today?',
+    text: 'Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh. How can I help you learn about Sikhi today?',
     createdAt: 0,
   },
 ];
@@ -24,17 +31,53 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [confirmingClear, setConfirmingClear] = useState(false);
-  const { messages, setMessages, hydrated, save, clear } = useChatStorage(INITIAL_MESSAGES);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [contextError, setContextError] = useState<string | null>(null);
+  const { messages, setMessages, context, updateContext, hydrated, save, clear } = useChatStorage(INITIAL_MESSAGES);
+  const { prefs, update: updatePrefs, hydrated: prefsHydrated } = useChatPrefs();
 
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const atBottomRef = useRef(true);
   const [showJump, setShowJump] = useState(false);
 
+  const lens = LENSES[prefs.lensId];
+
   // Persist once a stream finalizes (not per-token); skip greeting-only state
   useEffect(() => {
     if (hydrated && !isStreaming && messages.length > 1) save(messages);
   }, [messages, isStreaming, hydrated, save]);
+
+  // Keep the greeting in step with the selected lens while the conversation
+  // is still untouched (covers first hydration and lens changes alike).
+  useEffect(() => {
+    if (!hydrated || !prefsHydrated) return;
+    setMessages(prev =>
+      prev.length === 1 && prev[0].id === 'greeting' && prev[0].text !== lens.greeting
+        ? [{ ...prev[0], text: lens.greeting }]
+        : prev
+    );
+  }, [hydrated, prefsHydrated, lens.greeting, setMessages]);
+
+  // Capture a deep-linked passage (?context=hukamnama | ?context=shabad&ang=N),
+  // then strip the params so a refresh doesn't re-attach it.
+  useEffect(() => {
+    if (!hydrated) return;
+    const link = parseDeepLink(window.location.search);
+    if (!link) return;
+    window.history.replaceState(null, '', '/chat');
+    let cancelled = false;
+    fetchChatContext(link)
+      .then(ctx => {
+        if (cancelled) return;
+        updateContext(ctx);
+        setContextError(null);
+      })
+      .catch(() => {
+        if (!cancelled) setContextError('Could not load that passage. You can still chat normally.');
+      });
+    return () => { cancelled = true; };
+  }, [hydrated, updateContext]);
 
   // Stick to bottom while new content arrives, unless the user scrolled up
   useEffect(() => {
@@ -82,9 +125,9 @@ export default function ChatPage() {
     try {
       // History: only completed (user -> non-error AI) exchanges, kept in
       // strict alternation so Gemini never receives two consecutive same-role
-      // turns (which it rejects with a 400). Unanswered user turns and error
-      // bubbles left behind by a stop/failure are dropped rather than orphaned.
-      const convo = baseMessages.filter(m => m.id !== 'greeting');
+      // turns (which it rejects with a 400). The greeting, lens-switch notices,
+      // unanswered user turns, and error bubbles are dropped rather than orphaned.
+      const convo = baseMessages.filter(m => m.id !== 'greeting' && m.role !== 'notice');
       const history: { role: string; text: string }[] = [];
       for (let i = 0; i < convo.length; i++) {
         const m = convo[i];
@@ -98,7 +141,14 @@ export default function ChatPage() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: trimmed, history }),
+        body: JSON.stringify({
+          message: trimmed,
+          history,
+          lensId: prefs.lensId,
+          modeId: prefs.modeId,
+          languageId: prefs.languageId,
+          context: context ? { type: context.type, title: context.title, text: context.text } : undefined,
+        }),
         signal: controller.signal,
       });
 
@@ -156,11 +206,32 @@ export default function ChatPage() {
 
   const confirmClear = () => {
     abortRef.current?.abort();
-    clear();
+    clear([{ ...INITIAL_MESSAGES[0], text: lens.greeting }]);
+    setContextError(null);
     setConfirmingClear(false);
   };
 
+  // Lens changes apply from the next message. Mid-conversation we drop a
+  // divider notice; on an untouched chat the greeting-sync effect handles it.
+  const selectLens = (lensId: LensId) => {
+    if (lensId === prefs.lensId) return;
+    updatePrefs({ lensId });
+    setMessages(prev => {
+      if (prev.length === 1 && prev[0].id === 'greeting') return prev;
+      const next = LENSES[lensId];
+      return [...prev, {
+        id: crypto.randomUUID(),
+        role: 'notice' as const,
+        text: next.id === 'sikhai'
+          ? 'Now answering as SikhAI, drawing on all ten Gurus'
+          : `Now answering through the lens of ${next.name}`,
+        createdAt: Date.now(),
+      }];
+    });
+  };
+
   const lastMessage = messages[messages.length - 1];
+  const starterPrompts = context ? CONTEXT_STARTERS[context.type] : lens.starterPrompts;
 
   return (
     <main className="flex flex-col h-[calc(100dvh-4rem)]">
@@ -168,7 +239,16 @@ export default function ChatPage() {
 
       {/* Slim chat header */}
       <div className="flex items-center justify-between px-4 py-2 bg-surface-raised border-b border-edge shrink-0">
-        <p className="text-xs text-ink-faint">Powered by Gemini</p>
+        <button
+          type="button"
+          onClick={() => setSettingsOpen(true)}
+          aria-haspopup="dialog"
+          className="flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink transition-colors p-1.5 rounded-lg hover:bg-edge/60 min-w-0"
+        >
+          <SparklesIcon className="w-4 h-4 text-accent-text shrink-0" aria-hidden="true" />
+          <span className="truncate">{lens.name}</span>
+          <ChevronDownIcon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+        </button>
         {confirmingClear ? (
           <div className="flex items-center gap-2 text-sm" role="group" aria-label="Confirm clearing the conversation">
             <span className="text-ink-muted">Clear this chat?</span>
@@ -192,7 +272,7 @@ export default function ChatPage() {
             type="button"
             onClick={() => setConfirmingClear(true)}
             disabled={messages.length <= 1}
-            className="flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink disabled:opacity-50 transition-colors p-1.5 rounded-lg hover:bg-edge/60"
+            className="flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink disabled:opacity-50 transition-colors p-1.5 rounded-lg hover:bg-edge/60 shrink-0"
           >
             <PencilSquareIcon className="w-4 h-4" aria-hidden="true" />
             New chat
@@ -206,20 +286,44 @@ export default function ChatPage() {
           {hydrated && (
             <>
               {messages.map((msg) => (
-                <ChatMessage
-                  key={msg.id}
-                  message={msg}
-                  isTyping={isStreaming && msg.id === lastMessage?.id && msg.role === 'ai' && msg.text === ''}
-                  showActions={msg.role === 'ai' && !msg.isError && msg.id !== 'greeting' && msg.text !== ''}
-                  onRegenerate={
-                    msg.id === lastMessage?.id && msg.role === 'ai' && !msg.isError && !isStreaming && msg.id !== 'greeting'
-                      ? regenerate
-                      : undefined
-                  }
-                />
+                msg.role === 'notice' ? (
+                  <div key={msg.id} role="status" className="flex items-center gap-3 text-ink-faint">
+                    <span className="h-px flex-1 bg-edge" aria-hidden="true" />
+                    <span className="text-[11px] uppercase tracking-widest font-bold text-center">{msg.text}</span>
+                    <span className="h-px flex-1 bg-edge" aria-hidden="true" />
+                  </div>
+                ) : (
+                  <ChatMessage
+                    key={msg.id}
+                    message={msg}
+                    isTyping={isStreaming && msg.id === lastMessage?.id && msg.role === 'ai' && msg.text === ''}
+                    showActions={msg.role === 'ai' && !msg.isError && msg.id !== 'greeting' && msg.text !== ''}
+                    onRegenerate={
+                      msg.id === lastMessage?.id && msg.role === 'ai' && !msg.isError && !isStreaming && msg.id !== 'greeting'
+                        ? regenerate
+                        : undefined
+                    }
+                  />
+                )
               ))}
               {messages.length <= 1 && !isStreaming && (
-                <StarterPrompts onSelect={(prompt) => send(prompt, messages)} />
+                <div className="space-y-1">
+                  <div className="flex items-center justify-center gap-2 text-xs text-ink-muted flex-wrap px-2">
+                    <span>
+                      Guided by <span className="font-semibold text-ink">{lens.name}</span>
+                      {' · '}{MODES[prefs.modeId].name}{' · '}{LANGUAGES[prefs.languageId].name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSettingsOpen(true)}
+                      className="font-semibold text-accent-text hover:underline"
+                    >
+                      Change
+                    </button>
+                  </div>
+                  <StarterPrompts prompts={starterPrompts} onSelect={(prompt) => send(prompt, messages)} />
+                  {!context && <TopicPacks onSelect={(prompt) => send(prompt, messages)} />}
+                </div>
               )}
             </>
           )}
@@ -237,12 +341,36 @@ export default function ChatPage() {
         )}
       </div>
 
+      {(context || contextError) && (
+        <div className="flex justify-center px-4 pb-2 bg-surface shrink-0">
+          {context ? (
+            <ContextChip context={context} onDismiss={() => updateContext(null)} />
+          ) : (
+            <p role="alert" className="flex items-center gap-2 text-xs text-red-600 dark:text-red-400">
+              {contextError}
+              <button type="button" onClick={() => setContextError(null)} className="underline font-semibold">
+                Dismiss
+              </button>
+            </p>
+          )}
+        </div>
+      )}
+
       <ChatInput
         value={input}
         onChange={setInput}
         onSend={() => send(input, messages)}
         onStop={() => abortRef.current?.abort()}
         isStreaming={isStreaming}
+      />
+
+      <ChatSettingsDialog
+        open={settingsOpen}
+        prefs={prefs}
+        onSelectLens={selectLens}
+        onSelectMode={(modeId) => updatePrefs({ modeId })}
+        onSelectLanguage={(languageId) => updatePrefs({ languageId })}
+        onClose={() => setSettingsOpen(false)}
       />
     </main>
   );

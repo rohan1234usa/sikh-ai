@@ -1,17 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { MagnifyingGlassIcon, BookOpenIcon } from '@heroicons/react/24/outline';
-
-// The GurbaniNow API returns loosely-shaped verse objects; model the fields we read
-type VerseContent = {
-  gurmukhi?: string | { unicode?: string };
-  gurbani?: { gurmukhi?: string };
-  translation?: { english?: string | { default?: string } };
-};
-type AngItem = VerseContent & { line?: VerseContent; verse?: VerseContent };
-
-const textOf = (v: VerseContent['gurmukhi']) => (typeof v === 'string' ? v : v?.unicode);
+import Link from 'next/link';
+import { MagnifyingGlassIcon, BookOpenIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import { normalizeVerse, type AngItem } from '@/lib/gurbani/verse';
 
 export default function ShabadSearchPage() {
   const [query, setQuery] = useState('');
@@ -50,7 +42,9 @@ export default function ShabadSearchPage() {
         throw new Error(data.error || `Error ${res.status}: Failed to fetch`);
       }
 
-      if (data.page) {
+      // Guard against an empty array too — `if (data.page)` is truthy for [],
+      // which would show a blank results area with no feedback.
+      if (Array.isArray(data.page) && data.page.length > 0) {
         setResults(data.page);
         setCurrentAng(query); // Set the displayed Ang only on success
       } else {
@@ -120,22 +114,19 @@ export default function ShabadSearchPage() {
               <span className="text-ink font-bold">
                 Ang {currentAng}
               </span>
+              <Link
+                href={`/chat?context=shabad&ang=${currentAng}`}
+                className="ml-auto inline-flex items-center gap-1.5 text-sm font-semibold text-accent-text hover:underline"
+              >
+                <ChatBubbleLeftRightIcon className="w-4 h-4" aria-hidden="true" />
+                Ask about this Ang
+              </Link>
             </div>
 
             {results.map((item, index) => {
-              const content = item.line || item.verse || item;
-
-              const gurmukhi =
-                textOf(content.gurmukhi) ||
-                content.gurbani?.gurmukhi ||
-                "Gurmukhi Unavailable";
-
-              const eng = content.translation?.english;
-              const translation =
-                (typeof eng === 'string' ? eng : eng?.default) ||
-                "Translation unavailable";
-
-              // For Ang search, results are typically verses on that page.
+              const normalized = normalizeVerse(item);
+              const gurmukhi = normalized.gurmukhi || "Gurmukhi Unavailable";
+              const translation = normalized.translation || "Translation unavailable";
 
               return (
                 <div key={index} className="bg-surface-raised p-4 sm:p-6 rounded-xl shadow-sm border border-edge hover:shadow-md transition">
