@@ -11,29 +11,42 @@ import ChatSettingsDialog from '../components/chat/ChatSettingsDialog';
 import { useChatStorage, type Message } from '../components/chat/useChatStorage';
 import { useChatPrefs } from '../components/chat/useChatPrefs';
 import { parseDeepLink, fetchChatContext } from '../components/chat/deepLink';
-import { CONTEXT_STARTERS, LANGUAGES, LENSES, MODES, type LensId } from '@/lib/chat/config';
+import { DEFAULT_PREFS, siteDefaultLanguageId, siteScript, type LensId } from '@/lib/chat/config';
+import { useLanguage } from '../context/LanguageContext';
+import type { Dictionary } from '@/lib/i18n';
+import { fmt } from '@/lib/i18n/fmt';
 
-// Fixed id/timestamp: this message is rendered during SSR, so it must be
-// identical between server and client renders. The text is swapped to the
-// selected lens's greeting after hydration (greeting-only conversations only).
-const INITIAL_MESSAGES: Message[] = [
-  {
-    id: 'greeting',
-    role: 'ai',
-    text: 'Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh. How can I help you learn about Sikhi today?',
-    createdAt: 0,
-  },
-];
-
-const FRIENDLY_ERROR = 'Sorry, something went wrong. Please try again.';
+// Translate a known API error `code` to the current dictionary; unknown or
+// missing codes fall back to the server's English `error` string, then to
+// the generic message.
+function apiErrorText(t: Dictionary, data: unknown): string | null {
+  if (!data || typeof data !== 'object') return null;
+  const { code, error } = data as { code?: unknown; error?: unknown };
+  if (typeof code === 'string' && code in t.errors) {
+    return t.errors[code as keyof Dictionary['errors']];
+  }
+  return typeof error === 'string' && error ? error : null;
+}
 
 export default function ChatPage() {
+  const { lang, t } = useLanguage();
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [confirmingClear, setConfirmingClear] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [contextError, setContextError] = useState<string | null>(null);
-  const { messages, setMessages, context, updateContext, hydrated, save, clear } = useChatStorage(INITIAL_MESSAGES);
+  const [contextError, setContextError] = useState(false);
+
+  // Seed the greeting in the site language (default lens) so a fresh chat's
+  // first painted frame is already localized — no flash of English for pa /
+  // pa-latn. The greeting is client-only (gated behind `hydrated`), so this
+  // never reaches SSR HTML. useRef captures it once from the first-render
+  // dictionary (stable identity); later lens/language changes are handled by
+  // the greeting-sync effect below.
+  const initialMessages = useRef<Message[]>([
+    { id: 'greeting', role: 'ai', text: t.chat.config.lenses[DEFAULT_PREFS.lensId].greeting, createdAt: 0 },
+  ]).current;
+
+  const { messages, setMessages, context, updateContext, hydrated, save, clear } = useChatStorage(initialMessages);
   const { prefs, update: updatePrefs, hydrated: prefsHydrated } = useChatPrefs();
 
   const abortRef = useRef<AbortController | null>(null);
@@ -41,15 +54,23 @@ export default function ChatPage() {
   const atBottomRef = useRef(true);
   const [showJump, setShowJump] = useState(false);
 
-  const lens = LENSES[prefs.lensId];
+  // Mirrors the latest dictionary so async work (in-flight sends, the
+  // deep-link effect) reads the current language instead of a stale closure.
+  const tRef = useRef(t);
+  useEffect(() => { tRef.current = t; }, [t]);
+
+  const lens = t.chat.config.lenses[prefs.lensId];
+  // null pref = follow the site language; an explicit pick always wins
+  const effectiveLanguageId = prefs.languageId ?? siteDefaultLanguageId(lang);
 
   // Persist once a stream finalizes (not per-token); skip greeting-only state
   useEffect(() => {
     if (hydrated && !isStreaming && messages.length > 1) save(messages);
   }, [messages, isStreaming, hydrated, save]);
 
-  // Keep the greeting in step with the selected lens while the conversation
-  // is still untouched (covers first hydration and lens changes alike).
+  // Keep the greeting in step with the selected lens and site language while
+  // the conversation is still untouched (covers first hydration, lens changes,
+  // and language switches alike).
   useEffect(() => {
     if (!hydrated || !prefsHydrated) return;
     setMessages(prev =>
@@ -67,14 +88,14 @@ export default function ChatPage() {
     if (!link) return;
     window.history.replaceState(null, '', '/chat');
     let cancelled = false;
-    fetchChatContext(link)
+    fetchChatContext(link, tRef.current)
       .then(ctx => {
         if (cancelled) return;
         updateContext(ctx);
-        setContextError(null);
+        setContextError(false);
       })
       .catch(() => {
-        if (!cancelled) setContextError('Could not load that passage. You can still chat normally.');
+        if (!cancelled) setContextError(true);
       });
     return () => { cancelled = true; };
   }, [hydrated, updateContext]);
@@ -146,7 +167,10 @@ export default function ChatPage() {
           history,
           lensId: prefs.lensId,
           modeId: prefs.modeId,
-          languageId: prefs.languageId,
+          languageId: effectiveLanguageId,
+          // Preferred Punjabi script from the site language; only meaningful
+          // (and only sent) for 'punjabi' replies.
+          script: effectiveLanguageId === 'punjabi' ? siteScript(lang) : undefined,
           context: context ? { type: context.type, title: context.title, text: context.text } : undefined,
         }),
         signal: controller.signal,
@@ -155,9 +179,9 @@ export default function ChatPage() {
       if (!res.ok || !res.body) {
         let friendly: string | null = null;
         if (res.headers.get('content-type')?.includes('json')) {
-          friendly = (await res.json()).error;
+          friendly = apiErrorText(tRef.current, await res.json());
         }
-        throw new Error(friendly ?? FRIENDLY_ERROR);
+        throw new Error(friendly ?? tRef.current.errors.generic);
       }
 
       const reader = res.body.getReader();
@@ -173,7 +197,7 @@ export default function ChatPage() {
       if (!received) {
         // Never leave a permanently empty bubble
         setMessages(prev => prev.map(m =>
-          m.id === aiMsg.id ? { ...m, text: FRIENDLY_ERROR, isError: true } : m
+          m.id === aiMsg.id ? { ...m, text: tRef.current.errors.generic, isError: true } : m
         ));
       }
     } catch (err: unknown) {
@@ -183,7 +207,7 @@ export default function ChatPage() {
           m.id !== aiMsg.id ? [m] : m.text ? [{ ...m, interrupted: true }] : []
         ));
       } else {
-        const friendly = err instanceof Error && err.message ? err.message : FRIENDLY_ERROR;
+        const friendly = err instanceof Error && err.message ? err.message : tRef.current.errors.generic;
         setMessages(prev => prev.map(m =>
           m.id === aiMsg.id
             ? (m.text ? { ...m, interrupted: true } : { ...m, text: friendly, isError: true })
@@ -206,8 +230,8 @@ export default function ChatPage() {
 
   const confirmClear = () => {
     abortRef.current?.abort();
-    clear([{ ...INITIAL_MESSAGES[0], text: lens.greeting }]);
-    setContextError(null);
+    clear([{ ...initialMessages[0], text: lens.greeting }]);
+    setContextError(false);
     setConfirmingClear(false);
   };
 
@@ -218,24 +242,26 @@ export default function ChatPage() {
     updatePrefs({ lensId });
     setMessages(prev => {
       if (prev.length === 1 && prev[0].id === 'greeting') return prev;
-      const next = LENSES[lensId];
       return [...prev, {
         id: crypto.randomUUID(),
         role: 'notice' as const,
-        text: next.id === 'sikhai'
-          ? 'Now answering as SikhAI, drawing on all ten Gurus'
-          : `Now answering through the lens of ${next.name}`,
+        text: lensId === 'sikhai'
+          ? t.chat.lensSwitchNoticeDefault
+          : fmt(t.chat.lensSwitchNotice, { name: t.chat.config.lenses[lensId].name }),
         createdAt: Date.now(),
       }];
     });
   };
 
   const lastMessage = messages[messages.length - 1];
-  const starterPrompts = context ? CONTEXT_STARTERS[context.type] : lens.starterPrompts;
+  const starterPrompts = context ? t.chat.config.contextStarters[context.type] : lens.starterPrompts;
+  // Word order around the lens name differs per language, so split the
+  // template on {name} and render the styled span between the halves.
+  const [guidedBefore, guidedAfter] = t.chat.guidedBy.split('{name}');
 
   return (
     <main className="flex flex-col h-[calc(100dvh-4rem)]">
-      <h1 className="sr-only">Ask SikhAI</h1>
+      <h1 className="sr-only">{t.chat.title}</h1>
 
       {/* Slim chat header */}
       <div className="flex items-center justify-between px-4 py-2 bg-surface-raised border-b border-edge shrink-0">
@@ -250,21 +276,21 @@ export default function ChatPage() {
           <ChevronDownIcon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
         </button>
         {confirmingClear ? (
-          <div className="flex items-center gap-2 text-sm" role="group" aria-label="Confirm clearing the conversation">
-            <span className="text-ink-muted">Clear this chat?</span>
+          <div className="flex items-center gap-2 text-sm" role="group" aria-label={t.chat.confirmClearAria}>
+            <span className="text-ink-muted">{t.chat.clearPrompt}</span>
             <button
               type="button"
               onClick={confirmClear}
               className="font-semibold text-red-600 dark:text-red-400 hover:underline px-1.5 py-1 rounded-lg"
             >
-              Clear
+              {t.chat.clearConfirm}
             </button>
             <button
               type="button"
               onClick={() => setConfirmingClear(false)}
               className="text-ink-muted hover:text-ink px-1.5 py-1 rounded-lg hover:bg-edge/60 transition-colors"
             >
-              Cancel
+              {t.chat.cancel}
             </button>
           </div>
         ) : (
@@ -275,7 +301,7 @@ export default function ChatPage() {
             className="flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink disabled:opacity-50 transition-colors p-1.5 rounded-lg hover:bg-edge/60 shrink-0"
           >
             <PencilSquareIcon className="w-4 h-4" aria-hidden="true" />
-            New chat
+            {t.chat.newChat}
           </button>
         )}
       </div>
@@ -310,15 +336,15 @@ export default function ChatPage() {
                 <div className="space-y-1">
                   <div className="flex items-center justify-center gap-2 text-xs text-ink-muted flex-wrap px-2">
                     <span>
-                      Guided by <span className="font-semibold text-ink">{lens.name}</span>
-                      {' · '}{MODES[prefs.modeId].name}{' · '}{LANGUAGES[prefs.languageId].name}
+                      {guidedBefore}<span className="font-semibold text-ink">{lens.name}</span>{guidedAfter}
+                      {' · '}{t.chat.config.modes[prefs.modeId].name}{' · '}{t.chat.config.replyLanguages[effectiveLanguageId].name}
                     </span>
                     <button
                       type="button"
                       onClick={() => setSettingsOpen(true)}
                       className="font-semibold text-accent-text hover:underline"
                     >
-                      Change
+                      {t.chat.change}
                     </button>
                   </div>
                   <StarterPrompts prompts={starterPrompts} onSelect={(prompt) => send(prompt, messages)} />
@@ -336,7 +362,7 @@ export default function ChatPage() {
             className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-navy text-white dark:bg-kesri dark:text-navy text-xs font-semibold px-3 py-2 rounded-full shadow-lg hover:opacity-90 transition-opacity"
           >
             <ArrowDownIcon className="w-3.5 h-3.5" aria-hidden="true" />
-            Latest
+            {t.chat.latest}
           </button>
         )}
       </div>
@@ -347,9 +373,9 @@ export default function ChatPage() {
             <ContextChip context={context} onDismiss={() => updateContext(null)} />
           ) : (
             <p role="alert" className="flex items-center gap-2 text-xs text-red-600 dark:text-red-400">
-              {contextError}
-              <button type="button" onClick={() => setContextError(null)} className="underline font-semibold">
-                Dismiss
+              {t.errors.contextLoad}
+              <button type="button" onClick={() => setContextError(false)} className="underline font-semibold">
+                {t.chat.dismiss}
               </button>
             </p>
           )}
@@ -367,6 +393,7 @@ export default function ChatPage() {
       <ChatSettingsDialog
         open={settingsOpen}
         prefs={prefs}
+        effectiveLanguageId={effectiveLanguageId}
         onSelectLens={selectLens}
         onSelectMode={(modeId) => updatePrefs({ modeId })}
         onSelectLanguage={(languageId) => updatePrefs({ languageId })}

@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 import { SunIcon, MoonIcon } from '@heroicons/react/24/outline';
+import { useT } from '../context/LanguageContext';
 
 // The <html> class is the source of truth (set pre-paint by the inline script
 // in layout.tsx). Subscribing via MutationObserver keeps the icon correct no
@@ -17,6 +18,7 @@ const serverSnapshot = () => false; // corrected right after hydration
 
 export default function ThemeToggle() {
     const dark = useSyncExternalStore(subscribe, isDark, serverSnapshot);
+    const t = useT();
 
     const toggle = () => {
         const next = !isDark();
@@ -28,7 +30,7 @@ export default function ThemeToggle() {
         <button
             type="button"
             onClick={toggle}
-            aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={dark ? t.nav.switchToLight : t.nav.switchToDark}
             className="p-2 rounded-lg text-slate-300 hover:text-kesri transition-colors"
         >
             {dark ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}

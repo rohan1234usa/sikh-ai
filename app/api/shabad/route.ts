@@ -5,13 +5,15 @@ export async function GET(request: Request) {
   const query = searchParams.get('query');
   // Type param is no longer needed/used.
 
-  if (!query) return NextResponse.json({ error: 'Missing query' }, { status: 400 });
+  // The `code` field lets clients render a translated message; the English
+  // `error` string stays for logs and older clients.
+  if (!query) return NextResponse.json({ error: 'Missing query', code: 'missing_query' }, { status: 400 });
 
   const cleanQuery = query.trim();
 
   // Validation: Must be a number (double check server side)
   if (!/^\d+$/.test(cleanQuery)) {
-    return NextResponse.json({ error: 'Invalid Ang number' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid Ang number', code: 'invalid_ang' }, { status: 400 });
   }
 
   // We use the legacy stable domain. 
@@ -35,7 +37,7 @@ export async function GET(request: Request) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('[Proxy] Critical Error:', message);
     return NextResponse.json(
-      { error: `Gurbani Source Error: ${message}` },
+      { error: `Gurbani Source Error: ${message}`, code: 'source_error' },
       { status: 500 }
     );
   }

@@ -8,6 +8,8 @@ import {
     type ChatContext,
 } from '@/lib/chat/config';
 import { normalizeVerse, type AngItem } from '@/lib/gurbani/verse';
+import type { Dictionary } from '@/lib/i18n';
+import { fmt } from '@/lib/i18n/fmt';
 
 export type DeepLink = { type: 'hukamnama' } | { type: 'shabad'; ang: number };
 
@@ -39,13 +41,19 @@ function buildContext(type: ChatContext['type'], title: string, text: string): C
     };
 }
 
-export async function fetchChatContext(link: DeepLink): Promise<ChatContext> {
+// The dictionary composes the context title in the current site language —
+// the chip renders it verbatim, so a hardcoded English title would produce a
+// mixed-language chip in the Punjabi UIs.
+export async function fetchChatContext(link: DeepLink, t: Dictionary): Promise<ChatContext> {
     if (link.type === 'hukamnama') {
         const res = await fetch('/api/hukamnama');
         if (!res.ok) throw new Error('Failed to load the Hukamnama');
-        const data = (await res.json()) as { title?: string; text?: string };
+        const data = (await res.json()) as { title?: string; text?: string; ang?: number | null };
         if (!data.text) throw new Error('Hukamnama unavailable');
-        return buildContext('hukamnama', data.title || "Today's Hukamnama", data.text);
+        const title = typeof data.ang === 'number'
+            ? `${t.hukamnama.title} — ${fmt(t.hukamnama.ang, { n: data.ang })}`
+            : t.hukamnama.title;
+        return buildContext('hukamnama', title, data.text);
     }
 
     const res = await fetch(`/api/shabad?query=${link.ang}`);
@@ -54,5 +62,5 @@ export async function fetchChatContext(link: DeepLink): Promise<ChatContext> {
     const page: AngItem[] = Array.isArray(data?.page) ? data.page : [];
     const lines = page.map(normalizeLine).filter(Boolean);
     if (lines.length === 0) throw new Error('Ang unavailable');
-    return buildContext('shabad', `Ang ${link.ang} — Sri Guru Granth Sahib Ji`, lines.join('\n\n'));
+    return buildContext('shabad', `${fmt(t.shabad.angLabel, { n: link.ang })} — ${t.shabad.granth}`, lines.join('\n\n'));
 }

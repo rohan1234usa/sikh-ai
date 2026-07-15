@@ -3,23 +3,26 @@
 import { useEffect, useRef } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import {
-    LANGUAGES,
     LANGUAGE_IDS,
-    MODES,
     MODE_IDS,
     type LanguageId,
     type LensId,
     type ModeId,
 } from '@/lib/chat/config';
+import { useT } from '../../context/LanguageContext';
 import LensPicker from './LensPicker';
 import type { ChatPrefs } from './useChatPrefs';
 
 type Props = {
     open: boolean;
     prefs: ChatPrefs;
+    // prefs.languageId may be null ("follow the site language" — the Auto
+    // pill); the page resolves it and passes the effective value so the
+    // description always describes what will actually happen.
+    effectiveLanguageId: LanguageId;
     onSelectLens: (id: LensId) => void;
     onSelectMode: (id: ModeId) => void;
-    onSelectLanguage: (id: LanguageId) => void;
+    onSelectLanguage: (id: LanguageId | null) => void;
     onClose: () => void;
 };
 
@@ -40,7 +43,8 @@ function Pill({ selected, onClick, children }: { selected: boolean; onClick: () 
     );
 }
 
-export default function ChatSettingsDialog({ open, prefs, onSelectLens, onSelectMode, onSelectLanguage, onClose }: Props) {
+export default function ChatSettingsDialog({ open, prefs, effectiveLanguageId, onSelectLens, onSelectMode, onSelectLanguage, onClose }: Props) {
+    const t = useT();
     const panelRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<Element | null>(null);
 
@@ -89,6 +93,9 @@ export default function ChatSettingsDialog({ open, prefs, onSelectLens, onSelect
 
     if (!open) return null;
 
+    const modes = t.chat.config.modes;
+    const replyLanguages = t.chat.config.replyLanguages;
+
     return (
         <div className="fixed inset-0 z-50">
             <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
@@ -97,15 +104,15 @@ export default function ChatSettingsDialog({ open, prefs, onSelectLens, onSelect
                 tabIndex={-1}
                 role="dialog"
                 aria-modal="true"
-                aria-label="Chat settings"
+                aria-label={t.chat.settingsTitle}
                 className="absolute bottom-0 inset-x-0 max-h-[85dvh] overflow-y-auto rounded-t-2xl bg-surface border-t border-edge shadow-2xl p-4 pb-[max(1rem,env(safe-area-inset-bottom))] focus:outline-none md:bottom-auto md:inset-x-auto md:top-20 md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-2xl md:max-h-[80dvh] md:rounded-2xl md:border md:p-6"
             >
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-base font-bold text-ink">Chat settings</h2>
+                    <h2 className="text-base font-bold text-ink">{t.chat.settingsTitle}</h2>
                     <button
                         type="button"
                         onClick={onClose}
-                        aria-label="Close settings"
+                        aria-label={t.chat.closeSettings}
                         className="p-1.5 rounded-lg text-ink-faint hover:text-ink hover:bg-edge/60 transition-colors"
                     >
                         <XMarkIcon className="w-5 h-5" />
@@ -114,46 +121,51 @@ export default function ChatSettingsDialog({ open, prefs, onSelectLens, onSelect
 
                 <div className="space-y-6">
                     <section>
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-ink-faint mb-2">Perspective</h3>
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-ink-faint mb-2">{t.chat.perspective}</h3>
                         <p className="text-xs text-ink-muted mb-3">
-                            SikhAI never speaks as a Guru — it answers guided by the chosen Guru&apos;s life, Bani, and teachings.
+                            {t.chat.perspectiveNote}
                         </p>
                         <LensPicker selectedId={prefs.lensId} onSelect={onSelectLens} />
                     </section>
 
                     <section>
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-ink-faint mb-2">Response style</h3>
-                        <div role="group" aria-label="Response style" className="flex flex-wrap gap-2">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-ink-faint mb-2">{t.chat.responseStyle}</h3>
+                        <div role="group" aria-label={t.chat.responseStyle} className="flex flex-wrap gap-2">
                             {MODE_IDS.map((id) => (
                                 <Pill key={id} selected={id === prefs.modeId} onClick={() => onSelectMode(id)}>
-                                    {MODES[id].name}
+                                    {modes[id].name}
                                 </Pill>
                             ))}
                         </div>
-                        <p className="text-xs text-ink-muted mt-2">{MODES[prefs.modeId].description}</p>
+                        <p className="text-xs text-ink-muted mt-2">{modes[prefs.modeId].description}</p>
                     </section>
 
                     <section>
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-ink-faint mb-2">Language</h3>
-                        <div role="group" aria-label="Language" className="flex flex-wrap gap-2">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-ink-faint mb-2">{t.chat.language}</h3>
+                        <div role="group" aria-label={t.chat.language} className="flex flex-wrap gap-2">
+                            {/* Highlight follows the STORED pref: Auto stays selectable
+                                and recoverable after an explicit language pick. */}
+                            <Pill selected={prefs.languageId === null} onClick={() => onSelectLanguage(null)}>
+                                {t.chat.autoLanguage}
+                            </Pill>
                             {LANGUAGE_IDS.map((id) => (
                                 <Pill key={id} selected={id === prefs.languageId} onClick={() => onSelectLanguage(id)}>
-                                    {LANGUAGES[id].name}
+                                    {replyLanguages[id].name}
                                 </Pill>
                             ))}
                         </div>
-                        <p className="text-xs text-ink-muted mt-2">{LANGUAGES[prefs.languageId].description}</p>
+                        <p className="text-xs text-ink-muted mt-2">{replyLanguages[effectiveLanguageId].description}</p>
                     </section>
                 </div>
 
                 <div className="flex items-center justify-between mt-6 pt-4 border-t border-edge">
-                    <p className="text-xs text-ink-faint">Powered by Gemini</p>
+                    <p className="text-xs text-ink-faint">{t.chat.poweredBy}</p>
                     <button
                         type="button"
                         onClick={onClose}
                         className="bg-kesri text-navy font-bold text-sm px-5 py-2 rounded-lg hover:opacity-90 transition-opacity"
                     >
-                        Done
+                        {t.chat.done}
                     </button>
                 </div>
             </div>

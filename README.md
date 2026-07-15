@@ -25,6 +25,7 @@ Whether it's fetching the daily *Hukamnama* from Darbar Sahib, coordinating *Sev
 *   **📖 Shabad Lookup**: Browse any Ang (1–1430) of the Guru Granth Sahib through a validated proxy to the GurbaniNow API.
 *   **🤝 Seva Event Coordination**: A real-time event board backed by Firestore, with Google sign-in (Firebase Auth) so Sangat can post and join volunteering opportunities.
 *   **🎨 Accessible, Themeable UI**: A bespoke design system in "Nihang Navy" and "Kesri Saffron" with class-based light/dark mode (no-flash theme script, semantic CSS-variable tokens), keyboard focus-visible rings, ARIA-labelled controls, `prefers-reduced-motion` support, and an AA-contrast accent token.
+*   **🌐 Site-Wide Punjabi UI**: A navbar language picker (like the theme toggle) switches the whole interface between English, ਪੰਜਾਬੀ (Gurmukhi), and romanized Punjabi. The choice is stored in a cookie so server-rendered pages and metadata arrive already translated (no flash of English), the `<html lang>` attribute and body font follow the script, and the chat's reply language defaults to the site language while remaining overridable in chat settings. All copy lives in typed dictionaries under `lib/i18n/dictionaries/` — missing translation keys are compile errors.
 
 ## 🏗️ Technical Architecture
 
@@ -44,13 +45,14 @@ graph TD
     end
 ```
 
-The chat client sends only whitelisted IDs (`lensId` / `modeId` / `languageId`) plus an optional reference passage — never prompt text. The route validates each ID, silently falls back to defaults on anything unknown, and assembles the persona server-side in `lib/chat/`, so prompt fragments never ship to the browser and can't be tampered with from the client.
+The chat client sends only whitelisted IDs (`lensId` / `modeId` / `languageId`, plus an optional `script` hint) and an optional reference passage — never prompt text. The route validates each value, silently falls back to defaults on anything unknown, and assembles the persona server-side in `lib/chat/`, so prompt fragments never ship to the browser and can't be tampered with from the client.
 
 ### Engineering Highlights
 *   **Hybrid Rendering**: React Server Components for static/data-fetched content (e.g. the server-rendered Hukamnama) with Client Components for the interactive AI chat.
 *   **Streamed Responses**: The chat API returns a raw `text/plain` `ReadableStream`, so tokens render as they generate — minimizing time-to-first-token.
 *   **Theming without flash**: An inline pre-paint script applies the stored/system theme before first paint; semantic `@theme inline` tokens drive both light and dark modes.
-*   **Multilingual typography**: Geist / Geist Mono for Latin text and Noto Sans Gurmukhi for Gurmukhi script, wired through Tailwind v4 font tokens.
+*   **Cookie-backed i18n, no library**: A site-wide language (English / Gurmukhi / romanized Punjabi) lives in a `sikhai.lang` cookie, so server components and metadata render already-translated on the first byte — no flash of English. UI copy is typed dictionaries in `lib/i18n/dictionaries/` (`Dictionary = typeof en`, so missing keys are compile errors), read via `useT()` in client components and `getServerT()` on the server.
+*   **Multilingual typography**: Geist / Geist Mono for Latin text and Noto Sans Gurmukhi for Gurmukhi script, wired through Tailwind v4 font tokens; an `html[lang='pa']` rule swaps the body stack to Gurmukhi automatically when that language is active.
 
 ## 🚀 Getting Started
 
@@ -122,6 +124,7 @@ const systemInstruction = composeSystemInstruction({
   lensId: isLensId(lensId) ? lensId : DEFAULT_PREFS.lensId,     // whitelisted; else default
   modeId: isModeId(modeId) ? modeId : DEFAULT_PREFS.modeId,
   languageId: isLanguageId(languageId) ? languageId : DEFAULT_PREFS.languageId,
+  script: isScript(script) ? script : undefined,                // Gurmukhi/romanized hint from the site language
   context: sanitizeContext(context),                            // optional deep-linked passage
 });
 const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest', systemInstruction });

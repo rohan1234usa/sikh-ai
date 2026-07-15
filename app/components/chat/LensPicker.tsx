@@ -1,6 +1,7 @@
 'use client';
 
-import { LENSES, LENS_IDS, type LensId } from '@/lib/chat/config';
+import { LENS_IDS, type LensId } from '@/lib/chat/config';
+import { useT } from '../../context/LanguageContext';
 
 type Props = {
     selectedId: LensId;
@@ -8,10 +9,13 @@ type Props = {
 };
 
 export default function LensPicker({ selectedId, onSelect }: Props) {
+    const t = useT();
+    const lenses = t.chat.config.lenses;
+
     return (
-        <div role="group" aria-label="Guru perspective" className="grid grid-cols-2 md:grid-cols-3 gap-2">
+        <div role="group" aria-label={t.chat.guruPerspectiveAria} className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {LENS_IDS.map((id) => {
-                const lens = LENSES[id];
+                const lens = lenses[id];
                 const selected = id === selectedId;
                 return (
                     <button

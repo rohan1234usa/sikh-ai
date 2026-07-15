@@ -6,6 +6,8 @@ import { MapPinIcon, CalendarIcon, UserGroupIcon, XMarkIcon } from '@heroicons/r
 import { db } from '@/lib/firebase';
 import { collection, getDocs, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
+import { useT } from '../context/LanguageContext';
+import { fmt } from '@/lib/i18n/fmt';
 
 interface SevaEvent {
   id: string;
@@ -33,6 +35,16 @@ export default function SevaPage() {
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState<Notice | null>(null);
   const { user, signIn } = useAuth();
+  const t = useT();
+
+  // The stored category value is the data/style key; only the chip label is
+  // display-mapped through the dictionary.
+  const categoryLabel = (category: string) =>
+    t.seva.categories[category as keyof typeof t.seva.categories] ?? category;
+
+  // Word order around the highlighted word differs per language, so split the
+  // template on {word} and render the styled span between the halves.
+  const [heroBefore, heroAfter] = t.seva.heroTitle.split('{word}');
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -64,7 +76,7 @@ export default function SevaPage() {
 
   const handleJoin = async (eventId: string) => {
     if (!user) {
-      setNotice({ kind: 'info', text: 'You must be signed in to join a Seva event.' });
+      setNotice({ kind: 'info', text: t.seva.signInPrompt });
       return;
     }
 
@@ -89,7 +101,7 @@ export default function SevaPage() {
           ? { ...event, attendees: event.attendees.filter(uid => uid !== user.uid) }
           : event
       ));
-      setNotice({ kind: 'error', text: 'Something went wrong joining the event. Please try again.' });
+      setNotice({ kind: 'error', text: t.seva.joinError });
     }
   };
 
@@ -98,17 +110,17 @@ export default function SevaPage() {
 
       <div className="bg-navy text-white py-12 px-6 text-center">
         <h1 className="text-3xl md:text-4xl font-bold mb-4">
-          Serve with <span className="text-kesri">Humility</span>
+          {heroBefore}<span className="text-kesri">{t.seva.heroWord}</span>{heroAfter}
         </h1>
         <p className="text-slate-300 max-w-xl mx-auto">
-          &ldquo;Vich duniya sev kamaiye, ta dargah baisan paiye.&rdquo;
+          {t.seva.quote}
         </p>
         {user && (
           <Link
             href="/seva/create"
             className="inline-block mt-6 bg-kesri text-navy text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-kesri-hover transition-colors shadow-md shadow-kesri/20"
           >
-            + Post Event
+            {t.seva.postEvent}
           </Link>
         )}
       </div>
@@ -129,12 +141,12 @@ export default function SevaPage() {
                   onClick={async () => { await signIn(); }}
                   className="bg-kesri text-navy font-bold px-4 py-1.5 rounded-lg hover:bg-kesri-hover transition-colors"
                 >
-                  Sign In
+                  {t.nav.signIn}
                 </button>
               )}
               <button
                 onClick={() => setNotice(null)}
-                aria-label="Dismiss notice"
+                aria-label={t.seva.dismissAria}
                 className="p-1.5 rounded-lg hover:bg-edge/60 transition-colors"
               >
                 <XMarkIcon className="w-4 h-4" />
@@ -143,7 +155,7 @@ export default function SevaPage() {
           </div>
         )}
 
-        {loading && <div className="text-center py-10 text-ink">Loading...</div>}
+        {loading && <div className="text-center py-10 text-ink">{t.seva.loading}</div>}
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 
@@ -159,10 +171,10 @@ export default function SevaPage() {
                 <div className="p-6 border-b border-edge">
                   <div className="flex justify-between items-start mb-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${chipStyle}`}>
-                      {event.category}
+                      {categoryLabel(event.category)}
                     </span>
                     <span className="text-ink-faint text-xs font-semibold">
-                      {Math.max(0, event.needed - volunteerCount)} spots left
+                      {fmt(t.seva.spotsLeft, { n: Math.max(0, event.needed - volunteerCount) })}
                     </span>
                   </div>
                   <h2 className="text-xl font-bold text-ink group-hover:text-accent-text transition-colors">
@@ -209,7 +221,7 @@ export default function SevaPage() {
                       }
                     `}
                   >
-                    {hasJoined ? "Joined! Waheguru" : isFull ? "Full - Waheguru" : "Join Seva"}
+                    {hasJoined ? t.seva.joined : isFull ? t.seva.full : t.seva.join}
                   </button>
                 </div>
 

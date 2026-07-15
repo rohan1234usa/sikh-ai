@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
-import { DEFAULT_PREFS, MAX_MESSAGE_CHARS, isLensId, isModeId, isLanguageId, type ChatContext } from "@/lib/chat/config";
+import { DEFAULT_PREFS, MAX_MESSAGE_CHARS, isLensId, isModeId, isLanguageId, isScript, type ChatContext } from "@/lib/chat/config";
 import { composeSystemInstruction } from "@/lib/chat/prompts";
 
 export const maxDuration = 30;
@@ -25,19 +25,21 @@ function sanitizeContext(raw: unknown): ChatContext | null {
 
 export async function POST(req: Request) {
   try {
-    const { message, history, lensId, modeId, languageId, context } = await req.json();
+    const { message, history, lensId, modeId, languageId, script, context } = await req.json();
 
+    // The `code` field lets clients render a translated message; the English
+    // `error` string stays for logs and older clients.
     if (typeof message !== 'string' || message.trim() === '') {
-      return NextResponse.json({ error: "Please enter a message." }, { status: 400 });
+      return NextResponse.json({ error: "Please enter a message.", code: "chat_empty" }, { status: 400 });
     }
     if (message.length > MAX_MESSAGE_CHARS) {
-      return NextResponse.json({ error: "That message is too long. Please shorten it and try again." }, { status: 400 });
+      return NextResponse.json({ error: "That message is too long. Please shorten it and try again.", code: "chat_too_long" }, { status: 400 });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       console.error("Chat Error: GEMINI_API_KEY is missing");
-      return NextResponse.json({ error: FRIENDLY_ERROR }, { status: 500 });
+      return NextResponse.json({ error: FRIENDLY_ERROR, code: "chat_failed" }, { status: 500 });
     }
 
     // Unknown IDs fall back to defaults silently: stale localStorage or an
@@ -46,6 +48,7 @@ export async function POST(req: Request) {
       lensId: isLensId(lensId) ? lensId : DEFAULT_PREFS.lensId,
       modeId: isModeId(modeId) ? modeId : DEFAULT_PREFS.modeId,
       languageId: isLanguageId(languageId) ? languageId : DEFAULT_PREFS.languageId,
+      script: isScript(script) ? script : undefined,
       context: sanitizeContext(context),
     });
 
@@ -93,6 +96,6 @@ export async function POST(req: Request) {
 
   } catch (error) {
     console.error("Chat Error:", error);
-    return NextResponse.json({ error: FRIENDLY_ERROR }, { status: 500 });
+    return NextResponse.json({ error: FRIENDLY_ERROR, code: "chat_failed" }, { status: 500 });
   }
 }

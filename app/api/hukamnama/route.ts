@@ -34,10 +34,12 @@ export async function GET() {
     const ang = data?.hukamnamainfo?.pageno;
     const title = typeof ang === 'number' ? `Today's Hukamnama — Ang ${ang}` : "Today's Hukamnama";
 
-    return NextResponse.json({ title, text });
+    // `ang` lets the client compose a translated title; `title` stays for
+    // older clients.
+    return NextResponse.json({ title, text, ang: typeof ang === 'number' ? ang : null });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('[Hukamnama Proxy] Error:', message);
-    return NextResponse.json({ error: 'Unable to load the Hukamnama right now.' }, { status: 500 });
+    return NextResponse.json({ error: 'Unable to load the Hukamnama right now.', code: 'hukamnama_unavailable' }, { status: 500 });
   }
 }

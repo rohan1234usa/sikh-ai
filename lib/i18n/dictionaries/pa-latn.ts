@@ -1,0 +1,461 @@
+// Punjabi (romanized / Latin script) dictionary.
+//
+// NOTE: AI-drafted translation, pending review by a fluent speaker. This is
+// Punjabi written in English letters — NOT English. Conventions: familiar
+// community spellings (Waheguru, Sat Sri Akal, Gurdwara, Hukamnama), no ISO
+// diacritics, one spelling per word held file-wide, formal-respectful
+// register (tusi), Western digits, Latin punctuation. Brand names ("SikhAI",
+// "Gemini", "Rohan Singh") stay untranslated. Keep {placeholders} verbatim;
+// word order around them is free.
+
+import type { ChatCopy } from '@/lib/chat/config';
+import type { Dictionary } from './en';
+
+const FATEH = 'Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.';
+
+const chatConfig: ChatCopy = {
+    lenses: {
+        'sikhai': {
+            name: 'SikhAI',
+            tagline: 'Sri Guru Granth Sahib Ji di Bani ate saare das Guru Sahibaan de jeevan da gyan',
+            greeting: `${FATEH} Ajj main Sikhi baare sikhan vich tuhadi ki madad kar sakda haan?`,
+            starterPrompts: [
+                'Seva ki hai, ate ih Sikhi da kendar kyon hai?',
+                'Mool Mantar da arth samjhao',
+                'Guru Nanak Dev Ji de jeevan baare dasso',
+                'Aukhe samen da saahmna karan baare Gurbani ki sikhaundi hai?',
+            ],
+        },
+        'guru-nanak': {
+            name: 'Guru Nanak Dev Ji',
+            ordinal: 'Pehle Guru',
+            tagline: 'Ik Onkar — ekta, sachi kirat ate vand ke chhakna',
+            greeting: `${FATEH} Ih gallbaat Guru Nanak Dev Ji de jeevan ate sikhiavan ton sedh laindi hai — ekta, sachi kirat ate Ik da simran. Tuhade man vich ki hai?`,
+            starterPrompts: [
+                'Ik Onkar da doojian naal mere vartaa layi ki arth hai?',
+                'Kirat Karo, Naam Japo, Vand Chhako nu ajj main kiven jeevaan?',
+                'Guru Nanak Dev Ji dian Udasian vichon koi sakhi sunao',
+                'Guru Nanak Dev Ji ne khokhle karamkandan te sawal kyon uthaye?',
+            ],
+        },
+        'guru-angad': {
+            name: 'Guru Angad Dev Ji',
+            ordinal: 'Dooje Guru',
+            tagline: 'Anushasan, vidya ate tan-man di sambhal',
+            greeting: `${FATEH} Ih gallbaat Guru Angad Dev Ji de jeevan ate sikhiavan ton sedh laindi hai — shardha, anushasan ate vidya di daat. Tuhade man vich ki hai?`,
+            starterPrompts: [
+                'Anushasan mere adhyatmak jeevan nu kiven mazboot kar sakda hai?',
+                'Guru Angad Dev Ji ne Gurmukhi lipi nu kyon prafullat kita?',
+                'Tan ate man di sambhal baare Sikhi ki sikhaundi hai?',
+                'Bhai Lehna Ji di shardha di sakhi sunao',
+            ],
+        },
+        'guru-amar-das': {
+            name: 'Guru Amar Das Ji',
+            ordinal: 'Teeje Guru',
+            tagline: 'Barabari, Langar ate har manukh da satkar',
+            greeting: `${FATEH} Ih gallbaat Guru Amar Das Ji de jeevan ate sikhiavan ton sedh laindi hai — barabari, Seva ate har manukh da satkar. Tuhade man vich ki hai?`,
+            starterPrompts: [
+                'Langar saanu barabari baare ki sikhaunda hai?',
+                'Guru Amar Das Ji ne aurtan da satkar kiven uccha kita?',
+                'Anand Sahib da suneha ki hai?',
+                'Jinhan nu samaj angaulian karda hai, unhan di Seva main kiven karaan?',
+            ],
+        },
+        'guru-ram-das': {
+            name: 'Guru Ram Das Ji',
+            ordinal: 'Chauthe Guru',
+            tagline: 'Nimrata, Seva ate Sangat di usari',
+            greeting: `${FATEH} Ih gallbaat Guru Ram Das Ji de jeevan ate sikhiavan ton sedh laindi hai — nimrata, Seva ate Sangat di usari. Tuhade man vich ki hai?`,
+            starterPrompts: [
+                'Sachi nimrata da abhiaas main kiven karaan?',
+                'Laavan pyar ate jeevan-saath baare ki sikhaundian han?',
+                'Seva Sikh jeevan da dhura kyon hai?',
+                'Amritsar di sthapna baare dasso',
+            ],
+        },
+        'guru-arjan': {
+            name: 'Guru Arjan Dev Ji',
+            ordinal: 'Panjve Guru',
+            tagline: 'Hukam di raza ate dukh vich vi sehaj',
+            greeting: `${FATEH} Ih gallbaat Guru Arjan Dev Ji de jeevan ate sikhiavan ton sedh laindi hai — Hukam nu mitha karke manna ate dukh vich vi sehaj. Tuhade man vich ki hai?`,
+            starterPrompts: [
+                'Jadon zindagi dukh deve, Waheguru da Hukam kiven mannaan?',
+                'Sukhmani Sahib kis baare hai?',
+                "'Tera Kia Meetha Lagai' da merian mushkalan layi ki arth hai?",
+                'Guru Arjan Dev Ji ne shaheedi nu sehaj naal kiven kabulia?',
+            ],
+        },
+        'guru-hargobind': {
+            name: 'Guru Hargobind Sahib Ji',
+            ordinal: 'Chheve Guru',
+            tagline: 'Miri-Piri — duniyavi farz ate ruhaniyat da santulan',
+            greeting: `${FATEH} Ih gallbaat Guru Hargobind Sahib Ji de jeevan ate sikhiavan ton sedh laindi hai — Miri-Piri, hausla ate ruhaniyat naal juria duniyavi farz. Tuhade man vich ki hai?`,
+            starterPrompts: [
+                'Miri-Piri da mere rozana jeevan layi ki arth hai?',
+                'Duniavi khaahishan ate ruhaniyat vich santulan kiven rakhaan?',
+                'Beinsafi khilaf kharhna kadon theek hai?',
+                'Bandi Chhor Divas baare dasso',
+            ],
+        },
+        'guru-har-rai': {
+            name: 'Guru Har Rai Sahib Ji',
+            ordinal: 'Sattve Guru',
+            tagline: 'Daya, komalta ate kudrat di sambhal',
+            greeting: `${FATEH} Ih gallbaat Guru Har Rai Sahib Ji de jeevan ate sikhiavan ton sedh laindi hai — daya, komalta ate saari kudrat di sambhal. Tuhade man vich ki hai?`,
+            starterPrompts: [
+                'Komalta ate daya main kiven vadhavaan?',
+                'Kudrat di sambhal baare Sikhi ki sikhaundi hai?',
+                'Guru Har Rai Ji ate tutte phullan di sakhi sunao',
+                'Doojian da ilaaj Seva da roop kiven ho sakda hai?',
+            ],
+        },
+        'guru-har-krishan': {
+            name: 'Guru Har Krishan Sahib Ji',
+            ordinal: 'Atthve Guru',
+            tagline: 'Sankat vich nishkam Seva ate umron vaddi sianap',
+            greeting: `${FATEH} Ih gallbaat Guru Har Krishan Sahib Ji de jeevan ate sikhiavan ton sedh laindi hai — sankat vich nishkam Seva ate umron vaddi sianap. Tuhade man vich ki hai?`,
+            starterPrompts: [
+                'Aukhe samen jaan bimari vich doojian di Seva main kiven karaan?',
+                'Naujawan aapni Sangat nu ki de sakde han?',
+                'Dilli vich bimaran di Seva karde Guru Har Krishan Ji baare dasso',
+                "Sikhi vich 'umron vaddi sianap' da ki arth hai?",
+            ],
+        },
+        'guru-tegh-bahadur': {
+            name: 'Guru Tegh Bahadur Ji',
+            ordinal: 'Nauve Guru',
+            tagline: 'Nirbhaita, vairaag ate doojian di azaadi di raakhi',
+            greeting: `${FATEH} Ih gallbaat Guru Tegh Bahadur Ji de jeevan ate sikhiavan ton sedh laindi hai — nirbhaita, vairaag ate doojian di azaadi layi kharhna. Tuhade man vich ki hai?`,
+            starterPrompts: [
+                'Bina dare ate bina kise nu daraye main kiven jeevaan?',
+                'Guru Tegh Bahadur Ji ne dooje dharam di azaadi layi shaheedi kyon ditti?',
+                'Nauve Guru de Salok moh baare ki sikhaunde han?',
+                'Jadon sab kujh badalda jaape, main adol kiven rahaan?',
+            ],
+        },
+        'guru-gobind-singh': {
+            name: 'Guru Gobind Singh Ji',
+            ordinal: 'Dasve Guru',
+            tagline: 'Sant-Sipahi — hausla, Khalsa jazba ate chardi kala',
+            greeting: `${FATEH} Ih gallbaat Guru Gobind Singh Ji de jeevan ate sikhiavan ton sedh laindi hai — Sant-Sipahi jazba, chardi kala ate ghaate vich vi hausla. Tuhade man vich ki hai?`,
+            starterPrompts: [
+                'Ajj Sant-Sipahi hon da ki arth hai?',
+                'Ghaate ate gham vich chardi kala vich kiven rahaan?',
+                'Vaisakhi 1699 ate Panj Pyarian baare dasso',
+                'Khalse di ki mahatta hai?',
+            ],
+        },
+    },
+    modes: {
+        'balanced': {
+            name: 'Santulit',
+            description: 'Saaf jawab, jithe dhukvan hove othe Gurbani de hawale naal',
+        },
+        'simple': {
+            name: 'Saral',
+            description: 'Saukhi bhasha, har khaas shabad di viakhia naal — nave sikhan walian layi vadhia',
+        },
+        'gurbani-first': {
+            name: 'Gurbani-Pehlan',
+            description: 'Har jawab di neenh ik tukk ate us da arth',
+        },
+        'vichaar': {
+            name: 'Vichaar',
+            description: 'Chhote, vichaar bharpoor jawab jo tuhade layi ik sawal naal mukkde han',
+        },
+        'sakhi': {
+            name: 'Sakhi',
+            description: 'Sikh itihaas dian kahanian rahin sikho',
+        },
+    },
+    replyLanguages: {
+        'english': {
+            name: 'English',
+            description: 'Sidhi English vich jawab',
+        },
+        'bilingual': {
+            name: 'Punjabi-American',
+            description: 'English jawab, jinhan vich Roman Punjabi shabad ate arth bune hoye hon',
+        },
+        'punjabi': {
+            name: 'Punjabi',
+            description: 'Tuhadi lipi (Gurmukhi jaan Roman) anusaar Punjabi vich jawab',
+        },
+    },
+    topicPacks: {
+        'life': {
+            label: 'Jeevan salah',
+            prompts: [
+                'Gusse naal main kiven najithaan?',
+                'Rishtian ate viah baare Sikhi ki kehndi hai?',
+                'Uchchian khaahishan ate santokh vich santulan kiven rakhaan?',
+                'Gurmat rahin main behtar dost ate parivarak member kiven banaan?',
+            ],
+        },
+        'hardship': {
+            label: 'Dukh ate gham',
+            prompts: [
+                'Kise pyare de vichhore da saahmna main kiven karaan?',
+                'Dukh baare Gurbani ki kehndi hai?',
+                'Jadon main ikalla mehsoos karaan taan aas kithon labhaan?',
+                'Je Waheguru dyalu hai taan dukh kyon aunde han?',
+            ],
+        },
+        'concepts': {
+            label: 'Sidhant',
+            prompts: [
+                'Hukam ki hai?',
+                'Haumai ki hai ate is ton kiven chhutkara paiye?',
+                'Naam Simran ki hai ate main kiven shuru karaan?',
+                'Panj Chor kihre han?',
+            ],
+        },
+        'history': {
+            label: 'Itihaas ate sakhian',
+            prompts: [
+                'Hausle baare koi sakhi sunao',
+                'Vaisakhi 1699 nu ki hoya si?',
+                'Panj Pyare kaun san?',
+                'Sahibzadian di shaheedi baare dasso',
+            ],
+        },
+        'practice': {
+            label: 'Rozana abhiaas',
+            prompts: [
+                'Nitnem ki hai ate main kiven shuru karaan?',
+                'Simran da abhiaas kiven shuru karaan?',
+                'Panj Kakaran di ki mahatta hai?',
+                'Gurdwara Sahib di pehli yatra layi main kiven tiari karaan?',
+            ],
+        },
+    },
+    contextStarters: {
+        hukamnama: [
+            'Ajj da Hukamnama maithon ki mangda hai?',
+            'Is Hukamname di tukk-tukk viakhia karo',
+            'Is Shabad da kendri suneha ki hai?',
+            'Is Hukamname nu main aapne din vich kiven vartaan?',
+        ],
+        shabad: [
+            'Is Shabad di tukk-tukk viakhia karo',
+            'Is Ang da kendri visha ki hai?',
+            'Ih tukkan kis ne, kis prasang vich uchaarian?',
+            'Ajj main is Bani te vichaar kiven karaan?',
+        ],
+    },
+};
+
+const paLatn: Dictionary = {
+    fateh: FATEH,
+
+    nav: {
+        mainNavAria: 'Mukkh',
+        about: 'Saade Baare',
+        hukamnama: 'Hukamnama',
+        chat: 'SikhAI nu Puchho',
+        seva: 'Seva Samagam',
+        shabad: 'Shabad Khoj',
+        greeting: 'Sat Sri Akal, {name}',
+        signIn: 'Sign In',
+        signOut: 'Sign Out',
+        toggleMenu: 'Navigation menu kholo jaan band karo',
+        switchToLight: 'Light mode chalu karo',
+        switchToDark: 'Dark mode chalu karo',
+        changeLanguage: 'Bhasha badlo',
+    },
+
+    home: {
+        badge: 'Google Gemini duara sanchalit',
+        heroLine1: 'Guruan da Gyan,',
+        heroLine2: 'AI di Roshni vich.',
+        heroSubtitle:
+            'Gurbani di khoj karo, nerhli Sangat labbho, ate rozana Hukamname parho — shanti, sikhia ate Seva layi banai gayi thaan vich.',
+        ctaChat: 'Gallbaat Shuru Karo',
+        ctaHukamnama: 'Ajj da Hukamnama',
+        previewWindowTitle: 'SikhAI Chat',
+        previewAiLine: 'Waheguru Ji Ka Khalsa... Ajj main Gurbani samjhan vich tuhadi ki madad karaan?',
+        previewUserLine: 'Guru Granth Sahib Ji nimrata baare ki sikhaunde han?',
+        exploreTitle: 'SikhAI di Khoj Karo',
+        exploreSubtitle: 'Gurbani ate Sangat naal juran de chaar tarike — sab ikko thaan.',
+        features: {
+            chat: {
+                title: 'SikhAI nu Puchho',
+                desc: 'Sawal puchho ate Gurbani te adharit jawab usse vele prapt karo.',
+                cta: 'Gallbaat shuru karo',
+            },
+            hukamnama: {
+                title: 'Rozana Hukamnama',
+                desc: 'Darbar Sahib ton ajj da Hukamnama, Gurmukhi ate English vich.',
+                cta: 'Ajj da parho',
+            },
+            shabad: {
+                title: 'Shabad Khoj',
+                desc: 'Guru Granth Sahib Ji da koi vi Ang (1–1430) dekho.',
+                cta: 'Gurbani khojo',
+            },
+            seva: {
+                title: 'Seva Samagam',
+                desc: 'Nerhli Sangat de Seva de mauke labbho ate shamil hovo.',
+                cta: 'Samagam dekho',
+            },
+        },
+    },
+
+    about: {
+        badge: '</> Nirmata',
+        builtBy: 'Banaun Wala',
+        bio1Before: '',
+        bio1School: 'UC Irvine',
+        bio1After: ' vich Computer Science da vidyarthi (2027 batch), jis nu AI/ML ate Full Stack engineering da doongha shauk hai.',
+        bio2Before: 'Ih platform ',
+        bio2Highlight: 'Generative AI',
+        bio2After:
+            ' rahin puratan gyan ate adhunik takneek vichkar pul banaunda hai. Ih adhyatmak virasat ate ati-adhunik bhasha modelan da sangam hai.',
+        portfolioCta: 'Mera Portfolio Dekho',
+        linkedinCta: 'LinkedIn te Juro',
+    },
+
+    chat: {
+        title: 'SikhAI nu Puchho',
+        newChat: 'Navin gallbaat',
+        clearPrompt: 'Ih gallbaat mitauni hai?',
+        clearConfirm: 'Mitao',
+        cancel: 'Radd karo',
+        confirmClearAria: 'Gallbaat mitaun di pushti karo',
+        guidedBy: '{name} di sedh vich',
+        change: 'Badlo',
+        latest: 'Sab ton navan',
+        dismiss: 'Hatao',
+        browseByTopic: 'Vishe anusaar dekho',
+        settingsTitle: 'Chat settingan',
+        closeSettings: 'Settingan band karo',
+        perspective: 'Drishtikon',
+        perspectiveNote:
+            'SikhAI kade vi Guru ban ke nahi bolda — ih chune hoye Guru Sahib de jeevan, Bani ate sikhiavan di sedh vich jawab dinda hai.',
+        responseStyle: 'Jawab di shaili',
+        language: 'Bhasha',
+        autoLanguage: 'Auto (site di bhasha)',
+        guruPerspectiveAria: 'Guru drishtikon',
+        poweredBy: 'Gemini duara sanchalit',
+        done: 'Ho gaya',
+        lensSwitchNotice: 'Hun jawab {name} di sedh vich ditte jaange',
+        lensSwitchNoticeDefault: 'Hun jawab SikhAI vajon, saare das Guru Sahibaan di sikhia de adhaar te ditte jaange',
+        inputPlaceholder: 'Koi sawal puchho...',
+        messageAria: 'Suneha',
+        sendAria: 'Suneha bhejo',
+        stopAria: 'Jawab roko',
+        thinking: 'SikhAI soch riha hai',
+        interrupted: 'Jawab vichale ruk gaya',
+        copyAria: 'Suneha copy karo',
+        copiedAria: 'Copy ho gaya',
+        regenerateAria: 'Jawab dubara banao',
+        discussing: 'Vichaar adheen: {title}',
+        stopDiscussingAria: 'Is paath di vichaar band karo',
+        config: chatConfig,
+    },
+
+    hukamnama: {
+        title: 'Ajj da Hukamnama',
+        today: 'Ajj',
+        dateFormat: '{date} {month} {year}',
+        liveFrom: 'Darbar Sahib ton sidha',
+        unable: 'Hukamnama is vele load nahi ho sakia.',
+        ang: 'Ang {n}',
+        discussCta: 'Ajj de Hukamname baare SikhAI naal vichaar karo',
+    },
+
+    shabad: {
+        title: '{ang} rahin labbho',
+        angWord: 'Ang',
+        angNumberAria: 'Ang number',
+        placeholder: 'Ang number darj karo (1-1430)',
+        searchButton: 'Khojo',
+        helpText: 'Us Ang di Gurbani parhan layi Ang number darj karo.',
+        fetching: 'Ang lianda ja riha hai...',
+        invalidDigits: 'Kirpa karke sahi Ang number darj karo (sirf ank).',
+        angRange: 'Ang number 1 ton 1430 vichkar hona chahida hai.',
+        notFound: 'Ang nahi milia. Kirpa karke 1-1430 vichkar koi number varto.',
+        fetchFailed: 'Gurbani load nahi ho saki.',
+        angLabel: 'Ang {n}',
+        askAboutAng: 'Is Ang baare puchho',
+        lineN: 'Tukk {n}',
+        granth: 'Guru Granth Sahib Ji',
+        gurmukhiUnavailable: 'Gurmukhi uplabdh nahi',
+        translationUnavailable: 'Anuvaad uplabdh nahi',
+    },
+
+    seva: {
+        heroTitle: '{word} naal Seva karo',
+        heroWord: 'Nimrata',
+        // Gurbani (Ang 26) — romanized, quoted
+        quote: '“Vich duniya sev kamaiye, ta dargah baisan paiye.”',
+        postEvent: '+ Samagam Pao',
+        signInPrompt: 'Seva samagam vich shamil hon layi pehlan sign in karo.',
+        joinError: 'Samagam vich shamil hon vele kujh galat ho gaya. Kirpa karke dubara koshish karo.',
+        dismissAria: 'Soochna hatao',
+        loading: 'Load ho riha hai...',
+        spotsLeft: '{n} thavan baki',
+        joined: 'Shamil ho gaye! Waheguru',
+        full: 'Bhar gaya - Waheguru',
+        join: 'Seva vich shamil hovo',
+        categories: {
+            Langar: 'Langar',
+            Service: 'Seva',
+            Education: 'Vidya',
+            Other: 'Hor',
+        },
+    },
+
+    sevaCreate: {
+        title: 'Navin Seva Pao',
+        cancel: 'Radd karo',
+        eventTitle: 'Samagam da naan',
+        eventTitlePlaceholder: 'Jiven: Hafte de akheer Langar di tiari',
+        category: 'Shreni',
+        volunteersNeeded: 'Lorinde sevadar',
+        neededPlaceholder: 'Jiven: 5',
+        location: 'Thaan (Gurdwara)',
+        locationPlaceholder: 'Jiven: Gurdwara Singh Sabha',
+        dateTime: 'Tareekh ate vela',
+        datePlaceholder: 'Jiven: Shanivaar, 20 Janvari • savere 4:00',
+        description: 'Verva',
+        optional: '(vikalpik)',
+        descriptionPlaceholder: 'Sevadar ki Seva karange?',
+        createError: 'Samagam banaun vele kujh galat ho gaya. Kirpa karke dubara koshish karo.',
+        posting: 'Paya ja riha hai...',
+        submit: 'Seva Samagam Banao',
+    },
+
+    footer: {
+        builtBy: 'Nirmata:',
+        navAria: 'Footer',
+    },
+
+    meta: {
+        title: 'SikhAI - Guruan da Gyan, AI di Roshni vich',
+        titleTemplate: '%s | SikhAI',
+        description: 'Puratan virasat ate Generative AI vichkar ik adhunik pul.',
+        ogImageAlt: 'SikhAI logo',
+        aboutTitle: 'Saade Baare',
+        chatTitle: 'SikhAI nu Puchho',
+        shabadTitle: 'Shabad Khoj',
+        sevaTitle: 'Seva Samagam',
+        sevaCreateTitle: 'Seva Samagam Pao',
+        hukamnamaTitle: 'Ajj da Hukamnama',
+    },
+
+    errors: {
+        generic: 'Maaf karna, kujh galat ho gaya. Kirpa karke dubara koshish karo.',
+        contextLoad: 'Oh paath load nahi ho sakia. Tusi phir vi aam gallbaat kar sakde ho.',
+        chat_empty: 'Kirpa karke koi suneha likho.',
+        chat_too_long: 'Ih suneha bahut lamma hai. Kirpa karke chhota karke dubara bhejo.',
+        chat_failed: 'Maaf karna, saade valon kujh galat ho gaya. Kirpa karke dubara koshish karo.',
+        missing_query: 'Ang number gumm hai.',
+        invalid_ang: 'Galat Ang number.',
+        source_error: 'Gurbani sarot naal sampark nahi ho sakia. Kirpa karke dubara koshish karo.',
+        hukamnama_unavailable: 'Hukamnama is vele load nahi ho sakia.',
+    },
+};
+
+export default paLatn;

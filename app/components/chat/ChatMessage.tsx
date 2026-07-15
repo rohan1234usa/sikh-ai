@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ClipboardIcon, CheckIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { markdownComponents } from './markdownComponents';
+import { useT } from '../../context/LanguageContext';
 import type { Message } from './useChatStorage';
 
 type Props = {
@@ -21,6 +22,7 @@ const BUBBLE = {
 };
 
 export default function ChatMessage({ message, isTyping, showActions, onRegenerate }: Props) {
+    const t = useT();
     const [copied, setCopied] = useState(false);
 
     const copy = async () => {
@@ -41,7 +43,7 @@ export default function ChatMessage({ message, isTyping, showActions, onRegenera
                 className={`max-w-[85%] md:max-w-[75%] p-4 rounded-2xl shadow-sm text-sm md:text-base leading-relaxed ${bubbleStyle}`}
             >
                 {isTyping ? (
-                    <span className="flex items-center gap-1.5 py-1" aria-label="Sikh AI is thinking">
+                    <span className="flex items-center gap-1.5 py-1" aria-label={t.chat.thinking}>
                         <span className="w-2 h-2 rounded-full bg-ink-faint animate-bounce" />
                         <span className="w-2 h-2 rounded-full bg-ink-faint animate-bounce [animation-delay:150ms]" />
                         <span className="w-2 h-2 rounded-full bg-ink-faint animate-bounce [animation-delay:300ms]" />
@@ -56,7 +58,7 @@ export default function ChatMessage({ message, isTyping, showActions, onRegenera
             </div>
 
             {message.interrupted && (
-                <p className="text-xs text-ink-faint italic mt-1">Response interrupted</p>
+                <p className="text-xs text-ink-faint italic mt-1">{t.chat.interrupted}</p>
             )}
 
             {showActions && (
@@ -64,7 +66,7 @@ export default function ChatMessage({ message, isTyping, showActions, onRegenera
                     <button
                         type="button"
                         onClick={copy}
-                        aria-label={copied ? 'Copied' : 'Copy message'}
+                        aria-label={copied ? t.chat.copiedAria : t.chat.copyAria}
                         className="p-1.5 rounded-lg text-ink-faint hover:text-ink hover:bg-edge/60 transition-colors"
                     >
                         {copied ? <CheckIcon className="w-4 h-4" /> : <ClipboardIcon className="w-4 h-4" />}
@@ -73,7 +75,7 @@ export default function ChatMessage({ message, isTyping, showActions, onRegenera
                         <button
                             type="button"
                             onClick={onRegenerate}
-                            aria-label="Regenerate response"
+                            aria-label={t.chat.regenerateAria}
                             className="p-1.5 rounded-lg text-ink-faint hover:text-ink hover:bg-edge/60 transition-colors"
                         >
                             <ArrowPathIcon className="w-4 h-4" />

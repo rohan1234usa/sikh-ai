@@ -2,9 +2,12 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Noto_Sans_Gurmukhi } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./context/AuthContext";
+import { LanguageProvider } from "./context/LanguageContext";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import { LANG_META } from "@/lib/i18n/config";
+import { getLang, getServerT } from "@/lib/i18n/server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,30 +27,33 @@ const notoGurmukhi = Noto_Sans_Gurmukhi({
   weight: ["400", "700"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "SikhAI - Wisdom of the Gurus, Illuminated by AI",
-    template: "%s | SikhAI",
-  },
-  description: "Architecting a Modern Bridge Between Ancient Heritage and Generative AI.",
-  metadataBase: new URL("https://sikhai.vercel.app/"),
-  openGraph: {
-    title: "SikhAI - Wisdom of the Gurus, Illuminated by AI",
-    description: "Architecting a Modern Bridge Between Ancient Heritage and Generative AI.",
-    url: "https://sikhai.vercel.app/",
-    siteName: "SikhAI",
-    images: [
-      {
-        url: "/logo.png",
-        width: 1200,
-        height: 630,
-        alt: "SikhAI Logo",
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { lang, t } = await getServerT();
+  return {
+    title: {
+      default: t.meta.title,
+      template: t.meta.titleTemplate,
+    },
+    description: t.meta.description,
+    metadataBase: new URL("https://sikhai.vercel.app/"),
+    openGraph: {
+      title: t.meta.title,
+      description: t.meta.description,
+      url: "https://sikhai.vercel.app/",
+      siteName: "SikhAI",
+      images: [
+        {
+          url: "/logo.png",
+          width: 1200,
+          height: 630,
+          alt: t.meta.ogImageAlt,
+        },
+      ],
+      locale: LANG_META[lang].ogLocale,
+      type: "website",
+    },
+  };
+}
 
 export const viewport: Viewport = {
   viewportFit: "cover",
@@ -57,14 +63,19 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Cookie-backed so SSR emits the right language and <html lang> on the
+  // first byte; the client provider is seeded from the same value, so
+  // hydration can never mismatch.
+  const lang = await getLang();
+
   return (
     <html
-      lang="en"
+      lang={LANG_META[lang].htmlLang}
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${notoGurmukhi.variable}`}
     >
@@ -78,9 +89,11 @@ export default function RootLayout({
       </head>
       <body className="antialiased min-h-dvh flex flex-col">
         <AuthProvider>
-          <Navbar />
-          {children}
-          <Footer />
+          <LanguageProvider initialLang={lang}>
+            <Navbar />
+            {children}
+            <Footer />
+          </LanguageProvider>
         </AuthProvider>
         <GoogleAnalytics gaId="G-9WWKK5Z5GD" />
       </body>

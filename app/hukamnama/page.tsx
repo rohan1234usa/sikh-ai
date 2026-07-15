@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import { getServerT } from '@/lib/i18n/server';
+import { fmt } from '@/lib/i18n/fmt';
 
-export const metadata: Metadata = {
-  title: "Today's Hukamnama",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getServerT();
+  return { title: t.meta.hukamnamaTitle };
+}
 
 // Fields are typed optional because GurbaniNow can return HTTP 200 with a
 // drifted/partial shape; the render below tolerates missing pieces rather
@@ -21,6 +24,7 @@ type HukamnamaResponse = {
   date?: {
     nanakshahi?: {
       english?: { date?: number; month?: string; year?: number };
+      punjabi?: { date?: string; month?: string; year?: string };
     };
   };
   hukamnamainfo?: {
@@ -41,6 +45,8 @@ async function getHukamnama() {
 }
 
 export default async function HukamnamaPage() {
+  const { lang, t } = await getServerT();
+
   let data: HukamnamaResponse | null = null;
   let error = false;
 
@@ -51,10 +57,13 @@ export default async function HukamnamaPage() {
   }
 
   const dateInfo = data?.date?.nanakshahi?.english;
+  // Gurmukhi UI prefers the API's Gurmukhi month name; digits stay Western
+  // (site convention), so date/year come from the english variant.
+  const month = (lang === 'pa' && data?.date?.nanakshahi?.punjabi?.month) || dateInfo?.month;
   const dateString =
-    dateInfo?.month && dateInfo.date != null && dateInfo.year != null
-      ? `${dateInfo.month} ${dateInfo.date}, ${dateInfo.year}`
-      : "Today";
+    month && dateInfo?.date != null && dateInfo.year != null
+      ? fmt(t.hukamnama.dateFormat, { month, date: dateInfo.date, year: dateInfo.year })
+      : t.hukamnama.today;
 
   // Only the lines that actually carry Gurmukhi; a drifted payload yields an
   // empty list, which flips us to the friendly fallback below.
@@ -66,18 +75,18 @@ export default async function HukamnamaPage() {
     <main className="flex-1 flex flex-col">
       <div className="flex-grow max-w-4xl mx-auto w-full p-4 md:p-8">
 
-        <h1 className="sr-only">Today&apos;s Hukamnama</h1>
+        <h1 className="sr-only">{t.hukamnama.title}</h1>
 
         <div className="text-right mb-4">
           <span className="block text-accent-text tracking-widest uppercase text-xs font-bold">
             {dateString}
           </span>
-          <span className="text-xs text-ink-faint">Live from Darbar Sahib</span>
+          <span className="text-xs text-ink-faint">{t.hukamnama.liveFrom}</span>
         </div>
 
         {!hasContent ? (
            <div className="text-center mt-20 p-8 bg-surface-raised rounded-xl border border-edge shadow-sm">
-             <p className="text-ink">Unable to load the Hukamnama right now.</p>
+             <p className="text-ink">{t.hukamnama.unable}</p>
            </div>
         ) : (
           <div className="bg-surface-raised shadow-2xl rounded-2xl overflow-hidden border-t-8 border-kesri">
@@ -88,7 +97,7 @@ export default async function HukamnamaPage() {
               </h2>
               {pageno != null && (
                 <p className="text-ink-muted text-sm uppercase tracking-wider font-bold">
-                  Ang {pageno}
+                  {fmt(t.hukamnama.ang, { n: pageno })}
                 </p>
               )}
             </div>
@@ -118,7 +127,7 @@ export default async function HukamnamaPage() {
                 className="inline-flex items-center gap-2 bg-kesri text-navy font-bold px-6 py-3 mt-6 rounded-xl hover:opacity-90 transition-opacity"
               >
                 <ChatBubbleLeftRightIcon className="w-5 h-5" aria-hidden="true" />
-                Discuss today&apos;s Hukamnama with SikhAI
+                {t.hukamnama.discussCta}
               </Link>
             </div>
 

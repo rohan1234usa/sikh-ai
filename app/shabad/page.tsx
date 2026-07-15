@@ -4,13 +4,21 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { MagnifyingGlassIcon, BookOpenIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { normalizeVerse, type AngItem } from '@/lib/gurbani/verse';
+import { useT } from '../context/LanguageContext';
+import type { Dictionary } from '@/lib/i18n';
+import { fmt } from '@/lib/i18n/fmt';
 
 export default function ShabadSearchPage() {
+  const t = useT();
   const [query, setQuery] = useState('');
   const [currentAng, setCurrentAng] = useState(''); // New state for displayed Ang
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<AngItem[]>([]);
   const [error, setError] = useState('');
+
+  // Word order around the highlighted word differs per language, so split the
+  // template on {ang} and render the styled span between the halves.
+  const [titleBefore, titleAfter] = t.shabad.title.split('{ang}');
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,13 +26,13 @@ export default function ShabadSearchPage() {
 
     // Validation: Must be a number
     if (!/^\d+$/.test(query)) {
-      setError('Please enter a valid Ang number (digits only).');
+      setError(t.shabad.invalidDigits);
       return;
     }
 
     const angNumber = parseInt(query, 10);
     if (angNumber < 1 || angNumber > 1430) {
-      setError('Ang number must be between 1 and 1430.');
+      setError(t.shabad.angRange);
       return;
     }
 
@@ -39,7 +47,11 @@ export default function ShabadSearchPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || `Error ${res.status}: Failed to fetch`);
+        // Prefer the translated message for a known error code
+        const codeText = typeof data?.code === 'string' && data.code in t.errors
+          ? t.errors[data.code as keyof Dictionary['errors']]
+          : null;
+        throw new Error(codeText || data.error || t.shabad.fetchFailed);
       }
 
       // Guard against an empty array too — `if (data.page)` is truthy for [],
@@ -48,12 +60,12 @@ export default function ShabadSearchPage() {
         setResults(data.page);
         setCurrentAng(query); // Set the displayed Ang only on success
       } else {
-        setError('Ang not found. Please try a number between 1-1430.');
+        setError(t.shabad.notFound);
       }
 
     } catch (err) {
       console.error(err);
-      setError(err instanceof Error && err.message ? err.message : 'Failed to fetch Gurbani.');
+      setError(err instanceof Error && err.message ? err.message : t.shabad.fetchFailed);
     } finally {
       setLoading(false);
     }
@@ -65,17 +77,17 @@ export default function ShabadSearchPage() {
       {/* Search Header */}
       <div className="bg-navy text-white py-12 px-6 flex flex-col items-center">
         <h1 className="text-3xl font-bold mb-6 text-center">
-          Find by <span className="text-kesri">Ang</span>
+          {titleBefore}<span className="text-kesri">{t.shabad.angWord}</span>{titleAfter}
         </h1>
 
         <form onSubmit={handleSearch} className="w-full max-w-xl relative">
           <input
             type="text"
             inputMode="numeric"
-            aria-label="Ang number"
+            aria-label={t.shabad.angNumberAria}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Enter Ang Number (1-1430)"
+            placeholder={t.shabad.placeholder}
             className="w-full p-4 pl-12 pr-28 rounded-xl text-navy bg-white border-2 border-transparent focus:border-kesri shadow-xl transition-all placeholder:text-slate-400"
           />
           <MagnifyingGlassIcon className="w-6 h-6 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" aria-hidden="true" />
@@ -83,11 +95,11 @@ export default function ShabadSearchPage() {
             type="submit"
             className="absolute right-2 top-2 bottom-2 bg-navy text-white px-6 rounded-lg font-bold hover:bg-kesri hover:text-navy transition"
           >
-            Search
+            {t.shabad.searchButton}
           </button>
         </form>
         <p className="mt-4 text-sm text-slate-300">
-          Enter a page number to read the Gurbani from that Ang.
+          {t.shabad.helpText}
         </p>
       </div>
 
@@ -96,7 +108,7 @@ export default function ShabadSearchPage() {
 
         {loading && (
           <div className="text-center py-20 text-ink animate-pulse">
-            Fetching Ang...
+            {t.shabad.fetching}
           </div>
         )}
 
@@ -112,21 +124,21 @@ export default function ShabadSearchPage() {
             <div className="flex items-center gap-2 mb-4 pb-2 border-b border-edge">
               <BookOpenIcon className="w-5 h-5 text-accent-text" aria-hidden="true" />
               <span className="text-ink font-bold">
-                Ang {currentAng}
+                {fmt(t.shabad.angLabel, { n: currentAng })}
               </span>
               <Link
                 href={`/chat?context=shabad&ang=${currentAng}`}
                 className="ml-auto inline-flex items-center gap-1.5 text-sm font-semibold text-accent-text hover:underline"
               >
                 <ChatBubbleLeftRightIcon className="w-4 h-4" aria-hidden="true" />
-                Ask about this Ang
+                {t.shabad.askAboutAng}
               </Link>
             </div>
 
             {results.map((item, index) => {
               const normalized = normalizeVerse(item);
-              const gurmukhi = normalized.gurmukhi || "Gurmukhi Unavailable";
-              const translation = normalized.translation || "Translation unavailable";
+              const gurmukhi = normalized.gurmukhi || t.shabad.gurmukhiUnavailable;
+              const translation = normalized.translation || t.shabad.translationUnavailable;
 
               return (
                 <div key={index} className="bg-surface-raised p-4 sm:p-6 rounded-xl shadow-sm border border-edge hover:shadow-md transition">
@@ -138,10 +150,10 @@ export default function ShabadSearchPage() {
                   </p>
                   <div className="flex justify-between items-center text-xs text-ink-faint border-t border-edge pt-4 mt-2">
                     <span>
-                      Line {index + 1}
+                      {fmt(t.shabad.lineN, { n: index + 1 })}
                     </span>
                     <span className="uppercase tracking-widest text-accent-text font-bold">
-                      Guru Granth Sahib Ji
+                      {t.shabad.granth}
                     </span>
                   </div>
                 </div>

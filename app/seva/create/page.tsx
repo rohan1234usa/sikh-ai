@@ -5,9 +5,15 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
+import { useT } from '../../context/LanguageContext';
+
+// Stored category values stay English (they are data/style keys); only the
+// visible <option> labels are translated.
+const CATEGORY_VALUES = ['Langar', 'Service', 'Education', 'Other'] as const;
 
 export default function CreateSevaPage() {
   const router = useRouter();
+  const t = useT();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -46,7 +52,7 @@ export default function CreateSevaPage() {
 
     } catch (err) {
       console.error("Error adding document: ", err);
-      setError('Something went wrong creating the event. Please try again.');
+      setError(t.sevaCreate.createError);
       setLoading(false);
     }
   };
@@ -57,9 +63,9 @@ export default function CreateSevaPage() {
 
         {/* Header */}
         <div className="bg-navy dark:bg-navy-light p-6 text-white flex justify-between items-center">
-          <h1 className="text-xl font-bold">Post New Seva</h1>
+          <h1 className="text-xl font-bold">{t.sevaCreate.title}</h1>
           <Link href="/seva" className="text-sm text-slate-300 hover:text-white hover:underline transition">
-            Cancel
+            {t.sevaCreate.cancel}
           </Link>
         </div>
 
@@ -67,68 +73,67 @@ export default function CreateSevaPage() {
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
 
           <div>
-            <label htmlFor="title" className="block text-sm font-bold text-ink mb-2">Event Title</label>
+            <label htmlFor="title" className="block text-sm font-bold text-ink mb-2">{t.sevaCreate.eventTitle}</label>
             <input
               id="title" name="title" required
               className="w-full p-3 rounded-lg border border-edge focus:border-kesri focus:ring-1 focus:ring-kesri transition text-ink bg-surface-raised"
-              placeholder="e.g. Weekend Langar Prep"
+              placeholder={t.sevaCreate.eventTitlePlaceholder}
               onChange={handleChange}
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor="category" className="block text-sm font-bold text-ink mb-2">Category</label>
+              <label htmlFor="category" className="block text-sm font-bold text-ink mb-2">{t.sevaCreate.category}</label>
               <select
                 id="category" name="category"
                 className="w-full p-3 rounded-lg border border-edge bg-surface-raised text-ink"
                 onChange={handleChange}
               >
-                <option value="Langar">Langar</option>
-                <option value="Service">Service</option>
-                <option value="Education">Education</option>
-                <option value="Other">Other</option>
+                {CATEGORY_VALUES.map((value) => (
+                  <option key={value} value={value}>{t.seva.categories[value]}</option>
+                ))}
               </select>
             </div>
             <div>
-              <label htmlFor="needed" className="block text-sm font-bold text-ink mb-2">Volunteers Needed</label>
+              <label htmlFor="needed" className="block text-sm font-bold text-ink mb-2">{t.sevaCreate.volunteersNeeded}</label>
               <input
                 id="needed" name="needed" type="number" required min="1"
                 className="w-full p-3 rounded-lg border border-edge text-ink bg-surface-raised"
-                placeholder="e.g. 5"
+                placeholder={t.sevaCreate.neededPlaceholder}
                 onChange={handleChange}
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="location" className="block text-sm font-bold text-ink mb-2">Location (Gurudwara)</label>
+            <label htmlFor="location" className="block text-sm font-bold text-ink mb-2">{t.sevaCreate.location}</label>
             <input
               id="location" name="location" required
               className="w-full p-3 rounded-lg border border-edge text-ink bg-surface-raised"
-              placeholder="e.g. Gurudwara Singh Sabha"
+              placeholder={t.sevaCreate.locationPlaceholder}
               onChange={handleChange}
             />
           </div>
 
           <div>
-            <label htmlFor="date" className="block text-sm font-bold text-ink mb-2">Date & Time</label>
+            <label htmlFor="date" className="block text-sm font-bold text-ink mb-2">{t.sevaCreate.dateTime}</label>
             <input
               id="date" name="date" required
               className="w-full p-3 rounded-lg border border-edge text-ink bg-surface-raised"
-              placeholder="e.g. Sat, Jan 20 • 4:00 AM"
+              placeholder={t.sevaCreate.datePlaceholder}
               onChange={handleChange}
             />
           </div>
 
           <div>
             <label htmlFor="description" className="block text-sm font-bold text-ink mb-2">
-              Description <span className="font-normal text-ink-faint">(optional)</span>
+              {t.sevaCreate.description} <span className="font-normal text-ink-faint">{t.sevaCreate.optional}</span>
             </label>
             <textarea
               id="description" name="description" rows={3}
               className="w-full p-3 rounded-lg border border-edge text-ink bg-surface-raised resize-none"
-              placeholder="What will volunteers be doing?"
+              placeholder={t.sevaCreate.descriptionPlaceholder}
               onChange={handleChange}
             />
           </div>
@@ -144,7 +149,7 @@ export default function CreateSevaPage() {
             disabled={loading}
             className="w-full bg-navy text-white dark:bg-kesri dark:text-navy font-bold py-4 rounded-lg hover:bg-navy-light dark:hover:bg-kesri-hover transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Posting...' : 'Create Seva Event'}
+            {loading ? t.sevaCreate.posting : t.sevaCreate.submit}
           </button>
         </form>
 

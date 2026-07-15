@@ -10,6 +10,7 @@ import {
     type LanguageId,
     type LensId,
     type ModeId,
+    type Script,
 } from './config';
 
 const BASE_IDENTITY = `You are SikhAI, a digital seva (service) dedicated to sharing the wisdom of Sikhi.
@@ -107,6 +108,14 @@ const LANGUAGE_PROMPTS: Record<LanguageId, string> = {
 Keep Gurbani quotations in Gurmukhi with a Punjabi explanation in the user's script.`,
 };
 
+// Refines only the ambiguous-input default of the 'punjabi' prompt above:
+// the site UI language tells us which script the reader prefers, but a user
+// who explicitly writes in one script is still mirrored.
+const SCRIPT_OVERRIDES: Record<Script, string> = {
+    'gurmukhi': `The user's interface is set to Gurmukhi: when their script is ambiguous (English or mixed input), default to Gurmukhi rather than romanized Punjabi.`,
+    'latin': `The user's interface is set to romanized Punjabi: when their script is ambiguous (English or mixed input), default to romanized Punjabi.`,
+};
+
 function truncate(value: string, max: number): string {
     if (value.length <= max) return value;
     const cut = value.slice(0, max);
@@ -119,15 +128,21 @@ export function composeSystemInstruction(opts: {
     lensId: LensId;
     modeId: ModeId;
     languageId: LanguageId;
+    script?: Script;
     context?: ChatContext | null;
 }): string {
-    const { lensId, modeId, languageId, context } = opts;
+    const { lensId, modeId, languageId, script, context } = opts;
+
+    const languageSection =
+        languageId === 'punjabi' && script
+            ? `${LANGUAGE_PROMPTS.punjabi}\n${SCRIPT_OVERRIDES[script]}`
+            : LANGUAGE_PROMPTS[languageId];
 
     const sections = [
         BASE_IDENTITY,
         `## Perspective\n${LENS_PROMPTS[lensId]}`,
         `## Response style\n${MODE_PROMPTS[modeId]}`,
-        `## Language\n${LANGUAGE_PROMPTS[languageId]}`,
+        `## Language\n${languageSection}`,
     ];
 
     if (context) {
