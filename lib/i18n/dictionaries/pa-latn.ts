@@ -422,6 +422,12 @@ const paLatn: Dictionary = {
         copyAria: '{label} copy karo',
         copiedAria: 'Copy ho gaya',
         copyAll: 'Sab copy karo',
+        // "Google Translate" is a product name — left untranslated, like "SikhAI".
+        fallbackNotice: 'Google Translate rahin muddhla anuvaad — Roman spelling, shabad-dar-shabad ate sikhan de saadhan is vele uplabdh nahi han.',
+        crosscheck: 'Google Translate naal tulna karo',
+        crosschecking: 'Jaanch ho rahi hai…',
+        crosscheckLabel: 'Google Translate',
+        crosscheckError: 'Google Translate takk pahunch nahi ho saki. Baad vich dubara koshish karo.',
         wordByWord: 'Shabad-dar-shabad',
         notesHeading: 'Aukhian gallan',
         pronunciationHeading: 'Ucharan kiven kariye',

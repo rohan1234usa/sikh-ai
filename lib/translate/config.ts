@@ -41,7 +41,21 @@ export type TranslationResult = {
     words: WordGloss[];
     notes: TranslationNote[];          // empty when nothing is genuinely tricky
     pronunciation: PronunciationTip[]; // empty when nothing is hard to say
+    // Set only when Gemini failed and the result was synthesized from Cloud
+    // Translation instead: no roman rendition, no learning aids. Optional so
+    // results already in localStorage keep deserializing unchanged.
+    fallback?: 'cloud';
 };
+
+// Which way a cross-check request runs. The client always sends a rendition
+// Cloud Translation can actually read — never romanized Punjabi.
+export const CROSSCHECK_DIRECTIONS = ['en-pa', 'pa-en'] as const;
+export type CrosscheckDirection = (typeof CROSSCHECK_DIRECTIONS)[number];
+
+export type CrosscheckResponse = { translatedText: string };
+
+export const isCrosscheckDirection = (v: unknown): v is CrosscheckDirection =>
+    CROSSCHECK_DIRECTIONS.includes(v as CrosscheckDirection);
 
 // Size cap shared by the API route (authoritative) and the client (courtesy
 // pre-check before sending). Deliberately lower than the chat cap: this is a

@@ -422,6 +422,12 @@ const pa: Dictionary = {
         copyAria: '{label} ਕਾਪੀ ਕਰੋ',
         copiedAria: 'ਕਾਪੀ ਹੋ ਗਿਆ',
         copyAll: 'ਸਭ ਕਾਪੀ ਕਰੋ',
+        // "Google Translate" is a product name — left untranslated, like "SikhAI".
+        fallbackNotice: 'Google Translate ਰਾਹੀਂ ਮੁੱਢਲਾ ਅਨੁਵਾਦ — ਰੋਮਨ ਸਪੈਲਿੰਗ, ਸ਼ਬਦ-ਦਰ-ਸ਼ਬਦ ਅਤੇ ਸਿੱਖਣ ਦੇ ਸਾਧਨ ਇਸ ਵੇਲੇ ਉਪਲਬਧ ਨਹੀਂ ਹਨ।',
+        crosscheck: 'Google Translate ਨਾਲ ਤੁਲਨਾ ਕਰੋ',
+        crosschecking: 'ਜਾਂਚ ਹੋ ਰਹੀ ਹੈ…',
+        crosscheckLabel: 'Google Translate',
+        crosscheckError: 'Google Translate ਤੱਕ ਪਹੁੰਚ ਨਹੀਂ ਹੋ ਸਕੀ। ਬਾਅਦ ਵਿੱਚ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।',
         wordByWord: 'ਸ਼ਬਦ-ਦਰ-ਸ਼ਬਦ',
         notesHeading: 'ਔਖੀਆਂ ਗੱਲਾਂ',
         pronunciationHeading: 'ਉਚਾਰਨ ਕਿਵੇਂ ਕਰੀਏ',

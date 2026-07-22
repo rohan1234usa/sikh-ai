@@ -21,7 +21,7 @@ Whether it's fetching the daily *Hukamnama* from Darbar Sahib, coordinating *Sev
 *   **🧭 Guru Teachings-Lenses**: Ask for guidance through the lens of any of the ten Gurus (or the default SikhAI). Each lens shifts emphasis, preferred Bani, and sakhis while never impersonating a Guru — answers stay in the third person with honorifics. Switching mid-conversation drops an in-thread divider and applies from the next message.
 *   **🎛️ Response Styles & Languages**: Orthogonal to the lens, pick a response style (Balanced, Simple/newcomer, Gurbani-first, Vichaar/reflection, Sakhi/story) and a language (English, Punjabi-American bilingual, or Punjabi with Gurmukhi/romanized script-matching). All three axes are composed server-side into one Gemini `systemInstruction`.
 *   **🧩 Guided Prompting**: Per-lens starter chips plus categorized topic packs (Life advice, Hardship & grief, Concepts, History & sakhis, Daily practice), and deep links from the Hukamnama and Shabad pages that open the chat with that passage attached as context.
-*   **🔤 Punjabi ↔ English Translator**: Type English, Gurmukhi, or romanized Punjabi and get **all three renditions at once**, plus a word-by-word gloss, "tricky parts" notes (idioms, the ergative *ne*, honorifics, false friends), and pronunciation tips anchored to real words from the result. Input script is auto-detected and overridable. Built for diaspora learners who speak some Punjabi but may not read Gurmukhi — so it ships a 50-phrase curated phrasebook across five categories (greetings, kinship, gurdwara, everyday, food) and local translation history that restores a full past result instantly with no re-fetch.
+*   **🔤 Punjabi ↔ English Translator**: Type English, Gurmukhi, or romanized Punjabi and get **all three renditions at once**, plus a word-by-word gloss, "tricky parts" notes (idioms, the ergative *ne*, honorifics, false friends), and pronunciation tips anchored to real words from the result. Input script is auto-detected and overridable. Built for diaspora learners who speak some Punjabi but may not read Gurmukhi — so it ships a 50-phrase curated phrasebook across five categories (greetings, kinship, gurdwara, everyday, food) and local translation history that restores a full past result instantly with no re-fetch. When Gemini is rate-limited it degrades gracefully to a clearly-labelled Cloud Translation rendering rather than an error, and any result can be cross-checked against Google Translate on demand.
 *   **⚡ Daily Hukamnama**: Server-rendered fetch of the day's decree from Darbar Sahib (via the GurbaniNow API), rendered in Gurmukhi with English translation.
 *   **📖 Shabad Lookup**: Browse any Ang (1–1430) of the Guru Granth Sahib through a validated proxy to the GurbaniNow API.
 *   **🤝 Seva Event Coordination**: A real-time event board backed by Firestore, with Google sign-in (Firebase Auth) so Sangat can post and join volunteering opportunities.
@@ -89,6 +89,15 @@ Follow these steps to set up the project locally.
     ```env
     # Google Gemini (server-side)
     GEMINI_API_KEY=your_gemini_key
+
+    # Google Cloud Translation (server-side, optional)
+    # Powers the translator's fallback when Gemini is unavailable, the
+    # "Compare with Google Translate" cross-check, and the i18n audit script.
+    # Must be a key with the Cloud Translation API enabled — a Gemini key
+    # restricted to the Generative Language API returns 403.
+    GOOGLE_TRANSLATE_API_KEY=your_translation_key
+    # Set to "off" to disable every runtime Cloud Translation call.
+    # TRANSLATE_FALLBACK=off
 
     # Firebase (client-side)
     NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
@@ -173,6 +182,20 @@ const result = await model.generateContent(buildUserMessage(text)); // nonce-fen
 const parsed = parseTranslationResult(result.response.text(), fallbackDetected);
 if (!parsed) return NextResponse.json({ error, code: 'translate_failed' }, { status: 502 });
 ```
+
+## 🔍 i18n Audit Script
+
+The Punjabi dictionaries and the translator's phrasebook are AI-drafted and flagged pending review by a fluent speaker. `npm run audit:i18n` narrows down where that review time is best spent.
+
+```bash
+npm run audit:i18n -- --dry-run
+```
+
+Two layers. The **free checks** cost nothing and run on every invocation: `{placeholder}` parity across all three dictionaries (a mismatch breaks `fmt()` at runtime and is the one finding that exits non-zero), untranslated strings left in `pa.ts`, Gurmukhi bleeding into `pa-latn.ts`, length-ratio outliers, and drift in community spellings (Waheguru, Gurdwara, langar, seva…). The **back-translation** layer sends `pa.ts` and the phrasebook's Gurmukhi through Cloud Translation and scores the round-trip against the English source, sorting the report so the least-similar entries come first.
+
+Results land in `scripts/i18n-audit/report.md` (committed, so it is readable on GitHub and a rerun after fixes shows exactly which findings cleared). Every translation is cached in `scripts/i18n-audit/cache.json` — also committed, doubling as the spend ledger — and keyed by content hash, so reruns only pay for strings that actually changed. A full first run is roughly 11K characters against a 500K/month free tier; `--dry-run` estimates the cost without spending anything.
+
+> `pa-latn.ts` cannot be machine-audited: Cloud Translation neither romanizes Punjabi nor reliably reads romanized Punjabi. Its coverage is the free checks only — a limitation the report states explicitly.
 
 ## 🗺️ Roadmap
 
