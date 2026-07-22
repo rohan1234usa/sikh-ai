@@ -21,19 +21,45 @@ export function cacheKey(source: string, target: string, text: string): string {
     return createHash('sha256').update(`${source}→${target}:${text}`).digest('hex');
 }
 
-export function loadCache(): Cache {
-    try {
-        const parsed = JSON.parse(readFileSync(CACHE_PATH, 'utf8')) as Cache;
-        if (parsed?.version === 1 && parsed.entries) return parsed;
-    } catch {
-        // missing or corrupt — start fresh rather than fail the run
-    }
+function emptyCache(): Cache {
     const now = new Date().toISOString();
     return {
         version: 1,
         meta: { createdAt: now, updatedAt: now, totalCharsBilled: 0 },
         entries: {},
     };
+}
+
+// A corrupt cache must never be silently discarded. This file is committed, so
+// the realistic corruption is a merge conflict between two branches that both
+// ran the audit — and starting fresh there would quietly re-bill the entire
+// corpus and reset the spend ledger to zero. Fail loudly instead; --reset-cache
+// is the deliberate way to start over.
+export function loadCache(allowReset = false): Cache {
+    let raw: string;
+    try {
+        raw = readFileSync(CACHE_PATH, 'utf8');
+    } catch {
+        return emptyCache(); // genuinely absent: first run
+    }
+
+    try {
+        const parsed = JSON.parse(raw) as Cache;
+        if (parsed?.version === 1 && parsed.entries) return parsed;
+        throw new Error(`unexpected shape (version ${parsed?.version})`);
+    } catch (err) {
+        if (allowReset) {
+            console.warn('cache.json unreadable — starting fresh (--reset-cache).');
+            return emptyCache();
+        }
+        console.error(
+            `cache.json exists but could not be read: ${err instanceof Error ? err.message : err}\n` +
+            `Refusing to continue — a fresh cache would re-translate everything and reset the\n` +
+            `spend ledger. Check for merge conflict markers, then rerun; or pass --reset-cache\n` +
+            `to discard it deliberately.`
+        );
+        process.exit(1);
+    }
 }
 
 // Written after every chunk, not at the end: a crash or quota error mid-run

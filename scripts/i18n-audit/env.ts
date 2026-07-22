@@ -38,7 +38,13 @@ export function loadEnvLocal(): Record<string, string> {
 // with no key configured at all.
 export function requireApiKey(): string {
     const env = loadEnvLocal();
-    const key = env.GOOGLE_TRANSLATE_API_KEY || env.GEMINI_API_KEY;
+    // A real environment variable wins over the file, so the key can be
+    // supplied inline or by CI without editing .env.local.
+    const key =
+        process.env.GOOGLE_TRANSLATE_API_KEY ||
+        env.GOOGLE_TRANSLATE_API_KEY ||
+        process.env.GEMINI_API_KEY ||
+        env.GEMINI_API_KEY;
     if (!key) {
         console.error(
             'No API key found. Add GOOGLE_TRANSLATE_API_KEY to .env.local\n' +

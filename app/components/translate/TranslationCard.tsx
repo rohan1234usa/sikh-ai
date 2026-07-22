@@ -23,9 +23,13 @@ type Props = {
     // genuinely error-prone case ("main street" vs "main theek haan"). The
     // link re-submits the same text with the opposite explicit hint.
     onRetryAs?: (hint: DetectedInput) => void;
+    // Re-runs the original text unchanged. Offered on fallback results so a
+    // degraded translation isn't a dead end once Gemini's quota recovers —
+    // including one restored from history days later.
+    onRetry?: () => void;
 };
 
-export default function TranslationCard({ result, onRetryAs }: Props) {
+export default function TranslationCard({ result, onRetryAs, onRetry }: Props) {
     const t = useT();
     const retryHint: DetectedInput =
         result.detectedInput === 'english' ? 'punjabi-latin' : 'english';
@@ -125,6 +129,18 @@ export default function TranslationCard({ result, onRetryAs }: Props) {
             {result.fallback && (
                 <p className="mb-4 rounded-lg border border-edge bg-surface px-3 py-2 text-xs text-ink-muted">
                     {t.translate.fallbackNotice}
+                    {onRetry && (
+                        <>
+                            {' '}
+                            <button
+                                type="button"
+                                onClick={onRetry}
+                                className="font-semibold text-accent-text underline underline-offset-2 hover:text-ink transition-colors"
+                            >
+                                {t.translate.retryFull}
+                            </button>
+                        </>
+                    )}
                 </p>
             )}
 

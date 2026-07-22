@@ -49,7 +49,9 @@ export const LATIN_OK_PATHS = new Set([
 // A value carrying no letters at all (pure placeholders, digits, punctuation)
 // is not translatable content — e.g. '{n} / {max}'.
 export function hasLetters(value: string): boolean {
-    return /\p{L}/u.test(value.replace(/\{[a-z_]+\}/gi, ''));
+    // \w+ inside the braces, matching fmt(): otherwise a numbered placeholder
+    // like '{n1} / {max}' reads as translatable text and gets billed to Cloud.
+    return /\p{L}/u.test(value.replace(/\{\w+\}/g, ''));
 }
 
 export function isMtEligible(leaf: Leaf): boolean {

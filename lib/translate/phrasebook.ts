@@ -20,7 +20,12 @@ export type Phrase = {
     gurmukhi: string; // rendered with font-gurmukhi + lang="pa"
     roman: string;    // rendered with lang="pa-Latn"
     english: string;  // meaning / functional gloss
-    note?: string;    // one-line cultural or usage note
+    // One-line cultural or usage note. English-only for now, in every UI
+    // language. `npm run audit:i18n -- --localize-notes` machine-translates
+    // these to Gurmukhi and writes notes-pa.generated.json; applying it means
+    // adding a `notePa?` field here and preferring it when the site language is
+    // 'pa' (pa-latn stays English — Cloud Translation cannot romanize Punjabi).
+    note?: string;
 };
 
 export const PHRASES: Phrase[] = [

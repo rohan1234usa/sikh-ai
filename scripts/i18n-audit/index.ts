@@ -38,12 +38,13 @@ Usage: npm run audit:i18n -- [flag]
   --probe            One ~5-char call to verify the API key works
   --localize-notes   Machine-translate phrasebook notes to Gurmukhi
   --prune            Remove cache entries no current string maps to
+  --reset-cache      Discard an unreadable cache.json instead of failing
   --help             This message
 `;
 
-async function probe(): Promise<void> {
+async function probe(allowReset: boolean): Promise<void> {
     const apiKey = requireApiKey();
-    const cache = loadCache();
+    const cache = loadCache(allowReset);
     console.log('Probing Cloud Translation with a 3-character request…');
     try {
         const { stats } = await translateAll(
@@ -58,9 +59,9 @@ async function probe(): Promise<void> {
     }
 }
 
-async function localizeNotes(): Promise<void> {
+async function localizeNotes(allowReset: boolean): Promise<void> {
     const apiKey = requireApiKey();
-    const cache = loadCache();
+    const cache = loadCache(allowReset);
     const withNotes = PHRASES.filter(p => p.note);
     const requests: TranslateRequest[] = withNotes.map(p => ({
         source: 'en', target: 'pa', text: p.note as string,
@@ -86,7 +87,7 @@ async function localizeNotes(): Promise<void> {
     console.log(`Billed ${stats.billedChars} chars (${stats.cacheHits} from cache).`);
 }
 
-async function audit(dryRun: boolean, prune: boolean): Promise<void> {
+async function audit(dryRun: boolean, prune: boolean, allowReset: boolean): Promise<void> {
     const enLeaves = collectLeaves(en);
     const paLeaves = collectLeaves(pa);
     const latnLeaves = collectLeaves(paLatn);
@@ -98,7 +99,7 @@ async function audit(dryRun: boolean, prune: boolean): Promise<void> {
     const findings: Finding[] = [
         ...checkPlaceholderParity(enMap, paMap, latnMap),
         ...checkScriptSanity(paLeaves, latnLeaves),
-        ...checkSpellingDrift(latnLeaves, PHRASES),
+        ...checkSpellingDrift(enLeaves, latnLeaves, PHRASES),
         ...checkLengthRatios(enMap, paMap, latnMap),
     ];
 
@@ -109,7 +110,7 @@ async function audit(dryRun: boolean, prune: boolean): Promise<void> {
         ...PHRASES.map(p => ({ source: 'pa' as const, target: 'en' as const, text: p.gurmukhi })),
     ];
 
-    const cache = loadCache();
+    const cache = loadCache(allowReset);
     const estimated = estimateUncachedChars(requests, cache);
 
     let dictRows: MtRow[] = [];
@@ -145,7 +146,6 @@ async function audit(dryRun: boolean, prune: boolean): Promise<void> {
     }
 
     const path = writeReport({
-        generatedAt: new Date().toISOString(),
         counts: { en: enLeaves.length, pa: paLeaves.length, paLatn: latnLeaves.length, phrases: PHRASES.length },
         findings,
         dictRows,
@@ -186,9 +186,10 @@ async function main(): Promise<void> {
         console.log(HELP);
         return;
     }
-    if (args.includes('--probe')) return probe();
-    if (args.includes('--localize-notes')) return localizeNotes();
-    return audit(args.includes('--dry-run'), args.includes('--prune'));
+    const allowReset = args.includes('--reset-cache');
+    if (args.includes('--probe')) return probe(allowReset);
+    if (args.includes('--localize-notes')) return localizeNotes(allowReset);
+    return audit(args.includes('--dry-run'), args.includes('--prune'), allowReset);
 }
 
 main().catch(err => {

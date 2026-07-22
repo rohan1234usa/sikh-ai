@@ -7,7 +7,7 @@ import {
   type SourceHint,
   type TranslationResult,
 } from "@/lib/translate/config";
-import { detectScript } from "@/lib/translate/detect";
+import { detectScript, looksRomanizedPunjabi } from "@/lib/translate/detect";
 import { cloudTranslate } from "@/lib/translate/cloud";
 import { RESPONSE_SCHEMA, buildUserMessage, composeTranslateInstruction } from "@/lib/translate/prompts";
 import { parseTranslationResult } from "@/lib/translate/parse";
@@ -58,13 +58,20 @@ async function attemptCloudFallback(
   // confident nonsense. Bail before spending a single character.
   if (hint === 'punjabi-latin' || hint === 'punjabi-gurmukhi') return null;
 
+  // Same reasoning on the default 'auto' chip, which is where romanized input
+  // actually arrives. Cloud has no romanized-Punjabi language code, so asking
+  // it would likely come back labelled 'en' and pass the check below — a
+  // confident mistranslation aimed at a learner who cannot spot it. Screening
+  // here also means those characters are never billed.
+  if (hint === 'auto' && looksRomanizedPunjabi(trimmed)) return null;
+
   if (hint === 'english') {
     const res = await cloudTranslate({ text: trimmed, source: 'en', target: 'pa' });
     return res ? synthesize('english', res.translatedText, trimmed) : null;
   }
 
-  // 'auto' + Latin: let Cloud detect. Its own verdict resolves the one case
-  // our script heuristic can't — English versus romanized Punjabi.
+  // 'auto' + Latin that reads as English: let Cloud confirm. Its own verdict is
+  // a second line of defence, not the only one — see the screen above.
   const res = await cloudTranslate({ text: trimmed, target: 'pa' });
   if (!res || res.detectedSourceLanguage !== 'en') return null;
   return synthesize('english', res.translatedText, trimmed);
@@ -142,6 +149,12 @@ export async function POST(req: Request) {
     // Catch it here to give advice the user can actually act on.
     if (result.response.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
       console.error("Translate Error: response truncated at maxOutputTokens");
+      // MAX_TOKENS is an output-budget signal, not an input-length one: the
+      // model's own thinking trace draws from the same budget, so a short input
+      // can truncate while a near-cap one does not. "Shorten it" is therefore
+      // often wrong advice — try a basic rendering before falling back to it.
+      const viaCloud = await attemptCloudFallback(text, hint, detectedScript);
+      if (viaCloud) return NextResponse.json(viaCloud, { headers: { "Cache-Control": "no-store" } });
       return NextResponse.json({ error: TOO_LONG_ERROR, code: "translate_too_long" }, { status: 400 });
     }
 

@@ -2,6 +2,7 @@
 // --dry-run, and catch the failure modes machine translation cannot see —
 // broken interpolation, untranslated leftovers, and spelling drift.
 
+import { extractPlaceholders } from '../../lib/i18n/fmt';
 import {
     LATIN_OK_PATHS,
     hasLetters,
@@ -19,15 +20,15 @@ export type Finding = {
 };
 
 const GURMUKHI = /[਀-੿]/;
-const PLACEHOLDER = /\{[a-z_]+\}/gi;
 
 // ── 1. Placeholder parity ───────────────────────────────────────────────────
 // The only check that fails the run: a missing {token} means fmt() renders a
 // literal placeholder (or drops data) at runtime.
-
-function placeholders(value: string): string[] {
-    return (value.match(PLACEHOLDER) ?? []).map(p => p.toLowerCase()).sort();
-}
+//
+// Uses fmt()'s own extractor rather than a lookalike regex — matching is
+// case-sensitive and digit-aware there, so {Name} and {n2} must be treated
+// exactly as the runtime treats them.
+const placeholders = extractPlaceholders;
 
 export function checkPlaceholderParity(
     enMap: Map<string, string>,
@@ -168,8 +169,12 @@ function scanValue(path: string, value: string): Finding[] {
     return findings;
 }
 
-export function checkSpellingDrift(latnLeaves: Leaf[], phrases: Phrase[]): Finding[] {
+// English copy is scanned too: these terms are borrowed into the English UI
+// (a "Gurdwara" field label), so the same one-spelling rule applies there —
+// and en.ts drifting from pa-latn.ts on the same key is user-visible.
+export function checkSpellingDrift(enLeaves: Leaf[], latnLeaves: Leaf[], phrases: Phrase[]): Finding[] {
     const findings: Finding[] = [];
+    for (const leaf of enLeaves) findings.push(...scanValue(leaf.path, leaf.value));
     for (const leaf of latnLeaves) findings.push(...scanValue(leaf.path, leaf.value));
     for (const p of phrases) {
         findings.push(...scanValue(`phrasebook.${p.id}.roman`, p.roman));

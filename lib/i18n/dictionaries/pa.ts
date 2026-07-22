@@ -424,6 +424,7 @@ const pa: Dictionary = {
         copyAll: 'ਸਭ ਕਾਪੀ ਕਰੋ',
         // "Google Translate" is a product name — left untranslated, like "SikhAI".
         fallbackNotice: 'Google Translate ਰਾਹੀਂ ਮੁੱਢਲਾ ਅਨੁਵਾਦ — ਰੋਮਨ ਸਪੈਲਿੰਗ, ਸ਼ਬਦ-ਦਰ-ਸ਼ਬਦ ਅਤੇ ਸਿੱਖਣ ਦੇ ਸਾਧਨ ਇਸ ਵੇਲੇ ਉਪਲਬਧ ਨਹੀਂ ਹਨ।',
+        retryFull: 'ਪੂਰਾ ਅਨੁਵਾਦ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ',
         crosscheck: 'Google Translate ਨਾਲ ਤੁਲਨਾ ਕਰੋ',
         crosschecking: 'ਜਾਂਚ ਹੋ ਰਹੀ ਹੈ…',
         crosscheckLabel: 'Google Translate',

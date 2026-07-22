@@ -88,14 +88,19 @@ export async function translateAll(
     const results = new Map<string, string>();
     const stats: TranslateStats = { cacheHits: 0, billedChars: 0, requests: 0 };
 
+    // Deduped by cache key, the same identity estimateUncachedChars uses, so
+    // the estimate and the bill always agree. (A Set rather than scanning the
+    // misses array: the corpus is ~400 strings and repeats are common.)
     const misses: TranslateRequest[] = [];
+    const queued = new Set<string>();
     for (const req of requests) {
         const key = cacheKey(req.source, req.target, req.text);
         const hit = cache.entries[key];
         if (hit) {
             results.set(key, hit.translatedText);
             stats.cacheHits++;
-        } else if (!results.has(key) && !misses.some(m => m.text === req.text && m.source === req.source && m.target === req.target)) {
+        } else if (!queued.has(key)) {
+            queued.add(key);
             misses.push(req);
         }
     }

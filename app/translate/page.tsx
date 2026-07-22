@@ -174,7 +174,11 @@ export default function TranslatePage() {
 
           {result && !loading && !error && (
             <>
-              <TranslationCard result={result} onRetryAs={wasAutoLatin ? handleRetryAs : undefined} />
+              <TranslationCard
+                result={result}
+                onRetryAs={wasAutoLatin ? handleRetryAs : undefined}
+                onRetry={() => translate(lastSubmittedRef.current, hint)}
+              />
               <WordBreakdown words={result.words} />
               <TrickyNotes notes={result.notes} />
               <PronunciationTips tips={result.pronunciation} />
