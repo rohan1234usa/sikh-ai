@@ -13,7 +13,7 @@
 
 **Sikh AI** is a web platform designed to modernize how the Sikh community interacts with its spiritual heritage. It pairs **Google Gemini** with a carefully-tuned Sikhi system prompt and streaming responses, so answers stay rooted in the teachings of the *Sri Guru Granth Sahib Ji* rather than drifting into generic advice.
 
-Whether it's fetching the daily *Hukamnama* from Darbar Sahib, coordinating *Seva* (community service) events, or looking up Shabads from the *Guru Granth Sahib* by Ang, Sikh AI aims for a calm, culturally-considered experience — now with light/dark theming and an accessible, mobile-friendly interface.
+Whether it's fetching the daily *Hukamnama* from Darbar Sahib, coordinating *Seva* (community service) events, looking up Shabads from the *Guru Granth Sahib* by Ang, or translating between English and Punjabi in either script, Sikh AI aims for a calm, culturally-considered experience — now with light/dark theming and an accessible, mobile-friendly interface.
 
 ### 🌟 Key Features
 
@@ -21,6 +21,7 @@ Whether it's fetching the daily *Hukamnama* from Darbar Sahib, coordinating *Sev
 *   **🧭 Guru Teachings-Lenses**: Ask for guidance through the lens of any of the ten Gurus (or the default SikhAI). Each lens shifts emphasis, preferred Bani, and sakhis while never impersonating a Guru — answers stay in the third person with honorifics. Switching mid-conversation drops an in-thread divider and applies from the next message.
 *   **🎛️ Response Styles & Languages**: Orthogonal to the lens, pick a response style (Balanced, Simple/newcomer, Gurbani-first, Vichaar/reflection, Sakhi/story) and a language (English, Punjabi-American bilingual, or Punjabi with Gurmukhi/romanized script-matching). All three axes are composed server-side into one Gemini `systemInstruction`.
 *   **🧩 Guided Prompting**: Per-lens starter chips plus categorized topic packs (Life advice, Hardship & grief, Concepts, History & sakhis, Daily practice), and deep links from the Hukamnama and Shabad pages that open the chat with that passage attached as context.
+*   **🔤 Punjabi ↔ English Translator**: Type English, Gurmukhi, or romanized Punjabi and get **all three renditions at once**, plus a word-by-word gloss, "tricky parts" notes (idioms, the ergative *ne*, honorifics, false friends), and pronunciation tips anchored to real words from the result. Input script is auto-detected and overridable. Built for diaspora learners who speak some Punjabi but may not read Gurmukhi — so it ships a 50-phrase curated phrasebook across five categories (greetings, kinship, gurdwara, everyday, food) and local translation history that restores a full past result instantly with no re-fetch.
 *   **⚡ Daily Hukamnama**: Server-rendered fetch of the day's decree from Darbar Sahib (via the GurbaniNow API), rendered in Gurmukhi with English translation.
 *   **📖 Shabad Lookup**: Browse any Ang (1–1430) of the Guru Granth Sahib through a validated proxy to the GurbaniNow API.
 *   **🤝 Seva Event Coordination**: A real-time event board backed by Firestore, with Google sign-in (Firebase Auth) so Sangat can post and join volunteering opportunities.
@@ -41,7 +42,10 @@ graph TD
     subgraph "AI Core"
     Next --> Route["/api/chat Route (streaming)"]
     Route --> Compose["composeSystemInstruction()<br/>lens × mode × language"]
+    Next --> TRoute["/api/translate Route (JSON mode)"]
+    TRoute --> TCompose["composeTranslateInstruction()<br/>+ RESPONSE_SCHEMA"]
     Compose --> Gemini[Google Gemini API]
+    TCompose --> Gemini
     end
 ```
 
@@ -50,6 +54,8 @@ The chat client sends only whitelisted IDs (`lensId` / `modeId` / `languageId`, 
 ### Engineering Highlights
 *   **Hybrid Rendering**: React Server Components for static/data-fetched content (e.g. the server-rendered Hukamnama) with Client Components for the interactive AI chat.
 *   **Streamed Responses**: The chat API returns a raw `text/plain` `ReadableStream`, so tokens render as they generate — minimizing time-to-first-token.
+*   **Schema-constrained JSON output**: The translator uses Gemini's `responseMimeType: 'application/json'` + `responseSchema`, with the schema enums generated from the same `as const` unions as the TypeScript types so the two can't drift. The response is then re-validated at runtime in `lib/translate/parse.ts` — malformed list entries are dropped rather than failing the whole translation, and a truncated response is caught via its `MAX_TOKENS` finish reason instead of surfacing as a JSON parse error.
+*   **Server-only prompts + nonce fencing**: Both the chat and translate system prompts live in server-only modules, so prompt text never ships to the browser. Untrusted user text is wrapped in a per-request UUID-nonce fence, so crafted input can't forge the closing delimiter and break out into instructions.
 *   **Theming without flash**: An inline pre-paint script applies the stored/system theme before first paint; semantic `@theme inline` tokens drive both light and dark modes.
 *   **Cookie-backed i18n, no library**: A site-wide language (English / Gurmukhi / romanized Punjabi) lives in a `sikhai.lang` cookie, so server components and metadata render already-translated on the first byte — no flash of English. UI copy is typed dictionaries in `lib/i18n/dictionaries/` (`Dictionary = typeof en`, so missing keys are compile errors), read via `useT()` in client components and `getServerT()` on the server.
 *   **Multilingual typography**: Geist / Geist Mono for Latin text and Noto Sans Gurmukhi for Gurmukhi script, wired through Tailwind v4 font tokens; an `html[lang='pa']` rule swaps the body stack to Gurmukhi automatically when that language is active.
@@ -146,9 +152,31 @@ return new Response(stream, {
 });
 ```
 
+### 3. The Translator Route (Structured JSON)
+
+The translator needs three renditions, a word gloss, notes, and pronunciation tips as *data*, so it constrains decoding with a schema instead of streaming prose — then re-validates the result server-side.
+
+```typescript
+// app/api/translate/route.ts
+const model = genAI.getGenerativeModel({
+  model: 'gemini-flash-latest',
+  systemInstruction: composeTranslateInstruction({ sourceHint, detectedScript }),
+  generationConfig: {
+    responseMimeType: 'application/json',
+    responseSchema: RESPONSE_SCHEMA,   // enums derived from the TS unions
+    temperature: 0.2,                  // fidelity, but not stilted
+    maxOutputTokens: 8192,
+  },
+});
+
+const result = await model.generateContent(buildUserMessage(text)); // nonce-fenced
+const parsed = parseTranslationResult(result.response.text(), fallbackDetected);
+if (!parsed) return NextResponse.json({ error, code: 'translate_failed' }, { status: 502 });
+```
+
 ## 🗺️ Roadmap
 
-*   [ ] **Voice Mode**: Speech-to-text for audio queries in Punjabi.
+*   [ ] **Voice Mode**: Text-to-speech playback for translator pronunciation tips and phrasebook entries, plus speech-to-text for audio queries in Punjabi.
 *   [ ] **Retrieval grounding**: A real citation/retrieval layer over Gurbani texts to anchor answers to specific Shabads.
 *   [ ] **Cloud-synced history**: Optional Firestore-backed chat history across devices (currently local only).
 *   [ ] **Mobile App**: React Native export for iOS/Android.

@@ -13,20 +13,8 @@ import { useChatPrefs } from '../components/chat/useChatPrefs';
 import { parseDeepLink, fetchChatContext } from '../components/chat/deepLink';
 import { DEFAULT_PREFS, siteDefaultLanguageId, siteScript, type LensId } from '@/lib/chat/config';
 import { useLanguage } from '../context/LanguageContext';
-import type { Dictionary } from '@/lib/i18n';
+import { apiErrorText } from '@/lib/i18n/apiError';
 import { fmt } from '@/lib/i18n/fmt';
-
-// Translate a known API error `code` to the current dictionary; unknown or
-// missing codes fall back to the server's English `error` string, then to
-// the generic message.
-function apiErrorText(t: Dictionary, data: unknown): string | null {
-  if (!data || typeof data !== 'object') return null;
-  const { code, error } = data as { code?: unknown; error?: unknown };
-  if (typeof code === 'string' && code in t.errors) {
-    return t.errors[code as keyof Dictionary['errors']];
-  }
-  return typeof error === 'string' && error ? error : null;
-}
 
 export default function ChatPage() {
   const { lang, t } = useLanguage();

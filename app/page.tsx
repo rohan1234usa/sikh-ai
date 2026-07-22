@@ -4,6 +4,7 @@ import {
   SunIcon,
   MagnifyingGlassIcon,
   UserGroupIcon,
+  LanguageIcon,
   ArrowRightIcon,
 } from '@heroicons/react/24/outline';
 import { getServerT } from '@/lib/i18n/server';
@@ -12,6 +13,7 @@ import { getServerT } from '@/lib/i18n/server';
 // dictionary keyed by the same names.
 const FEATURE_LINKS = [
   { key: 'chat', href: '/chat', Icon: ChatBubbleLeftRightIcon },
+  { key: 'translate', href: '/translate', Icon: LanguageIcon },
   { key: 'hukamnama', href: '/hukamnama', Icon: SunIcon },
   { key: 'shabad', href: '/shabad', Icon: MagnifyingGlassIcon },
   { key: 'seva', href: '/seva', Icon: UserGroupIcon },
@@ -98,7 +100,7 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURE_LINKS.map(({ key, href, Icon }) => {
               const feature = t.home.features[key];
               return (

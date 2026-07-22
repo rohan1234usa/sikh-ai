@@ -8,6 +8,8 @@
 // Brand names ("SikhAI", "Gemini", "Rohan Singh") are never translated.
 
 import type { ChatCopy } from '@/lib/chat/config';
+import type { DetectedInput, NoteKind } from '@/lib/translate/config';
+import type { PhraseCategoryId } from '@/lib/translate/phrasebook';
 
 const FATEH = 'Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.';
 
@@ -254,6 +256,7 @@ const en = {
         chat: 'Ask SikhAI',
         seva: 'Seva Events',
         shabad: 'Shabad Search',
+        translate: 'Translator',
         greeting: 'Sat Sri Akal, {name}',
         signIn: 'Sign In',
         signOut: 'Sign Out',
@@ -275,7 +278,8 @@ const en = {
         previewAiLine: 'Waheguru Ji Ka Khalsa... How can I help you understand Gurbani today?',
         previewUserLine: 'What does the Guru Granth Sahib say about humility?',
         exploreTitle: 'Explore SikhAI',
-        exploreSubtitle: 'Four ways to connect with Gurbani and Sangat — all in one place.',
+        // No count in the copy — the Explore grid grows as features are added.
+        exploreSubtitle: 'Ways to connect with Gurbani, Sangat, and the Punjabi language — all in one place.',
         features: {
             chat: {
                 title: 'Ask SikhAI',
@@ -286,6 +290,11 @@ const en = {
                 title: 'Daily Hukamnama',
                 desc: "Today's Hukamnama from Darbar Sahib, in Gurmukhi and English.",
                 cta: 'Read today’s',
+            },
+            translate: {
+                title: 'Punjabi Translator',
+                desc: 'Translate between English and Punjabi — Gurmukhi, Roman, and meaning together.',
+                cta: 'Start translating',
             },
             shabad: {
                 title: 'Shabad Search',
@@ -383,6 +392,72 @@ const en = {
         translationUnavailable: 'Translation unavailable',
     },
 
+    translate: {
+        title: 'Translate & {word}',
+        titleWord: 'Learn',
+        subtitle: 'English, Gurmukhi, and Roman Punjabi side by side — with the tricky parts explained.',
+        inputAria: 'Text to translate',
+        inputPlaceholder: 'Type in English or Punjabi…',
+        translateButton: 'Translate',
+        translating: 'Translating…',
+        charCount: '{n} / {max}',
+        sourceChipsAria: 'Input language',
+        sourceAuto: 'Auto',
+        sourceEnglish: 'English',
+        sourceGurmukhi: 'Gurmukhi',
+        sourceRoman: 'Roman Punjabi',
+        detectedGurmukhi: 'Detected: Punjabi (Gurmukhi)',
+        detectedLatin: "English or Roman Punjabi — we'll figure it out.",
+        emptyState: 'Your translation will appear here — try a phrase from the phrasebook below.',
+        resultRegionAria: 'Translation result',
+        translatedAs: 'Translated as: {label}',
+        // Display labels only — the raw id stays the data key.
+        inputKinds: {
+            'english': 'English',
+            'punjabi-gurmukhi': 'Punjabi (Gurmukhi)',
+            'punjabi-latin': 'Roman Punjabi',
+        } satisfies Record<DetectedInput, string>,
+        retryAs: 'Not right? Translate as {label}',
+        gurmukhiLabel: 'Gurmukhi',
+        romanLabel: 'Roman',
+        englishLabel: 'English',
+        copyAria: 'Copy {label}',
+        copiedAria: 'Copied',
+        copyAll: 'Copy all',
+        wordByWord: 'Word by word',
+        notesHeading: 'Tricky parts',
+        pronunciationHeading: 'How to say it',
+        noteKinds: {
+            'idiom': 'Idiom',
+            'grammar': 'Grammar',
+            'honorific': 'Respect',
+            'culture': 'Culture',
+            'false-friend': 'False friend',
+            'other': 'Good to know',
+        } satisfies Record<NoteKind, string>,
+        phrasebookTitle: 'Phrasebook',
+        phrasebookSubtitle: 'Common phrases to reconnect with — tap one to explore.',
+        phrasebookCaveat: 'Phrases are AI-drafted and pending review by fluent speakers.',
+        phrasebookSearchPlaceholder: 'Search phrases…',
+        phrasebookSearchAria: 'Search the phrasebook',
+        phrasebookNoResults: 'No phrases match your search.',
+        culturalNote: 'Cultural note',
+        usePhrase: 'Use in translator',
+        categories: {
+            greetings: 'Greetings & Respect',
+            family: 'Family & Kinship',
+            gurdwara: 'Gurdwara & Faith',
+            everyday: 'Everyday Talk',
+            food: 'Food & Home',
+        } satisfies Record<PhraseCategoryId, string>,
+        historyTitle: 'Recent translations',
+        historyRemoveAria: 'Remove {text} from history',
+        historyClear: 'Clear all',
+        historyClearPrompt: 'Clear translation history?',
+        historyClearConfirm: 'Clear',
+        cancel: 'Cancel',
+    },
+
     seva: {
         heroTitle: 'Serve with {word}',
         heroWord: 'Humility',
@@ -442,6 +517,7 @@ const en = {
         sevaTitle: 'Seva Events',
         sevaCreateTitle: 'Post a Seva Event',
         hukamnamaTitle: "Today's Hukamnama",
+        translateTitle: 'Punjabi Translator',
     },
 
     // Keys matching the `code` field on API error responses, plus client-local
@@ -456,6 +532,10 @@ const en = {
         invalid_ang: 'Invalid Ang number',
         source_error: 'Could not reach the Gurbani source. Please try again.',
         hukamnama_unavailable: 'Unable to load the Hukamnama right now.',
+        translate_empty: 'Please enter some text to translate.',
+        translate_too_long: 'That text is too long. Please try up to 1,000 characters.',
+        translate_failed: 'Sorry, the translation failed. Please try again.',
+        translate_busy: 'The translator is busy right now. Please wait a moment and try again.',
     },
 };
 

@@ -23,6 +23,7 @@ export default function Navbar() {
         { href: '/chat', label: t.nav.chat },
         { href: '/seva', label: t.nav.seva },
         { href: '/shabad', label: t.nav.shabad },
+        { href: '/translate', label: t.nav.translate },
     ];
 
     const isActive = (href: string) =>

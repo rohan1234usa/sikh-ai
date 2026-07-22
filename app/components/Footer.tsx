@@ -13,6 +13,7 @@ export default function Footer() {
         { href: '/hukamnama', label: t.nav.hukamnama },
         { href: '/seva', label: t.nav.seva },
         { href: '/shabad', label: t.nav.shabad },
+        { href: '/translate', label: t.nav.translate },
     ];
 
     // The chat page is a fixed-height app screen with no room for a footer
