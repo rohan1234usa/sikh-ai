@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "audit:i18n": "tsx scripts/i18n-audit/index.ts"
+    "audit:i18n": "tsx scripts/i18n-audit/index.ts",
+    "eval:identify": "tsx scripts/identify-eval/index.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

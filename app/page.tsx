@@ -3,6 +3,7 @@ import {
   ChatBubbleLeftRightIcon,
   SunIcon,
   MagnifyingGlassIcon,
+  MusicalNoteIcon,
   UserGroupIcon,
   LanguageIcon,
   ArrowRightIcon,
@@ -16,6 +17,7 @@ const FEATURE_LINKS = [
   { key: 'translate', href: '/translate', Icon: LanguageIcon },
   { key: 'hukamnama', href: '/hukamnama', Icon: SunIcon },
   { key: 'shabad', href: '/shabad', Icon: MagnifyingGlassIcon },
+  { key: 'identify', href: '/identify', Icon: MusicalNoteIcon },
   { key: 'seva', href: '/seva', Icon: UserGroupIcon },
 ] as const;
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { MagnifyingGlassIcon, BookOpenIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { normalizeVerse, type AngItem } from '@/lib/gurbani/verse';
@@ -20,17 +20,16 @@ export default function ShabadSearchPage() {
   // template on {ang} and render the styled span between the halves.
   const [titleBefore, titleAfter] = t.shabad.title.split('{ang}');
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query) return;
-
+  // Extracted from the submit handler so the ?ang= deep link can run the same
+  // fetch without synthesizing a form event.
+  const runSearch = useCallback(async (ang: string) => {
     // Validation: Must be a number
-    if (!/^\d+$/.test(query)) {
+    if (!/^\d+$/.test(ang)) {
       setError(t.shabad.invalidDigits);
       return;
     }
 
-    const angNumber = parseInt(query, 10);
+    const angNumber = parseInt(ang, 10);
     if (angNumber < 1 || angNumber > 1430) {
       setError(t.shabad.angRange);
       return;
@@ -43,7 +42,7 @@ export default function ShabadSearchPage() {
 
     try {
       // Always 'ang' search now.
-      const res = await fetch(`/api/shabad?query=${encodeURIComponent(query)}`);
+      const res = await fetch(`/api/shabad?query=${encodeURIComponent(ang)}`);
       const data = await res.json();
 
       if (!res.ok) {
@@ -58,7 +57,7 @@ export default function ShabadSearchPage() {
       // which would show a blank results area with no feedback.
       if (Array.isArray(data.page) && data.page.length > 0) {
         setResults(data.page);
-        setCurrentAng(query); // Set the displayed Ang only on success
+        setCurrentAng(ang); // Set the displayed Ang only on success
       } else {
         setError(t.shabad.notFound);
       }
@@ -69,7 +68,27 @@ export default function ShabadSearchPage() {
     } finally {
       setLoading(false);
     }
+  }, [t]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!query) return;
+    void runSearch(query);
   };
+
+  // Deep link from a Shabad identification or a shared URL. Read from
+  // window.location rather than useSearchParams, matching the chat page — the
+  // hook would force this whole page into a Suspense boundary for one
+  // mount-time read. The param stays in the URL so the result can be re-shared.
+  useEffect(() => {
+    const ang = new URLSearchParams(window.location.search).get('ang');
+    if (!ang || !/^\d+$/.test(ang)) return;
+    setQuery(ang);
+    void runSearch(ang);
+    // Mount only: re-running on a dictionary change would re-fetch the Ang
+    // every time the user switches language.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <main className="flex-1 flex flex-col">

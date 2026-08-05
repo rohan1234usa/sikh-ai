@@ -13,6 +13,7 @@ export default function Footer() {
         { href: '/hukamnama', label: t.nav.hukamnama },
         { href: '/seva', label: t.nav.seva },
         { href: '/shabad', label: t.nav.shabad },
+        { href: '/identify', label: t.nav.identify },
         { href: '/translate', label: t.nav.translate },
     ];
 

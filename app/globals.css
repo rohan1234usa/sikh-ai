@@ -20,6 +20,7 @@
   /* Animation (durations auto-zeroed by the reduced-motion rule below) */
   --animate-fade-up: fade-up 0.6s ease-out both;
   --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-ring: pulse-ring 2s ease-out infinite;
 }
 
 @keyframes fade-up {
@@ -40,6 +41,18 @@
   }
   50% {
     transform: translateY(-8px);
+  }
+}
+
+/* Expanding halo behind the record button — the "we are listening" signal. */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
   }
 }
 

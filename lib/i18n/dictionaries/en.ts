@@ -8,6 +8,7 @@
 // Brand names ("SikhAI", "Gemini", "Rohan Singh") are never translated.
 
 import type { ChatCopy } from '@/lib/chat/config';
+import type { Level } from '@/lib/identify/config';
 import type { DetectedInput, NoteKind } from '@/lib/translate/config';
 import type { PhraseCategoryId } from '@/lib/translate/phrasebook';
 
@@ -256,6 +257,7 @@ const en = {
         chat: 'Ask SikhAI',
         seva: 'Seva Events',
         shabad: 'Shabad Search',
+        identify: 'Identify Shabad',
         translate: 'Translator',
         greeting: 'Sat Sri Akal, {name}',
         signIn: 'Sign In',
@@ -300,6 +302,11 @@ const en = {
                 title: 'Shabad Search',
                 desc: 'Look up any Ang (1–1430) of the Guru Granth Sahib.',
                 cta: 'Search Gurbani',
+            },
+            identify: {
+                title: 'Identify a Shabad',
+                desc: 'Hear kirtan or paath? Record a few seconds and find the Shabad and its Ang.',
+                cta: 'Start listening',
             },
             seva: {
                 title: 'Seva Events',
@@ -390,6 +397,73 @@ const en = {
         granth: 'Guru Granth Sahib Ji',
         gurmukhiUnavailable: 'Gurmukhi Unavailable',
         translationUnavailable: 'Translation unavailable',
+    },
+
+    identify: {
+        title: 'Identify a {word}',
+        titleWord: 'Shabad',
+        subtitle: 'Hear Gurbani being recited or sung? Record a few seconds and find the Shabad.',
+        emptyState: 'Tap the microphone and hold your device toward the kirtan or paath.',
+        // Recording controls
+        recordAria: 'Start recording',
+        stopAria: 'Stop and identify',
+        tapToIdentify: 'Tap to identify',
+        listening: 'Listening…',
+        elapsed: '{n}s / {max}s',
+        autoStopNote: 'Recording stops on its own after {n} seconds.',
+        cancel: 'Cancel',
+        cancelAria: 'Cancel recording',
+        processing: 'Identifying…',
+        processingHint: 'Transcribing the recitation and searching Gurbani…',
+        privacyNote: 'Your recording is used only to find the Shabad and is never stored.',
+        // Recording problems the browser reports before anything is sent
+        micDenied: 'Microphone access was blocked. Allow the microphone in your browser settings and try again.',
+        micUnavailable: 'No microphone was found on this device.',
+        micBusy: 'Could not start the microphone. Another app may be using it.',
+        micFailed: 'Recording stopped unexpectedly. Please try again.',
+        notSupported: 'Recording is not supported in this browser. Try a recent Chrome, Safari, or Firefox.',
+        insecureContext: 'Recording needs a secure (HTTPS) connection.',
+        tooShort: 'That was too short. Please record at least {n} seconds.',
+        tooQuiet: 'We could not hear anything. Check your microphone and try again.',
+        // Results
+        resultRegionAria: 'Identification results',
+        weHeard: 'We heard',
+        weHeardNote: 'Transcribed from your recording — it may not be exact.',
+        matchesTitle: 'Matching Shabads',
+        confidenceLabels: {
+            high: 'Strong match',
+            medium: 'Possible match',
+            low: 'Weak match',
+        } satisfies Record<Level, string>,
+        lowConfidenceNote: 'These matches are uncertain — a longer, clearer recording usually helps.',
+        ambiguousNote: 'This line appears in more than one Shabad, so we cannot be sure which one you heard.',
+        ang: 'Ang {n}',
+        angUnknown: 'Ang unavailable',
+        openAng: 'Read this Ang',
+        askAbout: 'Ask SikhAI about this Shabad',
+        fullShabadTitle: 'Full Shabad',
+        showFullShabad: 'Show the full Shabad',
+        hideFullShabad: 'Hide the full Shabad',
+        // Outcomes that are not errors
+        noMatchTitle: 'No matching Shabad found',
+        noMatchBody: 'We heard the recording but could not match it to Gurbani.',
+        noSpeechTitle: 'We did not hear any recitation',
+        noSpeechBody: 'The recording seemed silent or had only background sound.',
+        notGurbaniTitle: 'That did not sound like Gurbani',
+        notGurbaniBody: 'We heard speech, but not Punjabi scripture. This tool listens for paath and kirtan.',
+        searchUnavailableTitle: 'Could not reach the Gurbani source',
+        searchUnavailableBody: 'We transcribed your recording, but the Gurbani database did not respond. Please try again.',
+        tipsTitle: 'Tips for a better match',
+        tipCloser: 'Move closer to the voice or the speaker.',
+        tipLonger: 'Capture 10–15 seconds of continuous recitation.',
+        tipQuiet: 'Reduce background noise where you can.',
+        tryAgain: 'Try again',
+        // History
+        historyTitle: 'Recent identifications',
+        historyRemoveAria: 'Remove {text} from history',
+        historyClear: 'Clear all',
+        historyClearPrompt: 'Clear identification history?',
+        historyClearConfirm: 'Clear',
     },
 
     translate: {
@@ -524,6 +598,7 @@ const en = {
         sevaCreateTitle: 'Post a Seva Event',
         hukamnamaTitle: "Today's Hukamnama",
         translateTitle: 'Punjabi Translator',
+        identifyTitle: 'Identify a Shabad',
     },
 
     // Keys matching the `code` field on API error responses, plus client-local
@@ -542,6 +617,13 @@ const en = {
         translate_too_long: 'That text is too long. Please try up to 1,000 characters.',
         translate_failed: 'Sorry, the translation failed. Please try again.',
         translate_busy: 'The translator is busy right now. Please wait a moment and try again.',
+        identify_empty: 'No recording was received. Please record again.',
+        identify_bad_audio: 'That recording format is not supported. Please try again.',
+        identify_too_short: 'That recording was too short. Please record a few seconds of Gurbani.',
+        identify_too_large: 'That recording is too long. Please keep it under 20 seconds.',
+        identify_busy: 'Shabad identification is busy right now. Please wait a moment and try again.',
+        identify_unavailable: 'Shabad identification is not available right now. Please try again later.',
+        identify_failed: 'Sorry, we could not process that recording. Please try again.',
     },
 };
 
