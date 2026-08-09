@@ -8,11 +8,11 @@ import {
     type Transcription,
 } from "@/lib/identify/config";
 import { corroborate, rankCandidates, topMatches, THRESHOLDS, type Candidate } from "@/lib/identify/match";
-import { parseCleanup, transcriptionFromScribe, type Cleanup } from "@/lib/identify/parse";
+import { parseCleanup, transcriptionFromWords, type Cleanup } from "@/lib/identify/parse";
 import { CLEANUP_SCHEMA, buildCleanupMessage, composeCleanupInstruction } from "@/lib/identify/prompts";
 import { planQueries } from "@/lib/identify/queries";
 import { fetchShabad, searchGurbani, type FullShabad, type GurbaniVerse } from "@/lib/identify/search";
-import { isScribeFailure, transcribe, type ScribeResult } from "@/lib/identify/scribe";
+import { isSttFailure, transcribe, type TranscriptResult } from "@/lib/identify/stt";
 
 // Transcription (up to 25s with a retry) plus six parallel searches plus an
 // optional verification fetch. The typical request finishes in well under ten
@@ -27,14 +27,24 @@ const UNAVAILABLE_ERROR = "Shabad identification is not available right now. Ple
 // have beats a better answer the user has stopped waiting for.
 const ENRICHMENT_DEADLINE_MS = 12_000;
 
-// Scribe reports the language it heard. A confident non-Punjabi verdict means
-// the clip was speech, just not scripture — worth saying plainly instead of
-// searching Gurbani for English words. Punjabi and Hindi share enough
-// phonology that Scribe sometimes labels Gurbani 'hin', so only clearly
+// Some engines report the language they heard. A confident non-Punjabi verdict
+// means the clip was speech, just not scripture — worth saying plainly instead
+// of searching Gurbani for English words. Punjabi and Hindi share enough
+// phonology that recognisers sometimes label Gurbani 'hin', so only clearly
 // unrelated languages are rejected here; everything else goes to the matcher,
 // where a wrong guess simply fails to score.
+//
+// Engines that report no language (Gemini) or no confidence (Whisper) skip this
+// gate entirely — an unknown must not be read as a rejection. Locale forms
+// ('pa-IN') are matched on their primary subtag.
 const RELATED_LANGUAGES = new Set(['pan', 'pa', 'hin', 'hi', 'urd', 'ur', 'san', 'sa']);
 const LANGUAGE_REJECT_CONFIDENCE = 0.75;
+
+function heardUnrelatedLanguage(stt: TranscriptResult): boolean {
+    if (!stt.languageCode || stt.languageProbability < LANGUAGE_REJECT_CONFIDENCE) return false;
+    const primary = stt.languageCode.toLowerCase().split(/[-_]/)[0];
+    return !RELATED_LANGUAGES.has(primary);
+}
 
 function ok(result: IdentifyResult) {
     return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
@@ -42,9 +52,14 @@ function ok(result: IdentifyResult) {
 
 // The cleanup pass is an improvement, not a dependency: it rewrites colloquial
 // transcription into scripture orthography, which makes searches land. When it
-// fails, Scribe's raw text still identifies many recordings, so the pipeline
+// fails, the raw transcript still identifies many recordings, so the pipeline
 // continues on word timings alone rather than failing the request.
-async function runCleanup(scribe: ScribeResult): Promise<Cleanup | null> {
+//
+// It runs on every engine's output, including Gemini's. That costs a second
+// Gemini call when Gemini is also the transcriber, and it is worth it: an
+// engine that both hears and interprets would be measuring something different
+// from the others, which defeats the point of being able to swap them.
+async function runCleanup(stt: TranscriptResult): Promise<Cleanup | null> {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
         console.error("Identify Error: GEMINI_API_KEY is missing — continuing without cleanup");
@@ -68,7 +83,7 @@ async function runCleanup(scribe: ScribeResult): Promise<Cleanup | null> {
             },
         });
 
-        const result = await model.generateContent(buildCleanupMessage(scribe.text));
+        const result = await model.generateContent(buildCleanupMessage(stt.text));
         if (result.response.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
             console.error("Identify Error: cleanup response truncated at maxOutputTokens");
             return null;
@@ -186,30 +201,31 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "That recording was too short.", code: "identify_too_short" }, { status: 400 });
         }
 
-        const scribe = await transcribe(audio, 'clip');
-        if (isScribeFailure(scribe)) {
-            if (scribe === 'busy') {
+        const stt = await transcribe(audio, audio.type);
+        if (isSttFailure(stt)) {
+            if (stt === 'busy') {
                 return NextResponse.json({ error: BUSY_ERROR, code: "identify_busy" }, { status: 429 });
             }
-            if (scribe === 'unconfigured') {
+            if (stt === 'unconfigured') {
                 return NextResponse.json({ error: UNAVAILABLE_ERROR, code: "identify_unavailable" }, { status: 503 });
+            }
+            // The recording is fine; the selected engine cannot read this
+            // container. Accurate for the user, and the log names the fix.
+            if (stt === 'unsupported-audio') {
+                return NextResponse.json({ error: "That recording format is not supported.", code: "identify_bad_audio" }, { status: 400 });
             }
             return NextResponse.json({ error: FRIENDLY_ERROR, code: "identify_failed" }, { status: 502 });
         }
 
-        if (!scribe.text) {
+        if (!stt.text) {
             return ok({ status: 'no_speech', heard: null, matches: [] });
         }
-        if (
-            scribe.languageCode &&
-            !RELATED_LANGUAGES.has(scribe.languageCode.toLowerCase()) &&
-            scribe.languageProbability >= LANGUAGE_REJECT_CONFIDENCE
-        ) {
+        if (heardUnrelatedLanguage(stt)) {
             return ok({ status: 'not_gurbani', heard: null, matches: [] });
         }
 
-        const cleanup = await runCleanup(scribe);
-        heard = cleanup?.heard ?? transcriptionFromScribe(scribe.text, scribe.words);
+        const cleanup = await runCleanup(stt);
+        heard = cleanup?.heard ?? transcriptionFromWords(stt.text, stt.words);
 
         if (cleanup?.kind === 'no-vocals' || heard.lines.length === 0) {
             return ok({ status: 'no_speech', heard: null, matches: [] });

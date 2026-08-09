@@ -24,7 +24,7 @@ Whether it's fetching the daily *Hukamnama* from Darbar Sahib, coordinating *Sev
 *   **🔤 Punjabi ↔ English Translator**: Type English, Gurmukhi, or romanized Punjabi and get **all three renditions at once**, plus a word-by-word gloss, "tricky parts" notes (idioms, the ergative *ne*, honorifics, false friends), and pronunciation tips anchored to real words from the result. Input script is auto-detected and overridable. Built for diaspora learners who speak some Punjabi but may not read Gurmukhi — so it ships a 50-phrase curated phrasebook across five categories (greetings, kinship, gurdwara, everyday, food) and local translation history that restores a full past result instantly with no re-fetch. When Gemini is rate-limited, English and Gurmukhi input degrade gracefully to a clearly-labelled Cloud Translation rendering rather than an error — romanized Punjabi is the one case with no fallback, since Cloud Translation can neither read nor produce it. Full results can also be cross-checked against Google Translate on demand.
 *   **⚡ Daily Hukamnama**: Server-rendered fetch of the day's decree from Darbar Sahib (via the GurbaniNow API), rendered in Gurmukhi with English translation.
 *   **📖 Shabad Lookup**: Browse any Ang (1–1430) of the Guru Granth Sahib through a validated proxy to the GurbaniNow API.
-*   **🎤 Shabad Identification (Shazam for Gurbani)**: Hear kirtan or paath and don't know what it is? Record up to 20 seconds and get the Shabad with its Ang. Audio goes to ElevenLabs Scribe (Punjabi), Gemini cleans the transcript into Sri Guru Granth Sahib orthography, and a redundant plan of up to six first-letter and whole-word searches queries GurbaniNow in parallel; candidates are scored, aggregated per Shabad, and the leader re-checked against its full text. Every word, Ang, and attribution shown comes verbatim from GurbaniNow — the model's own guess about which Shabad it is only ever seeds a search, and is never surfaced. A line that lives in several Shabads (So Dar, refrains) is reported as ambiguous rather than resolved by coin flip, and weak candidates are dropped instead of dressed up.
+*   **🎤 Shabad Identification (Shazam for Gurbani)**: Hear kirtan or paath and don't know what it is? Record up to 20 seconds and get the Shabad with its Ang. Audio goes to a swappable speech-to-text engine, Gemini cleans the transcript into Sri Guru Granth Sahib orthography, and a redundant plan of up to six first-letter and whole-word searches queries GurbaniNow in parallel; candidates are scored, aggregated per Shabad, and the leader re-checked against its full text. Every word, Ang, and attribution shown comes verbatim from GurbaniNow — the model's own guess about which Shabad it is only ever seeds a search, and is never surfaced. A line that lives in several Shabads (So Dar, refrains) is reported as ambiguous rather than resolved by coin flip, and weak candidates are dropped instead of dressed up.
 *   **🤝 Seva Event Coordination**: A real-time event board backed by Firestore, with Google sign-in (Firebase Auth) so Sangat can post and join volunteering opportunities.
 *   **🎨 Accessible, Themeable UI**: A bespoke design system in "Nihang Navy" and "Kesri Saffron" with class-based light/dark mode (no-flash theme script, semantic CSS-variable tokens), keyboard focus-visible rings, ARIA-labelled controls, `prefers-reduced-motion` support, and an AA-contrast accent token.
 *   **🌐 Site-Wide Punjabi UI**: A navbar language picker (like the theme toggle) switches the whole interface between English, ਪੰਜਾਬੀ (Gurmukhi), and romanized Punjabi. The choice is stored in a cookie so server-rendered pages and metadata arrive already translated (no flash of English), the `<html lang>` attribute and body font follow the script, and the chat's reply language defaults to the site language while remaining overridable in chat settings. All copy lives in typed dictionaries under `lib/i18n/dictionaries/` — missing translation keys are compile errors.
@@ -51,7 +51,7 @@ graph TD
 
     subgraph "Shabad Identification"
     Next --> IRoute["/api/identify Route (audio)"]
-    IRoute --> Scribe[ElevenLabs Scribe STT]
+    IRoute --> STT["lib/identify/stt<br/>Groq | Gemini | Sarvam | ElevenLabs"]
     IRoute --> ICompose["composeCleanupInstruction()<br/>+ CLEANUP_SCHEMA"]
     ICompose --> Gemini
     IRoute --> Match["planQueries() → search ×6<br/>→ rankCandidates()"]
@@ -66,6 +66,15 @@ The chat client sends only whitelisted IDs (`lensId` / `modeId` / `languageId`, 
 *   **Streamed Responses**: The chat API returns a raw `text/plain` `ReadableStream`, so tokens render as they generate — minimizing time-to-first-token.
 *   **Schema-constrained JSON output**: The translator uses Gemini's `responseMimeType: 'application/json'` + `responseSchema`, with the schema enums generated from the same `as const` unions as the TypeScript types so the two can't drift. The response is then re-validated at runtime in `lib/translate/parse.ts` — malformed list entries are dropped rather than failing the whole translation, and a truncated response is caught via its `MAX_TOKENS` finish reason instead of surfacing as a JSON parse error.
 *   **Server-only prompts + nonce fencing**: The chat, translate, and identify system prompts all live in server-only modules, so prompt text never ships to the browser. Untrusted user text — including a machine transcript of recorded audio — is wrapped in a per-request UUID-nonce fence, so crafted input can't forge the closing delimiter and break out into instructions.
+*   **Swappable speech-to-text**: Punjabi ASR has no benchmark that measures what this feature actually hears. Published word-error rates are from FLEURS and Common Voice — *read* speech, someone reciting sentences into a good microphone — while a user points a phone at kirtan sung over harmonium and tabla. So the engine is a one-line swap (`IDENTIFY_STT`) behind a shared interface in `lib/identify/stt/`, with the kill switch, spend ceiling, timeout, and retry held in the registry so an A/B compares transcription quality rather than four different retry policies. Runtime failures deliberately do **not** fail over to another vendor — that would double-bill and quietly blend two engines' output while you are trying to measure one; only a missing key falls through.
+
+    | Engine | ~cost / 1,000 IDs | Why you'd pick it |
+    |---|---|---|
+    | `groq` (Whisper large-v3 turbo) | $0.22 | Cheapest by 5×; free tier needs no credit card. Default. |
+    | `gemini` (reuses `GEMINI_API_KEY`) | $0.64 | No new billing, and the only engine that has read Gurbani — though that also means it can supply words it never heard. Cannot read webm, so Chrome/Firefox recordings need another engine. |
+    | `sarvam` (Saaras) | $1.90 | Indian-languages specialist: Punjabi accents and Punjabi/English code-mixing, which is the diaspora case exactly. |
+    | `elevenlabs` (Scribe v2) | $1.22 | Best published Punjabi WER (3.1% FLEURS). Free tier grants no commercial rights. |
+
 *   **Verified-only Gurbani citations**: Shabad identification splits the model's output into two channels — what was *heard* and what the model *thinks it recognizes* — because a model asked to tidy up half-heard Gurbani will happily snap it to whatever famous Shabad it resembles. Only the heard text is scored, and only against verses GurbaniNow actually returned; the recognition guess never leaves the server. Confidence is a claim about the whole answer, so only the top candidate can be badged a strong match, and never when the matched line also lives in other Shabads. The scoring core (`lib/identify/gurmukhi.ts`, `queries.ts`, `match.ts`) is pure and network-free, so `npm run eval:identify` replays it offline.
 *   **Theming without flash**: An inline pre-paint script applies the stored/system theme before first paint; semantic `@theme inline` tokens drive both light and dark modes.
 *   **Cookie-backed i18n, no library**: A site-wide language (English / Gurmukhi / romanized Punjabi) lives in a `sikhai.lang` cookie, so server components and metadata render already-translated on the first byte — no flash of English. UI copy is typed dictionaries in `lib/i18n/dictionaries/` (`Dictionary = typeof en`, so missing keys are compile errors), read via `useT()` in client components and `getServerT()` on the server.
@@ -110,11 +119,17 @@ Follow these steps to set up the project locally.
     # Set to "off" to disable every runtime Cloud Translation call.
     # TRANSLATE_FALLBACK=off
 
-    # ElevenLabs Scribe (server-side)
-    # Powers Shabad identification's speech-to-text. Scribe leads published
-    # Punjabi benchmarks (3.1% WER on FLEURS), which matters here because the
-    # transcription is what the Gurbani search is built from.
-    ELEVENLABS_API_KEY=your_elevenlabs_key
+    # Shabad identification speech-to-text (server-side)
+    # Set ONE of these. Which engine transcribes Gurbani best is an open
+    # question — see the table below — so the engine is swappable.
+    GROQ_API_KEY=your_groq_key            # cheapest, free tier needs no card
+    # SARVAM_API_KEY=your_sarvam_key      # Indian-languages specialist
+    # ELEVENLABS_API_KEY=your_11l_key     # best published Punjabi WER
+    # (Gemini needs no extra key — it reuses GEMINI_API_KEY above.)
+
+    # Which engine to use: groq | gemini | sarvam | elevenlabs.
+    # Unset picks the first one that has a key, in that order.
+    # IDENTIFY_STT=groq
     # Set to "off" to disable Shabad identification without a redeploy.
     # IDENTIFY=off
 

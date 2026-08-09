@@ -14,7 +14,7 @@ import {
     type Transcription,
 } from './config';
 import { gurmukhiLetterShare, normalizeLine } from './gurmukhi';
-import type { ScribeWord } from './scribe';
+import type { TranscriptWord } from './stt/types';
 
 export type Cleanup = {
     kind: AudioKind;
@@ -104,12 +104,14 @@ export function parseCleanup(raw: string): Cleanup | null {
 // comfortably past normal word spacing without splitting on a held note.
 const LINE_GAP_SECONDS = 1.2;
 
-// Fallback when the cleanup pass is unavailable (quota, outage). Scribe's raw
-// text is colloquial rather than canonical, so matching from here is weaker —
-// but a weaker match beats none, and the user still sees what was heard.
+// Fallback when the cleanup pass is unavailable (quota, outage). A raw ASR
+// transcript is colloquial rather than canonical, so matching from here is
+// weaker — but a weaker match beats none, and the user still sees what was
+// heard. Engines that report no word timings (Gemini) land on the single-line
+// branch, which is exactly as much structure as they gave us.
 //
 // Confidence is 'low' throughout on purpose: nothing has verified this text.
-export function transcriptionFromScribe(text: string, words: ScribeWord[]): Transcription {
+export function transcriptionFromWords(text: string, words: TranscriptWord[]): Transcription {
     const lines: HeardLine[] = [];
 
     if (words.length > 0) {
