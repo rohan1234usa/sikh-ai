@@ -1,39 +1,58 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
-import { SunIcon, MoonIcon } from '@heroicons/react/24/outline';
+import { useEffect, useSyncExternalStore } from 'react';
+import { ComputerDesktopIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
+import {
+    applyTheme, DARK_QUERY, DEFAULT_THEME, parseTheme,
+    THEMES, THEME_STORAGE_KEY, type Theme,
+} from '@/lib/theme';
 import { useT } from '../context/LanguageContext';
+import SettingMenu, { type IconComponent } from './SettingMenu';
 
-// The <html> class is the source of truth (set pre-paint by the inline script
-// in layout.tsx). Subscribing via MutationObserver keeps the icon correct no
-// matter what flips the class.
+const ICONS: Record<Theme, IconComponent> = {
+    light: SunIcon,
+    dark: MoonIcon,
+    system: ComputerDesktopIcon,
+};
+
+// The <html data-theme> attribute is the source of truth (set pre-paint by the
+// inline script in layout.tsx). Subscribing via MutationObserver keeps the
+// picker correct no matter what changes the attribute.
 function subscribe(onChange: () => void) {
     const observer = new MutationObserver(onChange);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     return () => observer.disconnect();
 }
 
-const isDark = () => document.documentElement.classList.contains('dark');
-const serverSnapshot = () => false; // corrected right after hydration
+const getTheme = (): Theme => parseTheme(document.documentElement.dataset.theme);
+const serverSnapshot = (): Theme => DEFAULT_THEME; // corrected right after hydration
 
 export default function ThemeToggle() {
-    const dark = useSyncExternalStore(subscribe, isDark, serverSnapshot);
+    const theme = useSyncExternalStore(subscribe, getTheme, serverSnapshot);
     const t = useT();
 
-    const toggle = () => {
-        const next = !isDark();
-        document.documentElement.classList.toggle('dark', next);
-        try { localStorage.theme = next ? 'dark' : 'light'; } catch { }
+    // Under `system` the OS can change its mind while the page is open — at
+    // sunset, or when the user flips it in another window.
+    useEffect(() => {
+        if (theme !== 'system') return;
+        const query = window.matchMedia(DARK_QUERY);
+        const onChange = () => applyTheme('system');
+        query.addEventListener('change', onChange);
+        return () => query.removeEventListener('change', onChange);
+    }, [theme]);
+
+    const select = (next: Theme) => {
+        applyTheme(next);
+        try { localStorage.setItem(THEME_STORAGE_KEY, next); } catch { /* storage blocked — holds for this page */ }
     };
 
     return (
-        <button
-            type="button"
-            onClick={toggle}
-            aria-label={dark ? t.nav.switchToLight : t.nav.switchToDark}
-            className="p-2 rounded-lg text-slate-300 hover:text-kesri transition-colors"
-        >
-            {dark ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
-        </button>
+        <SettingMenu
+            label={t.nav.changeTheme}
+            icon={ICONS[theme]}
+            value={theme}
+            options={THEMES.map((id) => ({ id, label: t.nav.themes[id], icon: ICONS[id] }))}
+            onSelect={select}
+        />
     );
 }
