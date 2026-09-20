@@ -39,21 +39,36 @@ export default function SettingMenu<T extends string>({
     const rootRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
     const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
+    const wasOpen = useRef(false);
+    const active = options.find((o) => o.id === value);
     const activeIndex = options.findIndex((o) => o.id === value);
 
     // Close on outside pointerdown
     useEffect(() => {
         if (!open) return;
         const onPointerDown = (e: PointerEvent) => {
-            if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+            if (!rootRef.current || rootRef.current.contains(e.target as Node)) return;
+            const hadFocus = rootRef.current.contains(document.activeElement);
+            setOpen(false);
+            // The menu item holding focus just unmounted. If the click landed
+            // on something focusable the browser moves focus there, but on
+            // plain page content it drops focus on <body> and the next Tab
+            // restarts from the top of the document. Re-home it on the trigger
+            // once the browser has settled, and only in that case.
+            if (hadFocus) setTimeout(() => {
+                if (document.activeElement === document.body) triggerRef.current?.focus();
+            });
         };
         document.addEventListener('pointerdown', onPointerDown);
         return () => document.removeEventListener('pointerdown', onPointerDown);
     }, [open]);
 
-    // Focus the active option when the menu opens
+    // Focus the active option, but only on the closed -> open transition: if
+    // `value` changes while the menu is open, re-focusing would yank focus off
+    // whatever the user had arrowed to.
     useEffect(() => {
-        if (open) itemRefs.current[activeIndex]?.focus();
+        if (open && !wasOpen.current) itemRefs.current[activeIndex]?.focus();
+        wasOpen.current = open;
     }, [open, activeIndex]);
 
     const onMenuKeyDown = (e: React.KeyboardEvent) => {
@@ -81,9 +96,12 @@ export default function SettingMenu<T extends string>({
     const select = (next: T) => {
         setOpen(false);
         triggerRef.current?.focus();
-        // Re-picking the active option is a no-op by definition; staying quiet
-        // spares the language picker a needless router.refresh().
-        if (next !== value) onSelect(next);
+        // Always reported, even when it matches what this menu shows. `value`
+        // reflects THIS tab's DOM, which can disagree with what was persisted
+        // (another tab wrote it, or a write was blocked), and swallowing the
+        // re-pick would leave the user no way to reassert their choice. A
+        // caller for which re-selection is genuinely costly guards its own.
+        onSelect(next);
     };
 
     return (
@@ -102,7 +120,10 @@ export default function SettingMenu<T extends string>({
                 onClick={() => setOpen((o) => !o)}
                 aria-haspopup="menu"
                 aria-expanded={open}
-                aria-label={label}
+                // The icon carries the current value for sighted users, but
+                // heroicons render aria-hidden, so name the value here too —
+                // otherwise every state announces identically.
+                aria-label={active ? `${label} (${active.label})` : label}
                 className="p-2 rounded-lg text-slate-300 hover:text-kesri transition-colors"
             >
                 <TriggerIcon className="w-5 h-5" />

@@ -21,7 +21,10 @@ export default function LanguageToggle() {
                 lang: LANG_META[id].htmlLang,
                 labelClassName: id === 'pa' ? 'font-gurmukhi' : undefined,
             }))}
-            onSelect={setLang}
+            // Re-picking the active language would cost a router.refresh() for
+            // no change. The cookie is re-set on every real switch, so unlike
+            // the theme there is nothing to repair by reasserting it.
+            onSelect={(next) => { if (next !== lang) setLang(next); }}
         />
     );
 }
