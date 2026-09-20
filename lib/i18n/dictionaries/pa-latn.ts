@@ -261,8 +261,12 @@ const paLatn: Dictionary = {
         signIn: 'Sign In',
         signOut: 'Sign Out',
         toggleMenu: 'Navigation menu kholo jaan band karo',
-        switchToLight: 'Light mode chalu karo',
-        switchToDark: 'Dark mode chalu karo',
+        changeTheme: 'Theme badlo',
+        themes: {
+            light: 'Light',
+            dark: 'Dark',
+            system: 'System',
+        },
         changeLanguage: 'Bhasha badlo',
     },
 

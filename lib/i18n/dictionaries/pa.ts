@@ -261,8 +261,12 @@ const pa: Dictionary = {
         signIn: 'ਸਾਈਨ ਇਨ',
         signOut: 'ਸਾਈਨ ਆਊਟ',
         toggleMenu: 'ਨੈਵੀਗੇਸ਼ਨ ਮੀਨੂ ਖੋਲ੍ਹੋ ਜਾਂ ਬੰਦ ਕਰੋ',
-        switchToLight: 'ਲਾਈਟ ਮੋਡ ਚਾਲੂ ਕਰੋ',
-        switchToDark: 'ਡਾਰਕ ਮੋਡ ਚਾਲੂ ਕਰੋ',
+        changeTheme: 'ਥੀਮ ਬਦਲੋ',
+        themes: {
+            light: 'ਲਾਈਟ',
+            dark: 'ਡਾਰਕ',
+            system: 'ਸਿਸਟਮ',
+        },
         changeLanguage: 'ਭਾਸ਼ਾ ਬਦਲੋ',
     },
 

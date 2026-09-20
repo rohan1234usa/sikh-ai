@@ -10,6 +10,7 @@
 import type { ChatCopy } from '@/lib/chat/config';
 import type { DetectedInput, NoteKind } from '@/lib/translate/config';
 import type { PhraseCategoryId } from '@/lib/translate/phrasebook';
+import type { Theme } from '@/lib/theme';
 
 const FATEH = 'Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.';
 
@@ -261,8 +262,12 @@ const en = {
         signIn: 'Sign In',
         signOut: 'Sign Out',
         toggleMenu: 'Toggle navigation menu',
-        switchToLight: 'Switch to light mode',
-        switchToDark: 'Switch to dark mode',
+        changeTheme: 'Change theme',
+        themes: {
+            light: 'Light',
+            dark: 'Dark',
+            system: 'System',
+        } satisfies Record<Theme, string>,
         changeLanguage: 'Change language',
     },
 

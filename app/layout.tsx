@@ -8,6 +8,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { LANG_META } from "@/lib/i18n/config";
 import { getLang, getServerT } from "@/lib/i18n/server";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -80,12 +81,8 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${notoGurmukhi.variable}`}
     >
       <head>
-        {/* Apply the stored/system theme before first paint to avoid a flash */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.theme;if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}`,
-          }}
-        />
+        {/* Apply the stored choice before first paint to avoid a flash */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="antialiased min-h-dvh flex flex-col">
         <AuthProvider>
