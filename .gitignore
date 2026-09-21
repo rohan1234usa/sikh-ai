@@ -47,8 +47,9 @@ next-env.d.ts
 #firestore rules
 firestore.rules
 
-# i18n audit — cache.json and report.md ARE committed (the cache doubles as the
-# spend ledger). These two are not: a temp file from an interrupted write, and
+# i18n audit — cache.json and report.md are meant to be committed, so they are
+# not ignored (the cache doubles as the spend ledger, and first appears when a
+# run saves it). These two are not: a temp file from an interrupted write, and
 # an intermediate artifact that gets hand-applied to phrasebook.ts.
 scripts/i18n-audit/cache.json.tmp
 scripts/i18n-audit/notes-pa.generated.json
