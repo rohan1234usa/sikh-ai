@@ -515,6 +515,12 @@ const paLatn: Dictionary = {
         home: 'Mukkh panne te vapas jao',
     },
 
+    errorPage: {
+        heading: 'Kujh galat ho gaya',
+        body: 'Is panne vich ik achanak galti aa gayi. Dubara koshish karo, jaan mukkh panne te vapas jao.',
+        retry: 'Dubara koshish karo',
+    },
+
     footer: {
         builtBy: 'Nirmata:',
         navAria: 'Footer',

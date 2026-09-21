@@ -518,6 +518,12 @@ const en = {
         home: 'Back to home',
     },
 
+    errorPage: {
+        heading: 'Something went wrong',
+        body: 'This page ran into an unexpected error. Try again, or go back to the home page.',
+        retry: 'Try again',
+    },
+
     footer: {
         builtBy: 'Built by',
         navAria: 'Footer',
