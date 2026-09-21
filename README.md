@@ -132,6 +132,15 @@ Follow these steps to set up the project locally.
     ```
     Node's built-in test runner via `tsx`; no extra dependencies. The route tests call the real `POST` handlers against a local mock of the Gemini API (`scripts/mock-gemini.ts`), so they need no key and cost nothing. The same mock lets you drive the app by hand without spending anything: run `npm run mock:gemini`, then start the app with `GOOGLE_GEMINI_BASE_URL=http://127.0.0.1:8787 GEMINI_API_KEY=mock TRANSLATE_FALLBACK=off npm run dev`, and put a trigger word such as `MOCK_429` or `MOCK_BLOCKED` in a message (the full list is at the top of the script).
 
+### Running in production
+
+Four settings outside the code keep a public deployment affordable and safe:
+
+1.  **Billing on the Gemini key's project.** In AI Studio → API keys, find the project behind the production key and set up billing. A small prepaid balance with auto-reload off caps the worst case at that balance. When it runs out, Gemini answers HTTP 402: the chat shows its "busy" message, and the translator falls back to Cloud Translation where it can.
+2.  **A monthly spend cap** (AI Studio → Spend). Enforcement lags by about ten minutes.
+3.  **One rate-limit rule** (Vercel → Firewall; the Hobby plan allows one): path starts with `/api/`, method POST, 20 requests per IP in a 60-second fixed window. Run it in Log mode for a week, then switch it to deny with 429. The chat and the translator already show their "busy" message for the firewall's 429.
+4.  **Restrict the Gemini key** to the Generative Language API, but only after `GOOGLE_TRANSLATE_API_KEY` is set on its own. Until then Cloud Translation borrows the Gemini key, and restricting it would quietly break the translator's fallback.
+
 ## 💻 Usage Examples
 
 ### 1. The Hukamnama Fetcher (Server-Side)
@@ -244,6 +253,16 @@ npm run eval:translate -- --dry-run
 Only the phrasebook's Punjabi is used as input, in both Gurmukhi and romanized form, because its English is a gloss rather than a sentence a learner would type. For each answer the report checks that the input script was detected, that the converted script matches the phrasebook, that the user's own wording was kept, and that romanization follows the house rules: no diacritics or apostrophes, and the same community spellings as the i18n audit. It also records latency and token use. The phrasebook is itself pending fluent review, so these numbers only set the reading order: disagreements come first.
 
 A default run covers 10 fixtures per model; `--limit N` or `--all` (100) goes further, and `--models a,b` changes the lineup. Answers are cached in `scripts/translate-eval/cache.json`, keyed by model, full request config, and input. A rerun is free, and editing the prompt starts a fresh comparison. `--prune` then drops the answers to earlier prompts, so the committed cache holds only what the report shows (git history keeps the rest). On the free tier every request draws on the same per-model daily quota as the live app. A daily-quota 429 stops that model cleanly, and the next run resumes from the cache.
+
+## 🧪 Chat Model Eval
+
+`npm run eval:chat` does the same for the chat. Twelve fixed questions each guard one promise the system prompt makes: quote Gurbani before explaining it, never speak as a Guru, answer Gurmukhi in Gurmukhi with no letters from neighbouring scripts, end a vichaar reply with exactly one question, attribute Jaap Sahib to the Dasam Granth, steer politics back to Gurmat, finish a whole-Ang line-by-line explanation inside the output cap, and more. Each answer streams through `buildChatRequest()`, exactly as the route sends it, and every Gurbani quote in it goes through the chat page's own verifier against GurbaniNow.
+
+```bash
+npm run eval:chat -- --dry-run
+```
+
+By default it compares the production model with its fallback, the two models a user can be answered by. `--models` takes any list of variants, where `model@level` sets the thinking level (`gemini-3.8-flash@medium`). `--set core` or `--set gurbani-first` narrows the questions, and `--samples N` asks each one N times, since one answer per question says little about a rate. The report gives each variant a summary column (time to first text, length, tokens, estimated cost, failed checks, and quotes by verdict: verified, wrong Ang, altered, not found), then shows every question side by side, most problems first. The two deep-linked passages, a day's Hukamnama and a whole Ang, are captured once with `--capture`, through the app's own API routes and the chat page's own code. Answers and their verdicts are cached in `scripts/chat-eval/cache.json`, and `--reverify` re-checks every quote after a change to the verifier without asking the model again.
 
 ## 📖 Pre-generated Phrasebook
 

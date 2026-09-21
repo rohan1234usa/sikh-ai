@@ -18,8 +18,10 @@
 //
 // Each feature also names one fallback model, tried only when the pinned one
 // is overloaded, rate-limited, unavailable, or too slow (lib/gemini/fallback.ts).
-// Set its env var to "off" to disable it: for chat, a "busy" message is better
-// than an answer from a model that has not been checked for quote accuracy.
+// For chat, 3.7 Flash was checked with `npm run eval:chat` (Sept 2026): every
+// Gurbani quote in its answers to the twelve questions verified, as with 3.8.
+// Before pointing the fallback at an unchecked model, run that eval, or set the
+// env var to "off": a "busy" message is better than a misquoted tuk.
 //
 // Both routes set `thinkingLevel`, a Gemini 3.x parameter — an override should
 // name a 3.x model.

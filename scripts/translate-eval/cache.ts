@@ -21,7 +21,9 @@ export type CachedRun = {
     at: string;
 };
 
-export type Cache = { version: 1; entries: Record<string, CachedRun> };
+// Generic over the entry type: npm run eval:chat stores streamed runs with
+// their citation verdicts in the same kind of file.
+export type Cache<T = CachedRun> = { version: 1; entries: Record<string, T> };
 
 export function runKey(model: string, config: unknown, input: string): string {
     return createHash('sha256').update(`${model}\n${JSON.stringify(config)}\n${input}`).digest('hex');
@@ -31,7 +33,7 @@ export function runKey(model: string, config: unknown, input: string): string {
 // most likely a merge conflict, and quietly starting over would pay again —
 // in money or daily quota — for answers already in hand. The path defaults to
 // the eval's own cache; npm run build:phrasebook keeps a separate one.
-export function loadCache(path = CACHE_PATH): Cache {
+export function loadCache<T = CachedRun>(path = CACHE_PATH): Cache<T> {
     let raw: string;
     try {
         raw = readFileSync(path, 'utf8');
@@ -39,7 +41,7 @@ export function loadCache(path = CACHE_PATH): Cache {
         return { version: 1, entries: {} }; // genuinely absent: first run
     }
     try {
-        const parsed = JSON.parse(raw) as Cache;
+        const parsed = JSON.parse(raw) as Cache<T>;
         if (parsed?.version === 1 && parsed.entries) return parsed;
         throw new Error(`unexpected shape (version ${parsed?.version})`);
     } catch (err) {
@@ -52,7 +54,7 @@ export function loadCache(path = CACHE_PATH): Cache {
 
 // Written after every answer, so a quota stop or crash loses nothing.
 // Temp-then-rename keeps the file from being observed half-written.
-export function saveCache(cache: Cache, path = CACHE_PATH): void {
+export function saveCache<T>(cache: Cache<T>, path = CACHE_PATH): void {
     const tmp = `${path}.tmp`;
     writeFileSync(tmp, JSON.stringify(cache, null, 2) + '\n', 'utf8');
     renameSync(tmp, path);
@@ -61,7 +63,7 @@ export function saveCache(cache: Cache, path = CACHE_PATH): void {
 // Drops every entry not in `keep` (the keys the current prompt would ask for),
 // returning how many went. Only on request: after a prompt experiment is
 // reverted, its predecessor's answers are free again only if still cached.
-export function pruneCache(cache: Cache, keep: Set<string>): number {
+export function pruneCache<T>(cache: Cache<T>, keep: Set<string>): number {
     let removed = 0;
     for (const key of Object.keys(cache.entries)) {
         if (keep.has(key)) continue;

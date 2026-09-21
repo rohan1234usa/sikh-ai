@@ -59,12 +59,22 @@ export async function generate(
     request: GenerateContentParameters,
     pace: () => Promise<void>,
 ): Promise<Outcome> {
+    return withRetries(async () => {
+        const started = performance.now();
+        const res = await ai.models.generateContent(request);
+        return toRun(request.model, res, performance.now() - started);
+    }, pace);
+}
+
+// The policy above, around any single call (npm run eval:chat streams).
+export async function withRetries<T>(
+    send: () => Promise<T>,
+    pace: () => Promise<void>,
+): Promise<{ run: T } | { stop: string } | { skip: string }> {
     for (let attempt = 1; ; attempt++) {
         await pace();
-        const started = performance.now();
         try {
-            const res = await ai.models.generateContent(request);
-            return { run: toRun(request.model, res, performance.now() - started) };
+            return { run: await send() };
         } catch (err) {
             if (!(err instanceof ApiError)) throw err;
             if (err.status === 429) {

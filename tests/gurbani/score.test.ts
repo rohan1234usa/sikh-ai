@@ -1,5 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import type { GurbaniLine } from '@/lib/gurbani/gurbaninow';
 import { tokens } from '@/lib/gurbani/gurmukhi';
 import { compare, containedRun, isClose, lineKeys, looseKey, peel, toSearchLetters } from '@/lib/gurbani/score';
 
@@ -27,6 +30,22 @@ test('containment is on whole words, spacing aside, and rejects a cut-off word',
     assert.ok(containedRun(lineKeys('ਸਤਿਨਾਮੁ ਕਰਤਾ').loose, line), 'different spacing still matches');
     const verse = lineKeys('ਤੇਰਾ ਕੀਆ ਮੀਠਾ ਲਾਗੈ ॥').loose;
     assert.ok(!containedRun(lineKeys('ਤੇਰਾ ਕੀਆ ਮੀਠਾ ਲ').loose, verse), 'a truncated last word is not a match');
+});
+
+test('a subjoined ha matches whether written as GurbaniNow does or as standard Unicode', () => {
+    // GurbaniNow spells it with the udaat sign (U+0A51); a model writes virama
+    // + ha. Found in the chat eval: 3.7 Flash quoted a line correctly and it
+    // was reported as altered. The quote is made from a recorded line, so no
+    // scripture is typed here.
+    const recorded: Record<string, GurbaniLine[] | null> = JSON.parse(
+        readFileSync(resolve(import.meta.dirname, 'fixtures/gurbaninow.json'), 'utf8'));
+    const lines = Object.values(recorded).flatMap(l => l ?? []).filter(l => l.gurmukhi.includes('\u0A51'));
+    assert.ok(lines.length > 0, 'the recordings include a line with U+0A51');
+    for (const line of lines) {
+        const quote = line.gurmukhi.replaceAll('\u0A51', '\u0A4D\u0A39');
+        const c = compare(lineKeys(quote), lineKeys(line.gurmukhi));
+        assert.ok(c.contained && c.exact, line.gurmukhi);
+    }
 });
 
 test('the altered line from the model comparison is close, not verified', () => {

@@ -7,9 +7,11 @@ import { ThinkingLevel, type Content, type GenerateContentParameters } from '@go
 import { MAX_MESSAGE_CHARS, type ChatContext, type LanguageId, type LensId, type ModeId, type Script } from './config';
 import { composeSystemInstruction } from './prompts';
 
-// Replies on 3.8 Flash run ~270-1,000 output tokens; a line-by-line Shabad
-// explanation reaches 2-3K. Thinking tokens draw from the same budget. A reply
-// that hits the cap is cut short, and the route reports it that way.
+// Replies on 3.8 Flash run ~270-1,000 output tokens; explaining a whole Ang
+// line by line (41 lines, npm run eval:chat) took 3,059 in 12.8 s. Thinking
+// tokens draw from the same budget. A higher cap would mostly buy time against
+// the route's 27 s stream deadline. A reply that hits the cap is cut short, and
+// the route reports it that way.
 export const CHAT_MAX_OUTPUT_TOKENS = 4096;
 
 // How many past messages ride along (5 exchanges keeps context lean).
@@ -58,7 +60,11 @@ export function buildChatRequest(
             }),
             maxOutputTokens: CHAT_MAX_OUTPUT_TOKENS,
             // Low: a streaming chat is judged on time-to-first-token, and the
-            // default (medium) is tuned for code and agentic work.
+            // default (medium) is tuned for code and agentic work. Measured on
+            // 3.8 Flash in gurbani-first mode (npm run eval:chat, Sept 2026,
+            // 9 answers each): medium verified 20/20 quotes against 19/21 (one
+            // wrong Ang, which the citation check flags), but took 4.1 s to
+            // first text against 1.2 s, at 2.1x the cost.
             thinkingConfig: { thinkingLevel: overrides.thinkingLevel ?? ThinkingLevel.LOW },
         },
     };

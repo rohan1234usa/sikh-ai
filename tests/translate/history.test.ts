@@ -29,7 +29,7 @@ function entry(input: string, over: Partial<HistoryEntry> = {}): HistoryEntry {
 test('the same text typed differently is the same request', () => {
     assert.equal(normalizeInput('  Ki   haal\thai? '), 'ki haal hai?');
     // U+0A59 (ਖ਼ precomposed) and U+0A16 U+0A3C (ਖ + nukta) are the same letter.
-    assert.equal(normalizeInput('ਖ਼'), normalizeInput('ਖ਼'));
+    assert.equal(normalizeInput('\u0A59'), normalizeInput('\u0A16\u0A3C'));
     assert.ok(sameRequest({ input: 'Ki haal hai?', sourceHint: 'auto' }, { input: 'ki haal hai? ', sourceHint: 'auto' }));
 });
 

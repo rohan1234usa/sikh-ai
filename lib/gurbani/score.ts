@@ -41,8 +41,16 @@ export type LineKeys = {
 
 const HAS_GURMUKHI = /[਀-੿]/;
 
+// GurbaniNow writes a subjoined ha or ya with the udaat or yakash sign
+// (U+0A51, U+0A75: ਸੰਮੑਾਲਿ), where standard Unicode, and so every model, writes
+// a virama and the letter (ਸੰਮ੍ਹਾਲਿ). Same word either way; without this fold,
+// every correct quote with a subjoined ha was reported as altered.
+export function foldSubjoined(text: string): string {
+    return text.replace(/\u0A4D\u0A39/g, '\u0A51').replace(/\u0A4D\u0A2F/g, '\u0A75');
+}
+
 export function lineKeys(text: string): LineKeys {
-    const raw = tokens(text).filter(token => HAS_GURMUKHI.test(token));
+    const raw = tokens(foldSubjoined(text)).filter(token => HAS_GURMUKHI.test(token));
     const loose = raw.map(looseKey);
     return {
         raw,

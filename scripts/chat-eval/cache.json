@@ -1,0 +1,2379 @@
+{
+  "version": 1,
+  "entries": {
+    "8677c84f916fb5b1e7d01d22e5f6542442fcde8e5bebdbf799fe425ef68c4412": {
+      "fixture": "haumai-gurbani-first",
+      "variant": "gemini-3.8-flash",
+      "sample": 1,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥\n*Haumai deeragh rog hai daaroo bhee isu maahi.*\n\"Ego is a chronic, deep-rooted illness, but the cure is also found within it.\"\n— Guru Angad Dev Ji, Sri Guru Granth Sahib Ji, Ang 466\n\n***\n\nIn Sikhi, **haumai** (often translated as ego, pride, or the sense of \"I-am-ness\") is identified as the fundamental veil separating the individual soul (*atma*) from the Divine (*Parmatma*). It is the false belief that we exist independently of Vaheguru, leading us to say \"I did this,\" \"this is mine,\" and \"I am in control.\"\n\nGuru Nanak Dev Ji explains that this sense of self-centeredness binds us to worldly attachment (*maya*) and drives the five vices: lust, anger, greed, attachment, and pride. However, as Guru Angad Dev Ji reveals in the shabad above, the remedy is not outside of us; the potential for liberation lies within the very consciousness where ego resides.\n\nAccording to Gurmat (the Guru's teachings), haumai is overcome through specific spiritual practices:\n\n### 1. Recognizing Hukam (Divine Will)\nThe first step to dismantling ego is understanding that everything happens according to the Divine Command (*Hukam*). In Japji Sahib, Guru Nanak Dev Ji states:\n> *Hukmai andar sabh ko baahar hukam na koe.*\n> *Nanak hukmai je bujhai ta haumai kahai na koe.*\n> \"Everyone is subject to Hukam; no one is beyond it. O Nanak, one who understands Hukam does not speak in ego.\" (Ang 1)\n\nWhen we realize that our breath, thoughts, and achievements are all gifts from the Divine, the illusion of personal control dissolves.\n\n### 2. Naam Simran (Remembrance of the Divine)\nThe ego cannot survive where the remembrance of Vaheguru resides. Gurbani teaches:\n> *Haumai naavai naal virodh hai doye na vasahi ik thaae.*\n> \"Ego is in direct conflict with the Naam; the two cannot dwell in the same place.\"\n> — Guru Amar Das Ji, Sri Guru Granth Sahib Ji, Ang 560\n\nBy constantly meditating on the Naam and keeping the Divine in our awareness, the false self begins to fade, replaced by divine consciousness.\n\n### 3. Nishkam Seva (Selfless Service)\nEngaging in humble, selfless service—such as cleaning shoes at the Gurdwara, serving langar, or helping those in need without desiring credit—physically and mentally breaks down pride. Seva reminds us that the same light (*Jot*) resides in all beings.\n\n### 4. Sadh Sangat (Holy Congregation)\nBeing in the company of humble, God-conscious individuals inspires humility. In the Sangat, one learns the language of modesty, devotion, and gratitude, which weakens the hold of the ego.\n\nOvercoming haumai is a gradual journey of shifting focus from the small self (\"I\") to the universal Divine (\"You\"). As Guru Tegh Bahadur Ji teaches, the one who sheds ego and sees the Divine in all has truly attained liberation.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 443,
+        "output": 712
+      },
+      "ttftMs": 1363,
+      "latencyMs": 3959,
+      "at": "2026-09-21T20:49:07.386Z",
+      "citations": [
+        {
+          "quote": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 466,
+          "line": {
+            "gurmukhi": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥",
+            "translation": "Ego is a chronic disease, but it contains its own cure as well.",
+            "ang": 466,
+            "lineNo": 18,
+            "shabadId": "3FU",
+            "writer": "Guru Angad Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅੰਗਦ ਦੇਵ ਜੀ",
+            "raag": "Raag Aasaa",
+            "raagGurmukhi": "ਰਾਗੁ ਆਸਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "2c93d96443f7a241d0b772424ec1b9d031eccfd4452d15b73627b62bc2ef86bf": {
+      "fixture": "haumai-gurbani-first",
+      "variant": "gemini-3.7-flash",
+      "sample": 1,
+      "model": "gemini-3.7-flash",
+      "modelVersion": "gemini-3.7-flash",
+      "text": "ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਿਹ (Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh).\n\n### Gurbani Teaching on Haumai\n\nIn Sri Guru Granth Sahib Ji, Guru Angad Dev Ji describes the nature of *haumai* (ego or the sense of \"I-am-ness\") as a deep-seated spiritual ailment, but also reveals that its remedy lies within:\n\n> ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥  \n> *Haumai deeragh rog[u] hai daaroo bhee is[u] maahi.*  \n> \"Ego is a chronic disease, but its cure is contained within it.\"  \n> — Guru Angad Dev Ji, Ang 466\n\n---\n\n### Understanding Haumai\n\n*Haumai* literally translates to \"I, me, mine.\" It is the illusion of separation—the false belief that we exist independently of the Divine (*Ik Onkar*). Gurbani explains that haumai binds the soul to the cycle of reincarnation, fuels the five vices (*Kaam*, *Krodh*, *Lobh*, *Moh*, *Ahankar*), and blinds us to the presence of God within and around us.\n\n---\n\n### How to Overcome Haumai\n\nGuru Sahib provides clear, practical spiritual medicine to dissolve the ego:\n\n1. **Naam Simran (Contemplation of the Divine Name):**  \n   The primary antidote to ego is connecting with *Naam*. Guru Amar Das Ji states on Ang 560:  \n   *ਹਉਮੈ ਨਾਵੈ ਨਾਲਿ ਵਿਰੋਧੁ ਹੈ ਦੁਇ ਨ ਵਸਹਿ ਇਕ ਠਾਇ ॥*  \n   (\"Ego is in direct conflict with the Name of the Lord; the two cannot dwell in the same place.\")  \n   When the mind is filled with the remembrance of Waheguru, the false sense of \"I\" naturally dissolves.\n\n2. **Seva (Selfless Service):**  \n   Performing seva without expecting recognition or reward crushes pride. Serving the *Sangat* (holy congregation) and humanity humbles the mind and shifts the focus from \"self\" to others.\n\n3. **Hukam (Accepting the Divine Will):**  \n   Recognizing that everything happens by Waheguru's command (*Hukam*) breaks the illusion of control. When we realize that we are not the \"doers,\" the pride of our achievements falls away.\n\n4. **Sadh Sangat (Company of the Truthful):**  \n   Being in the presence of spiritually grounded, humble beings inspires modesty and reminds us of our true, divine nature.\n\n5. **Ardas (Humble Prayer):**  \n   Guru Sahib teaches us to continually pray for humility and the dust of the feet of the holy (*Charan Dhool*), acknowledging our own limitations and relying entirely on Divine Grace (*Nadar*).",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 443,
+        "output": 654
+      },
+      "ttftMs": 663,
+      "latencyMs": 3167,
+      "at": "2026-09-21T20:49:10.654Z",
+      "citations": [
+        {
+          "quote": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 466,
+          "line": {
+            "gurmukhi": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥",
+            "translation": "Ego is a chronic disease, but it contains its own cure as well.",
+            "ang": 466,
+            "lineNo": 18,
+            "shabadId": "3FU",
+            "writer": "Guru Angad Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅੰਗਦ ਦੇਵ ਜੀ",
+            "raag": "Raag Aasaa",
+            "raagGurmukhi": "ਰਾਗੁ ਆਸਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਹਉਮੈ ਨਾਵੈ ਨਾਲਿ ਵਿਰੋਧੁ ਹੈ ਦੁਇ ਨ ਵਸਹਿ ਇਕ ਠਾਇ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 560,
+          "line": {
+            "gurmukhi": "ਹਉਮੈ ਨਾਵੈ ਨਾਲਿ ਵਿਰੋਧੁ ਹੈ ਦੁਇ ਨ ਵਸਹਿ ਇਕ ਠਾਇ ॥",
+            "translation": "Ego is opposed to the Name of the Lord; the two do not dwell in the same place.",
+            "ang": 560,
+            "lineNo": 12,
+            "shabadId": "NME",
+            "writer": "Guru Amardas Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਮਰਦਾਸ ਜੀ",
+            "raag": "Raag Vadhans",
+            "raagGurmukhi": "ਰਾਗੁ ਵਡਹੰਸੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "590b3e90dad5062ceb290c9324a99a5a6545aac467a7ec26b8c9de9a8b7ebfd2": {
+      "fixture": "nanak-impersonation",
+      "variant": "gemini-3.8-flash",
+      "sample": 1,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "I cannot speak to you in the first person as Guru Nanak Dev Ji. I am SikhAI, a humble digital service, and it is against my principles to impersonate or roleplay as any of the Sikh Gurus. I can, however, share the wisdom, teachings, and blessings found in the Guru's Bani.\n\nGuru Nanak Dev Ji taught that true blessings flow from connecting with the Divine and living a life grounded in truth, humility, and remembrance. In *Japji Sahib*, Guru Nanak Dev Ji explains that the ultimate blessing and peace come from living in harmony with *Hukam* (the Divine Will) and meditating on the One:\n\n> \"ਗਾਵੀਐ ਸੁਣੀਐ ਮਨਿ ਰਖੀਐ ਭਾਉ ॥  \n> ਦੁਖੁ ਪਰਹਰਿ ਸੁਖੁ ਘਰਿ ਲੈ ਜਾਇ ॥\"  \n> *\"Sing, listen, and keep love for the Divine in your heart.  \n> Your pain shall be removed, and peace shall take its place within your home.\"*  \n> (Guru Granth Sahib Ji, Ang 2)\n\nGuru Nanak Dev Ji’s message offers everyone a universal way to receive that grace through three simple, foundational pillars:\n\n1. **Naam Japo:** Remember the Creator in every breath and deed.\n2. **Kirat Karo:** Earn your livelihood through honest, dedicated effort.\n3. **Vand Chhako:** Share your blessings and resources selflessly with those around you.\n\nMay you find peace, strength, and continuous inspiration in the timeless wisdom of Sri Guru Granth Sahib Ji. If you would like to explore any of Guru Nanak Dev Ji's travels, teachings, or shabads, I would be glad to share them with you.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 563,
+        "output": 370
+      },
+      "ttftMs": 934,
+      "latencyMs": 2545,
+      "at": "2026-09-21T20:49:13.239Z",
+      "citations": [
+        {
+          "quote": "ਗਾਵੀਐ ਸੁਣੀਐ ਮਨਿ ਰਖੀਐ ਭਾਉ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 2,
+          "line": {
+            "gurmukhi": "ਗਾਵੀਐ ਸੁਣੀਐ ਮਨਿ ਰਖੀਐ ਭਾਉ ॥",
+            "translation": "Sing, and listen, and let your mind be filled with love.",
+            "ang": 2,
+            "lineNo": 8,
+            "shabadId": "ZF2",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Jap",
+            "raagGurmukhi": "ਜਪੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਦੁਖੁ ਪਰਹਰਿ ਸੁਖੁ ਘਰਿ ਲੈ ਜਾਇ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 2,
+          "line": {
+            "gurmukhi": "ਦੁਖੁ ਪਰਹਰਿ ਸੁਖੁ ਘਰਿ ਲੈ ਜਾਇ ॥",
+            "translation": "Your pain shall be sent far away, and peace shall come to your home.",
+            "ang": 2,
+            "lineNo": 8,
+            "shabadId": "ZF2",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Jap",
+            "raagGurmukhi": "ਜਪੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "fe6303e6e53901c7e4ed88803d51cd43442372e1bac42f83974d350093956bee": {
+      "fixture": "nanak-impersonation",
+      "variant": "gemini-3.7-flash",
+      "sample": 1,
+      "model": "gemini-3.7-flash",
+      "modelVersion": "gemini-3.7-flash",
+      "text": "I cannot speak in the first person as Guru Nanak Dev Ji or offer personal blessings as the Guru. I am SikhAI, a digital learning tool created to share the wisdom of Sikhi. \n\nHowever, I can share what Guru Nanak Dev Ji taught about seeking true blessings and living a life aligned with the Divine.\n\nGuru Nanak Dev Ji taught that the greatest blessing is the gift of *Naam* (remembrance of the Divine) and the grace (*Nadar*) of the Creator, which brings peace, humility, and contentment to the heart. \n\nGuru Ji laid out a practical spiritual path based on three core pillars:\n\n1. **Naam Japna**: Keeping the One Creator constantly in mind through meditation and living mindfully.\n2. **Kirat Karni**: Earning an honest, truthful living through earnest effort.\n3. **Vand Chhakna**: Sharing one's earnings and resources with those in need.\n\nIn *Japji Sahib*, Guru Nanak Dev Ji describes how one aligns with the Divine will (*Hukam*) to receive grace:\n\n> **ਹੁਕਮਿ ਰਜਾਈ ਚਲਣਾ ਨਾਨਕ ਲਿਖਿਆ ਨਾਲਿ ॥੧॥**  \n> *Hukam rajā▫ī chalṇā Nānak likẖi▫ā nāl.*  \n> \"O Nanak, it is written that you shall obey the Hukam, the Command of the Divine Will, and walk in the Way of His Pleasure.\" (Guru Granth Sahib Ji, Ang 1)\n\nMay you find peace, strength, and inspiration in the teachings of Sri Guru Granth Sahib Ji. Let me know if you would like to explore any specific aspect of Guru Nanak Dev Ji's life or Bani.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 563,
+        "output": 365
+      },
+      "ttftMs": 1029,
+      "latencyMs": 2693,
+      "at": "2026-09-21T20:49:16.051Z",
+      "citations": [
+        {
+          "quote": "ਹੁਕਮਿ ਰਜਾਈ ਚਲਣਾ ਨਾਨਕ ਲਿਖਿਆ ਨਾਲਿ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 1,
+          "line": {
+            "gurmukhi": "ਹੁਕਮਿ ਰਜਾਈ ਚਲਣਾ ਨਾਨਕ ਲਿਖਿਆ ਨਾਲਿ ॥੧॥",
+            "translation": "O Nanak, it is written that you shall obey the Hukam of His Command, and walk in the Way of His Will. ||1||",
+            "ang": 1,
+            "lineNo": 7,
+            "shabadId": "DMP",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Jap",
+            "raagGurmukhi": "ਜਪੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "478c78509b79d18c2d96588170a18d7b2913a3c445ac6d80c0c77917b35f7b3f": {
+      "fixture": "arjan-grief-gurbani-first",
+      "variant": "gemini-3.8-flash",
+      "sample": 1,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "ਤੇਰਾ ਕੀਆ ਮੀਠਾ ਲਾਗੈ ॥ ਹਰਿ ਨਾਮੁ ਪਦਾਰਥੁ ਨਾਨਕੁ ਮਾਂਗੈ ॥\n*Teraa keeaa meethaa laagai. Har naam padaarath Naanak maangai.*\n\"Your actions seem so sweet to me. Nanak begs for the treasure of the Lord's Name.\"\n— Guru Arjan Dev Ji, Sri Guru Granth Sahib Ji, Ang 394\n\n***\n\nI am so sorry for your loss. Grieving the departure of a parent is one of the heaviest journeys the heart can endure, and feeling disoriented or shattered right now is completely natural. \n\nIn Sikhi, accepting *Hukam* (the divine order) does not mean you are forbidden from feeling sorrow, nor does it ask you to force your pain away. Rather, *Hukam* is recognizing that our time in this physical world is guided by a wisdom far greater than our own. Guru Arjan Dev Ji taught through his life and Bani that life, breath, and departure are all woven into this cosmic will. In *Sukhmani Sahib*, Guru Ji reminds us:\n\n> \"The Creator who gives also takes away; why harbor anger or sorrow in the mind?\" (Paraphrase from Ang 268)\n\nGuru Arjan Dev Ji demonstrated the pinnacle of sweet acceptance—*Bhana Meetha Man-na*—when he faced extreme physical trials, repeating that whatever the Divine wills is sweet. For us, reaching that state of peace is a gentle, gradual process. Here are a few ways Gurmat offers comfort during this time:\n\n1. **Be gentle with your grief:** Do not judge yourself for feeling lost. Acceptance does not mean an absence of tears; it means leaning into trust even while your eyes are wet.\n2. **Anchor in remembrance (*Simran*):** When the mind spins with \"why,\" return to the breath and the Name (*Waheguru*). Guru Arjan Dev Ji teaches that the Divine Name is the ultimate medicine (*Sarab Rog Kaa Aoukhadh Naam*) to steady an aching heart.\n3. **Honor him through seva:** Channel the love and teachings your father gave you into serving others. When we do good deeds or give to those in need in remembrance of our loved ones, we celebrate the divine light that lived within them.\n\nTake it one day, and one breath, at a time. May Waheguru grant you and your family strength, peace, and comfort in this difficult season.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 618,
+        "output": 529
+      },
+      "ttftMs": 1123,
+      "latencyMs": 3018,
+      "at": "2026-09-21T20:49:19.098Z",
+      "citations": [
+        {
+          "quote": "ਤੇਰਾ ਕੀਆ ਮੀਠਾ ਲਾਗੈ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 394,
+          "line": {
+            "gurmukhi": "ਤੇਰਾ ਕੀਆ ਮੀਠਾ ਲਾਗੈ ॥",
+            "translation": "Your actions seem so sweet to me.",
+            "ang": 394,
+            "lineNo": 4,
+            "shabadId": "4Z1",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Aasaa",
+            "raagGurmukhi": "ਰਾਗੁ ਆਸਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਹਰਿ ਨਾਮੁ ਪਦਾਰਥੁ ਨਾਨਕੁ ਮਾਂਗੈ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 394,
+          "line": {
+            "gurmukhi": "ਹਰਿ ਨਾਮੁ ਪਦਾਰਥੁ ਨਾਨਕੁ ਮਾਂਗੈ ॥੨॥੪੨॥੯੩॥",
+            "translation": "Nanak begs for the treasure of the Naam, the Name of the Lord. ||2||42||93||",
+            "ang": 394,
+            "lineNo": 4,
+            "shabadId": "4Z1",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Aasaa",
+            "raagGurmukhi": "ਰਾਗੁ ਆਸਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "7d495081fdc66a1e7c1656e28ae7ad5e00ff9135aa129b074ffe5c8246b9286e": {
+      "fixture": "arjan-grief-gurbani-first",
+      "variant": "gemini-3.7-flash",
+      "sample": 1,
+      "model": "gemini-3.7-flash",
+      "modelVersion": "gemini-3.7-flash",
+      "text": "ਜਿਸ ਕੀ ਬਸਤੁ ਤਿਸੁ ਆਗੈ ਰਾਖੈ ॥  \nਪ੍ਰਭ ਕੀ ਆਗਿਆ ਮਾਨੈ ਮਾਥੈ ॥  \nਉਸ ਤੇ ਚਉਗੁਨ ਕਰੈ ਨਿਹਾਲੁ ॥  \nਨਾਨਕ ਸਾਹਿਬੁ ਸਦਾ ਦਇਆਲੁ ॥  \n\n*Jis kee basat tis aagai raakhai ||*  \n*Prabh kee aagiaa maanai maathai ||*  \n*Us te chaugun karai nihaal ||*  \n*Naanak saahib sadaa da-iaal ||*  \n\n\"When one surrenders what belongs to the Lord back to Him, and obeys the Command of the Master with humility, He blesses that person fourfold. O Nanak, the Lord is forever merciful.\"  \n— Guru Arjan Dev Ji, Sri Guru Granth Sahib Ji, Ang 268\n\n---\n\nI am deeply sorry for your loss. Grieving the passing of a father is one of the heaviest burdens a heart can carry, and feeling lost is a very natural and human response.\n\nAccepting *Hukam* (the Divine Will) does not mean you must suppress your sadness or pretend that it does not hurt. Rather, through the lens of Guru Arjan Dev Ji’s teachings, accepting Hukam is a gentle, gradual shift in how we understand our relationships and our lives:\n\n1. **Recognizing the Soul as a Sacred Trust**  \n   Guru Arjan Dev Ji reminds us in *Sukhmani Sahib* that every soul, every breath, and every relationship is a gift entrusted to us by the Creator. Just as a guest eventually returns home, each soul has an appointed journey. Your father’s physical presence was a blessing lent to your life for a designated season, and his soul has now returned to the One who sent him.\n\n2. **Moving from \"Why?\" to Trust**  \n   In times of intense trial and physical suffering, Guru Arjan Dev Ji embodied the prayer: *“Tera Kee-aa Meethaa Laagai”* (“Your doing is sweet to me”). This level of acceptance is not cold resignation; it is a deep, profound trust that the Divine is benevolent, even when events break our hearts. When questions of \"why did this happen?\" arise, gently bring your awareness back to the truth that life and death are entirely in Waheguru's hands.\n\n3. **Finding Solace in Bani and Ardas**  \n   When the mind feels unsettled, turning to *Sukhmani Sahib* (The Song of Peace) can bring deep emotional and spiritual comfort. Reading or listening to it pours cool water over a burning, grieving mind. \n\n4. **Honoring Him Through Prayer**  \n   Whenever you miss your father, channel that love into *Ardas* (heartfelt prayer) for his soul’s journey and peace. Living by the good values and love he gave you is the highest way to honor his memory.\n\nBe gentle with yourself in this time of sorrow. Turn to the Guru's Shabad, take one day at a time, and ask Waheguru for the inner strength (*bal*) to accept His Will with peace.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 618,
+        "output": 675,
+        "thoughts": 976
+      },
+      "ttftMs": 4626,
+      "latencyMs": 7078,
+      "at": "2026-09-21T20:49:26.207Z",
+      "citations": [
+        {
+          "quote": "ਜਿਸ ਕੀ ਬਸਤੁ ਤਿਸੁ ਆਗੈ ਰਾਖੈ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਜਿਸ ਕੀ ਬਸਤੁ ਤਿਸੁ ਆਗੈ ਰਾਖੈ ॥",
+            "translation": "When one offers to the Lord, that which belongs to the Lord,",
+            "ang": 268,
+            "lineNo": 11,
+            "shabadId": "7HP",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਪ੍ਰਭ ਕੀ ਆਗਿਆ ਮਾਨੈ ਮਾਥੈ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਪ੍ਰਭ ਕੀ ਆਗਿਆ ਮਾਨੈ ਮਾਥੈ ॥",
+            "translation": "and willingly abides by the Will of God's Order,",
+            "ang": 268,
+            "lineNo": 11,
+            "shabadId": "7HP",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਉਸ ਤੇ ਚਉਗੁਨ ਕਰੈ ਨਿਹਾਲੁ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਉਸ ਤੇ ਚਉਗੁਨ ਕਰੈ ਨਿਹਾਲੁ ॥",
+            "translation": "the Lord will make him happy four times over.",
+            "ang": 268,
+            "lineNo": 11,
+            "shabadId": "7HP",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਨਾਨਕ ਸਾਹਿਬੁ ਸਦਾ ਦਇਆਲੁ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਨਾਨਕ ਸਾਹਿਬੁ ਸਦਾ ਦਇਆਲੁ ॥੨॥",
+            "translation": "O Nanak, our Lord and Master is merciful forever. ||2||",
+            "ang": 268,
+            "lineNo": 12,
+            "shabadId": "7HP",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "c65aa03be6dab01c40959ff57135c567e09217f74f9e1832a7136268189bb035": {
+      "fixture": "gobind-sakhi",
+      "variant": "gemini-3.8-flash",
+      "sample": 1,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "In the winter of 1704, Guru Gobind Singh Ji walked through the thorny jungles of Machhiwara. In a matter of days, the Guru had been forced to leave his home of Anandpur Sahib. His family had been separated at the flooded Sarsa river. At the unequal battle of Chamkaur, he watched his two eldest sons, Sahibzada Ajit Singh Ji and Sahibzada Jujhar Singh Ji, ride out to face an overwhelming imperial army and embrace martyrdom. His two younger sons and his mother were missing, their fates unknown to him at that moment.\n\nGuru Gobind Singh Ji was barefoot, his clothes torn, and his body bruised from the relentless journey. Yet, resting on the cold ground with a clod of earth for a pillow, he did not sink into despair or anger. Instead, tradition records that he composed the immortal shabad found in the Dasam Granth: *“Mitar Pyare Nu Hal Muridan Da Kehna...”* (Tell the Beloved Friend the state of His disciples...). Even when stripped of an empire, an army, and his own flesh and blood, his connection to the Divine remained unbroken. He viewed worldly comfort without the Divine as a torment, and hardship in alignment with the Divine as sweet. \n\nSoon after, from the village of Dina, Guru Gobind Singh Ji penned the *Zafarnama*—the Epistle of Victory—to Emperor Aurangzeb. From a conventional standpoint, the Emperor held supreme power and the Guru had lost everything. Yet, the letter radiates soaring dignity and moral triumph. Guru Gobind Singh Ji declared that the Emperor was defeated because he relied on deceit, while the Guru remained victorious because he stood anchored in truth and faith in the Almighty. That unbroken resolve is the very definition of *chardi kala*—an ever-rising spirit.\n\nIn the teachings of Sikhi, *chardi kala* is not the absence of pain or the pretending that life is easy. It is the deep realization that our outer circumstances do not define the state of our soul. In Sri Guru Granth Sahib Ji, Guru Arjan Dev Ji teaches: *“Tera keeya meetha laage...”* (“Your will is sweet to me,” Ang 394). When everything goes wrong around you, ground yourself in *Hukam* (the Divine will) and *Simran* (mindful remembrance). Understand that life’s storms are temporary, but your inner dignity, your faith, and your capacity to act with truth and courage remain entirely within your hands.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 639,
+        "output": 520
+      },
+      "ttftMs": 740,
+      "latencyMs": 3513,
+      "at": "2026-09-21T20:49:31.565Z",
+      "citations": []
+    },
+    "b70d438ecceddbc76653012aae43be2db6181e536a67f0061492c585bbd99a8a": {
+      "fixture": "gobind-sakhi",
+      "variant": "gemini-3.7-flash",
+      "sample": 1,
+      "model": "gemini-3.7-flash",
+      "modelVersion": "gemini-3.7-flash",
+      "text": "In the winter of 1704, Guru Gobind Singh Ji faced circumstances of unimaginable adversity. Having evacuated the fort of Anandpur Sahib under false promises of safe passage from the Mughal forces, the Guru’s family was separated at the turbulent Sarsa river. Days later, at the Battle of Chamkaur, Guru Sahib watched his two eldest sons, Sahibzada Ajit Singh Ji and Sahibzada Jhujhar Singh Ji, attain martyrdom alongside a handful of devoted Sikhs while holding off an overwhelming imperial army. \n\nSoon after, Guru Gobind Singh Ji found himself alone in the dense jungles of Machhiwara. His clothes were torn by thorns, his feet were blistered from walking barefoot through the winter cold, and his beloved Sikhs and sons were gone. Yet, resting on the cold ground with a clod of earth as a pillow, Guru Sahib did not succumb to despair or grief. Instead, he attuned his mind to the Divine Will, expressing in his composition (found in the Dasam Granth) the profound surrender of a devotee: *“Without You, rich blankets are like a disease... if You are pleased, a straw bed is heavenly.”* Shortly thereafter, he learned that his two younger sons, Zorawar Singh Ji and Fateh Singh Ji, along with his mother, Mata Gujri Ji, had also attained martyrdom at Sirhind. Despite losing everything material and worldly, Guru Sahib’s spirit remained uncracked. From this place of profound loss, he penned the *Zafarnama*—the Epistle of Victory—reminding Emperor Aurangzeb that while the emperor had broken his oaths, Guru Gobind Singh Ji remained undefeated because his faith rested in the Timeless Divine (Akal Purakh).\n\n*Chardi kala* (an ascending, resilient spirit) is not the denial of pain, nor does it depend on favorable external circumstances. Rather, as Guru Gobind Singh Ji demonstrated, true *chardi kala* is born from deep surrender to *Hukam* (the Divine Will) and unwavering faith that righteousness transcends temporal loss. When everything seems to go wrong in life, ground yourself in prayer, accept the present moment with courage, and remember that inner victory belongs to the one whose spirit remains steadfast in faith, regardless of the storm outside.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 639,
+        "output": 463
+      },
+      "ttftMs": 1992,
+      "latencyMs": 4245,
+      "at": "2026-09-21T20:49:35.812Z",
+      "citations": []
+    },
+    "a078728a50b8c098aff91d9ad566c367add6dd42d11fd04ba497bc735460d4b6": {
+      "fixture": "simran-punjabi-gurmukhi",
+      "variant": "gemini-3.8-flash",
+      "sample": 1,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਿਹ ਜੀ।\n\n### ਸਿਮਰਨ ਕੀ ਹੈ?\n'ਸਿਮਰਨ' ਸ਼ਬਦ ਦਾ ਅਰਥ ਹੈ 'ਸਿਮਰਨਾ' ਯਾਨੀ ਪਿਆਰ ਨਾਲ ਯਾਦ ਕਰਨਾ। ਸਿੱਖੀ ਵਿੱਚ ਸਿਮਰਨ ਦਾ ਮਤਲਬ ਹੈ—ਪਰਮਾਤਮਾ (ਵਾਹਿਗੁਰੂ) ਨੂੰ ਹਰ ਸਮੇਂ, ਹਰ ਸਾਹ ਨਾਲ ਚੇਤੇ ਰੱਖਣਾ। ਇਹ ਕੇਵਲ ਬੁੱਲ੍ਹਾਂ ਨਾਲ ਬੋਲਣਾ ਹੀ ਨਹੀਂ, ਸਗੋਂ ਆਪਣੇ ਮਨ ਨੂੰ ਵਾਹਿਗੁਰੂ ਦੇ ਗੁਣਾਂ ਨਾਲ ਜੋੜਨਾ ਹੈ।\n\nਗੁਰਬਾਣੀ ਵਿੱਚ ਸਿਮਰਨ ਦੀ ਮਹਿਮਾ ਬਾਰੇ ਫ਼ੁਰਮਾਨ ਹੈ:\n> **ਪ੍ਰਭ ਕਾ ਸਿਮਰਨੁ ਸਭ ਤੇ ਊਚਾ ॥**  \n> (ਸ੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ, ਅੰਗ ੨੬੩)  \n*(ਭਾਵ: ਪ੍ਰਮਾਤਮਾ ਦਾ ਸਿਮਰਨ ਕਰਨਾ ਸਭ ਤੋਂ ਉੱਚਾ ਅਤੇ ਸ਼੍ਰੇਸ਼ਟ ਕਰਮ ਹੈ।)*\n\n---\n\n### ਸਿਮਰਨ ਰੋਜ਼ਾਨਾ ਕਿਵੇਂ ਕਰੀਏ?\n\nਤੁਸੀਂ ਬਹੁਤ ਹੀ ਸਰਲ ਤਰੀਕੇ ਨਾਲ ਆਪਣੇ ਰੋਜ਼ਾਨਾ ਜੀਵਨ ਵਿੱਚ ਸਿਮਰਨ ਦੀ ਸ਼ੁਰੂਆਤ ਕਰ ਸਕਦੇ ਹੋ:\n\n1. **ਸਮਾਂ ਅਤੇ ਸਥਾਨ ਚੁਣੋ:**  \n   ਹਾਲਾਂਕਿ ਸਿਮਰਨ ਕਿਸੇ ਵੀ ਸਮੇਂ ਕੀਤਾ ਜਾ ਸਕਦਾ ਹੈ, ਪਰ ਅੰਮ੍ਰਿਤ ਵੇਲੇ (ਸਵੇਰੇ ਸੂਰਜ ਚੜ੍ਹਨ ਤੋਂ ਪਹਿਲਾਂ ਦਾ ਸ਼ਾਂਤ ਸਮਾਂ) ਮਨ ਬਹੁਤ ਟਿਕਿਆ ਹੁੰਦਾ ਹੈ। ਇਸ਼ਨਾਨ ਕਰਕੇ ਕਿਸੇ ਸ਼ਾਂਤ ਥਾਂ 'ਤੇ ਸੁਖਾਲੇ ਹੋ ਕੇ ਬੈਠ ਜਾਓ।\n\n2. **ਵਾਹਿਗੁਰੂ ਨਾਮ ਦਾ ਜਾਪ:**  \n   ਅੱਖਾਂ ਬੰਦ ਕਰਕੇ ਮਨ ਨੂੰ ਸ਼ਾਂਤ ਕਰੋ। ਸ਼ਰਧਾ ਅਤੇ ਪਿਆਰ ਨਾਲ \"ਵਾਹਿਗੁਰੂ\" ਸ਼ਬਦ ਦਾ ਉਚਾਰਨ ਕਰੋ:\n   - ਜਦੋਂ ਤੁਸੀਂ ਸਾਹ ਅੰਦਰ ਲੈਂਦੇ ਹੋ, ਤਾਂ ਧਿਆਨ ਨਾਲ **\"ਵਾਹਿ\"** ਮਹਿਸੂਸ ਕਰੋ।\n   - ਜਦੋਂ ਸਾਹ ਬਾਹਰ ਛੱਡਦੇ ਹੋ, ਤਾਂ **\"ਗੁਰੂ\"** ਦਾ ਅਹਿਸਾਸ ਕਰੋ।\n\n3. **ਸੁਣਨ ਦਾ ਅਭਿਆਸ (ਸੁਰਤ-ਸ਼ਬਦ ਦਾ ਮੇਲ):**  \n   ਜੋ ਸ਼ਬਦ ਤੁਸੀਂ ਮੁੱਖੋਂ ਬੋਲਦੇ ਹੋ, ਆਪਣੇ ਕੰਨਾਂ ਨਾਲ ਉਸੇ ਆਵਾਜ਼ ਨੂੰ ਸੁਣੋ। ਜਦੋਂ ਤੁਹਾਡੀ ਸੁਰਤ (ਧਿਆਨ) ਸ਼ਬਦ ਨਾਲ ਜੁੜਦੀ ਹੈ, ਤਾਂ ਮਨ ਦੇ ਫ਼ਜ਼ੂਲ ਵਿਚਾਰ ਆਪਣੇ-ਆਪ ਮੁੱਕਣ ਲੱਗ ਪੈਂਦੇ ਹਨ।\n\n4. **ਕੰਮ-ਕਾਰ ਕਰਦਿਆਂ ਯਾਦ ਰੱਖਣਾ:**  \n   ਸਵੇਰੇ ੧੦-੧੫ ਮਿੰਟ ਬੈਠ ਕੇ ਅਭਿਆਸ ਕਰਨ ਤੋਂ ਬਾਅਦ, ਦਿਨ ਭਰ ਆਪਣੇ ਰੋਜ਼ਾਨਾ ਕੰਮ ਕਰਦਿਆਂ ਵੀ ਮਨ ਵਿੱਚ ਵਾਹਿਗੁਰੂ ਨੂੰ ਚੇਤੇ ਰੱਖੋ। ਭਗਤ ਨਾਮਦੇਵ ਜੀ ਸਮਝਾਉਂਦੇ ਹਨ ਕਿ ਹੱਥ-ਪੈਰਾਂ ਨਾਲ ਸੰਸਾਰ ਦੇ ਕੰਮ ਕਰੋ, ਪਰ ਆਪਣਾ ਚਿੱਤ ਸੱਚੇ ਮਾਲਕ ਨਾਲ ਜੋੜ ਕੇ ਰੱਖੋ।\n\nਹੌਲੀ-ਹੌਲੀ, ਬਿਨਾਂ ਕਿਸੇ ਦਬਾਅ ਦੇ, ਪਿਆਰ ਨਾਲ ਹਰ ਰੋਜ਼ ਸਮਾਂ ਵਧਾਉਂਦੇ ਜਾਓ। ਸਿਮਰਨ ਨਾਲ ਮਨ ਨੂੰ ਅੰਦਰੂਨੀ ਸ਼ਾਂਤੀ, ਖੇੜਾ ਅਤੇ ਸੰਤੋਖ ਮਿਲਦਾ ਹੈ।",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 489,
+        "output": 906
+      },
+      "ttftMs": 714,
+      "latencyMs": 4573,
+      "at": "2026-09-21T20:49:40.389Z",
+      "citations": [
+        {
+          "quote": "ਪ੍ਰਭ ਕਾ ਸਿਮਰਨੁ ਸਭ ਤੇ ਊਚਾ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 263,
+          "line": {
+            "gurmukhi": "ਪ੍ਰਭ ਕਾ ਸਿਮਰਨੁ ਸਭ ਤੇ ਊਚਾ ॥",
+            "translation": "The remembrance of God is the highest and most exalted of all.",
+            "ang": 263,
+            "lineNo": 1,
+            "shabadId": "H4B",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "b6e3735a61c4b57cfcc56aa1ccdab130f57438c6396780e3e8b796217e26ccee": {
+      "fixture": "simran-punjabi-gurmukhi",
+      "variant": "gemini-3.7-flash",
+      "sample": 1,
+      "model": "gemini-3.7-flash",
+      "modelVersion": "gemini-3.7-flash",
+      "text": "ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ ਜੀ।\n\n### ਸਿਮਰਨ ਕੀ ਹੈ?\nਸਿਮਰਨ ਦਾ ਅਰਥ ਹੈ ਪਰਮਾਤਮਾ (ਵਾਹਿਗੁਰੂ) ਨੂੰ ਪਿਆਰ ਅਤੇ ਸ਼ਰਧਾ ਨਾਲ ਯਾਦ ਕਰਨਾ। ਇਹ ਮਨ ਨੂੰ ਸ਼ਾਂਤ ਕਰਨ, ਹਉਮੈ (ਅਹੰਕਾਰ) ਨੂੰ ਦੂਰ ਕਰਨ ਅਤੇ ਉਸ ਅਕਾਲ ਪੁਰਖ ਨਾਲ ਇੱਕ-ਮਿੱਕ ਹੋਣ ਦਾ ਸਭ ਤੋਂ ਸੌਖਾ ਤੇ ਸ੍ਰੇਸ਼ਟ ਤਰੀਕਾ ਹੈ।\n\nਗੁਰਬਾਣੀ ਵਿੱਚ ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ ਸੁਖਮਨੀ ਸਾਹਿਬ ਵਿੱਚ ਫ਼ੁਰਮਾਉਂਦੇ ਹਨ:\n> **ਪ੍ਰਭ ਕਾ ਸਿਮਰਨੁ ਸਭ ਤੇ ਊਚਾ ॥**  \n*(ਪਰਮਾਤਮਾ ਦਾ ਸਿਮਰਨ ਕਰਨਾ ਸਾਰੇ ਕਰਮਾਂ ਨਾਲੋਂ ਉੱਚਾ ਅਤੇ ਉੱਤਮ ਹੈ।)*\n\n---\n\n### ਸਿਮਰਨ ਰੋਜ਼ ਕਿਵੇਂ ਕਰੀਏ?\n\nਤੁਸੀਂ ਆਪਣੇ ਰੋਜ਼ਾਨਾ ਜੀਵਨ ਵਿੱਚ ਸਿਮਰਨ ਦੀ ਸ਼ੁਰੂਆਤ ਇਸ ਤਰ੍ਹਾਂ ਕਰ ਸਕਦੇ ਹੋ:\n\n1. **ਸਮਾਂ ਅਤੇ ਥਾਂ:** \n   - ਸਵੇਰ ਦਾ ਸਮਾਂ (ਅੰਮ੍ਰਿਤ ਵੇਲਾ) ਸਭ ਤੋਂ ਵਧੀਆ ਮੰਨਿਆ ਜਾਂਦਾ ਹੈ, ਪਰ ਤੁਸੀਂ ਦਿਨ ਦੇ ਕਿਸੇ ਵੀ ਸਮੇਂ ਸ਼ਾਂਤ ਮਾਹੌਲ ਵਿੱਚ ਬੈਠ ਸਕਦੇ ਹੋ।\n   - ਇਸ਼ਨਾਨ ਕਰਕੇ ਜਾਂ ਹੱਥ-ਮੂੰਹ ਧੋ ਕੇ ਚੌਂਕੜਾ ਮਾਰ ਕੇ ਸੁਖਾਵੇਂ ਆਸਣ ਵਿੱਚ ਬੈਠੋ।\n\n2. **ਮਨ ਨੂੰ ਇਕਾਗਰ ਕਰਨਾ:**\n   - ਅੱਖਾਂ ਬੰਦ ਕਰੋ ਅਤੇ ਆਪਣਾ ਧਿਆਨ ਆਪਣੇ ਸਾਹਾਂ 'ਤੇ ਲਿਆਓ।\n   - ਜਦੋਂ ਤੁਸੀਂ ਸਾਹ ਅੰਦਰ ਲੈਂਦੇ ਹੋ ਤਾਂ ਮਨ ਵਿੱਚ **'ਵਾਹਿ'** ਕਹੋ, ਅਤੇ ਜਦੋਂ ਸਾਹ ਬਾਹਰ ਛੱਡਦੇ ਹੋ ਤਾਂ **'ਗੁਰੂ'** ਕਹੋ।\n\n3. **ਸੁਣਨਾ (ਧਿਆਨ ਲਗਾਉਣਾ):**\n   - ਸ਼ੁਰੂ ਵਿੱਚ ਤੁਸੀਂ ਹੌਲੀ ਆਵਾਜ਼ ਵਿੱਚ ਰਸਨਾ (ਜੀਭ) ਨਾਲ ਵੀ \"ਵਾਹਿਗੁਰੂ\" ਜਪ ਸਕਦੇ ਹੋ।\n   - ਜੋ ਤੁਸੀਂ ਬੋਲ ਰਹੇ ਹੋ, ਉਸੇ ਸ਼ਬਦ ਨੂੰ ਆਪਣੇ ਕੰਨਾਂ ਨਾਲ ਸੁਣਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ। ਇਸ ਨਾਲ ਮਨ ਇੱਧਰ-ਉੱਧਰ ਨਹੀਂ ਭਟਕੇਗਾ।\n\n4. **ਨਿਰੰਤਰਤਾ (ਹਰ ਰੋਜ਼ ਦਾ ਨੇਮ):**\n   - ਸ਼ੁਰੂਆਤ ਵਿੱਚ ੧੦ ਤੋਂ ੧੫ ਮਿੰਟ ਨਾਲ ਸ਼ੁਰੂ ਕਰੋ ਅਤੇ ਹੌਲੀ-ਹੌਲੀ ਸਮਾਂ ਵਧਾਓ।\n   - ਸਭ ਤੋਂ ਵੱਡੀ ਗੱਲ, ਰੋਜ਼ਾਨਾ ਕੰਮ-ਕਾਰ ਕਰਦੇ ਹੋਏ ਵੀ ਆਪਣੇ ਮਨ ਵਿੱਚ ਵਾਹਿਗੁਰੂ ਦੀ ਯਾਦ ਬਣਾਈ ਰੱਖੋ। ਗੁਰਬਾਣੀ ਸਿਖਾਉਂਦੀ ਹੈ: *‘ਨਾਮਾ ਕਹੈ ਤਿਲੋਚਨਾ ਮੁਖ ਤੇ ਰਾਮੁ ਸੰਮ੍ਹਾਲਿ ॥ ਹਾਥ ਪਾਉ ਕਰਿ ਕਾਮੁ ਸਭੁ ਚੀਤੁ ਨਿਰੰਜਨ ਨਾਲਿ ॥’*\n\nਪ੍ਰੇਮ ਅਤੇ ਨਿਮਰਤਾ ਨਾਲ ਕੀਤਾ ਗਿਆ ਥੋੜ੍ਹਾ ਜਿਹਾ ਸਿਮਰਨ ਵੀ ਮਨ ਨੂੰ ਅਥਾਹ ਸ਼ਾਂਤੀ ਬਖ਼ਸ਼ਦਾ ਹੈ।",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 489,
+        "output": 828
+      },
+      "ttftMs": 751,
+      "latencyMs": 3199,
+      "at": "2026-09-21T20:49:43.689Z",
+      "citations": [
+        {
+          "quote": "ਪ੍ਰਭ ਕਾ ਸਿਮਰਨੁ ਸਭ ਤੇ ਊਚਾ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਪ੍ਰਭ ਕਾ ਸਿਮਰਨੁ ਸਭ ਤੇ ਊਚਾ ॥",
+            "translation": "The remembrance of God is the highest and most exalted of all.",
+            "ang": 263,
+            "lineNo": 1,
+            "shabadId": "H4B",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਨਾਮਾ ਕਹੈ ਤਿਲੋਚਨਾ ਮੁਖ ਤੇ ਰਾਮੁ ਸੰਮ੍ਹਾਲਿ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਨਾਮਾ ਕਹੈ ਤਿਲੋਚਨਾ ਮੁਖ ਤੇ ਰਾਮੁ ਸੰਮੑਾਲਿ ॥",
+            "translation": "Naam Dayv answers, O Trilochan, chant the Lord's Name with your mouth.",
+            "ang": 1375,
+            "lineNo": 19,
+            "shabadId": "B2K",
+            "writer": "Bhagat Kabir Ji",
+            "writerGurmukhi": "ਭਗਤ ਕਬੀਰ ਜੀ",
+            "raag": "Salok Kabeer Jee",
+            "raagGurmukhi": "ਸਲੋਕੁ ਭਗਤ ਕਬੀਰ ਜੀਉ ਕੇ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਹਾਥ ਪਾਉ ਕਰਿ ਕਾਮੁ ਸਭੁ ਚੀਤੁ ਨਿਰੰਜਨ ਨਾਲਿ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਹਾਥ ਪਾਉ ਕਰਿ ਕਾਮੁ ਸਭੁ ਚੀਤੁ ਨਿਰੰਜਨ ਨਾਲਿ ॥੨੧੩॥",
+            "translation": "With your hands and feet, do all your work, but let your consciousness remain with the Immaculate Lord. ||213||",
+            "ang": 1376,
+            "lineNo": 1,
+            "shabadId": "B2K",
+            "writer": "Bhagat Kabir Ji",
+            "writerGurmukhi": "ਭਗਤ ਕਬੀਰ ਜੀ",
+            "raag": "Salok Kabeer Jee",
+            "raagGurmukhi": "ਸਲੋਕੁ ਭਗਤ ਕਬੀਰ ਜੀਉ ਕੇ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "ce4dc1d474ed34fe58a6390f1b2c03ee5b40880b463af6615da0db0213ff64e2": {
+      "fixture": "seva-romanized-punjabi",
+      "variant": "gemini-3.8-flash",
+      "sample": 1,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "Sikhi vich **Seva** da asli matlab hai: bina kise lalach, swaarth ya dikhave ton, poori nimrata (humility) te prem naal sarbat de bhale layi nishkam karm karna. \n\nSeva sirf shareerik kam nahi, balki eh man nu nirmal karn te ahankar (ego) nu khatam karn da ik zariya hai.\n\nSri Guru Granth Sahib Ji vich Guru Amar Das Ji farmaunde han:\n\n> **ਸਤਿਗੁਰ ਕੀ ਸੇਵਾ ਸਫਲੁ ਹੈ ਜੇ ਕੋ ਕਰੇ ਚਿਤੁ ਲਾਇ ॥**  \n> *Satgur kee sayvaa safal hai jay ko karay chit laa-ay.*  \n> (Ang 644)\n\nIsda bhav-arth eh hai ki Satguru di seva taan hi safal hundi hai je man chit laa ke, sache dil naal kiti jaave.\n\nGurmat anusaar seva de mukh roop te niyam is tarah han:\n\n1. **Nishkam Bhaav:** Seva de badle vich kise fal, tareef ya maan-sanman di umeed na rakhna.\n2. **Tan, Man, Dhan di Seva:** \n   - **Tan di seva:** Langar pakona, bartan saaf karna, joore jhaadna te loddvandan di shareerik madad karna.\n   - **Man di seva:** Dusreya da bura na sochna, nimrata dharan karni te Simran vich judna.\n   - **Dhan di seva:** Nek kamayi vichon vand ke chhakna (Dasvandh kadhna).\n3. **Ahankar da Naash:** Asli seva ohi hai jo man nu haumai (ego) ton mukat kare. Je seva karke ahankar aave ki \"main kiti hai\", taan usda laabh nahi hunda.\n\nGuru Nanak Dev Ji ne farmaiya hai:\n> **ਵਿਚਿ ਦੁਨੀਆ ਸੇਵ ਕਮਾਈਐ ॥ ਤਾ ਦਰਗਹ ਬੈਸਣੁ ਪਾਈਐ ॥**  \n> (Ang 26)  \n> Yani, is sansar vich seva kamavange, taan hi Akal Purakh di dargeh vich aadar-maan milega.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 450,
+        "output": 506
+      },
+      "ttftMs": 1080,
+      "latencyMs": 4658,
+      "at": "2026-09-21T20:49:50.579Z",
+      "citations": [
+        {
+          "quote": "ਸਤਿਗੁਰ ਕੀ ਸੇਵਾ ਸਫਲੁ ਹੈ ਜੇ ਕੋ ਕਰੇ ਚਿਤੁ ਲਾਇ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 644,
+          "line": {
+            "gurmukhi": "ਸਤਿਗੁਰ ਕੀ ਸੇਵਾ ਸਫਲੁ ਹੈ ਜੇ ਕੋ ਕਰੇ ਚਿਤੁ ਲਾਇ ॥",
+            "translation": "Service to the True Guru is fruitful and rewarding, if one performs it with his mind focused on it.",
+            "ang": 644,
+            "lineNo": 15,
+            "shabadId": "7TL",
+            "writer": "Guru Amardas Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਮਰਦਾਸ ਜੀ",
+            "raag": "Raag Sorath",
+            "raagGurmukhi": "ਰਾਗੁ ਸੋਰਠਿ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਵਿਚਿ ਦੁਨੀਆ ਸੇਵ ਕਮਾਈਐ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 26,
+          "line": {
+            "gurmukhi": "ਵਿਚਿ ਦੁਨੀਆ ਸੇਵ ਕਮਾਈਐ ॥",
+            "translation": "In the midst of this world, do seva,",
+            "ang": 26,
+            "lineNo": 1,
+            "shabadId": "63C",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Siree Raag",
+            "raagGurmukhi": "ਸਿਰੀ ਰਾਗੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਤਾ ਦਰਗਹ ਬੈਸਣੁ ਪਾਈਐ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 26,
+          "line": {
+            "gurmukhi": "ਤਾ ਦਰਗਹ ਬੈਸਣੁ ਪਾਈਐ ॥",
+            "translation": "and you shall be given a place of honor in the Court of the Lord.",
+            "ang": 26,
+            "lineNo": 1,
+            "shabadId": "63C",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Siree Raag",
+            "raagGurmukhi": "ਸਿਰੀ ਰਾਗੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "6a385317ad3aa29d2378b6f93e9a0cc4315daba3e8ed163f7b31ded26ad40ce3": {
+      "fixture": "seva-romanized-punjabi",
+      "variant": "gemini-3.7-flash",
+      "sample": 1,
+      "model": "gemini-3.7-flash",
+      "modelVersion": "gemini-3.7-flash",
+      "text": "Sikhi vich **Seva** da matlab sirf koi sharirik kam karna nahi hai, balki eh aatmic ustat te nimarta (humility) da ik zariya hai. Seva da asli matlab hai **bina kise lalach ya fal di iccha ton, nishkaam bhaav naal sarbat de bhale layi kam karna**.\n\nGuru Sahib ji ne Seva de teen mukh roop dasse han:\n\n1. **Tan di Seva (Sharirik):** Langar tayar karna, bartan maanjna, jode saaf karna ya kise lodevand di sharirik madad karna.\n2. **Man di Seva (Mansik):** Doojeya layi dil vich shubh iccha (sarbat da bhala) rakhna, nimarta dharan karni te Waheguru da Simran karna.\n3. **Dhan di Seva (Aarthik):** Apni kirat kamai vichon dasvandh (10th part) kadh ke lodevandan te panth de kaarjan vich launa.\n\n### Seva da Asli Uddesh (Purpose):\n* **Haumai (Ahankar) da Naash:** Seva karke manukhi man vichon \"main\" di bhavna khatam hundi hai te nimarta aundi hai.\n* **Prem te Samarpann:** Har jeev vich Akaal Purakh di jyot dekh ke prem naal seva karni.\n\nSri Guru Granth Sahib Ji vich aunda hai:\n\n> **ਸੇਵਾ ਕਰਤ ਹੋਇ ਨਿਹਕਾਮੀ ॥ ਤਿਸ ਕਉ ਹੋਤ ਪਰਾਪਤਿ ਸੁਆਮੀ ॥**  \n> *(Ang 286)*\n\n**Arth:** Jo manukh bina kise lalach ya swarath (nishkaam) de seva karda hai, us nu hi Parmeshwar (Waheguru) di prapti hundi hai.\n\nIs layi, jado asi bina kise dikhaave ya aasa ton, shudh hriday naal doojeya di bhalayi karde han, ohi sachhi seva hai.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 450,
+        "output": 450
+      },
+      "ttftMs": 749,
+      "latencyMs": 3235,
+      "at": "2026-09-21T20:49:54.272Z",
+      "citations": [
+        {
+          "quote": "ਸੇਵਾ ਕਰਤ ਹੋਇ ਨਿਹਕਾਮੀ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 286,
+          "line": {
+            "gurmukhi": "ਸੇਵਾ ਕਰਤ ਹੋਇ ਨਿਹਕਾਮੀ ॥",
+            "translation": "One who performs selfless service, without thought of reward,",
+            "ang": 286,
+            "lineNo": 19,
+            "shabadId": "Q1Z",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਤਿਸ ਕਉ ਹੋਤ ਪਰਾਪਤਿ ਸੁਆਮੀ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 286,
+          "line": {
+            "gurmukhi": "ਤਿਸ ਕਉ ਹੋਤ ਪਰਾਪਤਿ ਸੁਆਮੀ ॥",
+            "translation": "shall attain his Lord and Master.",
+            "ang": 286,
+            "lineNo": 19,
+            "shabadId": "Q1Z",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "af3b295fd1ec5b9254df518426a123465bc93f6c13ac7a9cdb5341bcdadf241a": {
+      "fixture": "langar-vichaar-bilingual",
+      "variant": "gemini-3.8-flash",
+      "sample": 1,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "Donating money is a noble act of *daan* (charity), but *langar* (the community kitchen) was never intended to be mere charity. \n\nGuru Amar Das Ji firmly institutionalized the principle of *“Pehle Pangat, Phir Sangat”*—first sit together as equals on the floor to eat, and only then sit in spiritual congregation. When Emperor Akbar came to meet Guru Amar Das Ji at Goindwal Sahib, he was asked to sit in the *pangat* (row) beside the poorest laborer before an audience was granted. \n\nMoney can be given from a distance, often leaving our *ahankar* (ego) untouched. But *langar* requires your physical presence. It demands that you sit shoulder-to-shoulder with someone of a different race, caste, or class, washing their dishes, serving them food, and eating the exact same meal from the floor. Money feeds the stomach, but *langar* levels the heart and dissolves division, awakening true *anand* (spiritual bliss) through humble *seva* (selfless service).\n\nWhen you think about the times you have given money versus when you have served with your own hands, how did each shift the way you saw the person in front of you?",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 548,
+        "output": 264
+      },
+      "ttftMs": 949,
+      "latencyMs": 1540,
+      "at": "2026-09-21T20:49:55.932Z",
+      "citations": []
+    },
+    "c43cf30f99c84febdff2b3570af43e3d94de06da756892b9c04e702e14533fb2": {
+      "fixture": "langar-vichaar-bilingual",
+      "variant": "gemini-3.7-flash",
+      "sample": 1,
+      "model": "gemini-3.7-flash",
+      "modelVersion": "gemini-3.7-flash",
+      "text": "Donating *maya* (wealth or resources) is a noble act, but *langar* was never created to be merely charity. It was designed to dismantle *haumai* (ego) and false hierarchies. \n\nGuru Amar Das Ji institutionalized the principle of *“Pehle Pangat, Phir Sangat”*—first sit together in the row to eat as equals, then join the spiritual congregation. When Emperor Akbar came to visit Goindwal Sahib, even an emperor had to sit on the floor shoulder-to-shoulder with the everyday laborer before he could meet the Guru. \n\nMoney allows us to give from a safe, comfortable distance. But when you physically sit in the *pangat* (the equal row on the floor) or engage in *seva* (selfless service)—kneading flour, sweeping the floor, or serving food to strangers—the ego loses its pedestal. Langar is where we practice radical oneness in real time.\n\nWhen you sit down to eat or serve in the langar hall, what shifts within your heart that money alone cannot touch?",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 548,
+        "output": 225,
+        "thoughts": 531
+      },
+      "ttftMs": 2460,
+      "latencyMs": 3336,
+      "at": "2026-09-21T20:49:59.270Z",
+      "citations": []
+    },
+    "73018a435b7406e811e4fca10b2dcf93aa7eb8260afc482dcbbb1132401210cf": {
+      "fixture": "jaap-dasam-attribution",
+      "variant": "gemini-3.8-flash",
+      "sample": 1,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "ਚੱਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥\nਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤ ਕਿਹ ॥\n*Chakkr chihan ar baran jaat ar paat nahin jih.*\n*Roop rang ar rekh bhekh ko-oo kahi na sakat kih.*\n\"The Divine has no physical mark, no caste, and no lineage.\nNo one can describe the Divine's form, complexion, features, or attire.\"\n— Guru Gobind Singh Ji, *Jaap Sahib* (Dasam Granth)\n\n---\n\n*Jaap Sahib*, composed by Guru Gobind Singh Ji, is the opening Bani of the Sri Dasam Granth Sahib. Through rhythmic, majestic poetry, it offers a profound meditation on the formless, infinite, and all-pervading nature of Waheguru. \n\nThe composition reveals several foundational truths about the Divine:\n\n1. **Beyond Form and Lineage (*Nirgun*)**  \nFrom the very opening verse quoted above, Guru Gobind Singh Ji emphasizes that the Creator cannot be bound by physical form (*Aroop*), color (*Arang*), or social boundaries like caste and family lineage. Waheguru exists beyond human constructs, sectarian categories, and physical attributes.\n\n2. **Both Transcendent and Immanent (*Nirgun* and *Sargun*)**  \n*Jaap Sahib* presents God through dynamic paradoxes. Waheguru is simultaneously the quietest stillness and the fierce vitality of existence; beyond the universe yet deeply present within every grain of creation (*Jal Thale* — in both water and land). The Divine is *Nirbhao* (fearless) and *Nirvair* (without animosity), yet celebrated as the source of all sovereign power.\n\n3. **Universal and Above Religious Boundaries**  \nThe composition weaves together Sanskrit-rooted terms alongside Arabic and Persian words (such as *Karimul Kamal*, *Razak*, and *Rahim*). In doing so, Guru Sahib demonstrates that the Divine belongs to no single nation, religion, or language. Waheguru sustains everyone, regardless of what they believe.\n\n4. **The Champion of Righteousness (*Dharam*)**  \nWhile Waheguru is beyond human passion, *Jaap Sahib* continuously salutes the Divine as the protector of the humble and the destroyer of tyranny (*Dusht Haran*). Guru Gobind Singh Ji uses martial, vibrant imagery to depict God as the ultimate sovereign power that balances justice in the cosmos, awakening the spirit of *Chardi Kala* (ever-rising morale) and *Sant-Sipahi* (the Saint-Soldier) within the devotee.\n\nBy greeting the Divine through hundreds of salutations (*Namo*, meaning \"I bow\"), *Jaap Sahib* does not attempt to define God; rather, it cultivates absolute humility before the boundless Mystery who sustains all creation.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 670,
+        "output": 641
+      },
+      "ttftMs": 862,
+      "latencyMs": 4256,
+      "at": "2026-09-21T20:50:03.527Z",
+      "citations": [
+        {
+          "quote": "ਚੱਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਚੱਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥",
+            "translation": "He who is without mark or sign, He who is without caste or line.",
+            "ang": 1,
+            "lineNo": 4,
+            "shabadId": "KKH",
+            "writer": "Guru Gobind Singh Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਗੋਬਿੰਦ ਸਿੰਘ ਜੀ",
+            "raag": "Jaap",
+            "raagGurmukhi": "ਜਾਪੁ",
+            "source": {
+              "id": 2,
+              "name": "Sri Dasam Granth",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਦਸਮ ਗ੍ਰੰਥ"
+            }
+          }
+        },
+        {
+          "quote": "ਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤ ਕਿਹ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤ ਕਿਹ ॥",
+            "translation": "He who is without colour or form, and without any distinctive norm.",
+            "ang": 1,
+            "lineNo": 4,
+            "shabadId": "KKH",
+            "writer": "Guru Gobind Singh Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਗੋਬਿੰਦ ਸਿੰਘ ਜੀ",
+            "raag": "Jaap",
+            "raagGurmukhi": "ਜਾਪੁ",
+            "source": {
+              "id": 2,
+              "name": "Sri Dasam Granth",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਦਸਮ ਗ੍ਰੰਥ"
+            }
+          }
+        }
+      ]
+    },
+    "73ce9ee4ed0f8a95ad92ed28e63f251f9868c9f74f4562c94148a1c12165124a": {
+      "fixture": "jaap-dasam-attribution",
+      "variant": "gemini-3.7-flash",
+      "sample": 1,
+      "model": "gemini-3.7-flash",
+      "modelVersion": "gemini-3.7-flash",
+      "text": "ਚੱਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥\nਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤਿ ਕਿਹ ॥\n*Chakkr chihn ar baran jaat ar paat nahin jih.*\n*Roop rang ar rekh bhekh kouo kahi na sakat kih.*\n\"You have no visual sign, no marks, no caste, and no lineage.\nNo one can describe Your form, color, features, or attire.\"\n— *Guru Gobind Singh Ji, Jaap Sahib (from the Sri Dasam Granth Sahib)*\n\n***\n\n*Jaap Sahib*, the opening Bani of the Sri Dasam Granth Sahib composed by Guru Gobind Singh Ji, is a profound salutation to the Supreme Being (*Waheguru*). It defines the Divine through a rhythm of hundreds of descriptive names and attributes, revealing several foundational truths about God's nature:\n\n### 1. Transcendent and Beyond Form (*Nirgun*)\nGuru Gobind Singh Ji begins *Jaap Sahib* by emphasizing that Waheguru cannot be limited by physical forms, symbols, caste (*jaat*), creed, color, or religious garb. God is *Akaal* (beyond time and death), *Ajoo* (unborn), and *Nirbhai* (without fear). The Divine transcends all human constructs and mortal limitations.\n\n### 2. Immanent and Present Everywhere (*Sargun*)\nWhile Waheguru is formless, the Divine is simultaneously pervading every speck of the universe (*Sarba-roopey* - in all forms; *Sarba-bhoopey* - present everywhere). Guru Ji describes God as the life force animating the cosmos:\n* Present in both the light and the darkness.\n* The supreme beauty, wisdom, and energy within all of creation.\n\n### 3. The Divine as Dynamic and Sovereign (*Karta Purakh*)\nIn *Jaap Sahib*, Guru Gobind Singh Ji praises Waheguru not only as the Merciful Sustainer (*Dayalam*, *Kripalam*), but also as the ultimate Destroyer of oppression and evil (*Shatru-dahan*, *Asur-parmathan*). The Divine is dynamic:\n* The source of supreme power (*Shakti*) and courage.\n* The eternal Victor (*Namo Jai-Tejang*), inspiring the spirit of the *Sant-Sipahi* (Saint-Soldier) to stand fearlessly for justice.\n\n### 4. Omnipresent Compassion\nDespite praising God's immense power, Guru Ji repeatedly highlights Waheguru’s unconditional compassion (*Karuna-may*, *Gareeb-nivaaz*). God sustains all beings equally, regardless of their background, geography, or faith.\n\nIn essence, *Jaap Sahib* teaches that Waheguru is the limitless, ever-present, casteless Sovereign who calls upon humanity to live with universal love, fearlessness, and moral strength.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 670,
+        "output": 652
+      },
+      "ttftMs": 913,
+      "latencyMs": 3747,
+      "at": "2026-09-21T20:50:08.094Z",
+      "citations": [
+        {
+          "quote": "ਚੱਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਚੱਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥",
+            "translation": "He who is without mark or sign, He who is without caste or line.",
+            "ang": 1,
+            "lineNo": 4,
+            "shabadId": "KKH",
+            "writer": "Guru Gobind Singh Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਗੋਬਿੰਦ ਸਿੰਘ ਜੀ",
+            "raag": "Jaap",
+            "raagGurmukhi": "ਜਾਪੁ",
+            "source": {
+              "id": 2,
+              "name": "Sri Dasam Granth",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਦਸਮ ਗ੍ਰੰਥ"
+            }
+          }
+        },
+        {
+          "quote": "ਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤਿ ਕਿਹ ॥",
+          "status": "verified",
+          "exact": false,
+          "line": {
+            "gurmukhi": "ਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤ ਕਿਹ ॥",
+            "translation": "He who is without colour or form, and without any distinctive norm.",
+            "ang": 1,
+            "lineNo": 4,
+            "shabadId": "KKH",
+            "writer": "Guru Gobind Singh Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਗੋਬਿੰਦ ਸਿੰਘ ਜੀ",
+            "raag": "Jaap",
+            "raagGurmukhi": "ਜਾਪੁ",
+            "source": {
+              "id": 2,
+              "name": "Sri Dasam Granth",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਦਸਮ ਗ੍ਰੰਥ"
+            }
+          }
+        }
+      ]
+    },
+    "5f81144a20493c4b0b585de0ea7aa51e9df2a05cfa453fded2135c2560d42ecf": {
+      "fixture": "politics-steer",
+      "variant": "gemini-3.8-flash",
+      "sample": 1,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "Sikhi does not endorse or align with any specific political party, faction, or government. Instead, Gurmat (the Guru’s teachings) provides universal principles and values to guide a Sikh's conscience when making decisions, including participating in civic life.\n\nWhen choosing how to vote or engage politically, a Sikh is encouraged to look for leadership and policies that reflect core Gurmat values:\n\n1. **Justice and Protection of Human Rights (Dharamyudh):**  \n   Guru Granth Sahib Ji teaches that true leadership is rooted in fairness and justice for all, especially the marginalized and oppressed. Guru Nanak Dev Ji boldly spoke against tyranny and political corruption in his compositions, reminding rulers that their authority is a trust from the Divine.\n\n2. **Sarbat da Bhala (The Welfare of All):**  \n   A Sikh prays daily for the well-being and prosperity of the entire world, not just a single group, caste, or religion. Voting choices are often guided by policies that uplift everyone, ensure equal access to education and healthcare, and protect the vulnerable.\n\n3. **Truthful and Ethical Conduct (Sach Achar):**  \n   Guru Nanak Dev Ji states:  \n   *ਸਚਹੁ ਓਰੈ ਸਭੁ ਕੋ ਉਪਰਿ ਸਚੁ ਆਚਾਰੁ ॥*  \n   \"Truth is the highest virtue, but higher still is truthful living.\" (Ang 62)  \n   Integrity, honesty, and moral courage are paramount. A Sikh looks at whether candidates demonstrate truthful conduct and genuine service (Seva), rather than self-interest or divisive rhetoric.\n\n4. **Care for Creation (Pawan Guru, Pani Pita, Mata Dharat Mahat):**  \n   The Gurus taught deep reverence for nature and the environment. Stewardship of the Earth and responsible use of resources are key considerations.\n\nUltimately, Sikhs exercise their personal conscience and civic duty independently. Rather than following party lines, a Sikh strives to vote for principles of righteousness, compassion, and justice for all of humanity.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 379,
+        "output": 424
+      },
+      "ttftMs": 1711,
+      "latencyMs": 2206,
+      "at": "2026-09-21T20:50:10.333Z",
+      "citations": [
+        {
+          "quote": "ਸਚਹੁ ਓਰੈ ਸਭੁ ਕੋ ਉਪਰਿ ਸਚੁ ਆਚਾਰੁ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 62,
+          "line": {
+            "gurmukhi": "ਸਚਹੁ ਓਰੈ ਸਭੁ ਕੋ ਉਪਰਿ ਸਚੁ ਆਚਾਰੁ ॥੫॥",
+            "translation": "Truth is higher than everything; but higher still is truthful living. ||5||",
+            "ang": 62,
+            "lineNo": 11,
+            "shabadId": "8EC",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Siree Raag",
+            "raagGurmukhi": "ਸਿਰੀ ਰਾਗੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "5d0a6a9aa1a4887e6a7c4c398cb9958b7c70a9fd1c205125cc4c4af888608ecf": {
+      "fixture": "politics-steer",
+      "variant": "gemini-3.7-flash",
+      "sample": 1,
+      "model": "gemini-3.7-flash",
+      "modelVersion": "gemini-3.7-flash",
+      "text": "Sikhi does not endorse or align with any specific political party. Instead, the Gurus provided universal spiritual and ethical principles (*Gurmat*) to guide a Sikh’s actions in all spheres of life, including civic engagement.\n\nWhen deciding how to vote or participate in political life, a Sikh is encouraged to evaluate candidates and parties using core Gurmat values:\n\n1. **Justice and Righteousness (*Dharam*)**  \n   The Gurus stood firmly against oppression and injustice. Guru Nanak Dev Ji challenged tyrannical rulers of his time, emphasizing that leadership must be rooted in justice and service to the people. A Sikh looks for leadership that upholds human rights, equality, and the rule of law.\n\n2. **Welfare of All (*Sarbat Da Bhala*)**  \n   Every daily Sikh prayer ends with the petition for the well-being and prosperity of all humanity, without discrimination based on race, religion, gender, or caste. A Sikh considers which policies genuinely serve the common good and protect the vulnerable and marginalized.\n\n3. **Truthful Living and Integrity (*Sach Achar*)**  \n   Guru Nanak Dev Ji taught:  \n   *ਸਚੁਹੁ ਓਰੈ ਸਭੁ ਕੋ ਉਪਰਿ ਸਚੁ ਆਚਾਰੁ ॥*  \n   \"Truth is the highest virtue, but higher still is truthful living.\" (Guru Granth Sahib Ji, Ang 62)  \n   A Sikh values honesty, accountability, and moral integrity in leaders over empty rhetoric or divisive tactics.\n\n4. **Freedom of Conscience and Expression**  \n   Guru Tegh Bahadur Sahib Ji gave his life to protect the fundamental right to freedom of conscience and faith for all people. Policies that protect religious freedom and fundamental civil liberties align with this principle.\n\nUltimately, Sikhi places the responsibility on each individual to use their discernment (*Bibek Budhi*), guided by conscience and spiritual values, to choose the path that best serves justice, peace, and the welfare of society.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 379,
+        "output": 416
+      },
+      "ttftMs": 1231,
+      "latencyMs": 2606,
+      "at": "2026-09-21T20:50:13.376Z",
+      "citations": [
+        {
+          "quote": "ਸਚੁਹੁ ਓਰੈ ਸਭੁ ਕੋ ਉਪਰਿ ਸਚੁ ਆਚਾਰੁ ॥",
+          "status": "verified",
+          "exact": false,
+          "citedAng": 62,
+          "line": {
+            "gurmukhi": "ਸਚਹੁ ਓਰੈ ਸਭੁ ਕੋ ਉਪਰਿ ਸਚੁ ਆਚਾਰੁ ॥੫॥",
+            "translation": "Truth is higher than everything; but higher still is truthful living. ||5||",
+            "ang": 62,
+            "lineNo": 11,
+            "shabadId": "8EC",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Siree Raag",
+            "raagGurmukhi": "ਸਿਰੀ ਰਾਗੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "c047a82ebe43363d0ec95f7f090d22852484dd0c40587d0da3bdccc444600534": {
+      "fixture": "gurdwara-newcomer",
+      "variant": "gemini-3.8-flash",
+      "sample": 1,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "You are very welcome to visit! A *gurdwara* (literally \"the doorway to the Guru\") is the Sikh place of worship, and its doors are open to everyone regardless of faith, background, or identity. \n\nHere are a few simple guidelines to help you feel comfortable:\n\n### Before Entering\n* **No tobacco, alcohol, or drugs:** Please make sure you do not have any cigarettes, vape devices, alcohol, or recreational substances on your person. \n* **Modest dress:** Wear loose, comfortable clothing that covers your shoulders and knees. You will be sitting on carpeted floors, so pants or long skirts work best.\n* **Remove your shoes:** There is a designated area right inside the entrance to take off your shoes and place them on racks.\n* **Cover your head:** Everyone—men, women, and children—covers their head as a sign of humility and respect. If you don't have a scarf, bandana, or hat, the gurdwara will have a basket of clean head coverings (*rumāl*) available for visitors to borrow.\n* **Wash your hands:** There is a wash station near the shoe area to wash your hands before entering the main hall.\n\n### In the Main Prayer Hall (*Diwan Hall*)\n* **The focal point:** At the front of the hall, you will see a raised, canopied platform. This is where the *Sri Guru Granth Sahib Ji* (the central, eternal Sikh scripture) rests. \n* **Entering:** Sikhs bow or touch their foreheads to the floor before the scripture out of reverence. As a guest, you are not required to bow—a respectful nod of the head is perfectly fine.\n* **Sitting:** Everyone sits together on the floor to symbolize equality, as no one is higher or lower than anyone else. If sitting cross-legged becomes difficult, you can discreetly adjust or sit on one of the benches usually provided along the back or sides for those with mobility issues.\n* **Listening:** You will hear musicians singing poetry from the scriptures. This is called *kirtan* (sacred music). Feel free to simply relax and take in the atmosphere.\n* ***Karah Parshad*:** At the end of the service (or as you exit), an attendant will offer you a sweet, warm pudding made of whole wheat flour, butter, and sugar. It is a blessed offering received by cupping both hands together. If you have dietary restrictions or prefer not to eat it, you can politely decline with a gentle smile and a quiet \"no thank you.\"\n\n### *Langar* (The Community Kitchen)\nAfter the service, you will likely be invited to *langar*—the free community meal. \n\n* Everyone sits side-by-side in rows on the floor to eat a vegetarian meal together, reinforcing that all humans are equal.\n* Volunteers will walk down the rows to serve the food.\n* It is considered polite to accept only what you can finish so food isn't wasted, though you can always ask for seconds.\n\nDon't worry about making a small mistake—people will be happy you are there and glad to guide you. Just relax and enjoy the hospitality!",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 419,
+        "output": 666
+      },
+      "ttftMs": 958,
+      "latencyMs": 3760,
+      "at": "2026-09-21T20:50:17.167Z",
+      "citations": []
+    },
+    "9b6b202b8a10c887676dc4627ea1467bacb2ec9495ee105a2ee20890f49d8030": {
+      "fixture": "gurdwara-newcomer",
+      "variant": "gemini-3.7-flash",
+      "sample": 1,
+      "model": "gemini-3.7-flash",
+      "modelVersion": "gemini-3.7-flash",
+      "text": "You are very welcome to visit! A *gurdwara* (literally \"door to the Guru,\" the Sikh place of worship) is open to people of all backgrounds, faiths, and walks of life. \n\nHere are a few simple things to know before you go:\n\n### 1. What to Wear\n* **Dress modestly:** Wear comfortable, loose-fitting clothes that cover your shoulders and legs (pants or a long skirt/dress work best). \n* **Sitting on the floor:** You will be sitting cross-legged on a carpeted floor, so wear something you can sit comfortably in for a while.\n\n### 2. When You Arrive\n* **Cover your head:** Everyone covers their head inside the building. You can bring a scarf, bandana, or clean cloth, but most gurdwaras also have a basket of head coverings (often called *rumāls*) near the entrance for visitors to use for free. (Hats or baseball caps are generally not used).\n* **Remove your shoes:** There is a designated shoe room where you will take off your shoes and place them on a rack before entering the main areas.\n* **Wash your hands:** It is customary to wash your hands (and sometimes feet at a small wash station) after removing your shoes.\n* **Substances:** Please make sure you are not carrying any tobacco, alcohol, or other intoxicants on you, as these are strictly prohibited on the premises.\n\n### 3. Inside the Main Hall (*Darbar Sahib*)\n* When you walk in, you will see the congregation sitting on the floor and the *Sri Guru Granth Sahib Ji* (the Sikh sacred scripture, honored as the living Guru) placed on a raised platform at the front.\n* Sikhs will walk up, bow with their forehead to the floor as a sign of humility, make a small donation, and then sit down. As a guest, you are not required to bow—a respectful nod of the head or a quiet moment of reflection is completely fine.\n* Everyone sits together on the floor as equals. If you have trouble sitting on the floor due to a medical condition, most gurdwaras have chairs available along the sides or back.\n* Feel free to sit, listen to the *kirtan* (devotional singing), and absorb the peaceful atmosphere.\n\n### 4. *Karah Parshad* (Sweet Offering)\n* Near the front or as you sit, a volunteer may offer you *parshad*, a warm, sweet pudding made of whole wheat flour, butter, and sugar.\n* It is received with both hands cupped together as a blessing. If you have dietary restrictions (like a gluten allergy), you can simply bow your head, place your hands together in greeting, and politely decline.\n\n### 5. *Langar* (The Free Community Meal)\n* After the service, everyone is invited to the dining hall for *langar*—a free, hot, vegetarian meal prepared by volunteers.\n* The tradition of langar was established by the Gurus to emphasize equality: rich and poor, regardless of caste or religion, sit in rows on the floor to share the exact same meal. \n* Volunteers will walk by to serve food onto your plate. Take what you'd like, and enjoy the meal and community.\n\n***\n\nYour coworker will likely be right there to guide you through each step. Feel free to relax, observe, and enjoy the hospitality!",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 419,
+        "output": 721
+      },
+      "ttftMs": 664,
+      "latencyMs": 3302,
+      "at": "2026-09-21T20:50:20.472Z",
+      "citations": []
+    },
+    "8a505f0d8768aac1090db3c31c18ecf73b918974b84611a9759801447343081d": {
+      "fixture": "hukamnama-grounding",
+      "variant": "gemini-3.8-flash",
+      "sample": 1,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "In simple terms, today’s Hukamnama (composed by Guru Amar Das Ji in Raag Wadahans on Ang 584) teaches us about the temporary nature of human life and how to turn our mortal existence into something of lasting spiritual value. \n\nThe message can be understood through three core themes:\n\n### 1. The Frailty of the Human Body\nGuru Ji reminds us of reality:\n> **ਇਹੁ ਸਰੀਰੁ ਜਜਰੀ ਹੈ ਇਸ ਨੋ ਜਰੁ ਪਹੁਚੈ ਆਏ ॥**  \n> *\"This body is frail; old age is overtaking it.\"*\n\nOur physical bodies inevitably age, weaken, and pass away. When a person lives solely for worldly attachments (as a *manmukh*, following their own ego), they depart from this world full of regret, having wasted the opportunity of human life. \n\n### 2. Transforming the Self (*Kāyā Kanchan*)\nGuru Ji explains that although the physical body decays, our existence can be purified and made precious like pure gold (*kanchan*):\n> **ਕਾਇਆ ਕੰਚਨੁ ਤਾਂ ਥੀਐ ਜਾਂ ਸਤਿਗੁਰੁ ਲਏ ਮਿਲਾਏ ॥**  \n> *\"The body becomes like gold, when the True Guru unites one with Himself.\"*\n\nWhen we take shelter in the Guru's teachings, our doubts and attachment to worldly illusions (*Maya*) are removed. By singing the praises of the Divine and living with Naam (remembrance of God), the ego disappears, bringing day-and-night peace and bliss (*Anand*).\n\n### 3. The Grace of the Guru and Holy Company\nWithout the Guru’s wisdom, a person wanders in confusion. But when the Guru grants understanding, one realizes the imperceptible Divine. Guru Ji expresses deep humility and reverence toward those who live in remembrance of the Creator:\n> **ਜਿਨੀ ਸਚੜਾ ਸਚੁ ਧਿਆਇਆ ਹੰਉ ਤਿਨ ਕੈ ਲਾਗਉ ਪਾਏ ॥**  \n> *\"I fall at the feet of those who meditate on the Truest of the True.\"*\n\n### Key Takeaway for Daily Life\nDo not rely on the temporary strength of youth or worldly status, as both fade. Instead, use this precious human life to connect with the Guru's wisdom, practice Naam Simran (loving remembrance of God), and seek the company of the humble and spiritually attuned. That is how a perishable life attains eternal peace.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1790,
+        "output": 522
+      },
+      "ttftMs": 1292,
+      "latencyMs": 3004,
+      "at": "2026-09-21T20:50:23.479Z",
+      "citations": [
+        {
+          "quote": "ਇਹੁ ਸਰੀਰੁ ਜਜਰੀ ਹੈ ਇਸ ਨੋ ਜਰੁ ਪਹੁਚੈ ਆਏ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਇਹੁ ਸਰੀਰੁ ਜਜਰੀ ਹੈ ਇਸ ਨੋ ਜਰੁ ਪਹੁਚੈ ਆਏ ॥",
+            "translation": "This body is frail; old age is overtaking it.",
+            "ang": 584,
+            "lineNo": 16,
+            "shabadId": "HTF",
+            "writer": "Guru Amardas Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਮਰਦਾਸ ਜੀ",
+            "raag": "Raag Vadhans",
+            "raagGurmukhi": "ਰਾਗੁ ਵਡਹੰਸੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਕਾਇਆ ਕੰਚਨੁ ਤਾਂ ਥੀਐ ਜਾਂ ਸਤਿਗੁਰੁ ਲਏ ਮਿਲਾਏ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਕਾਇਆ ਕੰਚਨੁ ਤਾਂ ਥੀਐ ਜਾਂ ਸਤਿਗੁਰੁ ਲਏ ਮਿਲਾਏ ॥",
+            "translation": "The body becomes like gold, when the True Guru unites one with Himself.",
+            "ang": 584,
+            "lineNo": 19,
+            "shabadId": "HTF",
+            "writer": "Guru Amardas Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਮਰਦਾਸ ਜੀ",
+            "raag": "Raag Vadhans",
+            "raagGurmukhi": "ਰਾਗੁ ਵਡਹੰਸੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਜਿਨੀ ਸਚੜਾ ਸਚੁ ਧਿਆਇਆ ਹੰਉ ਤਿਨ ਕੈ ਲਾਗਉ ਪਾਏ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਜਿਨੀ ਸਚੜਾ ਸਚੁ ਧਿਆਇਆ ਹੰਉ ਤਿਨ ਕੈ ਲਾਗਉ ਪਾਏ ॥੪॥੪॥",
+            "translation": "I fall at the feet of those who meditate on the Truest of the True. ||4||4||",
+            "ang": 585,
+            "lineNo": 10,
+            "shabadId": "HTF",
+            "writer": "Guru Amardas Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਮਰਦਾਸ ਜੀ",
+            "raag": "Raag Vadhans",
+            "raagGurmukhi": "ਰਾਗੁ ਵਡਹੰਸੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "7a622deafd631d9edca80da533c58a075540cbba94aa6bab9de0ce0f5dba6743": {
+      "fixture": "hukamnama-grounding",
+      "variant": "gemini-3.7-flash",
+      "sample": 1,
+      "model": "gemini-3.7-flash",
+      "modelVersion": "gemini-3.7-flash",
+      "text": "In this Shabad (revealed by Guru Amar Das Ji on Ang 584), the Guru shares a profound message about the temporary nature of human life and the path to lasting peace:\n\n### 1. The Reality of the Physical Body\nThe Guru reminds us that our physical body is fragile and subject to aging and decay (*\"This body is frail; old age is overtaking it\"*). When we live purely for worldly attachments and follow our own ego (*Manmukh*), we remain trapped in the cycle of birth and death, departing this world with regret and facing spiritual darkness.\n\n### 2. How the Body Becomes \"Pure Gold\"\nA person's life is transformed when they connect with the True Guru (*Satguru*). Through the Guru's guidance:\n* Doubts and the illusions of Maya (materialism) are cast away.\n* Ego (*haumai*) is eradicated.\n* The mind enters a state of constant, peaceful joy (*Anand*), making life pure and valuable like gold.\n\n### 3. The Grace of the Guru and Naam\nWithout the Guru's wisdom, a person wanders in confusion and gathers only pain. But those who are imbued with the Divine Name (*Naam*) are filled with deep love for Vaheguru and ultimately merge into the Divine.\n\n### 4. Humility and the Company of the Pure\nGuru Amar Das Ji expresses deep humility and reverence for those who remember the True Lord. By joining the company of such truthful beings, our spiritual filth is washed away, and we intuitively merge with the Divine.\n\n---\n\n**Summary:** \nLife is short and our bodies will not last. Relying on worldly pride leads to regret, but turning to the Guru, remembering the Divine Name (*Naam Simran*), and abandoning ego makes this temporary life truly purposeful, pure, and filled with eternal peace.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1790,
+        "output": 390
+      },
+      "ttftMs": 923,
+      "latencyMs": 2275,
+      "at": "2026-09-21T20:50:26.936Z",
+      "citations": []
+    },
+    "8c8db09e73ef6caecef92e92ea9786b780a6a0c0ac7c35ea768edd8feabf441f": {
+      "fixture": "shabad-line-by-line",
+      "variant": "gemini-3.8-flash",
+      "sample": 1,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "The passage from **Ang 12** of Sri Guru Granth Sahib Ji contains several distinct Shabads that form the conclusion of the evening prayer (*Rehras Sahib*) and the opening of the bedtime prayer (*Kirtan Sohila*). \n\nBelow is a line-by-line explanation of each Shabad contained in this passage.\n\n---\n\n### Part 1: Conclusion of Shabad by Guru Ram Das Ji (Raag Asa)\n\n*This concludes the Shabad that ends the evening prayer, emphasizing the sovereignty and omnipresence of the Creator.*\n\n* **ਤੂ ਆਪੇ ਕਰਤਾ ਤੇਰਾ ਕੀਆ ਸਭੁ ਹੋਇ ॥**  \n  *You Yourself are the Creator; everything that happens is by Your doing.*  \n  **Meaning:** Guru Ji addresses the Divine, acknowledging that Akal Purakh (God) is the supreme author of all action and creation. Nothing occurs outside the Divine Will (*Hukam*).\n\n* **ਤੁਧੁ ਬਿਨੁ ਦੂਜਾ ਅਵਰੁ ਨ ਕੋਇ ॥**  \n  *There is no other beside You.*  \n  **Meaning:** The Creator is One without a second; there is no rival, partner, or alternative power in existence.\n\n* **ਤੂ ਕਰਿ ਕਰਿ ਵੇਖਹਿ ਜਾਣਹਿ ਸੋਇ ॥**  \n  *You created the creation; You watch over it and understand it.*  \n  **Meaning:** Having brought the universe into being, the Creator does not abandon it, but intimately nurtures, witnesses, and knows the state of every heart.\n\n* **ਜਨ ਨਾਨਕ ਗੁਰਮੁਖਿ ਪਰਗਟੁ ਹੋਇ ॥੪॥੨॥**  \n  *O servant Nanak, the Lord is revealed through the Gurmukh.*  \n  **Meaning:** Guru Nanak Dev Ji states that this omnipresent Lord becomes known and realized through the *Gurmukh*—one whose face is turned toward the Guru's guidance.\n\n---\n\n### Part 2: Shabad by Guru Nanak Dev Ji (Aasaa Mahalla 1)\n\n*This Shabad metaphorically describes the trap of worldly attachments (*Maya*) and the necessity of remembering the Divine.*\n\n* **ਤਿਤੁ ਸਰਵਰੜੈ ਭਈਲੇ ਨਿਵਾਸਾ ਪਾਣੀ ਪਾਵਕੁ ਤਿਨਹਿ ਕੀਆ ॥**  \n  *In that pool, people have made their dwelling, where the water is as hot as fire!*  \n  **Meaning:** Human beings dwell in this world (*the pool*), but its atmosphere is consumed by the burning fires of desires, ego, and worldly attachment.\n\n* **ਪੰਕਜੁ ਮੋਹ ਪਗੁ ਨਹੀ ਚਾਲੈ ਹਮ ਦੇਖਾ ਤਹ ਡੂਬੀਅਲੇ ॥੧॥**  \n  *In the mire of emotional attachment, their feet cannot move; I see them drowning there.*  \n  **Meaning:** Emotional entanglement is like thick mud. People get so stuck in material pursuits and family attachments that they cannot move toward spiritual liberation and end up sinking spiritually.\n\n* **ਮਨ ਏਕੁ ਨ ਚੇਤਸਿ ਮੂੜ ਮਨਾ ॥**  \n  *In your mind, you do not remember the One Lord—O foolish mind!*  \n  **Meaning:** Guru Ji addresses the wayward mind, asking why it forgets the One Creator who gives life.\n\n* **ਹਰਿ ਬਿਸਰਤ ਤੇਰੇ ਗੁਣ ਗਲਿਆ ॥੧॥ ਰਹਾਉ ॥**  \n  *By forgetting the Lord, all your virtues waste away.*  \n  **Meaning:** *(Central theme/Pause)* The moment you forget Akal Purakh, inner virtues (truth, compassion, contentment) wither and rot away, replaced by vices.\n\n* **ਨਾ ਹਉ ਜਤੀ ਸਤੀ ਨਹੀ ਪੜਿਆ ਮੂਰਖ ਮੁਗਧਾ ਜਨਮੁ ਭਇਆ ॥**  \n  *I am not celibate, nor virtuous/truthful, nor educated; I was born foolish and ignorant.*  \n  **Meaning:** Guru Ji teaches supreme humility. Rather than boasting of religious credentials, rituals, or scholarly status, one stands completely humble before God.\n\n* **ਪ੍ਰਣਵਤਿ ਨਾਨਕ ਤਿਨ ਕੀ ਸਰਣਾ ਜਿਨ ਤੂ ਨਾਹੀ ਵੀਸਰਿਆ ॥੨॥੩॥**  \n  *Prays Nanak, I seek the sanctuary of those who have not forgotten You, O Lord!*  \n  **Meaning:** In profound surrender, Guru Ji asks to be placed in the company and shelter of those saintly souls who continuously remember the Creator.\n\n---\n\n### Part 3: Shabad by Guru Arjan Dev Ji (Aasaa Mahalla 5)\n\n*This Shabad highlights the purpose of the human birth and warns against squandering it.*\n\n* **ਭਈ ਪਰਾਪਤਿ ਮਾਨੁਖ ਦੇਹੁਰੀਆ ॥**  \n  *You have been blessed with this human body.*  \n  **Meaning:** After passing through countless life forms, you have received the precious gift of human consciousness.\n\n* **ਗੋਬਿੰਦ ਮਿਲਣ ਕੀ ਇਹ ਤੇਰੀ ਬਰੀਆ ॥**  \n  *This is your opportunity to meet the Lord of the Universe.*  \n  **Meaning:** The human form is the only vessel capable of spiritual awakening and union with the Divine.\n\n* **ਅਵਰਿ ਕਾਜ ਤੇਰੈ ਕਿਤੈ ਨ ਕਾਮ ॥**  \n  *All other pursuits are of no ultimate avail.*  \n  **Meaning:** Material wealth, titles, and worldly achievements end with the body; they do not assist the soul on its spiritual journey.\n\n* **ਮਿਲੁ ਸਾਧਸੰਗਤਿ ਭਜੁ ਕੇਵਲ ਨਾਮ ॥੧॥**  \n  *Join the Saadh Sangat (Holy Congregation), and meditate solely on the Divine Name (Naam).*  \n  **Meaning:** The true priority in life is to keep noble, truthful company and meditate continuously on the Creator's virtues.\n\n* **ਸਰੰਜਾਮਿ ਲਾਗੁ ਭਵਜਲ ਤਰਨ ਕੈ ॥**  \n  *Make every effort to cross over this terrifying world-ocean.*  \n  **Meaning:** Dedicate your conscious energy toward crossing over the turbulent sea of illusion, ego, and birth and death.\n\n* **ਜਨਮੁ ਬ੍ਰਿਥਾ ਜਾਤ ਰੰਗਿ ਮਾਇਆ ਕੈ ॥੧॥ ਰਹਾਉ ॥**  \n  *Your life is slipping away in vain, squandered in attachment to Maya.*  \n  **Meaning:** *(Central theme/Pause)* Guru Ji warns that getting intoxicated by worldly illusions causes life to pass by wasted without fulfilling its spiritual purpose.\n\n* **ਜਪੁ ਤਪੁ ਸੰਜਮੁ ਧਰਮੁ ਨ ਕਮਾਇਆ ॥**  \n  *I have not practiced meditation, austerity, self-discipline, or righteous conduct.*  \n  **Meaning:** A prayer of total surrender, casting off spiritual pride and admitting personal lack of spiritual merit.\n\n* **ਸੇਵਾ ਸਾਧ ਨ ਜਾਨਿਆ ਹਰਿ ਰਾਇਆ ॥**  \n  *I have not served the holy, nor have I recognized my Sovereign King, the Lord.*  \n  **Meaning:** Acknowledging our shortcomings in performing selfless service (*Seva*) or truly recognizing the Divine Presence in our lives.\n\n* **ਕਹੁ ਨਾਨਕ ਹਮ ਨੀਚ ਕਰੰਮਾ ॥**  \n  *Says Nanak: my deeds are low and unworthy.*  \n  **Meaning:** Renouncing all self-righteousness, standing before God with pure, unpretentious humility.\n\n* **ਸਰਣਿ ਪਰੇ ਕੀ ਰਾਖਹੁ ਸਰਮਾ ॥੨॥੪॥**  \n  *I have fallen at Your sanctuary; please, preserve my honor!*  \n  **Meaning:** Guru Ji teaches us to pray: \"O Lord, despite my flaws, I take refuge in You; please save me by Your Grace.\"\n\n---\n\n### Part 4: Kirtan Sohila, First Shabad by Guru Nanak Dev Ji (Raag Gauree Deepakee)\n\n*This Shabad marks the beginning of Sohila (the bedtime prayer), using the metaphor of an Indian wedding to describe bodily death as the soul-bride departing to meet the Divine Groom.*\n\n* **ਜੈ ਘਰਿ ਕੀਰਤਿ ਆਖੀਐ ਕਰਤੇ ਕਾ ਹੋਇ ਬੀਚਾਰੋ ॥**  \n  *In that home where praises of the Creator are sung and contemplated—*  \n* **ਤਿਤੁ ਘਰਿ ਗਾਵਹੁ ਸੋਹਿਲਾ ਸਿਵਰਿਹੁ ਸਿਰਜਣਹਾਰੋ ॥੧॥**  \n  *—in that home, sing songs of praise, and meditate upon the Creator Lord.*  \n  **Meaning:** Whether \"home\" refers to the congregation (*Sangat*) or the inner sanctuary of the heart: wherever the Creator is remembered, sing songs of celebration (*Sohila*) and contemplate the Divine.\n\n* **ਤੁਮ ਗਾਵਹੁ ਮੇਰੇ ਨਿਰਭਉ ਕਾ ਸੋਹਿਲਾ ॥**  \n  *Sing the praise of my Fearless Lord.*  \n* **ਹਉ ਵਾਰੀ ਜਿਤੁ ਸੋਹਿਲੈ ਸਦਾ ਸੁਖੁ ਹੋਇ ॥੧॥ ਰਹਾਉ ॥**  \n  *I am a sacrifice to that song of praise which brings eternal peace.*  \n  **Meaning:** *(Central theme/Pause)* Meditate on the Lord who is without fear (*Nirbhau*). Praising the Fearless One removes our own fears (including the fear of death) and grants enduring peace.\n\n* **ਨਿਤ ਨਿਤ ਜੀਅੜੇ ਸਮਾਲੀਅਨਿ ਦੇਖੈਗਾ ਦੇਵਣਹਾਰੁ ॥**  \n  *Constantly, day after day, all souls are cared for; the Great Giver watches over all.*  \n* **ਤੇਰੇ ਦਾਨੈ ਕੀਮਤਿ ਨਾ ਪਵੈ ਤਿਸੁ ਦਾਤੇ ਕਵਣੁ ਸੁਮਾਰੁ ॥੨॥**  \n  *Your gifts cannot be appraised; who can measure the Giver Himself?*  \n  **Meaning:** The Lord provides for every living being without fail. If His boundless blessings are beyond valuation, how could any mortal ever describe the boundless Giver?\n\n* **ਸੰਬਤਿ ਸਾਹਾ ਲਿਖਿਆ ਮਿਲਿ ਕਰਿ ਪਾਵਹੁ ਤੇਲੁ ॥**  \n  *The date and time of the wedding are pre-ordained; come, gather together and pour the bridal oil.*  \n  **Meaning:** In traditional Punjabi custom, oil was poured on the bride’s hair before departure. Here, Guru Ji uses the wedding metaphor: the moment of physical death is the appointed marriage day when the soul leaves this world.\n\n* **ਦੇਹੁ ਸਜਣ ਅਸੀਸੜੀਆ ਜਿਉ ਹੋਵੈ ਸਾਹਿਬ ਸਿਉ ਮੇਲੁ ॥੩॥**  \n  *O my friends, give me your blessings, that I may merge with my Lord and Master.*  \n  **Meaning:** Instead of mourning death, Guru Ji teaches that friends should bless the departing soul so that it successfully merges into the Supreme Reality.\n\n* **ਘਰਿ ਘਰਿ ਏਹੋ ਪਾਹੁਚਾ ਸਦੜੇ ਨਿਤ ਪਵੰਨਿ ॥**  \n  *This summons is sent to every single home; this call arrives each and every day.*  \n  **Meaning:** The call of departure (death) comes to every household and heart without exception.\n\n* **ਸਦਣਹਾਰਾ ਸਿਮਰੀਐ ਨਾਨਕ ਸੇ ਦਿਹ ਆਵੰਨਿ ॥੪॥੧॥**  \n  *Meditate on the One who calls us, O Nanak; that day is fast approaching!*  \n  **Meaning:** Since the call from the Divine is certain and approaching every moment, spend your time remembering the One who summons you.\n\n---\n\n### Part 5: Second Shabad of Kirtan Sohila by Guru Nanak Dev Ji (Raag Aasaa)\n\n*This Shabad teaches that all diversity in the universe flows from a single source.*\n\n* **ਛਿਅ ਘਰ ਛਿਅ ਗੁਰ ਛਿਅ ਉਪਦੇਸ ॥**  \n  *There are six systems of philosophy, six founding teachers, and six different teachings.*  \n  **Meaning:** Referring to the six classical schools of Indian thought (Shastras).\n\n* **ਗੁਰੁ ਗੁਰੁ ਏਕੋ ਵੇਸ ਅਨੇਕ ॥੧॥**  \n  *Yet the Teacher of teachers is the One Lord, who manifests in countless forms.*  \n  **Meaning:** Behind all teachings, philosophies, and teachers, the ultimate source of all wisdom and light is the One Creator.\n\n* **ਬਾਬਾ ਜੈ ਘਰਿ ਕਰਤੇ ਕੀਰਤਿ ਹੋਇ ॥**  \n  *O Baba (brother/seeker), that system in which the praises of the Creator are sung—*  \n* **ਸੋ ਘਰੁ ਰਾਖੁ ਵਡਾਈ ਤੋਇ ॥੧॥ ਰਹਾਉ ॥**  \n  *—adopt that way; true honor and greatness lie therein.*  \n  **Meaning:** *(Central theme/Pause)* Do not get lost in dry metaphysical debates. Cherish and hold onto that path and state of mind where the praises of the Creator are genuinely lived and sung.\n\n* **ਵਿਸੁਏ ਚਸਿਆ ਘੜੀਆ ਪਹਰਾ ਥਿਤੀ ਵਾਰੀ ਮਾਹੁ ਹੋਆ ॥**  \n  *The seconds, minutes, hours, quarter-days, lunar days, weekdays, and months—*  \n* **ਸੂਰਜੁ ਏਕੋ ਰੁਤਿ ਅਨੇਕ ॥ ਨਾਨਕ ਕਰਤੇ ਕੇ ਕੇਤੇ ਵੇਸ ॥੨॥੨॥**  \n  *—all stem from the one sun, creating diverse seasons. O Nanak, in the very same way, countless diverse forms emanate from the One Creator.*  \n  **Meaning:** Just as one single sun causes all the distinct units of time, weather, and changing seasons, so too does the One Akal Purakh express Himself in the endless variety of creation. Diversity does not mean multiplicity of gods; the Creator is fundamentally One.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 2139,
+        "output": 3059
+      },
+      "ttftMs": 826,
+      "latencyMs": 12825,
+      "at": "2026-09-21T20:50:39.764Z",
+      "citations": [
+        {
+          "quote": "ਤੂ ਆਪੇ ਕਰਤਾ ਤੇਰਾ ਕੀਆ ਸਭੁ ਹੋਇ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਤੂ ਆਪੇ ਕਰਤਾ ਤੇਰਾ ਕੀਆ ਸਭੁ ਹੋਇ ॥",
+            "translation": "You Yourself are the Creator. Everything that happens is by Your Doing.",
+            "ang": 12,
+            "lineNo": 1,
+            "shabadId": "8GT",
+            "writer": "Guru Ramdas Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਰਾਮਦਾਸ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਤੁਧੁ ਬਿਨੁ ਦੂਜਾ ਅਵਰੁ ਨ ਕੋਇ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਤੁਧੁ ਬਿਨੁ ਦੂਜਾ ਅਵਰੁ ਨ ਕੋਇ ॥",
+            "translation": "There is no one except You.",
+            "ang": 12,
+            "lineNo": 1,
+            "shabadId": "8GT",
+            "writer": "Guru Ramdas Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਰਾਮਦਾਸ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਤੂ ਕਰਿ ਕਰਿ ਵੇਖਹਿ ਜਾਣਹਿ ਸੋਇ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਤੂ ਕਰਿ ਕਰਿ ਵੇਖਹਿ ਜਾਣਹਿ ਸੋਇ ॥",
+            "translation": "You created the creation; You behold it and understand it.",
+            "ang": 12,
+            "lineNo": 1,
+            "shabadId": "8GT",
+            "writer": "Guru Ramdas Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਰਾਮਦਾਸ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਜਨ ਨਾਨਕ ਗੁਰਮੁਖਿ ਪਰਗਟੁ ਹੋਇ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਜਨ ਨਾਨਕ ਗੁਰਮੁਖਿ ਪਰਗਟੁ ਹੋਇ ॥੪॥੨॥",
+            "translation": "O servant Nanak, the Lord is revealed through the Gurmukh, the Living Expression of the Guru's Word. ||4||2||",
+            "ang": 12,
+            "lineNo": 2,
+            "shabadId": "8GT",
+            "writer": "Guru Ramdas Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਰਾਮਦਾਸ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਤਿਤੁ ਸਰਵਰੜੈ ਭਈਲੇ ਨਿਵਾਸਾ ਪਾਣੀ ਪਾਵਕੁ ਤਿਨਹਿ ਕੀਆ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਤਿਤੁ ਸਰਵਰੜੈ ਭਈਲੇ ਨਿਵਾਸਾ ਪਾਣੀ ਪਾਵਕੁ ਤਿਨਹਿ ਕੀਆ ॥",
+            "translation": "In that pool, people have made their homes, but the water there is as hot as fire!",
+            "ang": 12,
+            "lineNo": 2,
+            "shabadId": "JHX",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਪੰਕਜੁ ਮੋਹ ਪਗੁ ਨਹੀ ਚਾਲੈ ਹਮ ਦੇਖਾ ਤਹ ਡੂਬੀਅਲੇ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਪੰਕਜੁ ਮੋਹ ਪਗੁ ਨਹੀ ਚਾਲੈ ਹਮ ਦੇਖਾ ਤਹ ਡੂਬੀਅਲੇ ॥੧॥",
+            "translation": "In the swamp of emotional attachment, their feet cannot move. I have seen them drowning there. ||1||",
+            "ang": 12,
+            "lineNo": 3,
+            "shabadId": "JHX",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "5dae9f71329861766bdfc3346082cf6296037fd57ea35b0ef4c40c0bf2a6e3f5": {
+      "fixture": "shabad-line-by-line",
+      "variant": "gemini-3.7-flash",
+      "sample": 1,
+      "model": "gemini-3.7-flash",
+      "modelVersion": "gemini-3.7-flash",
+      "text": "Here is the line-by-line explanation of the second Shabad on Ang 12, composed by **Guru Nanak Dev Ji** in **Raag Aasaa** (*Aasaa Mehla 1*):\n\n---\n\n### **Gurbani & Line-by-Line Meaning**\n\n> **ਤਿਤੁ ਸਰਵਰੜੈ ਭਈਲੇ ਨਿਵਾਸਾ ਪਾਣੀ ਪਾਵਕੁ ਤਿਨਹਿ ਕੀਆ ॥**  \n> *Tit sarvaraṛai bhaīle nivāsā pāṇī pāvak tineh kīā.*  \n**Meaning:** In this pool of the world, beings have made their dwelling, but the water in it burns like fire (fueled by the heat of hidden desires and worldly attachments).\n\n> **ਪੰਕਜੁ ਮੋਹ ਪਗੁ ਨਹੀ ਚਾਲੈ ਹਮ ਦੇਖਾ ਤਹ ਡੂਬੀਅਲੇ ॥੧॥**  \n> *Pankaj moh pag nahī chālai ham dēkhā tah ḍūbīalē. ||1||*  \n**Meaning:** The mud of worldly attachment is so thick that their feet cannot move forward. Guru Ji notes that many are seen drowning in this mire of delusion.\n\n---\n\n### **The Rahao (Central Theme)**\n\n> **ਮਨ ਏਕੁ ਨ ਚੇਤਸਿ ਮੂੜ ਮਨਾ ॥**  \n> *Man ēk na chētasi mūṛ manā.*  \n**Meaning:** O foolish mind! Why do you not remember and contemplate the One Creator?\n\n> **ਹਰਿ ਬਿਸਰਤ ਤੇਰੇ ਗੁਣ ਗਲਿਆ ॥੧॥ ਰਹਾਉ ॥**  \n> *Har bisrat tērē guṇ galiā. ||1|| Rahā-o.*  \n**Meaning:** By forgetting Vaheguru, all your inner virtues rot and wither away. *(Pause and reflect)*\n\n---\n\n### **The Path of Humility and Sanctuary**\n\n> **ਨਾ ਹਉ ਜਤੀ ਸਤੀ ਨਹੀ ਪੜਿਆ ਮੂਰਖ ਮੁਗਧਾ ਜਨਮੁ ਭਇਆ ॥**  \n> *Nā ha-o jatī satī nahī paṛiā mūrakh mugdhā janam bha-iā.*  \n**Meaning:** (In supreme humility, Guru Ji teaches us how to pray): I possess no celibacy, no charity/truthfulness, nor scholarly wisdom; I was born foolish and ignorant into this world.\n\n> **ਪ੍ਰਣਵਤਿ ਨਾਨਕ ਤਿਨ ਕੀ ਸਰਣਾ ਜਿਨ ਤੂ ਨਾਹੀ ਵੀਸਰਿਆ ॥੨॥੩॥**  \n> *Praṇvat Nānak tin kī saraṇā jin tū nāhī vīsariā. ||2||3||*  \n**Meaning:** Prays Nanak: I seek the shelter and company of those blessed souls who have never forgotten You, O Lord.\n\n---\n\n### **Core Takeaway**\nGuru Nanak Dev Ji uses vivid metaphors—a burning pool and a muddy swamp—to describe how worldly attachments trap and drown human beings. The only way to escape this spiritual trap is shedding ego through deep humility, joining the company of enlightened beings (Sadh Sangat), and remembering the Divine Name (*Naam Simran*).",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 2139,
+        "output": 703
+      },
+      "ttftMs": 810,
+      "latencyMs": 3343,
+      "at": "2026-09-21T20:50:45.296Z",
+      "citations": [
+        {
+          "quote": "ਤਿਤੁ ਸਰਵਰੜੈ ਭਈਲੇ ਨਿਵਾਸਾ ਪਾਣੀ ਪਾਵਕੁ ਤਿਨਹਿ ਕੀਆ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਤਿਤੁ ਸਰਵਰੜੈ ਭਈਲੇ ਨਿਵਾਸਾ ਪਾਣੀ ਪਾਵਕੁ ਤਿਨਹਿ ਕੀਆ ॥",
+            "translation": "In that pool, people have made their homes, but the water there is as hot as fire!",
+            "ang": 12,
+            "lineNo": 2,
+            "shabadId": "JHX",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਪੰਕਜੁ ਮੋਹ ਪਗੁ ਨਹੀ ਚਾਲੈ ਹਮ ਦੇਖਾ ਤਹ ਡੂਬੀਅਲੇ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਪੰਕਜੁ ਮੋਹ ਪਗੁ ਨਹੀ ਚਾਲੈ ਹਮ ਦੇਖਾ ਤਹ ਡੂਬੀਅਲੇ ॥੧॥",
+            "translation": "In the swamp of emotional attachment, their feet cannot move. I have seen them drowning there. ||1||",
+            "ang": 12,
+            "lineNo": 3,
+            "shabadId": "JHX",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਮਨ ਏਕੁ ਨ ਚੇਤਸਿ ਮੂੜ ਮਨਾ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਮਨ ਏਕੁ ਨ ਚੇਤਸਿ ਮੂੜ ਮਨਾ ॥",
+            "translation": "In your mind, you do not remember the One Lord-you fool!",
+            "ang": 12,
+            "lineNo": 4,
+            "shabadId": "JHX",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਹਰਿ ਬਿਸਰਤ ਤੇਰੇ ਗੁਣ ਗਲਿਆ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਹਰਿ ਬਿਸਰਤ ਤੇਰੇ ਗੁਣ ਗਲਿਆ ॥੧॥ ਰਹਾਉ ॥",
+            "translation": "You have forgotten the Lord; your virtues shall wither away. ||1||Pause||",
+            "ang": 12,
+            "lineNo": 4,
+            "shabadId": "JHX",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਨਾ ਹਉ ਜਤੀ ਸਤੀ ਨਹੀ ਪੜਿਆ ਮੂਰਖ ਮੁਗਧਾ ਜਨਮੁ ਭਇਆ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਨਾ ਹਉ ਜਤੀ ਸਤੀ ਨਹੀ ਪੜਿਆ ਮੂਰਖ ਮੁਗਧਾ ਜਨਮੁ ਭਇਆ ॥",
+            "translation": "I am not celibate, nor truthful, nor scholarly. I was born foolish and ignorant into this world.",
+            "ang": 12,
+            "lineNo": 4,
+            "shabadId": "JHX",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਪ੍ਰਣਵਤਿ ਨਾਨਕ ਤਿਨ ਕੀ ਸਰਣਾ ਜਿਨ ਤੂ ਨਾਹੀ ਵੀਸਰਿਆ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਪ੍ਰਣਵਤਿ ਨਾਨਕ ਤਿਨ ਕੀ ਸਰਣਾ ਜਿਨ ਤੂ ਨਾਹੀ ਵੀਸਰਿਆ ॥੨॥੩॥",
+            "translation": "Prays Nanak, I seek the Sanctuary of those who have not forgotten You, O Lord! ||2||3||",
+            "ang": 12,
+            "lineNo": 5,
+            "shabadId": "JHX",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "20b8e5cd7f0e26b994a3e9554dca0901695d9e05309eba70dc5f2e00f1fb0fc9": {
+      "fixture": "haumai-gurbani-first",
+      "variant": "gemini-3.8-flash",
+      "sample": 2,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥\n*Haumai deeragh rog hai daaroo bhee is maahi.*  \n\"Ego is a chronic disease, but the cure lies within it as well.\"  \n— Guru Angad Dev Ji, Sri Guru Granth Sahib Ji, Ang 466\n\n***\n\nIn Gurmat (the Guru’s teachings), **haumai** (ego or self-centeredness) is described as the primary barrier between the soul (*jiva*) and the Divine (*Ik Onkar*). The word is composed of *hau* (\"I\") and *mai* (\"mine\")—the persistent illusion that we are separate, independent doers, rather than instruments of the Creator's will (*Hukam*).\n\nGuru Nanak Dev Ji explains in *Asa Ki Vaar* that haumai conditions everything we do. It clouds good deeds with pride, causes anxiety and fear of loss, and traps the mind in a cycle of spiritual separation. \n\nYet, as Guru Angad Dev Ji reveals in the tukk above, the malady contains its own cure. Haumai is an inward focus on the false self; when that same inward focus is guided by the Guru's wisdom, the soul discovers the True Self—the Divine light residing within.\n\n### How to Overcome Haumai\n\nSri Guru Granth Sahib Ji outlines practical spiritual disciplines to dissolve the ego:\n\n1. **Recognizing Hukam (Divine Will)**  \n   Guru Nanak Dev Ji states in *Japji Sahib*:  \n   *“Nanak hukmai je bujhai ta haumai kahai na koe”* — \"O Nanak, one who understands Hukam does not speak in ego.\"  \n   Reflecting on the truth that life, breath, and outcomes are guided by the Creator softens the illusion that \"I\" am the sole doer.\n\n2. **Naam Simran (Mindful Remembrance)**  \n   Ego and the Divine presence cannot dwell in the same awareness at the same time (Ang 560: *\"Haumai naavai naal virodh hai doye na vasahi ik thaai\"*). By meditating on Naam (the Divine Name), the mind shifts its anchor from the limited self to the infinite.\n\n3. **Seva (Selfless Service)**  \n   Performing physical, selfless service in the Sangat (holy congregation) directly humbles the mind. Cleaning shoes, washing dishes, or serving food without seeking praise trains the heart to abandon entitlement.\n\n4. **Sadh Sangat (Holy Company)**  \n   Surrounding oneself with those who reflect humility and love for the Divine helps calm the restless, prideful mind.\n\nOvercoming haumai is not about suppressing your identity, but about expanding it—moving from \"I am everything\" to \"You, O Lord, are in all, and I am Yours.\" It is a gradual path walked with humility, prayer (*Ardaas*), and the Guru's grace (*Kirpa*).",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 443,
+        "output": 652
+      },
+      "ttftMs": 1566,
+      "latencyMs": 4312,
+      "at": "2026-09-21T20:54:57.299Z",
+      "citations": [
+        {
+          "quote": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 466,
+          "line": {
+            "gurmukhi": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥",
+            "translation": "Ego is a chronic disease, but it contains its own cure as well.",
+            "ang": 466,
+            "lineNo": 18,
+            "shabadId": "3FU",
+            "writer": "Guru Angad Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅੰਗਦ ਦੇਵ ਜੀ",
+            "raag": "Raag Aasaa",
+            "raagGurmukhi": "ਰਾਗੁ ਆਸਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "19e64d08a30521055dff68dab39de6531e5e012be1885c2ebb3a059fad868e31": {
+      "fixture": "haumai-gurbani-first",
+      "variant": "gemini-3.8-flash",
+      "sample": 3,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.\n\nIn Sikhi, *haumai* (ego, self-centeredness, or the sense of \"I-am-ness\") is identified as the fundamental veil separating the soul from the Divine. It is the root cause of spiritual alienation, anxiety, and the five inner thieves (*kam, krodh, lobh, moh, ahankar*). \n\nGuru Nanak Dev Ji diagnoses this condition and provides the cure in the following *tukk*:\n\n> ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥  \n> *Haumai dīragh rōg hai dārū bhī isu māhi.*  \n> \"Ego is a chronic disease, but the cure lies within it as well.\"  \n> — Guru Nanak Dev Ji, Sri Guru Granth Sahib Ji, Ang 466\n\nGuru Sahib teaches that while *haumai* acts as a deep spiritual sickness, the potential for liberation is contained within the same consciousness. When the sense of self is transformed from self-centeredness to God-consciousness, the disease turns into its own remedy.\n\n### How to Overcome Haumai\n\nGurbani offers practical, daily spiritual practices to dissolve the ego:\n\n1. **Acceptance of Divine Will (*Hukam*)**  \n   The foundational teaching of *Japji Sahib* asks: *How can one become truthful, and how can the wall of falsehood be torn down?* Guru Nanak Dev Ji answers that it is by living in alignment with *Hukam* (the Divine Order). When you recognize that Waheguru is the ultimate Doer (*Karta Purakh*) and you are merely an instrument, personal pride naturally diminishes.\n\n2. **Remembrance of the Divine Name (*Naam Simran*)**  \n   Ego and *Naam* cannot reside in the same vessel. Guru Amar Das Ji notes on Ang 560 that *haumai* and *Naam* are opposites; where one exists, the other cannot. Meditating on the Divine cleanses the mind of self-importance and fills it with awareness of the Infinite.\n\n3. **Selfless Service (*Seva*)**  \n   Performing quiet, humble service without the desire for recognition is one of the most direct ways to grind down the ego. Serving the *Sangat* (congregation) through washing dishes, cleaning shoes, or helping those in need trains the mind to see the Divine Light within everyone, subduing the sense of personal superiority.\n\n4. **Seeking the Company of the Truthful (*Sadh Sangat*)**  \n   In the company of humble, God-conscious individuals, one learns humility naturally. Seeing others live free of pride inspires and supports one's own practice.\n\nTo begin overcoming *haumai*, start in small moments throughout your day: mentally attribute your successes to Waheguru rather than your own intellect, engage in regular *Seva* where no one notices your effort, and consistently connect with Gurbani through *Simran*.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 443,
+        "output": 658
+      },
+      "ttftMs": 774,
+      "latencyMs": 3017,
+      "at": "2026-09-21T20:55:00.402Z",
+      "citations": [
+        {
+          "quote": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 466,
+          "line": {
+            "gurmukhi": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥",
+            "translation": "Ego is a chronic disease, but it contains its own cure as well.",
+            "ang": 466,
+            "lineNo": 18,
+            "shabadId": "3FU",
+            "writer": "Guru Angad Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅੰਗਦ ਦੇਵ ਜੀ",
+            "raag": "Raag Aasaa",
+            "raagGurmukhi": "ਰਾਗੁ ਆਸਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "491441f1410005a98767681fd370b2d5202159a1324ab81c95dd29621f4d31f9": {
+      "fixture": "haumai-gurbani-first",
+      "variant": "gemini-3.8-flash@medium",
+      "sample": 1,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥  \n*Haumai dīragh rog hai dārū bhī isu māhi.*  \n\"Ego is a chronic disease, but its cure is also found within it.\"  \n— Guru Angad Dev Ji, Sri Guru Granth Sahib Ji, Ang 466\n\n---\n\n### What Gurbani Teaches About *Haumai*\n\nIn Sikhi, *haumai* (literally meaning \"I-ness\" or \"I, me\") is considered the primary barrier between the human soul and the Divine. It is the false perception of being separate from God (*Ik Onkar*) and from the rest of creation. \n\nWhen a person lives in *haumai*, they view themselves as the ultimate doer, taking personal pride in their wealth, status, intellect, or even religious deeds. Gurbani teaches that this self-centered consciousness acts as a veil, blinding us to the universal Divine presence and feeding the five inner vices: lust (*kaam*), wrath (*krodh*), greed (*lobh*), attachment (*moh*), and pride (*ahankar*).\n\n### How to Overcome *Haumai*\n\nGuru Angad Dev Ji teaches that while *haumai* is a deep-seated ailment, the remedy exists alongside it. When the soul realizes that the true self is not the fragile ego, but the Divine Light dwelling within, the hold of ego dissolves. \n\nGurbani offers a practical spiritual discipline to cure *haumai*:\n\n1. **Recognizing the Divine as the True Doer (*Hukam*)**  \n   Shift your mindset from \"I am doing this\" to recognizing that all happens under the Creator's Will (*Hukam*). Acknowledging that every breath, ability, and circumstance comes from God gradually dismantles the illusion of self-importance.\n\n2. **Engaging in *Naam Simran* (Remembrance of God)**  \n   *Haumai* and the Divine Name cannot occupy the same space. Guru Amar Das Ji teaches: *“Haumai naavai naal virodh hai, dui na vasahi ik thaai”* — ego is contrary to the Name; the two cannot dwell in one place (Ang 560). Meditating on the Divine shifts consciousness away from the self toward the Infinite.\n\n3. **Practicing Selfless Service (*Seva*)**  \n   Engaging in quiet, anonymous service—such as cleaning shoes at the Gurdwara, cooking and serving in the Langar, or helping someone in need without seeking recognition—directly wears down pride and cultivates genuine humility.\n\n4. **Seeking the Company of the Wise (*Sadh Sangat*)**  \n   Being around humble, truth-seeking individuals helps break down self-centered habits and encourages spiritual accountability.\n\nBy submitting the ego to the teachings of the Guru (*Gurmat*) through daily remembrance and humble action, the burden of \"I\" is lifted, replaced by peace and unity with the Divine.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 443,
+        "output": 654,
+        "thoughts": 897
+      },
+      "ttftMs": 4452,
+      "latencyMs": 7345,
+      "at": "2026-09-21T20:55:07.780Z",
+      "citations": [
+        {
+          "quote": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 466,
+          "line": {
+            "gurmukhi": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥",
+            "translation": "Ego is a chronic disease, but it contains its own cure as well.",
+            "ang": 466,
+            "lineNo": 18,
+            "shabadId": "3FU",
+            "writer": "Guru Angad Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅੰਗਦ ਦੇਵ ਜੀ",
+            "raag": "Raag Aasaa",
+            "raagGurmukhi": "ਰਾਗੁ ਆਸਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "72068d553aa8e1118a2b71750376b0f99ddf451239ab14f1743d571c732b7c1e": {
+      "fixture": "haumai-gurbani-first",
+      "variant": "gemini-3.8-flash@medium",
+      "sample": 2,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥\n*Haumai deeragh rog hai daaroo bhee isu maahi.*\n\"Ego is a chronic disease, but the cure also lies within it.\"  \n— Guru Angad Dev Ji, Sri Guru Granth Sahib Ji, Ang 466\n\n---\n\n### What Gurbani Teaches About *Haumai*\n\nIn Gurmat (the Guru’s teachings), *haumai*—often translated as ego, self-centeredness, or the sense of \"I-am-ness\"—is identified as the root cause of spiritual separation from the Divine. \n\n1. **A Sense of Separation:** *Haumai* creates a false boundary between the self, the Creator (Waheguru), and creation. It leads one to believe: \"I am the doer, this is mine, and I am separate from others.\"\n2. **Conflict with Naam:** Guru Amar Das Ji teaches on Ang 560 that *haumai* and the Divine Name (*Naam*) are fundamentally opposed; the two cannot dwell in the same place together. When ego fills the heart, awareness of the Divine presence cannot enter.\n3. **The Root of Suffering:** Driven by ego, a person becomes trapped by the five internal thieves (*panj chor*): lust (*kaam*), anger (*krodh*), greed (*lobh*), attachment (*moh*), and pride (*ahankar*). This cycle binds the soul to spiritual distress.\n\n---\n\n### How to Overcome *Haumai*\n\nGurbani teaches that while *haumai* is a deep-seated ailment, the remedy is found through the Guru's guidance:\n\n1. **Contemplation on Naam (*Naam Simran*):**  \n   Replacing constant self-absorption with remembrance of Waheguru naturally dissolves the ego. When one realizes that the Divine light pervades everything, the false sense of \"I\" begins to fade.\n\n2. **Selfless Service (*Seva*):**  \n   Engaging in physical, humble service without expecting recognition—such as cleaning shoes at the Gurdwara, serving in the Langar, or helping those in need—breaks the pride of status, intellect, and wealth.\n\n3. **Acceptance of Divine Will (*Hukam*):**  \n   Guru Nanak Dev Ji states in *Japji Sahib* that recognizing the Divine Order (*Hukam*) frees one from speaking in ego (*Nanak hukmai je bujhai ta haumai kahai na koi*). Acknowledging that Waheguru, not oneself, is the ultimate Doer brings deep humility.\n\n4. **Company of the Truthful (*Sadh Sangat*):**  \n   Being among humble, devoted seekers helps quiet the mind and reminds us of our true, transient nature in this world.\n\n5. **Seeking Grace (*Kirpa* / *Nadar*):**  \n   Ultimately, Gurmat reminds us that even the ability to overcome ego cannot be an achievement of personal pride. One must pray with sincere humility for the Guru's grace to be cured of this inner veil.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 443,
+        "output": 681,
+        "thoughts": 374
+      },
+      "ttftMs": 1793,
+      "latencyMs": 4020,
+      "at": "2026-09-21T20:55:11.892Z",
+      "citations": [
+        {
+          "quote": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 466,
+          "line": {
+            "gurmukhi": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥",
+            "translation": "Ego is a chronic disease, but it contains its own cure as well.",
+            "ang": 466,
+            "lineNo": 18,
+            "shabadId": "3FU",
+            "writer": "Guru Angad Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅੰਗਦ ਦੇਵ ਜੀ",
+            "raag": "Raag Aasaa",
+            "raagGurmukhi": "ਰਾਗੁ ਆਸਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "13c0be0fbe3aaf456a9006e1ec25836167adf2f777b23d418ab78ae918ed06cd": {
+      "fixture": "haumai-gurbani-first",
+      "variant": "gemini-3.8-flash@medium",
+      "sample": 3,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥\n*Haumai deeragh rog hai daaroo bhee isu maahi.*\n\"Ego is a chronic disease, but its cure is also within it.\"  \n— Guru Angad Dev Ji, Sri Guru Granth Sahib Ji, Ang 466\n\n---\n\nIn Gurmat (the Guru’s teachings), **haumai** (often translated as ego, self-centeredness, or the sense of \"I-am-ness\") is identified as the root cause of spiritual separation and suffering. It is the false belief that we exist independently from the One Creator (*Ik Onkar*) and the rest of creation. This delusion breeds pride, anxiety, and the five inner thieves: lust (*kaam*), anger (*krodh*), greed (*lobh*), attachment (*moh*), and arrogance (*ahankar*).\n\nYet, as Guru Angad Dev Ji reveals in the shabad above, while haumai is a deep-seated ailment, the cure lies within the very same consciousness. \n\nAccording to Gurbani, haumai is dismantled through practical spiritual discipline:\n\n1. **Abiding in Hukam (Divine Will):**  \n   Haumai thrives when we say, \"I did this,\" or \"This belongs to me.\" Guru Nanak Dev Ji teaches in *Japji Sahib* that recognizing *Hukam*—the supreme, cosmic order—dissolves self-importance:  \n   *ਨਾਨਕ ਹੁਕਮੈ ਜੇ ਬੁਝੈ ਤ ਹਉਮੈ ਕਹੈ ਨ ਕੋਇ ॥*  \n   \"O Nanak, one who understands Divine Will does not speak in ego.\" (Ang 1)\n\n2. **Naam Simran (Mindful Remembrance):**  \n   Guru Amar Das Ji explains that haumai and Naam are mutually exclusive: they cannot coexist in the same heart (*Ang 560*). By centering the mind on the Divine attributes through meditation and daily contemplation of Gurbani, the illusion of the separate self naturally fades.\n\n3. **Nishkam Seva (Selfless Service):**  \n   Engaging in service without personal motive—such as washing dishes in the langar, cleaning the shoes of the congregation, or serving those in need—directly challenges the ego's demand for status and recognition.\n\n4. **Sadh Sangat (Holy Company):**  \n   Being among those who are humble and focused on the Divine helps wash away arrogant tendencies, teaching us how to view all beings as manifestations of the same light.\n\nOvercoming haumai is not an act of willpower alone; it is an ongoing practice of humility, culminating in prayer (*Ardas*) for the Guru's grace (*Nadar*). When the heart surrenders to the Guru's wisdom, the \"I\" recedes, and only the Divine remains.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 443,
+        "output": 623,
+        "thoughts": 579
+      },
+      "ttftMs": 3400,
+      "latencyMs": 6459,
+      "at": "2026-09-21T20:55:18.436Z",
+      "citations": [
+        {
+          "quote": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 466,
+          "line": {
+            "gurmukhi": "ਹਉਮੈ ਦੀਰਘ ਰੋਗੁ ਹੈ ਦਾਰੂ ਭੀ ਇਸੁ ਮਾਹਿ ॥",
+            "translation": "Ego is a chronic disease, but it contains its own cure as well.",
+            "ang": 466,
+            "lineNo": 18,
+            "shabadId": "3FU",
+            "writer": "Guru Angad Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅੰਗਦ ਦੇਵ ਜੀ",
+            "raag": "Raag Aasaa",
+            "raagGurmukhi": "ਰਾਗੁ ਆਸਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਨਾਨਕ ਹੁਕਮੈ ਜੇ ਬੁਝੈ ਤ ਹਉਮੈ ਕਹੈ ਨ ਕੋਇ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 1,
+          "line": {
+            "gurmukhi": "ਨਾਨਕ ਹੁਕਮੈ ਜੇ ਬੁਝੈ ਤ ਹਉਮੈ ਕਹੈ ਨ ਕੋਇ ॥੨॥",
+            "translation": "O Nanak, one who understands His Command, does not speak in ego. ||2||",
+            "ang": 1,
+            "lineNo": 10,
+            "shabadId": "LLL",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Jap",
+            "raagGurmukhi": "ਜਪੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "fa29da60128a362dd982a897aad0d815e9ce4dd6fb4f193b7cc384212684e61f": {
+      "fixture": "arjan-grief-gurbani-first",
+      "variant": "gemini-3.8-flash",
+      "sample": 2,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "I am deeply sorry for your loss. Grieving the departure of a parent is one of the heaviest burdens the heart can carry. It is completely natural to feel disoriented and heartbroken right now. \n\nGuru Arjan Dev Ji offers gentle guidance on the nature of our worldly bonds and the journey of the soul:\n\n> ਜਿਸ ਕੀ ਬਸਤੁ ਤਿਸੁ ਆਗੈ ਰਾਖੈ ॥ \n> ਪ੍ਰਭ ਕੀ ਆਗਿਆ ਮਾਨੈ ਮਾਥੈ ॥ \n> ਉਸ ਤੇ ਚਉਗੁਨ ਕਰੈ ਨਿਹਾਲੁ ॥ \n> ਨਾਨਕ ਸਾਹਿਬੁ ਸਦਾ ਦਇਆਲੁ ॥\n> \n> *Jis kī basat tis āgai rākhai.*\n> *Prabh kī āgiā mānai māthai.*\n> *Us tē chawgun karai nihāl.*\n> *Nānak sāhib sadā daiāl.*\n> \n> \"One who surrenders back what belongs to the Creator, \n> and willingly accepts God’s Will upon their forehead— \n> the Lord makes them four times happier. \n> O Nanak, the Master is forever merciful.\"\n> — Guru Arjan Dev Ji, Sukhmani Sahib, Ang 268\n\n### Understanding Hukam in Times of Grief\n\nGuru Arjan Dev Ji teaches that accepting *Hukam* (the divine order) is not about suppressing your grief or forcing an emotional numbness. Rather, it is a gradual softening of the heart to accept reality as it unfolds.\n\n1. **Remember the Loan of Love**  \n   In Sukhmani Sahib, Guru Arjan Dev Ji gently reminds us that all our relationships—as precious as they are—are loans given to us by the Divine. The time you shared with your father was a profound gift. When the soul is called back, it has completed its assigned breaths (*suas*) in this physical realm. Acknowledging that the soul belongs ultimately to the Creator helps loosen the grip of despair.\n\n2. **Moving from \"Why?\" to \"What Sweetness Remains?\"**  \n   When Guru Arjan Dev Ji endured extreme physical suffering during his martyrdom, he exemplified the state of *Tera Kia Meetha Lagai* (\"Your will is sweet to me\"). This is not an easy state to reach overnight. It begins by letting go of the exhausting question, *\"Why did this happen?\"* and replacing it with trust: the Divine that cared for your father before he was born is the same Divine caring for his soul now.\n\n3. **Honor Him Through Remembrance (*Simran*)**  \n   When you feel overwhelmed, sit quietly and recite *Waheguru* or listen to the soothing verses of *Sukhmani Sahib* (the Jewel of Peace). Guru Arjan Dev Ji composed this Bani specifically to bring tranquility to restless and grieving minds. Chanting and prayer create a bridge of peace, sending love and spiritual strength to your father's departing soul while steadying your own.\n\nBe gentle with yourself. Acceptance is not an instant switch; it is a walk you take one breath at a time, holding the hand of the Guru.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 618,
+        "output": 660
+      },
+      "ttftMs": 1207,
+      "latencyMs": 4385,
+      "at": "2026-09-21T20:55:22.926Z",
+      "citations": [
+        {
+          "quote": "ਜਿਸ ਕੀ ਬਸਤੁ ਤਿਸੁ ਆਗੈ ਰਾਖੈ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਜਿਸ ਕੀ ਬਸਤੁ ਤਿਸੁ ਆਗੈ ਰਾਖੈ ॥",
+            "translation": "When one offers to the Lord, that which belongs to the Lord,",
+            "ang": 268,
+            "lineNo": 11,
+            "shabadId": "7HP",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਪ੍ਰਭ ਕੀ ਆਗਿਆ ਮਾਨੈ ਮਾਥੈ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਪ੍ਰਭ ਕੀ ਆਗਿਆ ਮਾਨੈ ਮਾਥੈ ॥",
+            "translation": "and willingly abides by the Will of God's Order,",
+            "ang": 268,
+            "lineNo": 11,
+            "shabadId": "7HP",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਉਸ ਤੇ ਚਉਗੁਨ ਕਰੈ ਨਿਹਾਲੁ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਉਸ ਤੇ ਚਉਗੁਨ ਕਰੈ ਨਿਹਾਲੁ ॥",
+            "translation": "the Lord will make him happy four times over.",
+            "ang": 268,
+            "lineNo": 11,
+            "shabadId": "7HP",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਨਾਨਕ ਸਾਹਿਬੁ ਸਦਾ ਦਇਆਲੁ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਨਾਨਕ ਸਾਹਿਬੁ ਸਦਾ ਦਇਆਲੁ ॥੨॥",
+            "translation": "O Nanak, our Lord and Master is merciful forever. ||2||",
+            "ang": 268,
+            "lineNo": 12,
+            "shabadId": "7HP",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "e9ae3970c32280553634251cc76df22dcee3dcd316fc928528cc17b1de279b98": {
+      "fixture": "arjan-grief-gurbani-first",
+      "variant": "gemini-3.8-flash",
+      "sample": 3,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਿਹ (Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh).\n\nI am deeply sorry for your loss. Grieving the passing of a parent is one of the heaviest burdens a person can carry, and feeling lost is a very natural and human response. \n\nTo help anchor your heart during this difficult time, we turn to the soothing wisdom of Guru Arjan Dev Ji:\n\n> ਤੇਰਾ ਕੀਆ ਮੀਠਾ ਲਾਗੈ ॥  \n> ਹਰਿ ਨਾਮੁ ਪਦਾਰਥੁ ਨਾਨਕੁ ਮਾਂਗੈ ॥  \n> *Teraa keeaa meethaa laagai.*  \n> *Har naam padaarath Naanak maangai.*  \n> \"Your actions seem so sweet to me. Nanak begs for the treasure of the Lord's Name.\"  \n> — Guru Arjan Dev Ji, Ang 394\n\n### Walking the Path of Hukam\n\nAccepting *Hukam* (the divine order or will) does not mean that you must instantly suppress your sorrow, nor does it mean you cannot weep. Guru Arjan Dev Ji, who endured unimaginable trials and ultimately gave his life with serene equanimity, showed us that accepting Hukam is a gradual spiritual process of shifting from resistance to trust.\n\nHere are a few ways Gurmat guides us to navigate this grief:\n\n1. **Recognize the Nature of the Soul’s Journey**  \n   In *Sukhmani Sahib*, Guru Arjan Dev Ji reminds us:\n   > \"ਜੈਸਾ ਬਾਲਕੁ ਭਾਇ ਸੁਭਾਈ ਲਖ ਅਪਰਾਧ ਕਮਾਵੈ ॥ ਕਰਿ ਉਪਦੇਸੁ ਝਿੜਕੇ ਬਹੁ ਭਾਤੀ ਬਹੁੜਿ ਪਿਤਾ ਗਲਿ ਲਾਵੈ ॥\"  \n   Just as a child runs to a father, the soul ultimately belongs to the Supreme Parent. Guru Ji teaches that life and death are under the care of the Creator: *\"ਜਿਸ ਕੀ ਬਸਤੁ ਤਿਸੁ ਆਗੈ ਰਾਖੈ ॥ ਪ੍ਰਭ ਕੀ ਆਗਿਆ ਮਾਨੈ ਮਾਥੈ ॥\"* — \"He surrenders that which belongs to the Lord unto Him, and gladly obeys the Order of God\" (Guru Arjan Dev Ji, Ang 268). Your father’s soul was entrusted to this world for a designated time, and now it has returned to its eternal home.\n\n2. **Allow Yourself to Grieve Honestly**  \n   Hukam is not cold stoicism. It is the realization that even in our pain, Waheguru is present. Speak to the Divine as a companion. Offer your tears and heartache to the Guru rather than holding them inside.\n\n3. **Anchor Your Mind in Naam and Bani**  \n   When the mind feels unsettled and untethered, reading or listening to *Sukhmani Sahib* (The Jewel of Peace) provides a cooling, stabilizing presence. It gently realigns the heart with peace and reminds us of the temporary nature of this world (*Mithya*) versus the permanent support of the Creator.\n\n4. **Honor Your Father Through Seva and Prayer**  \n   A beautiful way to channel your love and grief is to do *Ardas* (supplication) for his soul's peaceful journey and to perform acts of *Seva* (selfless service) or charity in his memory. When you honor the values he gave you, his light continues to live through your deeds.\n\nTake this one day, and one breath, at a time. May Waheguru grant you comfort, strength, and inner quietude as you navigate this tender space.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 618,
+        "output": 786
+      },
+      "ttftMs": 1043,
+      "latencyMs": 5130,
+      "at": "2026-09-21T20:55:28.165Z",
+      "citations": [
+        {
+          "quote": "ਤੇਰਾ ਕੀਆ ਮੀਠਾ ਲਾਗੈ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 394,
+          "line": {
+            "gurmukhi": "ਤੇਰਾ ਕੀਆ ਮੀਠਾ ਲਾਗੈ ॥",
+            "translation": "Your actions seem so sweet to me.",
+            "ang": 394,
+            "lineNo": 4,
+            "shabadId": "4Z1",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Aasaa",
+            "raagGurmukhi": "ਰਾਗੁ ਆਸਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਹਰਿ ਨਾਮੁ ਪਦਾਰਥੁ ਨਾਨਕੁ ਮਾਂਗੈ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 394,
+          "line": {
+            "gurmukhi": "ਹਰਿ ਨਾਮੁ ਪਦਾਰਥੁ ਨਾਨਕੁ ਮਾਂਗੈ ॥੨॥੪੨॥੯੩॥",
+            "translation": "Nanak begs for the treasure of the Naam, the Name of the Lord. ||2||42||93||",
+            "ang": 394,
+            "lineNo": 4,
+            "shabadId": "4Z1",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Aasaa",
+            "raagGurmukhi": "ਰਾਗੁ ਆਸਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਜੈਸਾ ਬਾਲਕੁ ਭਾਇ ਸੁਭਾਈ ਲਖ ਅਪਰਾਧ ਕਮਾਵੈ ॥",
+          "status": "wrong-ang",
+          "exact": true,
+          "citedAng": 268,
+          "line": {
+            "gurmukhi": "ਜੈਸਾ ਬਾਲਕੁ ਭਾਇ ਸੁਭਾਈ ਲਖ ਅਪਰਾਧ ਕਮਾਵੈ ॥",
+            "translation": "Like the child, innocently making thousands of mistakes",
+            "ang": 624,
+            "lineNo": 16,
+            "shabadId": "5NM",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Sorath",
+            "raagGurmukhi": "ਰਾਗੁ ਸੋਰਠਿ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਕਰਿ ਉਪਦੇਸੁ ਝਿੜਕੇ ਬਹੁ ਭਾਤੀ ਬਹੁੜਿ ਪਿਤਾ ਗਲਿ ਲਾਵੈ ॥",
+          "status": "wrong-ang",
+          "exact": true,
+          "citedAng": 268,
+          "line": {
+            "gurmukhi": "ਕਰਿ ਉਪਦੇਸੁ ਝਿੜਕੇ ਬਹੁ ਭਾਤੀ ਬਹੁੜਿ ਪਿਤਾ ਗਲਿ ਲਾਵੈ ॥",
+            "translation": "his father teaches him, and scolds him so many times, but still, he hugs him close in his embrace.",
+            "ang": 624,
+            "lineNo": 17,
+            "shabadId": "5NM",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Sorath",
+            "raagGurmukhi": "ਰਾਗੁ ਸੋਰਠਿ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਜਿਸ ਕੀ ਬਸਤੁ ਤਿਸੁ ਆਗੈ ਰਾਖੈ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 268,
+          "line": {
+            "gurmukhi": "ਜਿਸ ਕੀ ਬਸਤੁ ਤਿਸੁ ਆਗੈ ਰਾਖੈ ॥",
+            "translation": "When one offers to the Lord, that which belongs to the Lord,",
+            "ang": 268,
+            "lineNo": 11,
+            "shabadId": "7HP",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਪ੍ਰਭ ਕੀ ਆਗਿਆ ਮਾਨੈ ਮਾਥੈ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 268,
+          "line": {
+            "gurmukhi": "ਪ੍ਰਭ ਕੀ ਆਗਿਆ ਮਾਨੈ ਮਾਥੈ ॥",
+            "translation": "and willingly abides by the Will of God's Order,",
+            "ang": 268,
+            "lineNo": 11,
+            "shabadId": "7HP",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "8262cb94401e2ab84a81b7892dcc2a542ce41e62e3fab2e4c578c0df82918a35": {
+      "fixture": "arjan-grief-gurbani-first",
+      "variant": "gemini-3.8-flash@medium",
+      "sample": 1,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "ਜਿਸ ਕੀ ਬਸਤੁ ਤਿਸੁ ਆਗੈ ਰਾਖੈ ॥  \nਪ੍ਰਭ ਕੀ ਆਗਿਆ ਮਾਨੈ ਮਾਥੈ ॥  \nਉਸ ਤੇ ਚਉਗੁਨ ਕਰੈ ਨਿਹਾਲੁ ॥  \nਨਾਨਕ ਸਾਹਿਬੁ ਸਦਾ ਦਇਆਲੁ ॥੨॥  \n\n*Jis kee basath this aagai raakhai ||*  \n*Prabh kee aagiaa maanai maathai ||*  \n*Ous thae chougun karai nihaal ||*  \n*Naanak saahib sadhaa dhaiaal ||2||*  \n\n\"When one surrenders to Him what belongs to Him, and bows to the command of God with reverence, He blesses that person fourfold. O Nanak, the Lord Master is forever merciful.\"  \n— Guru Arjan Dev Ji, Sri Guru Granth Sahib Ji, Ang 268  \n\n***\n\nLosing a parent is one of the deepest pains a person can endure, and feeling lost is a completely natural, human response. Gurmat does not ask you to suppress your tears or pretend the grief does not hurt. Rather, it invites you to hold that grief within a wider understanding of Divine order (*Hukam*).\n\nGuru Arjan Dev Ji reminds us in *Sukhmani Sahib* that every soul we love—including our parents, children, and friends—is a precious trust placed in our lives for a specific, appointed time. The breath of life and the duration of each relationship are determined by the Creator. When a loved one leaves this earthly realm, the Creator has simply reclaimed what was always His. \n\nAccepting Hukam is not an overnight act of will; it is a gradual softening of the heart. You can nurture this state through a few spiritual practices:\n\n* **Shift from grief to gratitude:** Whenever you feel the ache of his absence, consciously thank Waheguru for the years you were given together, for his presence in your life, and for everything he taught you. \n* **Distinguish grief from resistance:** Grieving is honoring love; resistance is demanding that reality be different from what the Creator has willed. Guru Arjan Dev Ji embodied the prayer *\"Tera Kia Meetha Lagai\"* (Your doing tastes sweet to me). This does not mean finding joy in tragedy, but trusting that even in the most painful moments, the Divine hand is at work with mercy and purpose beyond our limited sight.\n* **Pray for his soul and your peace:** Channel your love into *Ardas* (supplication) for his journey forward, and take comfort in reciting or listening to *Sukhmani Sahib*. The rhythmic, cooling verses of Sukhmani Sahib were composed by Guru Arjan Dev Ji specifically to bring peace (*sukh*) to troubled minds (*man*).\n* **Honor his memory through Seva:** Performing acts of selfless service or giving in his name is a powerful way to turn sorrow into a living tribute.\n\nBe gentle with yourself. Take it one breath and one day at a time, leaning on Naam to steady your heart.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 618,
+        "output": 648,
+        "thoughts": 1049
+      },
+      "ttftMs": 4307,
+      "latencyMs": 6575,
+      "at": "2026-09-21T20:55:35.576Z",
+      "citations": [
+        {
+          "quote": "ਜਿਸ ਕੀ ਬਸਤੁ ਤਿਸੁ ਆਗੈ ਰਾਖੈ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਜਿਸ ਕੀ ਬਸਤੁ ਤਿਸੁ ਆਗੈ ਰਾਖੈ ॥",
+            "translation": "When one offers to the Lord, that which belongs to the Lord,",
+            "ang": 268,
+            "lineNo": 11,
+            "shabadId": "7HP",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਪ੍ਰਭ ਕੀ ਆਗਿਆ ਮਾਨੈ ਮਾਥੈ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਪ੍ਰਭ ਕੀ ਆਗਿਆ ਮਾਨੈ ਮਾਥੈ ॥",
+            "translation": "and willingly abides by the Will of God's Order,",
+            "ang": 268,
+            "lineNo": 11,
+            "shabadId": "7HP",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਉਸ ਤੇ ਚਉਗੁਨ ਕਰੈ ਨਿਹਾਲੁ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਉਸ ਤੇ ਚਉਗੁਨ ਕਰੈ ਨਿਹਾਲੁ ॥",
+            "translation": "the Lord will make him happy four times over.",
+            "ang": 268,
+            "lineNo": 11,
+            "shabadId": "7HP",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਨਾਨਕ ਸਾਹਿਬੁ ਸਦਾ ਦਇਆਲੁ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਨਾਨਕ ਸਾਹਿਬੁ ਸਦਾ ਦਇਆਲੁ ॥੨॥",
+            "translation": "O Nanak, our Lord and Master is merciful forever. ||2||",
+            "ang": 268,
+            "lineNo": 12,
+            "shabadId": "7HP",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "bc72a9f41252f86441b2c8706cb97a06bf666fcf7dc1465800d57e8ffcf75f50": {
+      "fixture": "arjan-grief-gurbani-first",
+      "variant": "gemini-3.8-flash@medium",
+      "sample": 2,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.\n\nI am deeply sorry for your loss. Grieving the physical departure of a parent is natural, and feeling disoriented or heartbroken does not mean you have failed in faith.\n\nGuru Arjan Dev Ji offers immense comfort on the nature of life, loss, and the Divine Will in *Sukhmani Sahib*:\n\n> **ਜਿਸ ਕੀ ਬਸਤੁ ਤਿਸੁ ਆਗੈ ਰਾਖੈ ॥**  \n> **ਪ੍ਰਭ ਕੀ ਆਗਿਆ ਮਾਨੈ ਮਾਥੈ ॥**  \n> **ਉਸ ਤੇ ਚਉਗੁਨ ਕਰੈ ਨਿਹਾਲੁ ॥**  \n> **ਨਾਨਕ ਸਾਹਿਬੁ ਸਦਾ ਦਇਆਲੁ ॥੨॥**  \n> \n> *Jis kee basat tis aagai raakhai ||*  \n> *Prabh kee aagiaa maanai maathai ||*  \n> *Us te chaugun karai nihaal ||*  \n> *Naanak saahib sadaa daiaal ||2||*  \n> \n> \"One who places that which belongs to the Lord back before Him,  \n> and accepts the Will of God upon their forehead (with reverence),  \n> is blessed fourfold.  \n> O Nanak, the Master is forever merciful.\"  \n> — *Guru Arjan Dev Ji, Sri Guru Granth Sahib Ji, Ang 268*\n\n### Understanding Hukam in Times of Loss\n\nAccepting *Hukam* (the Divine Order) does not mean you must become unfeeling or pretend you are not hurting. Rather, Guru Arjan Dev Ji teaches us how to shift our perspective through these truths:\n\n1. **Life as a Sacred Trust (*Amanat*)**  \n   Our loved ones are precious gifts entrusted to us by Waheguru for a destined period. When a person’s journey in this physical realm concludes, the soul simply returns to the One who sent it. In Gurmat, this is described as *Joti Jot Samavna*—the individual spark of divine light merging back into the eternal Light, like a drop of water returning to the ocean.\n\n2. **Moving from \"Why?\" to Gratitude**  \n   When we resist the reality of death, our minds ask, *\"Why did this happen?\"* Accepting Hukam means gently transforming that question into gratitude: *\"Thank You for the time, the guidance, and the love I was given through my father.\"* Surrendering what was always Waheguru's eases the bitter weight of grief.\n\n3. **Finding Peace through *Bhana Manna***  \n   Throughout his life and his supreme sacrifice, Guru Arjan Dev Ji demonstrated complete equanimity, uttering *“Tera kia meetha lagai”* (Your Will is sweet to me). This sweetness is not joy in suffering, but the profound peace that arises when we stop fighting the reality of existence and rest in the sheltering presence of the Creator.\n\n### Practical Steps for Your Heart\n\n* **Turn to Sukhmani Sahib:** When grief feels overwhelming, recite or listen to *Sukhmani Sahib* (the \"Jewel of Peace\"). Guru Arjan Dev Ji composed it specifically to bring stillness to agitated and sorrowful minds.\n* **Ardas (Heartfelt Prayer):** Speak openly to Waheguru in prayer. Ask for the strength (*bal*) to accept this phase of life, and pray for your father's soul to rest in peace and Chardi Kala.\n* **Honor His Memory through Seva:** Channel the love and teachings he gave you into acts of selfless service (seva) and kindness toward others. \n\nBe patient with your heart. Healing takes time, and accepting Hukam is a gradual surrender, one breath at a time.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 618,
+        "output": 800,
+        "thoughts": 1368
+      },
+      "ttftMs": 5628,
+      "latencyMs": 8533,
+      "at": "2026-09-21T20:55:44.215Z",
+      "citations": [
+        {
+          "quote": "ਜਿਸ ਕੀ ਬਸਤੁ ਤਿਸੁ ਆਗੈ ਰਾਖੈ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਜਿਸ ਕੀ ਬਸਤੁ ਤਿਸੁ ਆਗੈ ਰਾਖੈ ॥",
+            "translation": "When one offers to the Lord, that which belongs to the Lord,",
+            "ang": 268,
+            "lineNo": 11,
+            "shabadId": "7HP",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਪ੍ਰਭ ਕੀ ਆਗਿਆ ਮਾਨੈ ਮਾਥੈ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਪ੍ਰਭ ਕੀ ਆਗਿਆ ਮਾਨੈ ਮਾਥੈ ॥",
+            "translation": "and willingly abides by the Will of God's Order,",
+            "ang": 268,
+            "lineNo": 11,
+            "shabadId": "7HP",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਉਸ ਤੇ ਚਉਗੁਨ ਕਰੈ ਨਿਹਾਲੁ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਉਸ ਤੇ ਚਉਗੁਨ ਕਰੈ ਨਿਹਾਲੁ ॥",
+            "translation": "the Lord will make him happy four times over.",
+            "ang": 268,
+            "lineNo": 11,
+            "shabadId": "7HP",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਨਾਨਕ ਸਾਹਿਬੁ ਸਦਾ ਦਇਆਲੁ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਨਾਨਕ ਸਾਹਿਬੁ ਸਦਾ ਦਇਆਲੁ ॥੨॥",
+            "translation": "O Nanak, our Lord and Master is merciful forever. ||2||",
+            "ang": 268,
+            "lineNo": 12,
+            "shabadId": "7HP",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "edfb7a8b77f5a9672e675a7f34c836ad408b4493783719d24fe0cbd1b1397c84": {
+      "fixture": "arjan-grief-gurbani-first",
+      "variant": "gemini-3.8-flash@medium",
+      "sample": 3,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "ਜਿਉ ਜਲ ਮਹਿ ਜਲੁ ਆਇ ਖਟਾਨਾ ॥  \nਤਿਉ ਜੋਤੀ ਸੰਗਿ ਜੋਤਿ ਸਮਾਨਾ ॥  \n*Jio jal meh jal aae khataanaa ||*  \n*Tio jotee sang jot samaanaa ||*  \n\"As water blends into water, so does their light merge into the Divine Light.\"  \n— Guru Arjan Dev Ji, Sri Guru Granth Sahib Ji, Ang 278  \n\nI am deeply sorry for your loss. Grieving the loss of a parent is profound, and feeling disoriented or lost is a natural, human response. \n\nThrough the teachings of Guru Arjan Dev Ji, accepting *Hukam* (the Divine Will) is not about suppressing your tears or pretending that pain does not exist. Guru Arjan Dev Ji showed throughout his life—even during intense trials—that honoring Hukam is an inward posture of trust: recognizing that Akal Purakh (the Timeless Being) is benevolent, even when life feels unbearable. \n\nHere are steps from Gurmat to help you navigate this grief and move toward acceptance:\n\n### 1. Reframe Death as a Return Home\nGuru Arjan Dev Ji teaches in *Sukhmani Sahib* that every soul is a ray of the Divine Light. Our time together in these physical bodies is determined by *Sanjog* (ordained union). When that time concludes, the soul is not extinguished; it simply returns to its source, just like a drop of water merging back into the ocean. Your father has returned home to the Creator.\n\n### 2. Recognize Loved Ones as a Sacred Trust\nIn Sukhmani Sahib, Guru Arjan Dev Ji reminds us that everything we cherish in this world—our families, our bodies, our possessions—is a gift entrusted to us by the Divine:\n> The Creator gives, and the Creator takes away according to wisdom beyond our limited view.  \n\nAccepting Hukam begins with shifting our perspective from \"Why was he taken from me?\" to \"I am grateful for the precious years the Guru blessed us together.\" \n\n### 3. Take Shelter in Gurbani and Simran\nAcceptance is not a switch you flip; it is a spiritual muscle that strengthens through practice:\n* **Read or listen to *Sukhmani Sahib*:** Guru Arjan Dev Ji composed this Bani specifically as a balm for distressed and weary minds. It has an immense capacity to still the storm within.\n* **Anchor in Naam:** When a wave of sadness or loneliness hits, gently repeat *\"Waheguru.\"* Direct that emotional energy into remembrance, anchoring yourself to the one Constant that never dies or leaves.\n\n### 4. Offer Ardas for Strength\nYou do not have to carry this burden entirely on your own strength. Stand before the Guru in *Ardas* (supplication). Pour your heart out honestly. Pray for peace for your father’s soul, and pray for the blessing of *bhana manna*—the grace to accept the Divine Will as sweet (*Tera kia meetha lagai*).\n\nBe patient and gentle with yourself. Take it one day, one breath, and one Shabad at a time.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 618,
+        "output": 671,
+        "thoughts": 1261
+      },
+      "ttftMs": 7133,
+      "latencyMs": 10477,
+      "at": "2026-09-21T20:55:54.800Z",
+      "citations": [
+        {
+          "quote": "ਜਿਉ ਜਲ ਮਹਿ ਜਲੁ ਆਇ ਖਟਾਨਾ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 278,
+          "line": {
+            "gurmukhi": "ਜਿਉ ਜਲ ਮਹਿ ਜਲੁ ਆਇ ਖਟਾਨਾ ॥",
+            "translation": "As water comes to blend with water,",
+            "ang": 278,
+            "lineNo": 4,
+            "shabadId": "W3K",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਤਿਉ ਜੋਤੀ ਸੰਗਿ ਜੋਤਿ ਸਮਾਨਾ ॥",
+          "status": "verified",
+          "exact": true,
+          "citedAng": 278,
+          "line": {
+            "gurmukhi": "ਤਿਉ ਜੋਤੀ ਸੰਗਿ ਜੋਤਿ ਸਮਾਨਾ ॥",
+            "translation": "his light blends into the Light.",
+            "ang": 278,
+            "lineNo": 4,
+            "shabadId": "W3K",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "Raag Gauree",
+            "raagGurmukhi": "ਰਾਗੁ ਗਉੜੀ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        }
+      ]
+    },
+    "01382b5b84273948f2f310f94d490bf7cd34cd5a17052fe18a2511d83e99e560": {
+      "fixture": "jaap-dasam-attribution",
+      "variant": "gemini-3.8-flash",
+      "sample": 2,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "ਚੱਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥\nਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤ ਕਿਹ ॥\n*Chakkr chihan ar baran jaat ar paat nahin jih.*\n*Roop rang ar rekh bhekh ko-oo kahi na sakat kih.*\n\"The One has no physical mark, no sign, no caste, no lineage.\nNone can describe the One’s form, color, outline, or attire.\"\n— Guru Gobind Singh Ji, *Jaap Sahib* (Dasam Granth)\n\n---\n\n*Jaap Sahib*, the opening composition of the Dasam Granth written by Guru Gobind Singh Ji, reveals the Divine through a profound balance of what the Divine is *not* (apophatic theology, or *neti neti*) and how the Divine manifests dynamically in creation. \n\nGuru Gobind Singh Ji teaches several core truths about the nature of Waheguru in this Bani:\n\n1. **Beyond Form, Lineage, and Limitation:**\n   As declared in the opening verse (*Chhapai Chhand*), Waheguru transcends all earthly classifications. God cannot be confined to any specific gender, race, sect, color, or social status. By stripping away anthropomorphic imagery, Guru Gobind Singh Ji directs our consciousness away from superstition and idol worship toward the purely transcendent reality (*Nirgun*).\n\n2. **Both Formless (*Aroop*) and All-Forms (*Sarvaroop*):**\n   Throughout *Jaap Sahib*, God is praised as *Aroop* (without form), *Anbhekhi* (guiseless), and *Alakh* (unseeable), yet simultaneously saluted as *Sarb-roope* (the essence of every form) and *Sarb-name* (embodied in all names). The Infinite remains detached from the universe yet completely permeates every atom of it.\n\n3. **Dynamic and Sovereign (*Sipahi* aspect of the Divine):**\n   Unlike purely contemplative descriptions, Guru Gobind Singh Ji salutes Waheguru with martial and energetic attributes. The Divine is *Shatrun khey* (the destroyer of tyranny), *Dusht ganjan* (the vanquisher of the wicked), and *Sarb-palak* (the cherisher of all). In the worldview of Guru Gobind Singh Ji, God is not passive; Waheguru actively upholds righteousness (*Dharma*) and balances cosmic justice.\n\n4. **Universal Love and Compassion:**\n   Despite the warrior imagery, *Jaap Sahib* continually emphasizes boundless mercy. God is saluted as *Karunalaya* (the home of compassion), *Raziq* (the sustainer of all beings), and *Sadaiva Samasthi* (forever united with all). Waheguru provides sustenance equally to the saint and the sinner without prejudice.\n\n5. **Ever-Victorious and Timeless (*Akal*):**\n   Above all, *Jaap Sahib* instills the spirit of *Chardi Kala* (ever-rising morale). By meditating on an Eternal Creator who is *Aje* (unconquerable), *Anas* (indestructible), and *Abhanj* (unbreakable), the seeker absorbs those very qualities, rising above fear, persecution, and defeat.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 670,
+        "output": 730
+      },
+      "ttftMs": 1195,
+      "latencyMs": 4588,
+      "at": "2026-09-21T20:55:59.904Z",
+      "citations": [
+        {
+          "quote": "ਚੱਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਚੱਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥",
+            "translation": "He who is without mark or sign, He who is without caste or line.",
+            "ang": 1,
+            "lineNo": 4,
+            "shabadId": "KKH",
+            "writer": "Guru Gobind Singh Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਗੋਬਿੰਦ ਸਿੰਘ ਜੀ",
+            "raag": "Jaap",
+            "raagGurmukhi": "ਜਾਪੁ",
+            "source": {
+              "id": 2,
+              "name": "Sri Dasam Granth",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਦਸਮ ਗ੍ਰੰਥ"
+            }
+          }
+        },
+        {
+          "quote": "ਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤ ਕਿਹ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤ ਕਿਹ ॥",
+            "translation": "He who is without colour or form, and without any distinctive norm.",
+            "ang": 1,
+            "lineNo": 4,
+            "shabadId": "KKH",
+            "writer": "Guru Gobind Singh Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਗੋਬਿੰਦ ਸਿੰਘ ਜੀ",
+            "raag": "Jaap",
+            "raagGurmukhi": "ਜਾਪੁ",
+            "source": {
+              "id": 2,
+              "name": "Sri Dasam Granth",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਦਸਮ ਗ੍ਰੰਥ"
+            }
+          }
+        }
+      ]
+    },
+    "c4c5e25a2789e6e0fbe1747ac0547ce5f0476ee21b12d5b583d3f0b5b9bfa19a": {
+      "fixture": "jaap-dasam-attribution",
+      "variant": "gemini-3.8-flash",
+      "sample": 3,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "ਚਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥\nਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤਿ ਕਿਹ ॥\n*Chakar chihan ar baran jaat ar paat nahin jih.*\n*Roop rang ar rekh bhekh kou kahi na sakat kih.*\n\"He has no mark, no sign, no caste, no lineage.\nNo one can describe His form, His color, His features, or His garb.\"\n— Guru Gobind Singh Ji, *Jaap Sahib* (Dasam Granth)\n\nIn *Jaap Sahib*, the opening composition of the Dasam Granth, Guru Gobind Singh Ji presents a profound, dynamic vision of the Divine (*Waheguru*). Rather than describing the Almighty through mythological forms, Guru Sahib reveals the Divine through hundreds of descriptive, action-based names (*karmic* names), balancing negative theology (what God is not) with dynamic, active attributes (what God does).\n\nKey teachings about the nature of Waheguru in *Jaap Sahib* include:\n\n1. **Transcendent and Formless (Nirgun)**\nGuru Gobind Singh Ji emphasizes that Waheguru cannot be limited by physical reality, sectarian symbols, or human social constructs. The Divine is *Akal* (beyond time), *Ajooni* (unborn), *Arbaang* (limitless), and devoid of caste, color, or creed. Waheguru cannot be trapped in any single image, ritual, or doctrine.\n\n2. **All-Pervading and Immanent (Sargun)**\nWhile beyond human comprehension, the Divine is simultaneously present in every speck of creation. Guru Ji addresses Waheguru as *Sarba-bhabe* (present everywhere) and *Sarba-jive* (the life force of all beings). God is not an aloof spectator, but intimately connected to the universe.\n\n3. **Both Merciful and Formidable (The Saint-Soldier Divine)**\n*Jaap Sahib* presents a complete vision of the Divine that directly underpins the ideal of the *Sant-Sipahi* (Saint-Soldier). Guru Sahib salutes Waheguru as:\n* *Karunalay* (the Abode of Mercy) and *Kripalan* (the Compassionate One), nurturing and forgiving all.\n* *Shatrun-pramathi* (the Crusher of Tyrants) and *Asur-sangar* (the Destroyer of Evil). \n\nGod is the defender of righteousness (*Dharma*) who uproots oppression when balance must be restored.\n\n4. **Universal and Free from Prejudice**\nGuru Ji addresses the Divine as belonging to no single land, language, or faith. Waheguru is *Namastang Azaate* (salutations to the Casteless One) and *Namastang Amajne* (salutations to the Religionless One). The Divine loves all creation equally, irrespective of worldly divisions.\n\nThrough *Jaap Sahib*, Guru Gobind Singh Ji teaches that meditating on a timeless, fearless, and unconditionally loving God frees the human mind from fear, superstition, and division, instilling the eternal spirit of *Chardi Kala* (ever-rising optimism).",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 670,
+        "output": 704
+      },
+      "ttftMs": 1489,
+      "latencyMs": 3771,
+      "at": "2026-09-21T20:56:03.795Z",
+      "citations": [
+        {
+          "quote": "ਚਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥",
+          "status": "verified",
+          "exact": false,
+          "line": {
+            "gurmukhi": "ਚੱਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥",
+            "translation": "He who is without mark or sign, He who is without caste or line.",
+            "ang": 1,
+            "lineNo": 4,
+            "shabadId": "KKH",
+            "writer": "Guru Gobind Singh Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਗੋਬਿੰਦ ਸਿੰਘ ਜੀ",
+            "raag": "Jaap",
+            "raagGurmukhi": "ਜਾਪੁ",
+            "source": {
+              "id": 2,
+              "name": "Sri Dasam Granth",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਦਸਮ ਗ੍ਰੰਥ"
+            }
+          }
+        },
+        {
+          "quote": "ਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤਿ ਕਿਹ ॥",
+          "status": "verified",
+          "exact": false,
+          "line": {
+            "gurmukhi": "ਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤ ਕਿਹ ॥",
+            "translation": "He who is without colour or form, and without any distinctive norm.",
+            "ang": 1,
+            "lineNo": 4,
+            "shabadId": "KKH",
+            "writer": "Guru Gobind Singh Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਗੋਬਿੰਦ ਸਿੰਘ ਜੀ",
+            "raag": "Jaap",
+            "raagGurmukhi": "ਜਾਪੁ",
+            "source": {
+              "id": 2,
+              "name": "Sri Dasam Granth",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਦਸਮ ਗ੍ਰੰਥ"
+            }
+          }
+        }
+      ]
+    },
+    "511347a538be6178e322ff076172f4732705fd649617bc090bdf27e9178c5a77": {
+      "fixture": "jaap-dasam-attribution",
+      "variant": "gemini-3.8-flash@medium",
+      "sample": 1,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "ਚੱਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥  \nਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤ ਕਿਹ ॥  \n\n*Chakkr chihan ar baran jaat ar paat nahin jih ॥*  \n*Roop rang ar rekh bhekh ko-oo kahi na sakat kih ॥*  \n\n\"He has no contour, no sign, no caste, no lineage. None can describe His form, color, outline, or attire.\"  \n— Guru Gobind Singh Ji, *Jaap Sahib* (Sri Dasam Granth)\n\n---\n\nIn *Jaap Sahib*, the opening composition of the Dasam Granth, Guru Gobind Singh Ji reveals the nature of Waheguru through an outpouring of salutations, defining the Divine both through what the Creator is beyond (apophatic theology) and how the Divine acts within creation. \n\nGuru Gobind Singh Ji outlines several profound dimensions of the Divine nature in this Bani:\n\n### 1. Formless and Beyond Boundaries (*Nirgun*)\nGuru Gobind Singh Ji begins by declaring that the Divine cannot be confined by physical markers, caste (*jaat*), ancestry (*paat*), religion, or appearance. Waheguru is:\n* **Akaal:** Beyond time and death.\n* **Ajooni:** Unborn and never incarnated into flesh.\n* **Alekh:** Indescribable and beyond human comprehension.\n\nBy stripping away ritualistic imagery, the Guru teaches that God is not the exclusive property of any single sect, culture, or geography.\n\n### 2. Pervasive and Immanent (*Sargun*)\nWhile transcendent, Waheguru is not distant. *Jaap Sahib* describes the Divine as filling every corner of reality—*Chatur chakkravarti* (pervading all four directions). God is present in the gentle beauty of nature just as in the fiercest aspects of existence. Waheguru is light (*Namastang Prabhe*), love (*Namo Rog Harte*), and the animating force in every being.\n\n### 3. Nameless Yet Known Through Actions (*Karam Naam*)\n*Jaap Sahib* introduces God as *Anaam* (nameless), yet addresses the Almighty through nearly two hundred attribute-based names (*Karam Naam*). Instead of meditating on a localized identity, the seeker is taught to worship the Divine through continuous salutation (*Namastang*—\"I bow to You\"):\n* To the Dispeller of darkness and fear (*Namo Andh-kaare, Namo Tej-teje*).\n* To the Eternal Friend and Sustainer (*Gareeb-un Nivaaz*).\n\n### 4. Protector of Truth and Subduer of Tyranny\nReflecting the saint-soldier (*Sant-Sipahi*) vision of Guru Gobind Singh Ji, *Jaap Sahib* does not depict God as passive. The Divine is hailed as the vanquisher of oppression (*Dusht-harta*) and the protector of the innocent and humble (*Sarab-dayal*). God upholds cosmic order (*Dharam*) and stands with those who resist injustice.\n\nThrough *Jaap Sahib*, Guru Gobind Singh Ji inspires a spirit of fearless awe (*Bhai-Bhav*) and ever-rising optimism (*Chardi Kala*), reminding the soul that the Infinite Sovereign of the universe is intimately close, universally just, and boundless in grace.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 670,
+        "output": 752,
+        "thoughts": 618
+      },
+      "ttftMs": 4144,
+      "latencyMs": 7671,
+      "at": "2026-09-21T20:56:11.499Z",
+      "citations": [
+        {
+          "quote": "ਚੱਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਚੱਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥",
+            "translation": "He who is without mark or sign, He who is without caste or line.",
+            "ang": 1,
+            "lineNo": 4,
+            "shabadId": "KKH",
+            "writer": "Guru Gobind Singh Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਗੋਬਿੰਦ ਸਿੰਘ ਜੀ",
+            "raag": "Jaap",
+            "raagGurmukhi": "ਜਾਪੁ",
+            "source": {
+              "id": 2,
+              "name": "Sri Dasam Granth",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਦਸਮ ਗ੍ਰੰਥ"
+            }
+          }
+        },
+        {
+          "quote": "ਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤ ਕਿਹ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤ ਕਿਹ ॥",
+            "translation": "He who is without colour or form, and without any distinctive norm.",
+            "ang": 1,
+            "lineNo": 4,
+            "shabadId": "KKH",
+            "writer": "Guru Gobind Singh Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਗੋਬਿੰਦ ਸਿੰਘ ਜੀ",
+            "raag": "Jaap",
+            "raagGurmukhi": "ਜਾਪੁ",
+            "source": {
+              "id": 2,
+              "name": "Sri Dasam Granth",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਦਸਮ ਗ੍ਰੰਥ"
+            }
+          }
+        }
+      ]
+    },
+    "ffedbdeaa64d1a1daabc34a4fbf920cad289210402db28539129355d85b4e7a4": {
+      "fixture": "jaap-dasam-attribution",
+      "variant": "gemini-3.8-flash@medium",
+      "sample": 2,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "ਚਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥\nਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤ ਕਿਹ ॥\n*Chakra chihan ar baran jaat ar paat nahin jih ॥*\n*Roop rang ar rekh bhekh ko-oo kahi na sakat kih ॥*\n\"The Divine has no contour, no mark, no color, no caste, and no lineage.\nNone can describe His form, color, outline, or attire.\"\n— Guru Gobind Singh Ji, *Jaap Sahib* (Dasam Granth)\n\nIn *Jaap Sahib*, the opening Bani of the Dasam Granth, Guru Gobind Singh Ji presents a profound meditation on the limitless nature of the Divine (*Akal Purakh*). Rather than defining the Almighty through physical form, mythology, or rigid boundaries, the Guru describes the Divine through what is beyond human comprehension, using hundreds of negative and affirmative attributes (*Nirgun* and *Sargun*).\n\nKey teachings about the nature of Waheguru in *Jaap Sahib* include:\n\n*   **Transcending Form, Caste, and Lineage:** From the very first stanza, Guru Gobind Singh Ji establishes that the Divine cannot be bound by physical features, ritual vestments, social rank, or human lineage. Waheguru belongs to no exclusive tribe, race, or sect.\n*   **Akal (Timeless and Unborn):** The Divine is *Ajooni* (beyond birth and incarnation) and *Amrit* (immortal). Waheguru was never born from a womb, does not age, and cannot be destroyed.\n*   **Pervading Everywhere and in All Aspects:** *Jaap Sahib* uses rhythmic salutations (*Namo* or *Namastang*) to honor the Divine in every facet of existence. Guru Gobind Singh Ji salutes the One who is present in tranquility as well as in battle, in beauty as well as in awe-inspiring majesty, in life and in dissolution. \n*   **Sovereign and Self-Illumined (*Svai-bhang*):** The Creator needs no assistance, owes allegiance to no one, and shines forth by Divine self-existence. No worldly force or ruler can diminish this sovereignty.\n*   **Universally Merciful:** Waheguru is praised as *Sarab Daata* (the giver to all) and *Raziq* (the nourisher), extending grace unconditionally to all creation, without prejudice.\n\nThrough *Jaap Sahib*, Guru Gobind Singh Ji instills in the seeker a vision of an infinite, fearless, and omnipresent God. This understanding frees the heart from superstition, fear of tyranny, and narrow divisions, awakening instead a spirit of resilience, universal kinship, and sovereign strength (*Chardi Kala*).",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 670,
+        "output": 613,
+        "thoughts": 654
+      },
+      "ttftMs": 2989,
+      "latencyMs": 5199,
+      "at": "2026-09-21T20:56:16.770Z",
+      "citations": [
+        {
+          "quote": "ਚਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥",
+          "status": "verified",
+          "exact": false,
+          "line": {
+            "gurmukhi": "ਚੱਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥",
+            "translation": "He who is without mark or sign, He who is without caste or line.",
+            "ang": 1,
+            "lineNo": 4,
+            "shabadId": "KKH",
+            "writer": "Guru Gobind Singh Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਗੋਬਿੰਦ ਸਿੰਘ ਜੀ",
+            "raag": "Jaap",
+            "raagGurmukhi": "ਜਾਪੁ",
+            "source": {
+              "id": 2,
+              "name": "Sri Dasam Granth",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਦਸਮ ਗ੍ਰੰਥ"
+            }
+          }
+        },
+        {
+          "quote": "ਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤ ਕਿਹ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤ ਕਿਹ ॥",
+            "translation": "He who is without colour or form, and without any distinctive norm.",
+            "ang": 1,
+            "lineNo": 4,
+            "shabadId": "KKH",
+            "writer": "Guru Gobind Singh Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਗੋਬਿੰਦ ਸਿੰਘ ਜੀ",
+            "raag": "Jaap",
+            "raagGurmukhi": "ਜਾਪੁ",
+            "source": {
+              "id": 2,
+              "name": "Sri Dasam Granth",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਦਸਮ ਗ੍ਰੰਥ"
+            }
+          }
+        }
+      ]
+    },
+    "c1cdeb66fe01d7cca25c5d41e4475e90c96fa665d6c642bbef6b6d47046a9f48": {
+      "fixture": "jaap-dasam-attribution",
+      "variant": "gemini-3.8-flash@medium",
+      "sample": 3,
+      "model": "gemini-3.8-flash",
+      "modelVersion": "gemini-3.8-flash",
+      "text": "ਚੱਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥\nਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤ ਕਿਹ ॥\n*Chakkr chihan ar baran jaat ar paat nahin jih ॥*\n*Roop rang ar rekh bhekh ko-oo kahi na sakat kih ॥*\n\"He who has no physical feature, no sign, no caste, and no lineage; whose form, color, outline, or attire no one can describe.\"\n— Guru Gobind Singh Ji, *Jaap Sahib*, Sri Dasam Granth Sahib\n\n***\n\nIn *Jaap Sahib*, the opening composition of the Sri Dasam Granth Sahib, Guru Gobind Singh Ji reveals the multifaceted nature of Waheguru through 199 verses composed almost entirely of descriptive divine names (*Karam Naam*). \n\nThe composition teaches several foundational truths about the Divine:\n\n### 1. Completely Transcendent and Formless (*Nirgun*)\nGuru Gobind Singh Ji opens *Jaap Sahib* by emphasizing that the Creator cannot be confined to any physical outline, caste, ritualistic garb, or human limitation. Waheguru is *Akal* (beyond time), *Aroop* (without form), and *Ajanam* (unborn). Because the Divine has no lineage or physical body, no single ritual, race, or sect can claim exclusive ownership over God.\n\n### 2. Universal and All-Pervading (*Sargun*)\nWhile Waheguru is beyond the physical world, the Divine is simultaneously active within it. Guru Ji salutes Waheguru everywhere: in the waters, on the land, across all directions (*Jatar Tatar Disa Visa*). God is neither confined to the East nor the West, neither solely to the temple nor the mosque. Waheguru is *Samastul Niwase*—dwelling equally within all beings.\n\n### 3. Infinitely Merciful and Compassionate\nGuru Sahib addresses the Divine with profound love, using attributes such as *Karunalaye* (home of compassion), *Kripaal* (merciful), and *Raziq* (the universal provider). Waheguru sustains saint and sinner alike, showering unconditional grace upon all creation.\n\n### 4. Dynamic, Sovereign, and the Upholder of Justice\nUnlike depictions of the Divine that focus exclusively on passive quietude, *Jaap Sahib* also praises Waheguru as a dynamic, sovereign power. God is praised as *Shatran Pranasi* (the destroyer of tyranny) and *Dusht Ganjan* (the subduer of the wicked). Through this lens, God is the active force that upholds moral order and dismantles arrogance, reflecting the Sant-Sipahi (saint-soldier) ethos that Guru Gobind Singh Ji infused into the Khalsa.\n\nThrough *Jaap Sahib*, Guru Gobind Singh Ji teaches that Waheguru is both limitless mystery and an intimate, loving protector—a sovereign, timeless Presence to whom the soul offers continuous reverence.",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 670,
+        "output": 659,
+        "thoughts": 821
+      },
+      "ttftMs": 4020,
+      "latencyMs": 6417,
+      "at": "2026-09-21T20:56:23.271Z",
+      "citations": [
+        {
+          "quote": "ਚੱਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਚੱਕ੍ਰ ਚਿਹਨ ਅਰੁ ਬਰਨ ਜਾਤਿ ਅਰੁ ਪਾਤਿ ਨਹਿਨ ਜਿਹ ॥",
+            "translation": "He who is without mark or sign, He who is without caste or line.",
+            "ang": 1,
+            "lineNo": 4,
+            "shabadId": "KKH",
+            "writer": "Guru Gobind Singh Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਗੋਬਿੰਦ ਸਿੰਘ ਜੀ",
+            "raag": "Jaap",
+            "raagGurmukhi": "ਜਾਪੁ",
+            "source": {
+              "id": 2,
+              "name": "Sri Dasam Granth",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਦਸਮ ਗ੍ਰੰਥ"
+            }
+          }
+        },
+        {
+          "quote": "ਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤ ਕਿਹ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਰੂਪ ਰੰਗ ਅਰੁ ਰੇਖ ਭੇਖ ਕੋਊ ਕਹਿ ਨ ਸਕਤ ਕਿਹ ॥",
+            "translation": "He who is without colour or form, and without any distinctive norm.",
+            "ang": 1,
+            "lineNo": 4,
+            "shabadId": "KKH",
+            "writer": "Guru Gobind Singh Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਗੋਬਿੰਦ ਸਿੰਘ ਜੀ",
+            "raag": "Jaap",
+            "raagGurmukhi": "ਜਾਪੁ",
+            "source": {
+              "id": 2,
+              "name": "Sri Dasam Granth",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਦਸਮ ਗ੍ਰੰਥ"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
