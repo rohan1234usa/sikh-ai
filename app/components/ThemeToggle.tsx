@@ -3,7 +3,7 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { ComputerDesktopIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
 import {
-    applyTheme, DARK_QUERY, DEFAULT_THEME, parseTheme,
+    applyTheme, DARK_QUERY, DEFAULT_THEME, keepThemeColor, parseTheme,
     THEMES, THEME_STORAGE_KEY, type Theme,
 } from '@/lib/theme';
 import { useT } from '../context/LanguageContext';
@@ -40,6 +40,10 @@ export default function ThemeToggle() {
         query.addEventListener('change', onChange);
         return () => query.removeEventListener('change', onChange);
     }, [theme]);
+
+    // The browser-chrome colour for an explicit pick lives in a <head> tag
+    // React doesn't own, so re-renders of <head> can drop it. Guard it.
+    useEffect(() => keepThemeColor(), []);
 
     const select = (next: Theme) => {
         applyTheme(next);

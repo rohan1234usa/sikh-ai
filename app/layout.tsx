@@ -8,7 +8,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { LANG_META } from "@/lib/i18n/config";
 import { getLang, getServerT } from "@/lib/i18n/server";
-import { THEME_INIT_SCRIPT } from "@/lib/theme";
+import { DARK_QUERY, THEME_COLORS, THEME_INIT_SCRIPT } from "@/lib/theme";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,9 +58,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const viewport: Viewport = {
   viewportFit: "cover",
+  // Right for the `system` theme, and the fallback with no script. An explicit
+  // Light / Dark pick overrides it from lib/theme.ts (see syncThemeColor).
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#020617" },
-    { media: "(prefers-color-scheme: light)", color: "#F8FAFC" },
+    { media: DARK_QUERY, color: THEME_COLORS.dark },
+    { media: "(prefers-color-scheme: light)", color: THEME_COLORS.light },
   ],
 };
 
