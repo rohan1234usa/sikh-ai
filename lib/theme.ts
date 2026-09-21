@@ -1,8 +1,9 @@
 // The three appearance choices and how they are written to <html>.
 //
 // The constants and predicates below are environment-free and safe anywhere;
-// `applyTheme` and the script it mirrors touch the DOM and are browser-only.
-// (app/layout.tsx, a server component, imports THEME_INIT_SCRIPT from here.)
+// `applyTheme`, `keepThemeColor` and the script they mirror touch the DOM and
+// are browser-only. (app/layout.tsx, a server component, imports
+// THEME_INIT_SCRIPT, THEME_COLORS and DARK_QUERY from here.)
 //
 // Unlike the language — see lib/i18n/config.ts — the choice lives in
 // localStorage rather than a cookie, so the server cannot know it and the
@@ -45,7 +46,7 @@ const resolvesDark = (theme: Theme): boolean =>
 // to `system` removes it, and the pair takes over again.
 const THEME_COLOR_OVERRIDE_ID = 'theme-color-override';
 
-function syncThemeColor(theme: Theme, dark: boolean) {
+function syncThemeColor(theme: Theme) {
     let meta = document.getElementById(THEME_COLOR_OVERRIDE_ID) as HTMLMetaElement | null;
     if (theme === 'system') {
         meta?.remove();
@@ -56,24 +57,26 @@ function syncThemeColor(theme: Theme, dark: boolean) {
         meta.id = THEME_COLOR_OVERRIDE_ID;
         meta.name = 'theme-color';
     }
-    meta.content = dark ? THEME_COLORS.dark : THEME_COLORS.light;
+    const color = theme === 'dark' ? THEME_COLORS.dark : THEME_COLORS.light;
+    if (meta.content !== color) meta.content = color;
+    // Ahead of the first theme-color tag wherever it sits — not necessarily a
+    // direct child of <head>, which is all insertBefore would accept.
     const first = document.querySelector('meta[name="theme-color"]');
-    if (first !== meta) document.head.insertBefore(meta, first);
+    if (!first) document.head.append(meta);
+    else if (first !== meta) first.before(meta);
 }
 
 /**
  * Browser-only: keep the override in place for the life of the page. React
- * owns <head>, and re-rendering it — a language switch runs router.refresh() —
- * drops nodes React didn't render, including the one the pre-paint script
- * inserts. So re-sync whenever <head>'s children change. syncThemeColor makes
- * no structural change once the tag is present and first, so this settles
- * after a single pass instead of feeding back on itself.
+ * owns <head>, and when it re-renders it — a language switch runs
+ * router.refresh() — it drops the tag the pre-paint script inserted before
+ * hydration. Rather than depend on exactly which foreign nodes React keeps,
+ * re-sync whenever <head>'s children change. Once the tag is present, first
+ * and current, syncThemeColor changes nothing, so a pass settles at once
+ * instead of feeding back on itself.
  */
 export function keepThemeColor(): () => void {
-    const sync = () => {
-        const theme = parseTheme(document.documentElement.dataset.theme);
-        syncThemeColor(theme, resolvesDark(theme));
-    };
+    const sync = () => syncThemeColor(parseTheme(document.documentElement.dataset.theme));
     sync(); // in case it was already dropped before this started watching
     const observer = new MutationObserver(sync);
     observer.observe(document.head, { childList: true });
@@ -87,10 +90,9 @@ export function keepThemeColor(): () => void {
 // The browser chrome follows along via syncThemeColor.
 export function applyTheme(theme: Theme) {
     const root = document.documentElement;
-    const dark = resolvesDark(theme);
     root.dataset.theme = theme;
-    root.classList.toggle('dark', dark);
-    syncThemeColor(theme, dark);
+    root.classList.toggle('dark', resolvesDark(theme));
+    syncThemeColor(theme);
 }
 
 // Inlined in <head> and run before first paint, so there is no flash of the
@@ -107,5 +109,5 @@ if(${JSON.stringify(THEMES)}.indexOf(t)<0)t='${DEFAULT_THEME}';
 var k=t==='dark'||(t==='system'&&matchMedia('${DARK_QUERY}').matches);
 d.dataset.theme=t;
 d.classList.toggle('dark',k);
-if(t!=='system'){var m=document.createElement('meta');m.id='${THEME_COLOR_OVERRIDE_ID}';m.name='theme-color';m.content=k?'${THEME_COLORS.dark}':'${THEME_COLORS.light}';document.head.insertBefore(m,document.querySelector('meta[name="theme-color"]'))}
+if(t!=='system'){var m=document.createElement('meta'),f=document.querySelector('meta[name="theme-color"]');m.id='${THEME_COLOR_OVERRIDE_ID}';m.name='theme-color';m.content=t==='dark'?'${THEME_COLORS.dark}':'${THEME_COLORS.light}';f?f.before(m):document.head.append(m)}
 }catch(e){}`;
