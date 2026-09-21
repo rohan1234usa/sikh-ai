@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "tsx --test \"tests/**/*.test.ts\"",
+    "mock:gemini": "tsx scripts/mock-gemini.ts",
     "audit:i18n": "tsx scripts/i18n-audit/index.ts",
     "eval:translate": "tsx scripts/translate-eval/index.ts"
   },

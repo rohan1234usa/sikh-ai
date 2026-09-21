@@ -24,11 +24,13 @@ import { writeReport, type Answer, type Row } from './report';
 import { score } from './score';
 
 // The cheaper model on trial against production. It has its own per-model
-// quota, which is the point: on the free tier, moving the translator there
+// quota, which is the point on the free tier: moving the translator there
 // takes it out of the bucket the chat draws from.
 const CANDIDATE = 'gemini-3.5-flash-lite';
 const DEFAULT_LIMIT = 10;
-const DEFAULT_RPM = 5; // the free tier's reported Flash pace; raise it on a paid key
+// Comfortable on a paid key. On the free tier (~5 a minute) the per-minute
+// 429s are waited out once each, so a run still completes, just slower.
+const DEFAULT_RPM = 30;
 
 const HELP = `Translator model eval — phrasebook entries through the production translate request
 
@@ -42,8 +44,9 @@ Usage: npm run eval:translate -- [flags]
   --rpm N        Requests per minute to each model (default ${DEFAULT_RPM})
   --help         This message
 
-On the free tier every request counts against that model's daily quota for the
-whole project, the same bucket the live app uses. AI Studio shows your limits.
+Every request is billed on a paid key. On the free tier it instead counts
+against that model's daily quota for the whole project — the same bucket the
+live app uses. AI Studio shows your limits.
 `;
 
 type Options = { models: string[]; limit: number | 'all'; rpm: number; dryRun: boolean };
@@ -179,8 +182,8 @@ async function main(): Promise<void> {
     }
     if (calls > 0) {
         console.log(
-            `\n${calls} requests. On the free tier each one counts against that model's daily quota\n` +
-            `for the whole project — the same bucket the live app draws from.`,
+            `\n${calls} requests, billed on a paid key (roughly 0.3 cents each on Flash). On the free\n` +
+            `tier each one instead counts against that model's daily quota — the live app's bucket.`,
         );
     }
     if (opts.dryRun) return;

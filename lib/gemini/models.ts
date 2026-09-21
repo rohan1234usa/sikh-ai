@@ -16,19 +16,41 @@
 // scripts' letters into Gurmukhi. On the free tier, pointing translate at a
 // different model gives it its own daily quota, apart from chat's.
 //
+// Each feature also names one fallback model, tried only when the pinned one
+// is overloaded, rate-limited, unavailable, or too slow (lib/gemini/fallback.ts).
+// Set its env var to "off" to disable it: for chat, a "busy" message is better
+// than an answer from a model that has not been checked for quote accuracy.
+//
 // Both routes set `thinkingLevel`, a Gemini 3.x parameter — an override should
 // name a 3.x model.
 
 const MODELS = {
-    chat: { env: 'GEMINI_CHAT_MODEL', pinned: 'gemini-3.8-flash' },
-    translate: { env: 'GEMINI_TRANSLATE_MODEL', pinned: 'gemini-3.8-flash' },
+    chat: {
+        env: 'GEMINI_CHAT_MODEL', pinned: 'gemini-3.8-flash',
+        fallbackEnv: 'GEMINI_CHAT_FALLBACK_MODEL', fallback: 'gemini-3.7-flash',
+    },
+    translate: {
+        env: 'GEMINI_TRANSLATE_MODEL', pinned: 'gemini-3.8-flash',
+        fallbackEnv: 'GEMINI_TRANSLATE_FALLBACK_MODEL', fallback: 'gemini-3.7-flash',
+    },
 } as const;
 
 export type GeminiFeature = keyof typeof MODELS;
+
+const OFF = new Set(['', '0', 'false', 'off', 'none']);
 
 // Read per call rather than at import, so a script that loads .env.local after
 // its imports (npm run eval:translate) still sees the override.
 export function geminiModel(feature: GeminiFeature): string {
     const { env, pinned } = MODELS[feature];
     return process.env[env]?.trim() || pinned;
+}
+
+// null when disabled, or when it would just repeat the primary model.
+export function geminiFallbackModel(feature: GeminiFeature): string | null {
+    const { fallbackEnv, fallback } = MODELS[feature];
+    const raw = process.env[fallbackEnv];
+    const model = raw === undefined ? fallback : raw.trim();
+    if (OFF.has(model.toLowerCase())) return null;
+    return model === geminiModel(feature) ? null : model;
 }

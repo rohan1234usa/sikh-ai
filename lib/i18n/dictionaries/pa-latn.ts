@@ -534,6 +534,8 @@ const paLatn: Dictionary = {
         chat_empty: 'Kirpa karke koi suneha likho.',
         chat_too_long: 'Ih suneha bahut lamma hai. Kirpa karke chhota karke dubara bhejo.',
         chat_failed: 'Maaf karna, saade valon kujh galat ho gaya. Kirpa karke dubara koshish karo.',
+        chat_busy: 'SikhAI is vele bahut rujjhia hoia hai. Kirpa karke thorhi der baad dubara koshish karo.',
+        chat_blocked: 'SikhAI is sunehe da jawab nahi de sakia. Kirpa karke aapna sawal hor shabdan vich puchho.',
         missing_query: 'Ang number gumm hai.',
         invalid_ang: 'Galat Ang number.',
         source_error: 'Gurbani sarot naal sampark nahi ho sakia. Kirpa karke dubara koshish karo.',

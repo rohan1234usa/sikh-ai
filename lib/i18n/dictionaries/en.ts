@@ -539,6 +539,8 @@ const en = {
         chat_empty: 'Please enter a message.',
         chat_too_long: 'That message is too long. Please shorten it and try again.',
         chat_failed: 'Sorry, something went wrong on our end. Please try again.',
+        chat_busy: 'SikhAI is very busy right now. Please wait a minute and try again.',
+        chat_blocked: "SikhAI couldn't respond to that message. Please try rephrasing your question.",
         missing_query: 'Missing query',
         invalid_ang: 'Invalid Ang number',
         source_error: 'Could not reach the Gurbani source. Please try again.',

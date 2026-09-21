@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '../context/LanguageContext';
-import { apiErrorText } from '@/lib/i18n/apiError';
+import { FriendlyError, responseErrorText } from '@/lib/i18n/apiError';
 import {
   MAX_TRANSLATE_CHARS,
   type DetectedInput,
@@ -77,10 +77,12 @@ export default function TranslatePage() {
         body: JSON.stringify({ text: trimmed, sourceHint }),
         signal: controller.signal,
       });
-      const data = await res.json();
+      // A rate limiter or proxy in front of the API can answer with HTML, so
+      // an unparseable body must not surface as a raw SyntaxError.
+      const data = await res.json().catch(() => null);
 
-      if (!res.ok) {
-        throw new Error(apiErrorText(t, data) ?? t.errors.generic);
+      if (!res.ok || !data) {
+        throw new FriendlyError(responseErrorText(t, res, data, 'translate_busy'));
       }
 
       const parsed = data as TranslationResult;
@@ -90,7 +92,7 @@ export default function TranslatePage() {
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') return;
       console.error(err);
-      setError(err instanceof Error && err.message ? err.message : t.errors.generic);
+      setError(err instanceof FriendlyError ? err.message : t.errors.generic);
     } finally {
       if (abortRef.current === controller) setLoading(false);
     }

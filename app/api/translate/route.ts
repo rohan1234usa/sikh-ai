@@ -1,6 +1,7 @@
 import { FinishReason, GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
-import { geminiModel } from "@/lib/gemini/models";
+import { isCapacityError, statusOf, withModelFallback, withTransport } from "@/lib/gemini/fallback";
+import { logEvent, logGeminiCall, usageFields } from "@/lib/gemini/log";
 import {
   MAX_TRANSLATE_CHARS,
   isSourceHint,
@@ -14,6 +15,12 @@ import { buildTranslateRequest } from "@/lib/translate/prompts";
 import { parseTranslationResult } from "@/lib/translate/parse";
 
 export const maxDuration = 30;
+
+// Budget for Gemini, fallback model included, sized so the Cloud Translation
+// fallback (8 s timeout) still fits inside maxDuration after it. A full
+// 1,000-character input glossed word by word takes ~11 s on 3.8 Flash.
+const GEMINI_BUDGET_MS = 20_000;
+const ATTEMPT_TIMEOUT_MS = 15_000;
 
 const FRIENDLY_ERROR = "Sorry, the translation failed. Please try again.";
 const TOO_LONG_ERROR = "That text is too long. Please try up to 1,000 characters.";
@@ -128,20 +135,34 @@ export async function POST(req: Request) {
             : 'english';
 
     const ai = new GoogleGenAI({ apiKey });
-    const result = await ai.models.generateContent(
-      buildTranslateRequest(geminiModel("translate"), text, { sourceHint: hint, detectedScript }),
+    const deadline = Date.now() + GEMINI_BUDGET_MS;
+    const started = Date.now();
+    const { value: result, model, depth } = await withModelFallback(
+      "translate",
+      m => ai.models.generateContent(withTransport(
+        buildTranslateRequest(m, text, { sourceHint: hint, detectedScript }),
+        { signal: req.signal, timeoutMs: Math.min(ATTEMPT_TIMEOUT_MS, deadline - Date.now()) },
+      )),
+      { signal: req.signal, deadline },
     );
+    const finishReason = result.candidates?.[0]?.finishReason;
+    const blockReason = result.promptFeedback?.blockReason;
+    const logCall = (outcome: "ok" | "truncated" | "unusable" | "blocked") => logGeminiCall({
+      feature: "translate", model, depth, outcome, ms: Date.now() - started,
+      modelVersion: result.modelVersion, ...usageFields(result.usageMetadata), finishReason, blockReason,
+    });
 
     // The SDK returns a truncated response as ordinary text, so it would only
     // fail later at JSON.parse. Catch it here to give advice the user can
     // actually act on.
-    if (result.candidates?.[0]?.finishReason === FinishReason.MAX_TOKENS) {
-      console.error("Translate Error: response truncated at maxOutputTokens");
+    if (finishReason === FinishReason.MAX_TOKENS) {
+      logCall("truncated");
       // MAX_TOKENS is an output-budget signal, not an input-length one: the
       // model's own thinking trace draws from the same budget, so a short input
       // can truncate while a near-cap one does not. "Shorten it" is therefore
       // often wrong advice — try a basic rendering before falling back to it.
       const viaCloud = await attemptCloudFallback(text, hint, detectedScript);
+      logEvent("cloud_fallback", { feature: "translate", reason: "truncated", served: !!viaCloud });
       if (viaCloud) return NextResponse.json(viaCloud, { headers: { "Cache-Control": "no-store" } });
       return NextResponse.json({ error: TOO_LONG_ERROR, code: "translate_too_long" }, { status: 400 });
     }
@@ -150,36 +171,45 @@ export async function POST(req: Request) {
 
     if (!parsed) {
       // Blocked or filtered replies land here too: the SDK returns them with
-      // no text rather than throwing, so log why.
-      console.error(
-        "Translate Error: unusable model output",
-        result.promptFeedback?.blockReason ?? result.candidates?.[0]?.finishReason ?? "",
-      );
+      // no text rather than throwing.
+      logCall(blockReason ? "blocked" : "unusable");
       // Gemini answered, just not usably — a plain rendering still beats an error.
       const viaCloud = await attemptCloudFallback(text, hint, detectedScript);
+      logEvent("cloud_fallback", { feature: "translate", reason: "unusable", served: !!viaCloud });
       if (viaCloud) return NextResponse.json(viaCloud, { headers: { "Cache-Control": "no-store" } });
       return NextResponse.json({ error: FRIENDLY_ERROR, code: "translate_failed" }, { status: 502 });
     }
 
+    logCall("ok");
     return NextResponse.json(parsed, { headers: { "Cache-Control": "no-store" } });
 
   } catch (error) {
-    console.error("Translate Error:", error);
+    // A newer request replaced this one (the page aborts the old fetch); the
+    // answer would go nowhere, so don't spend Cloud credit on it.
+    if (req.signal.aborted) return new Response(null, { status: 499 });
 
     // `text` is only non-empty once validation passed, so a bad body or a
-    // validation throw skips this and costs nothing. Gemini's free tier is 20
-    // requests/day, which makes the 429 below an everyday event rather than an
-    // edge case — serving a basic translation is the whole point of this path.
+    // validation throw skips the fallback and costs nothing. Past that point
+    // the failure came from Gemini — both models, already logged.
+    if (!text) console.error("Translate Error:", error);
+
+    // Both models failed (overloaded, rate-limited, out of prepaid credit, or
+    // timed out) or the request itself was rejected. Either way a basic
+    // translation beats an error — that is the whole point of this path.
     if (text) {
       const viaCloud = await attemptCloudFallback(text, hint, detectedScript);
+      logEvent("cloud_fallback", { feature: "translate", reason: "gemini_failed", served: !!viaCloud });
       if (viaCloud) return NextResponse.json(viaCloud, { headers: { "Cache-Control": "no-store" } });
     }
 
-    // Quota/rate-limit exhaustion is a routine condition on Gemini's free tier,
-    // and "try again" is actively wrong advice for it — waiting is the fix.
-    const status = (error as { status?: number })?.status;
-    if (status === 429) {
-      return NextResponse.json({ error: BUSY_ERROR, code: "translate_busy" }, { status: 429 });
+    // Capacity failures (429, 5xx, a timeout, or 402 when the prepaid balance
+    // is used up) are "wait and retry" conditions, not a bad request — and
+    // "try again" right now is the wrong advice for them.
+    if (isCapacityError(error) || statusOf(error) === 402) {
+      return NextResponse.json(
+        { error: BUSY_ERROR, code: "translate_busy" },
+        { status: statusOf(error) === 429 ? 429 : 503 },
+      );
     }
     return NextResponse.json({ error: FRIENDLY_ERROR, code: "translate_failed" }, { status: 500 });
   }

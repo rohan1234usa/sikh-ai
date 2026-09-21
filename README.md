@@ -56,6 +56,7 @@ The chat client sends only whitelisted IDs (`lensId` / `modeId` / `languageId`, 
 *   **Streamed Responses**: The chat API returns a raw `text/plain` `ReadableStream`, so tokens render as they generate — minimizing time-to-first-token.
 *   **Schema-constrained JSON output**: The translator uses Gemini's `responseMimeType: 'application/json'` + `responseSchema`, with the schema enums generated from the same `as const` unions as the TypeScript types so the two can't drift. The response is then re-validated at runtime in `lib/translate/parse.ts` — malformed list entries are dropped rather than failing the whole translation, and a truncated response is caught via its `MAX_TOKENS` finish reason instead of surfacing as a JSON parse error.
 *   **Pinned models, not aliases**: Every Gemini call names a specific stable model, set in one place (`lib/gemini/models.ts`) with a per-feature env override (`GEMINI_CHAT_MODEL`, `GEMINI_TRANSLATE_MODEL`). Google hot-swaps the `gemini-flash-latest` alias on each release, so the model behind the prompts could change with no code change; pinning makes upgrades deliberate, and the override lets a preview deployment try a model first. Both routes set `thinkingLevel: LOW` and no sampling temperature, per Google's Gemini 3.x guidance, with the translator's fidelity rules stated in its system prompt instead.
+*   **Failure you can read**: When the pinned model is overloaded, rate-limited, unavailable, or silent for 10 s, each route tries one fallback model (`gemini-3.7-flash`; `GEMINI_CHAT_FALLBACK_MODEL` / `GEMINI_TRANSLATE_FALLBACK_MODEL`, `off` to disable) — but never for a rejected request, a bad key, or an empty prepaid balance, which fail the same everywhere. Both routes run on a time budget inside the 30 s function limit, so the translator's Cloud fallback always gets its turn. The chat reads its stream up to the first word before answering, so a refused prompt gets a proper "couldn't respond" message and an overloaded service a "busy" one — never the browser's raw network error. A reply cut short by a filter or the 4,096-token output cap keeps its text and is marked interrupted rather than passed off as complete. Every Gemini call writes one JSON log line (model served, fallback depth, latency, tokens, outcome — never message text).
 *   **Server-only prompts + nonce fencing**: Both the chat and translate system prompts live in server-only modules, so prompt text never ships to the browser. Untrusted user text is wrapped in a per-request UUID-nonce fence, so crafted input can't forge the closing delimiter and break out into instructions.
 *   **Theming without flash**: An inline pre-paint script applies the stored choice before first paint. `<html class="dark">` drives the CSS, while `<html data-theme>` records which of Light / Dark / System the user picked — the class alone can't distinguish light-because-chosen from light-because-the-OS-says-so. Semantic `@theme inline` tokens drive both modes, and the picker reads the attribute back through a `MutationObserver`, so it stays correct no matter what changes it.
 *   **Cookie-backed i18n, no library**: A site-wide language (English / Gurmukhi / romanized Punjabi) lives in a `sikhai.lang` cookie, so server components and metadata render already-translated on the first byte — no flash of English. UI copy is typed dictionaries in `lib/i18n/dictionaries/` (`Dictionary = typeof en`, so missing keys are compile errors), read via `useT()` in client components and `getServerT()` on the server.
@@ -95,6 +96,10 @@ Follow these steps to set up the project locally.
     # giving the translator its own model also gives it its own daily quota.
     # GEMINI_CHAT_MODEL=gemini-3.8-flash
     # GEMINI_TRANSLATE_MODEL=gemini-3.6-flash
+    # The one model tried when the pinned one is overloaded or down
+    # (default gemini-3.7-flash); "off" disables the fallback.
+    # GEMINI_CHAT_FALLBACK_MODEL=off
+    # GEMINI_TRANSLATE_FALLBACK_MODEL=gemini-3.6-flash
 
     # Google Cloud Translation (server-side, optional)
     # Powers the translator's fallback when Gemini is unavailable, the
@@ -119,6 +124,12 @@ Follow these steps to set up the project locally.
     npm run dev
     ```
 
+5.  **Run the tests**
+    ```bash
+    npm test
+    ```
+    Node's built-in test runner via `tsx`; no extra dependencies. The route tests call the real `POST` handlers against a local mock of the Gemini API (`scripts/mock-gemini.ts`), so they need no key and cost nothing. The same mock lets you drive the app by hand without spending anything: run `npm run mock:gemini`, then start the app with `GOOGLE_GEMINI_BASE_URL=http://127.0.0.1:8787 GEMINI_API_KEY=mock TRANSLATE_FALLBACK=off npm run dev`, and put a trigger word such as `MOCK_429` or `MOCK_BLOCKED` in a message (the full list is at the top of the script).
+
 ## 💻 Usage Examples
 
 ### 1. The Hukamnama Fetcher (Server-Side)
@@ -137,36 +148,37 @@ async function getHukamnama() {
 ```
 
 ### 2. The Streaming Chat Route
-The chat endpoint composes a persona from the selected lens, style, and language, applies it as Gemini's native `systemInstruction`, then streams the output back as `text/plain`.
+The chat endpoint composes a persona from the selected lens, style, and language, applies it as Gemini's native `systemInstruction`, then streams the output back as `text/plain`. The request itself is built by `buildChatRequest()` in `lib/chat/request.ts`, shared with the tests so they exercise exactly what production sends.
 
 ```typescript
 // app/api/chat/route.ts
-const systemInstruction = composeSystemInstruction({
+const input: ChatInput = {
+  message,
+  history: toChatHistory(history),                              // last 10 turns, each capped
   lensId: isLensId(lensId) ? lensId : DEFAULT_PREFS.lensId,     // whitelisted; else default
   modeId: isModeId(modeId) ? modeId : DEFAULT_PREFS.modeId,
   languageId: isLanguageId(languageId) ? languageId : DEFAULT_PREFS.languageId,
   script: isScript(script) ? script : undefined,                // Gurmukhi/romanized hint from the site language
   context: sanitizeContext(context),                            // optional deep-linked passage
-});
-const ai = new GoogleGenAI({ apiKey });
-const chat = ai.chats.create({
-  model: geminiModel('chat'),                                  // pinned; env-overridable
-  history: chatHistory,
-  config: { systemInstruction, thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } },
-});
-const chunks = await chat.sendMessageStream({ message });
+};
+
+// Pinned model first; one fallback model only for capacity failures.
+const { model, value: opened } = await withModelFallback(
+  'chat',
+  model => openStream(ai, model, input, req.signal, deadline), // reads up to the first text
+  { signal: req.signal, deadline },
+);
+if (opened.kind !== 'text') return blockedOrFailed(opened);    // JSON error, never a broken stream
 
 const stream = new ReadableStream<Uint8Array>({
   async start(controller) {
-    for await (const chunk of chunks) {
-      if (chunk.text) controller.enqueue(new TextEncoder().encode(chunk.text));
+    controller.enqueue(encoder.encode(opened.text));
+    for await (const chunk of opened.stream) {
+      if (chunk.text) controller.enqueue(encoder.encode(chunk.text));
     }
-    controller.close(); // (the real route also errors the body on a blocked reply)
+    controller.close(); // (the real route errors the body instead when the reply was cut short)
   },
-});
-
-return new Response(stream, {
-  headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+  cancel() { opened.upstream.abort(); },                        // Stop cancels generation
 });
 ```
 
@@ -191,11 +203,16 @@ export function buildTranslateRequest(model, text, opts): GenerateContentParamet
 }
 
 // app/api/translate/route.ts
-const result = await ai.models.generateContent(
-  buildTranslateRequest(geminiModel('translate'), text, { sourceHint: hint, detectedScript }),
+const { value: result } = await withModelFallback(
+  'translate',
+  model => ai.models.generateContent(withTransport(         // abort signal + per-attempt timeout
+    buildTranslateRequest(model, text, { sourceHint: hint, detectedScript }),
+    { signal: req.signal, timeoutMs: Math.min(15_000, deadline - Date.now()) },
+  )),
+  { signal: req.signal, deadline },                        // 20 s for Gemini, leaving Cloud its turn
 );
 const parsed = parseTranslationResult(result.text ?? '', fallbackDetected);
-if (!parsed) return NextResponse.json({ error, code: 'translate_failed' }, { status: 502 });
+if (!parsed) return cloudFallbackOr(502, 'translate_failed');
 ```
 
 ## 🔍 i18n Audit Script

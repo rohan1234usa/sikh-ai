@@ -28,8 +28,8 @@ export function runKey(model: string, config: unknown, input: string): string {
 }
 
 // Same posture as the i18n audit: a cache that exists but will not parse is
-// most likely a merge conflict, and quietly starting over would re-spend the
-// free tier's daily quota on answers already paid for.
+// most likely a merge conflict, and quietly starting over would pay again —
+// in money or daily quota — for answers already in hand.
 export function loadCache(): Cache {
     let raw: string;
     try {

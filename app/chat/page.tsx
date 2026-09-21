@@ -13,7 +13,7 @@ import { useChatPrefs } from '../components/chat/useChatPrefs';
 import { parseDeepLink, fetchChatContext } from '../components/chat/deepLink';
 import { DEFAULT_PREFS, siteDefaultLanguageId, siteScript, type LensId } from '@/lib/chat/config';
 import { useLanguage } from '../context/LanguageContext';
-import { apiErrorText } from '@/lib/i18n/apiError';
+import { FriendlyError, responseErrorText } from '@/lib/i18n/apiError';
 import { fmt } from '@/lib/i18n/fmt';
 
 export default function ChatPage() {
@@ -165,11 +165,10 @@ export default function ChatPage() {
       });
 
       if (!res.ok || !res.body) {
-        let friendly: string | null = null;
-        if (res.headers.get('content-type')?.includes('json')) {
-          friendly = apiErrorText(tRef.current, await res.json());
-        }
-        throw new Error(friendly ?? tRef.current.errors.generic);
+        const data = res.headers.get('content-type')?.includes('json')
+          ? await res.json().catch(() => null)
+          : null;
+        throw new FriendlyError(responseErrorText(tRef.current, res, data, 'chat_busy'));
       }
 
       const reader = res.body.getReader();
@@ -195,7 +194,9 @@ export default function ChatPage() {
           m.id !== aiMsg.id ? [m] : m.text ? [{ ...m, interrupted: true }] : []
         ));
       } else {
-        const friendly = err instanceof Error && err.message ? err.message : tRef.current.errors.generic;
+        // Only our own messages are shown; a dropped stream's error text comes
+        // from the browser ("network error", "Load failed") and isn't translated.
+        const friendly = err instanceof FriendlyError ? err.message : tRef.current.errors.generic;
         setMessages(prev => prev.map(m =>
           m.id === aiMsg.id
             ? (m.text ? { ...m, interrupted: true } : { ...m, text: friendly, isError: true })

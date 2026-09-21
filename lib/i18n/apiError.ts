@@ -12,3 +12,21 @@ export function apiErrorText(t: Dictionary, data: unknown): string | null {
     }
     return typeof error === 'string' && error ? error : null;
 }
+
+// An error whose message is already fit to show the user. Anything else that
+// reaches a catch — a dropped stream, a proxy's HTML error page, a JSON
+// parse failure — carries text from the browser or the network, often in the
+// wrong language, so callers show t.errors.generic for it instead.
+export class FriendlyError extends Error {}
+
+// The API's own message for a failed response; failing that, the busy message
+// for a bare 429 (the host's rate limiter answers without our JSON), else
+// generic.
+export function responseErrorText(
+    t: Dictionary,
+    res: Response,
+    data: unknown,
+    busy: keyof Dictionary['errors'],
+): string {
+    return apiErrorText(t, data) ?? (res.status === 429 ? t.errors[busy] : t.errors.generic);
+}
