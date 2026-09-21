@@ -8,7 +8,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { LANG_META } from "@/lib/i18n/config";
 import { getLang, getServerT } from "@/lib/i18n/server";
-import { DARK_QUERY, THEME_COLORS, THEME_INIT_SCRIPT } from "@/lib/theme";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,12 +58,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const viewport: Viewport = {
   viewportFit: "cover",
-  // Right for the `system` theme, and the fallback with no script. An explicit
-  // Light / Dark pick overrides it from lib/theme.ts (see syncThemeColor).
-  themeColor: [
-    { media: DARK_QUERY, color: THEME_COLORS.dark },
-    { media: "(prefers-color-scheme: light)", color: THEME_COLORS.light },
-  ],
+  // No `themeColor` here, on purpose: the theme-color tag is owned entirely by
+  // lib/theme.ts, which knows the user's choice. Emitting one from Next as well
+  // put two parties on the same tag, and React's hydration mixed them up.
 };
 
 export default async function RootLayout({
