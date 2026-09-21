@@ -509,6 +509,12 @@ const pa: Dictionary = {
         submit: 'ਸੇਵਾ ਸਮਾਗਮ ਬਣਾਓ',
     },
 
+    notFound: {
+        heading: 'ਪੰਨਾ ਨਹੀਂ ਮਿਲਿਆ',
+        body: 'ਜਿਸ ਪੰਨੇ ਨੂੰ ਤੁਸੀਂ ਲੱਭ ਰਹੇ ਹੋ, ਉਹ ਮੌਜੂਦ ਨਹੀਂ ਜਾਂ ਕਿਤੇ ਹੋਰ ਚਲਾ ਗਿਆ ਹੈ।',
+        home: 'ਮੁੱਖ ਪੰਨੇ ਤੇ ਵਾਪਸ ਜਾਓ',
+    },
+
     footer: {
         builtBy: 'ਨਿਰਮਾਤਾ:',
         navAria: 'ਫੁੱਟਰ',
@@ -526,6 +532,7 @@ const pa: Dictionary = {
         sevaCreateTitle: 'ਸੇਵਾ ਸਮਾਗਮ ਪਾਓ',
         hukamnamaTitle: 'ਅੱਜ ਦਾ ਹੁਕਮਨਾਮਾ',
         translateTitle: 'ਪੰਜਾਬੀ ਅਨੁਵਾਦਕ',
+        notFoundTitle: 'ਪੰਨਾ ਨਹੀਂ ਮਿਲਿਆ',
     },
 
     errors: {

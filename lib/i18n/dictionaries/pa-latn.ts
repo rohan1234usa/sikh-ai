@@ -509,6 +509,12 @@ const paLatn: Dictionary = {
         submit: 'Seva Samagam Banao',
     },
 
+    notFound: {
+        heading: 'Panna nahi milia',
+        body: 'Jis panne nu tusi labh rahe ho, oh maujud nahi jaan kite hor chala gaya hai.',
+        home: 'Mukkh panne te vapas jao',
+    },
+
     footer: {
         builtBy: 'Nirmata:',
         navAria: 'Footer',
@@ -526,6 +532,7 @@ const paLatn: Dictionary = {
         sevaCreateTitle: 'Seva Samagam Pao',
         hukamnamaTitle: 'Ajj da Hukamnama',
         translateTitle: 'Punjabi Anuvadak',
+        notFoundTitle: 'Panna nahi milia',
     },
 
     errors: {
