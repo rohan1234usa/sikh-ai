@@ -148,7 +148,9 @@ const VARIANTS: { canonical: string; pattern: RegExp }[] = [
     { canonical: 'Hukamnama', pattern: /\bhukam[- ]?naa?ma\b/gi },
 ];
 
-function scanValue(path: string, value: string): Finding[] {
+// Exported for scripts/translate-eval, which holds model output to the same
+// community spellings.
+export function scanValue(path: string, value: string): Finding[] {
     const findings: Finding[] = [];
     for (const { canonical, pattern } of VARIANTS) {
         pattern.lastIndex = 0;

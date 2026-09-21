@@ -17,7 +17,7 @@ Whether it's fetching the daily *Hukamnama* from Darbar Sahib, coordinating *Sev
 
 ### 🌟 Key Features
 
-*   **💬 Streaming, Gurbani-Guided Chat**: Responses stream token-by-token from Google Gemini (`gemini-flash-latest`), steered by a system instruction to stay grounded in Guru Granth Sahib teachings. Conversations persist locally (`localStorage`) and include starter prompts, copy, regenerate, and a stop control.
+*   **💬 Streaming, Gurbani-Guided Chat**: Responses stream token-by-token from Google Gemini (pinned to `gemini-3.8-flash`), steered by a system instruction to stay grounded in Guru Granth Sahib teachings. Conversations persist locally (`localStorage`) and include starter prompts, copy, regenerate, and a stop control.
 *   **🧭 Guru Teachings-Lenses**: Ask for guidance through the lens of any of the ten Gurus (or the default SikhAI). Each lens shifts emphasis, preferred Bani, and sakhis while never impersonating a Guru — answers stay in the third person with honorifics. Switching mid-conversation drops an in-thread divider and applies from the next message.
 *   **🎛️ Response Styles & Languages**: Orthogonal to the lens, pick a response style (Balanced, Simple/newcomer, Gurbani-first, Vichaar/reflection, Sakhi/story) and a language (English, Punjabi-American bilingual, or Punjabi with Gurmukhi/romanized script-matching). All three axes are composed server-side into one Gemini `systemInstruction`.
 *   **🧩 Guided Prompting**: Per-lens starter chips plus categorized topic packs (Life advice, Hardship & grief, Concepts, History & sakhis, Daily practice), and deep links from the Hukamnama and Shabad pages that open the chat with that passage attached as context.
@@ -55,6 +55,7 @@ The chat client sends only whitelisted IDs (`lensId` / `modeId` / `languageId`, 
 *   **Hybrid Rendering**: React Server Components for static/data-fetched content (e.g. the server-rendered Hukamnama) with Client Components for the interactive AI chat.
 *   **Streamed Responses**: The chat API returns a raw `text/plain` `ReadableStream`, so tokens render as they generate — minimizing time-to-first-token.
 *   **Schema-constrained JSON output**: The translator uses Gemini's `responseMimeType: 'application/json'` + `responseSchema`, with the schema enums generated from the same `as const` unions as the TypeScript types so the two can't drift. The response is then re-validated at runtime in `lib/translate/parse.ts` — malformed list entries are dropped rather than failing the whole translation, and a truncated response is caught via its `MAX_TOKENS` finish reason instead of surfacing as a JSON parse error.
+*   **Pinned models, not aliases**: Every Gemini call names a specific stable model, set in one place (`lib/gemini/models.ts`) with a per-feature env override (`GEMINI_CHAT_MODEL`, `GEMINI_TRANSLATE_MODEL`). Google hot-swaps the `gemini-flash-latest` alias on each release, so the model behind the prompts could change with no code change; pinning makes upgrades deliberate, and the override lets a preview deployment try a model first. Both routes set `thinkingLevel: LOW` and no sampling temperature, per Google's Gemini 3.x guidance, with the translator's fidelity rules stated in its system prompt instead.
 *   **Server-only prompts + nonce fencing**: Both the chat and translate system prompts live in server-only modules, so prompt text never ships to the browser. Untrusted user text is wrapped in a per-request UUID-nonce fence, so crafted input can't forge the closing delimiter and break out into instructions.
 *   **Theming without flash**: An inline pre-paint script applies the stored choice before first paint. `<html class="dark">` drives the CSS, while `<html data-theme>` records which of Light / Dark / System the user picked — the class alone can't distinguish light-because-chosen from light-because-the-OS-says-so. Semantic `@theme inline` tokens drive both modes, and the picker reads the attribute back through a `MutationObserver`, so it stays correct no matter what changes it.
 *   **Cookie-backed i18n, no library**: A site-wide language (English / Gurmukhi / romanized Punjabi) lives in a `sikhai.lang` cookie, so server components and metadata render already-translated on the first byte — no flash of English. UI copy is typed dictionaries in `lib/i18n/dictionaries/` (`Dictionary = typeof en`, so missing keys are compile errors), read via `useT()` in client components and `getServerT()` on the server.
@@ -66,7 +67,7 @@ Follow these steps to set up the project locally.
 
 ### Prerequisites
 
-*   Node.js 18+
+*   Node.js 20.9+ (required by Next.js 16 and `@google/genai`)
 *   npm or yarn
 *   A Firebase project (Auth + Firestore)
 *   A Google Gemini API key ([Google AI Studio](https://aistudio.google.com/))
@@ -89,6 +90,11 @@ Follow these steps to set up the project locally.
     ```env
     # Google Gemini (server-side)
     GEMINI_API_KEY=your_gemini_key
+    # Optional per-feature model overrides (defaults are pinned in
+    # lib/gemini/models.ts). Must be Gemini 3.x models. On the free tier,
+    # giving the translator its own model also gives it its own daily quota.
+    # GEMINI_CHAT_MODEL=gemini-3.8-flash
+    # GEMINI_TRANSLATE_MODEL=gemini-3.6-flash
 
     # Google Cloud Translation (server-side, optional)
     # Powers the translator's fallback when Gemini is unavailable, the
@@ -142,17 +148,20 @@ const systemInstruction = composeSystemInstruction({
   script: isScript(script) ? script : undefined,                // Gurmukhi/romanized hint from the site language
   context: sanitizeContext(context),                            // optional deep-linked passage
 });
-const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest', systemInstruction });
-
-const chat = model.startChat({ history: chatHistory });
-const result = await chat.sendMessageStream(message);
+const ai = new GoogleGenAI({ apiKey });
+const chat = ai.chats.create({
+  model: geminiModel('chat'),                                  // pinned; env-overridable
+  history: chatHistory,
+  config: { systemInstruction, thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } },
+});
+const chunks = await chat.sendMessageStream({ message });
 
 const stream = new ReadableStream<Uint8Array>({
   async start(controller) {
-    for await (const chunk of result.stream) {
-      controller.enqueue(new TextEncoder().encode(chunk.text()));
+    for await (const chunk of chunks) {
+      if (chunk.text) controller.enqueue(new TextEncoder().encode(chunk.text));
     }
-    controller.close();
+    controller.close(); // (the real route also errors the body on a blocked reply)
   },
 });
 
@@ -166,20 +175,26 @@ return new Response(stream, {
 The translator needs three renditions, a word gloss, notes, and pronunciation tips as *data*, so it constrains decoding with a schema instead of streaming prose — then re-validates the result server-side.
 
 ```typescript
-// app/api/translate/route.ts
-const model = genAI.getGenerativeModel({
-  model: 'gemini-flash-latest',
-  systemInstruction: composeTranslateInstruction({ sourceHint, detectedScript }),
-  generationConfig: {
-    responseMimeType: 'application/json',
-    responseSchema: RESPONSE_SCHEMA,   // enums derived from the TS unions
-    temperature: 0.2,                  // fidelity, but not stilted
-    maxOutputTokens: 8192,
-  },
-});
+// lib/translate/prompts.ts — shared by the route and the eval script
+export function buildTranslateRequest(model, text, opts): GenerateContentParameters {
+  return {
+    model,
+    contents: buildUserMessage(text),                      // nonce-fenced
+    config: {
+      systemInstruction: composeTranslateInstruction(opts),
+      responseMimeType: 'application/json',
+      responseSchema: RESPONSE_SCHEMA,                     // enums derived from the TS unions
+      maxOutputTokens: 8192,                               // includes thinking tokens
+      thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+    },
+  };
+}
 
-const result = await model.generateContent(buildUserMessage(text)); // nonce-fenced
-const parsed = parseTranslationResult(result.response.text(), fallbackDetected);
+// app/api/translate/route.ts
+const result = await ai.models.generateContent(
+  buildTranslateRequest(geminiModel('translate'), text, { sourceHint: hint, detectedScript }),
+);
+const parsed = parseTranslationResult(result.text ?? '', fallbackDetected);
 if (!parsed) return NextResponse.json({ error, code: 'translate_failed' }, { status: 502 });
 ```
 
@@ -198,6 +213,18 @@ Results land in `scripts/i18n-audit/report.md` (committed, so it is readable on 
 > `pa-latn.ts` cannot be machine-audited: Cloud Translation neither romanizes Punjabi nor reliably reads romanized Punjabi. Its coverage is the free checks only — a limitation the report states explicitly.
 
 Other flags: `--probe` verifies an API key with a single ~3-character call, `--prune` drops cache entries no current string maps to, and `--reset-cache` discards an unreadable `cache.json` (the script otherwise refuses to run, rather than silently re-billing the whole corpus). `--localize-notes` machine-translates the phrasebook's English-only cultural notes into Gurmukhi and writes `notes-pa.generated.json` — an intermediate artifact meant to be hand-applied to `lib/translate/phrasebook.ts`, not read at runtime; see the note on `Phrase.note` there.
+
+## 🧪 Translator Model Eval
+
+Before the translator moves to a different model, `npm run eval:translate` shows what that model would do with the same request. It runs phrasebook entries through `buildTranslateRequest()` (the exact request the route sends) on the production model and a candidate (default `gemini-3.5-flash-lite`), then writes a side-by-side report for a fluent reviewer.
+
+```bash
+npm run eval:translate -- --dry-run
+```
+
+Only the phrasebook's Punjabi is used as input, in both Gurmukhi and romanized form, because its English is a gloss rather than a sentence a learner would type. For each answer the report checks that the input script was detected, that the converted script matches the phrasebook, that the user's own wording was kept, and that romanization follows the house rules: no diacritics or apostrophes, and the same community spellings as the i18n audit. It also records latency and token use. The phrasebook is itself pending fluent review, so these numbers only set the reading order: disagreements come first.
+
+A default run covers 10 fixtures per model; `--limit N` or `--all` (100) goes further, and `--models a,b` changes the lineup. Answers are cached in `scripts/translate-eval/cache.json`, keyed by model, full request config, and input. A rerun is free, and editing the prompt starts a fresh comparison. On the free tier every request draws on the same per-model daily quota as the live app. A daily-quota 429 stops that model cleanly, and the next run resumes from the cache.
 
 ## 🗺️ Roadmap
 

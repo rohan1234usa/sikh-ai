@@ -1,9 +1,9 @@
-// SERVER-ONLY: system-prompt text and response schema for /api/translate.
-// Do not import from client components — this file is meant for the route
-// handler so prompt text never ships in the client bundle. IDs come from
-// ./config so the schema enums and TypeScript unions stay in lockstep.
+// SERVER-ONLY: system-prompt text, response schema, and the full model request
+// for /api/translate. Do not import from client components — this file is meant
+// for the route handler so prompt text never ships in the client bundle. IDs
+// come from ./config so the schema enums and TypeScript unions stay in lockstep.
 
-import { SchemaType, type ResponseSchema } from '@google/generative-ai';
+import { ThinkingLevel, Type, type GenerateContentParameters, type Schema } from '@google/genai';
 import { DETECTED_INPUTS, NOTE_KINDS, type SourceHint } from './config';
 
 const IDENTITY = `You are the SikhAI translator, a Punjabi ↔ English translation engine serving Punjabi Americans reconnecting with their roots and learning the language.
@@ -17,6 +17,14 @@ Non-negotiable rules:
 const TASK = `Always produce all three renditions of the same content:
 - If the input is English: "gurmukhi" and "roman" are your Punjabi translation written in Gurmukhi script and in romanization; "english" is the input text lightly normalized (fix obvious typos, otherwise keep it verbatim).
 - If the input is Punjabi (either script): "english" is your translation; "gurmukhi" and "roman" are the source itself rendered in both scripts (correct obvious misspellings, but keep the user's wording and word order).`;
+
+// Replaces the low sampling temperature this translator used to request:
+// Gemini 3.x deprecates temperature, and Google's guidance is to get
+// determinism from explicit rules in the system instruction instead.
+const FIDELITY = `Translate faithfully and consistently:
+- Carry the full meaning and tone across — never add, drop, soften, or embellish anything.
+- Keep the translation natural rather than stilted word-for-word, but never paraphrase beyond what the source says.
+- Where several renderings are equally correct, use the most common everyday one. Never vary word choice for style, and never offer alternatives.`;
 
 // The romanization contract that keeps "roman", "words[].roman", and
 // "pronunciation[].roman" consistent with each other AND with the site's
@@ -70,6 +78,7 @@ export function composeTranslateInstruction(opts: {
     return [
         IDENTITY,
         `## Task\n${TASK}`,
+        `## Fidelity\n${FIDELITY}`,
         `## Input\n${inputSection(opts.sourceHint, opts.detectedScript)}`,
         `## Romanization\n${ROMANIZATION}`,
         `## Word by word\n${WORDS}`,
@@ -90,47 +99,47 @@ export function buildUserMessage(text: string): string {
 
 // Constrains Gemini's decoding (responseMimeType: 'application/json').
 // Runtime validation in ./parse.ts still applies — never trust the schema
-// alone. NOTE: enum fields require format: 'enum' in SDK 0.24.x.
-export const RESPONSE_SCHEMA: ResponseSchema = {
-    type: SchemaType.OBJECT,
+// alone. Enum fields carry format: 'enum', the API's documented enum form.
+export const RESPONSE_SCHEMA: Schema = {
+    type: Type.OBJECT,
     properties: {
-        detectedInput: { type: SchemaType.STRING, format: 'enum', enum: [...DETECTED_INPUTS] },
-        gurmukhi: { type: SchemaType.STRING },
-        roman: { type: SchemaType.STRING },
-        english: { type: SchemaType.STRING },
+        detectedInput: { type: Type.STRING, format: 'enum', enum: [...DETECTED_INPUTS] },
+        gurmukhi: { type: Type.STRING },
+        roman: { type: Type.STRING },
+        english: { type: Type.STRING },
         words: {
-            type: SchemaType.ARRAY,
+            type: Type.ARRAY,
             items: {
-                type: SchemaType.OBJECT,
+                type: Type.OBJECT,
                 properties: {
-                    source: { type: SchemaType.STRING },
-                    gurmukhi: { type: SchemaType.STRING },
-                    roman: { type: SchemaType.STRING },
-                    meaning: { type: SchemaType.STRING },
+                    source: { type: Type.STRING },
+                    gurmukhi: { type: Type.STRING },
+                    roman: { type: Type.STRING },
+                    meaning: { type: Type.STRING },
                 },
                 required: ['source', 'gurmukhi', 'roman', 'meaning'],
             },
         },
         notes: {
-            type: SchemaType.ARRAY,
+            type: Type.ARRAY,
             items: {
-                type: SchemaType.OBJECT,
+                type: Type.OBJECT,
                 properties: {
-                    kind: { type: SchemaType.STRING, format: 'enum', enum: [...NOTE_KINDS] },
-                    title: { type: SchemaType.STRING },
-                    body: { type: SchemaType.STRING },
+                    kind: { type: Type.STRING, format: 'enum', enum: [...NOTE_KINDS] },
+                    title: { type: Type.STRING },
+                    body: { type: Type.STRING },
                 },
                 required: ['kind', 'title', 'body'],
             },
         },
         pronunciation: {
-            type: SchemaType.ARRAY,
+            type: Type.ARRAY,
             items: {
-                type: SchemaType.OBJECT,
+                type: Type.OBJECT,
                 properties: {
-                    gurmukhi: { type: SchemaType.STRING },
-                    roman: { type: SchemaType.STRING },
-                    tip: { type: SchemaType.STRING },
+                    gurmukhi: { type: Type.STRING },
+                    roman: { type: Type.STRING },
+                    tip: { type: Type.STRING },
                 },
                 required: ['gurmukhi', 'roman', 'tip'],
             },
@@ -138,3 +147,29 @@ export const RESPONSE_SCHEMA: ResponseSchema = {
     },
     required: ['detectedInput', 'gurmukhi', 'roman', 'english', 'words', 'notes', 'pronunciation'],
 };
+
+// The complete request for one translation. Shared by the route and
+// `npm run eval:translate`, so a model trial measures exactly what production
+// sends.
+export function buildTranslateRequest(
+    model: string,
+    text: string,
+    opts: { sourceHint: SourceHint; detectedScript: 'gurmukhi' | 'latin' },
+): GenerateContentParameters {
+    return {
+        model,
+        contents: buildUserMessage(text),
+        config: {
+            systemInstruction: composeTranslateInstruction(opts),
+            responseMimeType: 'application/json',
+            responseSchema: RESPONSE_SCHEMA,
+            // Headroom for the worst case: a full 1,000-char input glossed word by
+            // word, with the model's own thinking tokens drawn from the same budget.
+            maxOutputTokens: 8192,
+            // Low leaves most of that budget to the gloss while still reasoning
+            // through the tricky-notes calls. No temperature: Gemini 3.x deprecates
+            // it, and the Fidelity rules above do its job instead.
+            thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+        },
+    };
+}

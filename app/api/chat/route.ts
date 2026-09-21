@@ -1,11 +1,21 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { FinishReason, GoogleGenAI, ThinkingLevel } from "@google/genai";
 import { NextResponse } from "next/server";
 import { DEFAULT_PREFS, MAX_MESSAGE_CHARS, isLensId, isModeId, isLanguageId, isScript, type ChatContext } from "@/lib/chat/config";
 import { composeSystemInstruction } from "@/lib/chat/prompts";
+import { geminiModel } from "@/lib/gemini/models";
 
 export const maxDuration = 30;
 
 const FRIENDLY_ERROR = "Sorry, something went wrong on our end. Please try again.";
+
+// Finish reasons for a reply that ended on its own terms. Anything else —
+// SAFETY, RECITATION, PROHIBITED_CONTENT, … — means it was cut short.
+const COMPLETE = new Set<FinishReason | undefined>([
+  undefined,
+  FinishReason.FINISH_REASON_UNSPECIFIED,
+  FinishReason.STOP,
+  FinishReason.MAX_TOKENS,
+]);
 
 // Whitelist the deep-link context: unknown type drops the whole thing, and
 // title/text are truncated inside composeSystemInstruction. Client strings
@@ -52,9 +62,6 @@ export async function POST(req: Request) {
       context: sanitizeContext(context),
     });
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest", systemInstruction });
-
     // Format user history (limit to the last 10 turns to keep context lean).
     // We expect history from the frontend as: [{ role: 'user' | 'ai', text: '...' }, ...]
     // Cap each turn's length too, so the per-message limit above can't be
@@ -67,15 +74,37 @@ export async function POST(req: Request) {
       }))
       .filter(msg => msg.parts[0].text.trim() !== "");
 
-    const chat = model.startChat({ history: chatHistory });
-    const result = await chat.sendMessageStream(message);
+    const ai = new GoogleGenAI({ apiKey });
+    const chat = ai.chats.create({
+      model: geminiModel("chat"),
+      history: chatHistory,
+      config: {
+        systemInstruction,
+        // Low: a streaming chat is judged on time-to-first-token, and the
+        // default (medium) is tuned for code and agentic work.
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+      },
+    });
+    const chunks = await chat.sendMessageStream({ message });
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
         try {
-          for await (const chunk of result.stream) {
-            controller.enqueue(encoder.encode(chunk.text()));
+          let finishReason: FinishReason | undefined;
+          let blockReason: string | undefined;
+          for await (const chunk of chunks) {
+            // Undefined on chunks that carry only metadata
+            const text = chunk.text;
+            if (text) controller.enqueue(encoder.encode(text));
+            finishReason = chunk.candidates?.[0]?.finishReason ?? finishReason;
+            blockReason = chunk.promptFeedback?.blockReason ?? blockReason;
+          }
+          // The SDK doesn't throw on a blocked or filtered reply — the stream
+          // just ends. Erroring the body keeps the client's contract: partial
+          // text is kept and marked interrupted, never passed off as complete.
+          if (blockReason || !COMPLETE.has(finishReason)) {
+            throw new Error(`Reply cut short: ${blockReason ?? finishReason}`);
           }
           controller.close();
         } catch (err) {

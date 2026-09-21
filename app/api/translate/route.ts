@@ -1,5 +1,6 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { FinishReason, GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
+import { geminiModel } from "@/lib/gemini/models";
 import {
   MAX_TRANSLATE_CHARS,
   isSourceHint,
@@ -9,7 +10,7 @@ import {
 } from "@/lib/translate/config";
 import { detectScript, looksRomanizedPunjabi } from "@/lib/translate/detect";
 import { cloudTranslate } from "@/lib/translate/cloud";
-import { RESPONSE_SCHEMA, buildUserMessage, composeTranslateInstruction } from "@/lib/translate/prompts";
+import { buildTranslateRequest } from "@/lib/translate/prompts";
 import { parseTranslationResult } from "@/lib/translate/parse";
 
 export const maxDuration = 30;
@@ -126,28 +127,15 @@ export async function POST(req: Request) {
           : hint !== 'auto' ? hint
             : 'english';
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-flash-latest",
-      systemInstruction: composeTranslateInstruction({ sourceHint: hint, detectedScript }),
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: RESPONSE_SCHEMA,
-        // Low for fidelity and run-to-run stability, non-zero so phrasing
-        // stays natural rather than stilted word-for-word.
-        temperature: 0.2,
-        // Headroom for the worst case: a full 1,000-char input glossed word by
-        // word, with the model's own thinking tokens drawn from the same budget.
-        maxOutputTokens: 8192,
-      },
-    });
+    const ai = new GoogleGenAI({ apiKey });
+    const result = await ai.models.generateContent(
+      buildTranslateRequest(geminiModel("translate"), text, { sourceHint: hint, detectedScript }),
+    );
 
-    const result = await model.generateContent(buildUserMessage(text));
-
-    // MAX_TOKENS is not one of the SDK's "bad finish reasons", so a truncated
-    // response returns as ordinary text and only fails later at JSON.parse.
-    // Catch it here to give advice the user can actually act on.
-    if (result.response.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
+    // The SDK returns a truncated response as ordinary text, so it would only
+    // fail later at JSON.parse. Catch it here to give advice the user can
+    // actually act on.
+    if (result.candidates?.[0]?.finishReason === FinishReason.MAX_TOKENS) {
       console.error("Translate Error: response truncated at maxOutputTokens");
       // MAX_TOKENS is an output-budget signal, not an input-length one: the
       // model's own thinking trace draws from the same budget, so a short input
@@ -158,10 +146,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: TOO_LONG_ERROR, code: "translate_too_long" }, { status: 400 });
     }
 
-    const parsed = parseTranslationResult(result.response.text(), fallbackDetected);
+    const parsed = parseTranslationResult(result.text ?? "", fallbackDetected);
 
     if (!parsed) {
-      console.error("Translate Error: unusable model output");
+      // Blocked or filtered replies land here too: the SDK returns them with
+      // no text rather than throwing, so log why.
+      console.error(
+        "Translate Error: unusable model output",
+        result.promptFeedback?.blockReason ?? result.candidates?.[0]?.finishReason ?? "",
+      );
       // Gemini answered, just not usably — a plain rendering still beats an error.
       const viaCloud = await attemptCloudFallback(text, hint, detectedScript);
       if (viaCloud) return NextResponse.json(viaCloud, { headers: { "Cache-Control": "no-store" } });
