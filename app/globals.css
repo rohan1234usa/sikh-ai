@@ -2,6 +2,12 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Which theme the user PICKED (not how it resolved), from <html data-theme>.
+   Set pre-paint, so styles keyed on it are right before hydration — the theme
+   picker's trigger icon uses these (see ThemeIcon in ThemeToggle.tsx). */
+@custom-variant theme-light (&:where([data-theme=light] *));
+@custom-variant theme-dark (&:where([data-theme=dark] *));
+
 @theme {
   /* Brand */
   --color-navy: #0F172A;

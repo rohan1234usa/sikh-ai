@@ -43,7 +43,7 @@ export default function SettingMenu<T extends string>({
     const active = options.find((o) => o.id === value);
     const activeIndex = options.findIndex((o) => o.id === value);
 
-    // Close on outside pointerdown
+    // Close when a pointer goes down, or focus arrives, outside the widget.
     useEffect(() => {
         if (!open) return;
         const onPointerDown = (e: PointerEvent) => {
@@ -59,8 +59,22 @@ export default function SettingMenu<T extends string>({
                 if (document.activeElement === document.body) triggerRef.current?.focus();
             });
         };
+        // Focus reaching an element outside (keyboard, screen reader). This is
+        // watched via focusin, not the root's blur: Safari and Firefox on macOS
+        // don't focus a <button> on click, so pressing the trigger blurs the
+        // open menu with no relatedTarget. A blur handler took that for focus
+        // leaving and closed the menu, then the click re-opened it — the
+        // trigger could never close its own menu there. Focus that merely
+        // drops to <body> fires no focusin, so this can't misfire that way.
+        const onFocusIn = (e: FocusEvent) => {
+            if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+        };
         document.addEventListener('pointerdown', onPointerDown);
-        return () => document.removeEventListener('pointerdown', onPointerDown);
+        document.addEventListener('focusin', onFocusIn);
+        return () => {
+            document.removeEventListener('pointerdown', onPointerDown);
+            document.removeEventListener('focusin', onFocusIn);
+        };
     }, [open]);
 
     // Focus the active option, but only on the closed -> open transition: if
@@ -79,10 +93,13 @@ export default function SettingMenu<T extends string>({
         }
         if (e.key === 'Tab') {
             // Move focus to the trigger (which stays mounted) BEFORE closing, so
-            // the menu item unmounting can't drop focus to the top of the page;
-            // native Tab/Shift+Tab then advances from the trigger normally.
+            // the menu item unmounting can't drop focus to the top of the page.
+            // Tab then carries on natively from the trigger to what follows it.
+            // Shift+Tab must stop ON the trigger — it's the element just before
+            // the menu — so cancel the native move, which would skip past it.
             triggerRef.current?.focus();
             setOpen(false);
+            if (e.shiftKey) e.preventDefault();
             return;
         }
         if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
@@ -105,15 +122,7 @@ export default function SettingMenu<T extends string>({
     };
 
     return (
-        <div
-            ref={rootRef}
-            className="relative"
-            onBlur={(e) => {
-                // Close when focus leaves the widget entirely (complements the
-                // outside-pointerdown listener for keyboard users)
-                if (!rootRef.current?.contains(e.relatedTarget as Node)) setOpen(false);
-            }}
-        >
+        <div ref={rootRef} className="relative">
             <button
                 ref={triggerRef}
                 type="button"

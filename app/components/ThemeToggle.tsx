@@ -15,6 +15,21 @@ const ICONS: Record<Theme, IconComponent> = {
     system: ComputerDesktopIcon,
 };
 
+// The trigger shows the current choice, but the server can't know it (it's in
+// localStorage), so picking the icon in React meant System's icon on every
+// full load until hydration swapped it. Instead all three are rendered and CSS
+// shows the one matching <html data-theme>, which the pre-paint script sets
+// before the first frame. No data-theme at all means System, the default.
+function ThemeIcon({ className = '' }: { className?: string }) {
+    return (
+        <>
+            <SunIcon className={`${className} hidden theme-light:block`} />
+            <MoonIcon className={`${className} hidden theme-dark:block`} />
+            <ComputerDesktopIcon className={`${className} theme-light:hidden theme-dark:hidden`} />
+        </>
+    );
+}
+
 // The <html data-theme> attribute is the source of truth (set pre-paint by the
 // inline script in layout.tsx). Subscribing via MutationObserver keeps the
 // picker correct no matter what changes the attribute.
@@ -32,14 +47,29 @@ export default function ThemeToggle() {
     const t = useT();
 
     // Under `system` the OS can change its mind while the page is open — at
-    // sunset, or when the user flips it in another window.
+    // sunset, or when the user flips it in another window. The handler re-reads
+    // the live choice rather than trusting `theme`: during hydration `theme` is
+    // the server's System for everyone, so this can briefly be attached for a
+    // Light or Dark user, and must not overwrite their pick if the OS moves.
     useEffect(() => {
         if (theme !== 'system') return;
         const query = window.matchMedia(DARK_QUERY);
-        const onChange = () => applyTheme('system');
+        const onChange = () => { if (getTheme() === 'system') applyTheme('system'); };
         query.addEventListener('change', onChange);
         return () => query.removeEventListener('change', onChange);
     }, [theme]);
+
+    // A pick made in another tab. The browser fires `storage` only in the
+    // OTHER tabs, so without this they keep the old theme until reloaded. A
+    // null key means storage was cleared, which reads as the default.
+    useEffect(() => {
+        const onStorage = (e: StorageEvent) => {
+            if (e.key !== null && e.key !== THEME_STORAGE_KEY) return;
+            applyTheme(parseTheme(e.newValue));
+        };
+        window.addEventListener('storage', onStorage);
+        return () => window.removeEventListener('storage', onStorage);
+    }, []);
 
     const select = (next: Theme) => {
         applyTheme(next);
@@ -49,7 +79,7 @@ export default function ThemeToggle() {
     return (
         <SettingMenu
             label={t.nav.changeTheme}
-            icon={ICONS[theme]}
+            icon={ThemeIcon}
             value={theme}
             options={THEMES.map((id) => ({ id, label: t.nav.themes[id], icon: ICONS[id] }))}
             onSelect={select}
