@@ -2,10 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from 'react';
 import { ComputerDesktopIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
-import {
-    applyTheme, DARK_QUERY, DEFAULT_THEME, parseTheme,
-    THEMES, THEME_STORAGE_KEY, type Theme,
-} from '@/lib/theme';
+import { DEFAULT_THEME, parseTheme, setTheme, THEMES, watchTheme, type Theme } from '@/lib/theme';
 import { useT } from '../context/LanguageContext';
 import SettingMenu, { type IconComponent } from './SettingMenu';
 
@@ -14,6 +11,24 @@ const ICONS: Record<Theme, IconComponent> = {
     dark: MoonIcon,
     system: ComputerDesktopIcon,
 };
+
+// The trigger shows the current choice, but the server can't know it (it's in
+// localStorage), so choosing in React meant System's icon and name on every
+// full load until hydration. Instead each choice's icon and name are rendered
+// and CSS shows the one matching <html data-theme>, which the pre-paint script
+// sets before the first frame. No data-theme at all means System, the default.
+const SHOW: Record<Theme, string> = {
+    light: 'hidden in-data-[theme=light]:block',
+    dark: 'hidden in-data-[theme=dark]:block',
+    system: 'in-data-[theme=light]:hidden in-data-[theme=dark]:hidden',
+};
+
+function ThemeIcon({ className = '' }: { className?: string }) {
+    return THEMES.map((id) => {
+        const Icon = ICONS[id];
+        return <Icon key={id} className={`${className} ${SHOW[id]}`} />;
+    });
+}
 
 // The <html data-theme> attribute is the source of truth (set pre-paint by the
 // inline script in layout.tsx). Subscribing via MutationObserver keeps the
@@ -31,28 +46,24 @@ export default function ThemeToggle() {
     const theme = useSyncExternalStore(subscribe, getTheme, serverSnapshot);
     const t = useT();
 
-    // Under `system` the OS can change its mind while the page is open — at
-    // sunset, or when the user flips it in another window.
-    useEffect(() => {
-        if (theme !== 'system') return;
-        const query = window.matchMedia(DARK_QUERY);
-        const onChange = () => applyTheme('system');
-        query.addEventListener('change', onChange);
-        return () => query.removeEventListener('change', onChange);
-    }, [theme]);
-
-    const select = (next: Theme) => {
-        applyTheme(next);
-        try { localStorage.setItem(THEME_STORAGE_KEY, next); } catch { /* storage blocked — holds for this page */ }
-    };
+    // Page-wide, but anchored here because the navbar is on every page.
+    useEffect(() => watchTheme(), []);
 
     return (
         <SettingMenu
             label={t.nav.changeTheme}
-            icon={ICONS[theme]}
+            icon={ThemeIcon}
+            name={
+                <>
+                    {t.nav.changeTheme}
+                    {THEMES.map((id) => (
+                        <span key={id} className={SHOW[id]}> ({t.nav.themes[id]})</span>
+                    ))}
+                </>
+            }
             value={theme}
             options={THEMES.map((id) => ({ id, label: t.nav.themes[id], icon: ICONS[id] }))}
-            onSelect={select}
+            onSelect={setTheme}
         />
     );
 }

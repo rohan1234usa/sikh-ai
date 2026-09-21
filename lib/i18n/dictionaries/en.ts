@@ -512,6 +512,18 @@ const en = {
         submit: 'Create Seva Event',
     },
 
+    notFound: {
+        heading: 'Page not found',
+        body: "The page you're looking for doesn't exist or may have moved.",
+        home: 'Back to home',
+    },
+
+    errorPage: {
+        heading: 'Something went wrong',
+        body: 'This page ran into an unexpected error. Try again, or go back to the home page.',
+        retry: 'Try again',
+    },
+
     footer: {
         builtBy: 'Built by',
         navAria: 'Footer',
@@ -529,6 +541,7 @@ const en = {
         sevaCreateTitle: 'Post a Seva Event',
         hukamnamaTitle: "Today's Hukamnama",
         translateTitle: 'Punjabi Translator',
+        notFoundTitle: 'Page not found',
     },
 
     // Keys matching the `code` field on API error responses, plus client-local

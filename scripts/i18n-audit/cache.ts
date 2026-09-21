@@ -1,4 +1,4 @@
-// The translation cache is committed to the repo on purpose: it is both the
+// The translation cache is meant to be committed to the repo: it is both the
 // reason a rerun costs nothing and the ledger of what has been spent. Keys
 // embed the full source text, so an edited string misses naturally and there
 // is no invalidation logic to get wrong.
@@ -30,7 +30,7 @@ function emptyCache(): Cache {
     };
 }
 
-// A corrupt cache must never be silently discarded. This file is committed, so
+// A corrupt cache must never be silently discarded. Once it is committed,
 // the realistic corruption is a merge conflict between two branches that both
 // ran the audit — and starting fresh there would quietly re-bill the entire
 // corpus and reset the spend ledger to zero. Fail loudly instead; --reset-cache
