@@ -11,7 +11,8 @@
     "mock:gemini": "tsx scripts/mock-gemini.ts",
     "fixtures:gurbani": "tsx scripts/gurbani-fixtures/record.ts",
     "audit:i18n": "tsx scripts/i18n-audit/index.ts",
-    "eval:translate": "tsx scripts/translate-eval/index.ts"
+    "eval:translate": "tsx scripts/translate-eval/index.ts",
+    "build:phrasebook": "tsx scripts/phrasebook-build/index.ts"
   },
   "dependencies": {
     "@google/genai": "^2.23.0",

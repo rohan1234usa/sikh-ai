@@ -3,6 +3,8 @@
 import { useEffect, useRef } from 'react';
 import { PaperAirplaneIcon, StopIcon } from '@heroicons/react/24/solid';
 import { useT } from '../../context/LanguageContext';
+import { MAX_MESSAGE_CHARS } from '@/lib/chat/config';
+import { fmt } from '@/lib/i18n/fmt';
 
 type Props = {
     value: string;
@@ -47,6 +49,7 @@ export default function ChatInput({ value, onChange, onSend, onStop, isStreaming
                     onChange={(e) => onChange(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder={t.chat.inputPlaceholder}
+                    maxLength={MAX_MESSAGE_CHARS}
                     className="w-full p-4 pr-14 rounded-xl border border-edge bg-surface-raised text-ink placeholder:text-ink-faint resize-none max-h-40 overflow-y-auto focus:ring-2 focus:ring-kesri"
                 />
                 {isStreaming ? (
@@ -69,6 +72,17 @@ export default function ChatInput({ value, onChange, onSend, onStop, isStreaming
                     </button>
                 )}
             </form>
+            {/* The one place the chat page says what the AI is and where messages
+                go — the site footer is hidden here. ink-muted keeps AA contrast
+                in dark mode, which ink-faint does not. */}
+            <div className="max-w-4xl mx-auto mt-2 flex items-start justify-between gap-3 text-[11px] text-ink-muted">
+                <p>{t.chat.disclaimer}</p>
+                {value.length >= MAX_MESSAGE_CHARS * 0.8 && (
+                    <span className={`shrink-0 tabular-nums ${value.length >= MAX_MESSAGE_CHARS ? 'text-red-600 dark:text-red-400 font-semibold' : ''}`}>
+                        {fmt(t.chat.charCount, { n: value.length, max: MAX_MESSAGE_CHARS })}
+                    </span>
+                )}
+            </div>
         </div>
     );
 }

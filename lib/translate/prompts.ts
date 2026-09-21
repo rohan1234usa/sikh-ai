@@ -28,14 +28,30 @@ const FIDELITY = `Translate faithfully and consistently:
 
 // The romanization contract that keeps "roman", "words[].roman", and
 // "pronunciation[].roman" consistent with each other AND with the site's
-// pa-latn dictionary conventions (community spellings, no diacritics).
-const ROMANIZATION = `Use one learner-friendly community romanization in every field — never ISO 15919:
-- No diacritics, no dots, no apostrophes.
-- Long vowels doubled: aa (ਾ), ee (ੀ), oo (ੂ); short vowels single a/i/u; e (ੇ), ai (ੈ), o (ੋ), au (ੌ).
-- Aspirated consonants as consonant + h: kh, gh, chh, jh, th, dh, ph, bh.
-- Nasalization written as n or m as commonly heard (main, punjabi, vichon) — no special marks.
-- Retroflex and dental are both spelled t/d — cover that difference in pronunciation tips, not in spelling.
-- Keep familiar community spellings: Waheguru, Gurdwara, Sat Sri Akal, Hukamnama, langar, seva.
+// house style — the spellings in lib/translate/phrasebook.ts and the pa-latn
+// dictionary. A blanket "double every long vowel" rule gave "Chaachaa ji" and
+// "Taaiaa Ji" where families write Chacha ji and Taya ji, so length is only
+// marked where a learner needs to hear it. The examples come from the pa-latn
+// dictionary and the phrases the eval's default --limit 20 covers. The other
+// 30 phrases were the check that the rules generalize
+// (npm run eval:translate -- --limit 50); a few of their words were pinned
+// here afterwards, where the model wavered (Kirtan, Ardaas, Ji aayan nu, nahi).
+//
+// Changing this changes what results look like: bump TRANSLATE_RESULT_REV in
+// ./config so saved history stops being reused, and rerun
+// npm run build:phrasebook.
+const ROMANIZATION = `Use one learner-friendly community romanization in every field — the way Punjabi families text each other, never ISO 15919:
+- Plain ASCII only: no diacritics, no dots, no apostrophes.
+- A vowel sign at the END of a word is always one letter: ਾ → a, ੀ → i, ੂ → u (ਕੀ ki, ਜੀ ji, ਤੁਸੀਂ tusi, ਰੋਟੀ roti, ਖਾ kha, ਅੱਛਾ achha, ਸਕਦਾ sakda, ਮੈਨੂੰ mainu).
+- Inside a word, double a long vowel only where a learner needs to hear the length — in a one-syllable word or in the last syllable of a longer one: ਹਾਲ haal, ਨਾਲ naal, ਪਾਠ paath, ਠੀਕ theek, ਸੁਆਦ suaad, ਇਤਿਹਾਸ itihaas, ਅਨੁਵਾਦ anuvaad, ਪਰਿਵਾਰ parivaar. A one-syllable word keeps it before a nasal (ਹਾਂ haan, ਹਾਂਜੀ haanji); at the end of a longer word ਾਂ is an (ਪਹਿਲਾਂ pehlan, ਸ਼ਬਦਾਂ shabdan).
+- Everywhere else write the long vowel once, as the community does: kinship terms (ਚਾਚਾ chacha, ਤਾਇਆ taya, ਮਾਮਾ mama, ਮਾਸੀ masi), everyday words (ਦੁਬਾਰਾ dubara, ਚਾਹੀਦਾ chahida, ਬਿਮਾਰੀ bimari), and Sikh terms (Khalsa, Sangat, Guru, Sahib, Bani, Kirtan).
+- Short vowels single a/i/u; ੇ → e, ੈ → ai (hai, main, lai), ੋ → o, ੌ → au (hauli, kaun); ਇਹ ih, ਪਹਿਲਾਂ pehlan. After a vowel, ਇਆ/ਈ → ya/yi (ਤਾਇਆ taya, ਗਿਆ gaya, ਲਈ layi); after a consonant, ਿਆ → ia (ਮਿਲਿਆ milia, ਸਕਿਆ sakia).
+- Aspirated consonants as consonant + h: kh, gh, chh, jh, th, dh, ph, bh. ੜ is rh (ਥੋੜ੍ਹੀ thorhi, ਪੜ੍ਹੋ parho, ਨੇੜਲੀ nerhli). ਵ is v (vich, seva, lavo) except in the fixed spellings below.
+- A doubled consonant (ੱ) is written twice — ਬੱਸ bass, ਰੱਜ rajj, ਦੱਸੋ dasso, ਗੱਲਬਾਤ gallbaat, ਲੱਭੋ labbho — except ch, chh, kh and th, which stay single: ਅੱਛਾ achha, ਪੁੱਛੋ puchho, ਵਿੱਚ vich, ਸਿੱਖ Sikh, ਮੱਥਾ matha, ਮਿੱਠਾ mitha, ਇੱਥੇ ithe.
+- Nasalization is written n or m as commonly heard (main, haan, ton, vichon, Punjabi) — no special marks — and not at all after a final ੀ or ੂ (ਤੁਸੀਂ tusi, ਨਹੀਂ nahi, ਮੈਨੂੰ mainu). Retroflex and dental are both spelled t/d/n — cover that difference in pronunciation tips, not in spelling. English loanwords keep their English spelling.
+- Fixed community spellings, always exactly so, even where they break the rules above: Waheguru, Gurdwara, Khalsa, Punjabi, Hukamnama, Darbar Sahib, Akal, Ardaas, Parshad, Karah Parshad, langar, seva, and the greetings Sat Sri Akal, Ji aayan nu, Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.
+- Capitalize like an English sentence: the first word of each sentence, plus proper nouns and Sikh terms of reverence (Waheguru, Guru, Gurdwara, Khalsa, Hukamnama, Punjabi, Sat Sri Akal); everything else lowercase. "ji" is lowercase after a kinship or everyday word (Chacha ji, Hor lavo ji) and capitalized only inside a name or formal title (Guru Nanak Dev Ji, Waheguru Ji Ka Khalsa). In "words" and "pronunciation", write roman forms in lowercase unless they are one of those proper nouns.
+- When the input is already romanized Punjabi, keep the user's own spelling in "roman" unless it breaks a rule above — never lengthen a vowel the user wrote short (Chacha ji stays Chacha ji, not Chaachaa ji).
 - One spelling per word, identical across every field of the response.`;
 
 const WORDS = `"words": split the SOURCE text, in order, into words or small phrases. Keep idiomatic or fixed multi-word units together as one entry — never gloss an idiom word by word. Each entry gives "source" exactly as it appears in the input, its "gurmukhi" and "roman" forms, and a "meaning" of a few English words (no sentences). Cover the whole input; group longer input into phrases; at most 30 entries.`;

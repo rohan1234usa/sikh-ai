@@ -13,7 +13,10 @@
   --color-offwhite: #F8FAFC;
 
   /* Typography */
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  /* Geist has no Gurmukhi, so Gurmukhi characters (a quoted tukk in an English
+     reply) fall through to Noto Sans Gurmukhi instead of whatever the OS has.
+     The Noto face covers only U+0A01–0A76 and the dandas, so Latin is untouched. */
+  --font-sans: var(--font-geist-sans), var(--font-noto-gurmukhi), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --font-gurmukhi: var(--font-noto-gurmukhi), var(--font-geist-sans), sans-serif;
 

@@ -46,12 +46,41 @@ function romanIssues(label: string, value: string): string[] {
     return issues;
 }
 
+// Proper nouns keep their capital wherever they appear, even in a word gloss.
+// (Spelling variants are scanValue's job; this only checks case.)
+const PROPER_NOUNS = ['Waheguru', 'Gurdwara', 'Hukamnama', 'Khalsa', 'Punjabi', 'Sat Sri Akal'];
+
+function caseIssues(label: string, value: string): string[] {
+    const issues: string[] = [];
+    for (const noun of PROPER_NOUNS) {
+        for (const match of value.matchAll(new RegExp(`\\b${noun.replace(/ /g, '\\s+')}\\b`, 'gi'))) {
+            if (match[0].replace(/\s+/g, ' ') !== noun) issues.push(`${label}: "${match[0]}" should be "${noun}"`);
+        }
+    }
+    return issues;
+}
+
 // Any letter or vowel sign from outside the Gurmukhi block — Latin, but also
 // the neighbouring Indic scripts (Bengali ঠ, Telugu ా, Devanagari ि) that a
 // model can slip into a Gurmukhi word, where a learner cannot spot them.
 function scriptIssues(label: string, value: string): string[] {
     const foreign = [...new Set([...value].filter(ch => /[\p{L}\p{M}]/u.test(ch) && !/[਀-੿]/.test(ch)))];
     return foreign.length ? [`${label}: non-Gurmukhi ${foreign.join(' ')} in "${value}"`] : [];
+}
+
+// Every house-style break in a result: romanization rules, capitalization,
+// and foreign letters in Gurmukhi. Also used by `npm run build:phrasebook`
+// to drop offending items before anything is shipped.
+export function conventionIssues(result: TranslationResult): string[] {
+    const roman = (label: string, value: string) => [...romanIssues(label, value), ...caseIssues(label, value)];
+    return [
+        ...roman('roman', result.roman),
+        ...result.words.flatMap((w, i) => roman(`words[${i}].roman`, w.roman)),
+        ...result.pronunciation.flatMap((p, i) => roman(`pronunciation[${i}].roman`, p.roman)),
+        ...scriptIssues('gurmukhi', result.gurmukhi),
+        ...result.words.flatMap((w, i) => scriptIssues(`words[${i}].gurmukhi`, w.gurmukhi)),
+        ...result.pronunciation.flatMap((p, i) => scriptIssues(`pronunciation[${i}].gurmukhi`, p.gurmukhi)),
+    ];
 }
 
 export function score(fixture: Fixture, rawText: string): Score {
@@ -74,13 +103,6 @@ export function score(fixture: Fixture, rawText: string): Score {
         kept: fromGurmukhi
             ? dice(gurmukhiTokens(result.gurmukhi), gurmukhiTokens(fixture.input))
             : dice(romanTokens(result.roman), romanTokens(fixture.input)),
-        issues: [
-            ...romanIssues('roman', result.roman),
-            ...result.words.flatMap((w, i) => romanIssues(`words[${i}].roman`, w.roman)),
-            ...result.pronunciation.flatMap((p, i) => romanIssues(`pronunciation[${i}].roman`, p.roman)),
-            ...scriptIssues('gurmukhi', result.gurmukhi),
-            ...result.words.flatMap((w, i) => scriptIssues(`words[${i}].gurmukhi`, w.gurmukhi)),
-            ...result.pronunciation.flatMap((p, i) => scriptIssues(`pronunciation[${i}].gurmukhi`, p.gurmukhi)),
-        ],
+        issues: conventionIssues(result),
     };
 }

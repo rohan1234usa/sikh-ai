@@ -63,6 +63,12 @@ export const isCrosscheckDirection = (v: unknown): v is CrosscheckDirection =>
 // word-by-word gloss implies.
 export const MAX_TRANSLATE_CHARS = 1000;
 
+// Stamped on every result saved to history. A saved result is served again
+// (instead of a new request) only while its stamp matches, so bump this when
+// the translate prompt or model changes what a result looks like — older
+// entries then stay in the list but are no longer reused automatically.
+export const TRANSLATE_RESULT_REV = 1;
+
 export const isDetectedInput = (v: unknown): v is DetectedInput =>
     DETECTED_INPUTS.includes(v as DetectedInput);
 export const isSourceHint = (v: unknown): v is SourceHint =>

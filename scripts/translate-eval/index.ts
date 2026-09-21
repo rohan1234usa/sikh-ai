@@ -12,13 +12,14 @@
 // cache.json, so a rerun only calls the API for what it has not already seen
 // under the current prompt.
 
-import { ApiError, GoogleGenAI, type GenerateContentResponse } from '@google/genai';
+import { GoogleGenAI } from '@google/genai';
 import { geminiModel } from '../../lib/gemini/models';
 import { detectScript } from '../../lib/translate/detect';
 import { PHRASES } from '../../lib/translate/phrasebook';
 import { buildTranslateRequest } from '../../lib/translate/prompts';
 import { loadEnvLocal } from '../i18n-audit/env';
-import { loadCache, runKey, saveCache, type CachedRun } from './cache';
+import { loadCache, pruneCache, runKey, saveCache } from './cache';
+import { generate, pacer } from './call';
 import { buildFixtures, type Fixture } from './fixtures';
 import { writeReport, type Answer, type Row } from './report';
 import { score } from './score';
@@ -42,6 +43,8 @@ Usage: npm run eval:translate -- [flags]
   --all          All fixtures (every phrase, as both Gurmukhi and romanized input)
   --models a,b   Models to compare, baseline first
   --rpm N        Requests per minute to each model (default ${DEFAULT_RPM})
+  --prune        Afterwards, drop cached answers to earlier prompts (git
+                 history keeps them) so cache.json only holds what the report shows
   --help         This message
 
 Every request is billed on a paid key. On the free tier it instead counts
@@ -49,11 +52,7 @@ against that model's daily quota for the whole project — the same bucket the
 live app uses. AI Studio shows your limits.
 `;
 
-type Options = { models: string[]; limit: number | 'all'; rpm: number; dryRun: boolean };
-
-type Outcome = { run: CachedRun } | { stop: string } | { skip: string };
-
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+type Options = { models: string[]; limit: number | 'all'; rpm: number; dryRun: boolean; prune: boolean };
 
 function positive(flag: string, raw: string): number {
     const n = Number(raw);
@@ -62,7 +61,7 @@ function positive(flag: string, raw: string): number {
 }
 
 function parseArgs(argv: string[]): Options {
-    const opts: Options = { models: [], limit: DEFAULT_LIMIT, rpm: DEFAULT_RPM, dryRun: false };
+    const opts: Options = { models: [], limit: DEFAULT_LIMIT, rpm: DEFAULT_RPM, dryRun: false, prune: false };
     for (let i = 0; i < argv.length; i++) {
         const flag = argv[i];
         const value = () => {
@@ -72,78 +71,13 @@ function parseArgs(argv: string[]): Options {
         };
         if (flag === '--dry-run') opts.dryRun = true;
         else if (flag === '--all') opts.limit = 'all';
+        else if (flag === '--prune') opts.prune = true;
         else if (flag === '--limit') opts.limit = Math.floor(positive(flag, value()));
         else if (flag === '--rpm') opts.rpm = positive(flag, value());
         else if (flag === '--models') opts.models = [...new Set(value().split(',').map(m => m.trim()).filter(Boolean))];
         else throw new Error(`Unknown flag ${flag}\n\n${HELP}`);
     }
     return opts;
-}
-
-// The API's error message is the JSON error body; pull out its human part.
-function brief(message: string): string {
-    try {
-        const text = (JSON.parse(message) as { error?: { message?: string } }).error?.message;
-        if (text) return text.slice(0, 200);
-    } catch { /* not JSON — use it as is */ }
-    return message.slice(0, 200);
-}
-
-function retryDelayMs(message: string): number {
-    const match = /"retryDelay":\s*"(\d+(?:\.\d+)?)s"/.exec(message);
-    return (match ? Number(match[1]) : 60) * 1000 + 1000;
-}
-
-function toRun(model: string, res: GenerateContentResponse, latencyMs: number): CachedRun {
-    return {
-        model,
-        modelVersion: res.modelVersion,
-        text: res.text ?? '',
-        finishReason: res.candidates?.[0]?.finishReason,
-        blockReason: res.promptFeedback?.blockReason,
-        usage: {
-            prompt: res.usageMetadata?.promptTokenCount,
-            output: res.usageMetadata?.candidatesTokenCount,
-            thoughts: res.usageMetadata?.thoughtsTokenCount,
-        },
-        latencyMs: Math.round(latencyMs),
-        at: new Date().toISOString(),
-    };
-}
-
-async function ask(
-    ai: GoogleGenAI,
-    model: string,
-    fixture: Fixture,
-    pace: () => Promise<void>,
-): Promise<Outcome> {
-    for (let attempt = 1; ; attempt++) {
-        await pace();
-        const started = performance.now();
-        try {
-            const res = await ai.models.generateContent(buildTranslateRequest(model, fixture.input, {
-                sourceHint: 'auto',
-                detectedScript: detectScript(fixture.input),
-            }));
-            return { run: toRun(model, res, performance.now() - started) };
-        } catch (err) {
-            if (!(err instanceof ApiError)) throw err;
-            if (err.status === 429) {
-                // The daily quota resets at midnight Pacific; a per-minute limit
-                // clears after the delay the API suggests, so wait once.
-                if (/PerDay/i.test(err.message)) return { stop: 'daily quota reached; rerun after midnight Pacific to continue' };
-                if (attempt === 1) {
-                    await sleep(retryDelayMs(err.message));
-                    continue;
-                }
-                return { stop: `still rate-limited after waiting: ${brief(err.message)}` };
-            }
-            // A bad model name, an unsupported setting, or a rejected key fails
-            // every request the same way, so stop this model rather than repeat it.
-            if ([400, 401, 403, 404].includes(err.status)) return { stop: `${err.status}: ${brief(err.message)}` };
-            return { skip: `${err.status}: ${brief(err.message)}` };
-        }
-    }
 }
 
 async function main(): Promise<void> {
@@ -163,11 +97,11 @@ async function main(): Promise<void> {
 
     // The request config is deterministic per model and input (only the
     // fence nonce in the user turn varies), which is what makes it a cache key.
-    const keyFor = (model: string, fixture: Fixture) => runKey(
-        model,
-        buildTranslateRequest(model, fixture.input, { sourceHint: 'auto', detectedScript: detectScript(fixture.input) }).config,
-        fixture.input,
-    );
+    const requestFor = (model: string, fixture: Fixture) => buildTranslateRequest(model, fixture.input, {
+        sourceHint: 'auto',
+        detectedScript: detectScript(fixture.input),
+    });
+    const keyFor = (model: string, fixture: Fixture) => runKey(model, requestFor(model, fixture).config, fixture.input);
 
     const cache = loadCache();
     const pending = models.map(model => ({
@@ -192,13 +126,7 @@ async function main(): Promise<void> {
     if (calls > 0 && !apiKey) throw new Error('GEMINI_API_KEY is not set (environment or .env.local).');
 
     const ai = new GoogleGenAI({ apiKey });
-    const gap = 60_000 / opts.rpm;
-    const lastCall = new Map<string, number>();
-    const pace = (model: string) => async () => {
-        const wait = (lastCall.get(model) ?? -Infinity) + gap - Date.now();
-        if (wait > 0) await sleep(wait);
-        lastCall.set(model, Date.now());
-    };
+    const pace = pacer(opts.rpm);
 
     const stopped = new Map<string, string>();
     let done = 0;
@@ -207,7 +135,7 @@ async function main(): Promise<void> {
     for (const fixture of fixtures) {
         for (const model of models) {
             if (stopped.has(model) || keyFor(model, fixture) in cache.entries) continue;
-            const outcome = await ask(ai, model, fixture, pace(model));
+            const outcome = await generate(ai, requestFor(model, fixture), pace(model));
             done++;
             const tag = `[${done}/${calls}] ${model} ${fixture.key}`;
             if ('run' in outcome) {
@@ -244,6 +172,16 @@ async function main(): Promise<void> {
         if (reason) console.log(`  stopped early: ${reason}`);
     }
     console.log(`Report: ${path}`);
+
+    if (opts.prune) {
+        // Every model that has answers, not just this run's, so a run limited
+        // to one model keeps the others' answers to the current prompt.
+        const cachedModels = new Set(Object.values(cache.entries).map(run => run.model));
+        const keep = new Set([...cachedModels].flatMap(model => all.map(fixture => keyFor(model, fixture))));
+        const removed = pruneCache(cache, keep);
+        saveCache(cache);
+        console.log(`Pruned ${removed} cached answers to earlier prompts; ${Object.keys(cache.entries).length} remain.`);
+    }
 
     // A config problem (bad model name, rejected key) is worth an exit code;
     // running out of quota is not — the rest resumes from cache tomorrow.

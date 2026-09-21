@@ -140,7 +140,7 @@ export function checkLengthRatios(
 // phrasebook.ts and the pa-latn header both promise.
 
 const VARIANTS: { canonical: string; pattern: RegExp }[] = [
-    { canonical: 'Waheguru', pattern: /\b[vw]ah?i?[- ]?guru\b/gi },
+    { canonical: 'Waheguru', pattern: /\b[vw]ah?[ei]?[- ]?guru\b/gi },
     { canonical: 'Gurdwara', pattern: /\bguru?d[uw]?ara\b/gi },
     { canonical: 'Sat Sri Akal', pattern: /\bsat\s+s[ir]{1,2}i?\s+akaa?l\b/gi },
     { canonical: 'langar', pattern: /\blang[aeu]r\b/gi },

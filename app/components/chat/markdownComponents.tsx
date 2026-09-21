@@ -7,8 +7,10 @@ export const markdownComponents: Components = {
     ul: ({ node, ...props }) => <ul className="list-disc pl-4 space-y-2 my-2" {...props} />,
     ol: ({ node, ...props }) => <ol className="list-decimal pl-4 space-y-2 my-2" {...props} />,
     p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+    // Replies put Gurbani in blockquotes, so no italics (Gurmukhi has no italic
+    // face; the browser would slant it) and full-contrast text.
     blockquote: ({ node, ...props }) => (
-        <blockquote className="border-l-4 border-kesri/40 pl-3 py-1 my-2 text-ink-faint italic bg-surface rounded-r" {...props} />
+        <blockquote className="border-l-4 border-kesri/60 pl-3 py-1 my-2 text-ink bg-surface rounded-r leading-loose" {...props} />
     ),
     a: ({ node, ...props }) => (
         <a
