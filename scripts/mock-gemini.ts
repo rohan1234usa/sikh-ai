@@ -14,11 +14,13 @@
 //   MOCK_HANG         never answers                 MOCK_EMPTY       no text at all
 //   MOCK_BLOCKED      prompt refused                MOCK_SAFETY      text, then cut by a filter
 //   MOCK_MAX_TOKENS   hits the output cap           MOCK_GARBAGE     translator gets non-JSON
-//   MOCK_REPLY:<name> a canned chat reply from CANNED below
+//   MOCK_REPLY:<name> a canned chat reply (CANNED below, or a citation fixture id)
 // Anything else gets a normal reply naming the model that served it.
 
+import { readFileSync } from 'node:fs';
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
+import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 export type MockRequest = { model: string; op: string; text: string; body: unknown };
@@ -35,11 +37,24 @@ export type MockOptions = {
     dailyLimit?: Record<string, number>; // model → calls allowed before a daily 429
 };
 
-// Canned chat replies, streamed in a few pieces. Extended as features need
-// realistic model output to exercise.
+// Canned chat replies, streamed in a few pieces. Any reply saved in the
+// citation fixtures can be replayed too, by its id — e.g.
+// MOCK_REPLY:arjan-grief-gurbani-first:36 streams a real model answer that
+// misquotes Gurbani, to watch the citation check at work.
 export const CANNED: Record<string, string> = {
     plain: 'Seva is selfless service, offered without any expectation of reward.',
 };
+
+function cannedReply(name: string): string | undefined {
+    if (CANNED[name] !== undefined) return CANNED[name];
+    try {
+        const file = resolve(import.meta.dirname, '../tests/gurbani/fixtures/replies.json');
+        const replies = JSON.parse(readFileSync(file, 'utf8')) as { id: string; text: string }[];
+        return replies.find(r => r.id === name)?.text;
+    } catch {
+        return undefined;
+    }
+}
 
 const GURMUKHI = /[਀-੿]/;
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
@@ -167,10 +182,9 @@ export async function startMockGemini(opts: MockOptions = {}): Promise<MockGemin
                 send(candidate([], { finishReason: 'SAFETY' }));
                 return res.end();
             }
-            const canned = /MOCK_REPLY:([\w-]+)/.exec(text)?.[1];
-            const reply = canned && CANNED[canned] !== undefined
-                ? CANNED[canned]
-                : `Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh. This is a **mock** reply from \`${model}\`.`;
+            const canned = /MOCK_REPLY:([\w:-]+)/.exec(text)?.[1];
+            const reply = (canned && cannedReply(canned))
+                ?? `Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh. This is a **mock** reply from \`${model}\`.`;
             for (const piece of pieces(reply)) {
                 await sleep(delay);
                 send(candidate([{ text: piece }]));

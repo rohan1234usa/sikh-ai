@@ -14,6 +14,7 @@ import { parseDeepLink, fetchChatContext } from '../components/chat/deepLink';
 import { DEFAULT_PREFS, siteDefaultLanguageId, siteScript, type LensId } from '@/lib/chat/config';
 import { useLanguage } from '../context/LanguageContext';
 import { FriendlyError, responseErrorText } from '@/lib/i18n/apiError';
+import { MAX_VERIFY_CHARS, hasGurmukhiRun, sanitizeCitations } from '@/lib/gurbani/citations';
 import { fmt } from '@/lib/i18n/fmt';
 
 export default function ChatPage() {
@@ -38,6 +39,7 @@ export default function ChatPage() {
   const { prefs, update: updatePrefs, hydrated: prefsHydrated } = useChatPrefs();
 
   const abortRef = useRef<AbortController | null>(null);
+  const verifyAbortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const atBottomRef = useRef(true);
   const [showJump, setShowJump] = useState(false);
@@ -94,8 +96,11 @@ export default function ChatPage() {
     if (el && atBottomRef.current) el.scrollTop = el.scrollHeight;
   }, [messages]);
 
-  // Abort any in-flight stream on unmount
-  useEffect(() => () => abortRef.current?.abort(), []);
+  // Abort any in-flight stream or citation check on unmount
+  useEffect(() => () => {
+    abortRef.current?.abort();
+    verifyAbortRef.current?.abort();
+  }, []);
 
   const onScroll = () => {
     const el = scrollRef.current;
@@ -173,19 +178,23 @@ export default function ChatPage() {
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      let received = false;
+      let full = '';
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value, { stream: true });
-        if (chunk) received = true;
+        full += chunk;
         setMessages(prev => prev.map(m => (m.id === aiMsg.id ? { ...m, text: m.text + chunk } : m)));
       }
-      if (!received) {
+      if (!full) {
         // Never leave a permanently empty bubble
         setMessages(prev => prev.map(m =>
           m.id === aiMsg.id ? { ...m, text: tRef.current.errors.generic, isError: true } : m
         ));
+      } else {
+        // Only a reply that finished normally is checked; an interrupted one
+        // lands in the catch below.
+        void verifyCitations(aiMsg.id, full);
       }
     } catch (err: unknown) {
       if (err instanceof DOMException && err.name === 'AbortError') {
@@ -209,16 +218,45 @@ export default function ChatPage() {
     }
   }
 
+  // Checks the Gurbani a finished reply quotes (lib/gurbani/verify.ts) and
+  // attaches the result as cards. Best effort: any failure just means no
+  // cards, and the chat never waits on it.
+  async function verifyCitations(messageId: string, text: string) {
+    if (!hasGurmukhiRun(text)) return;
+    verifyAbortRef.current?.abort();
+    const controller = new AbortController();
+    verifyAbortRef.current = controller;
+    try {
+      const res = await fetch('/api/chat/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text.slice(0, MAX_VERIFY_CHARS) }),
+        signal: controller.signal,
+      });
+      if (!res.ok) return;
+      const citations = sanitizeCitations((await res.json().catch(() => null))?.citations);
+      if (citations.length === 0) return;
+      setMessages(prev => prev.map(m => (m.id === messageId ? { ...m, citations } : m)));
+    } catch {
+      // Aborted or offline: no cards.
+    } finally {
+      if (verifyAbortRef.current === controller) verifyAbortRef.current = null;
+    }
+  }
+
   const regenerate = () => {
     if (isStreaming) return;
     const lastUserIdx = messages.findLastIndex(m => m.role === 'user');
     if (lastUserIdx === -1) return;
+    // The reply being replaced may still be under check.
+    verifyAbortRef.current?.abort();
     // send() re-appends the user message, so slice it off the base
     send(messages[lastUserIdx].text, messages.slice(0, lastUserIdx));
   };
 
   const confirmClear = () => {
     abortRef.current?.abort();
+    verifyAbortRef.current?.abort();
     clear([{ ...initialMessages[0], text: lens.greeting }]);
     setContextError(false);
     setConfirmingClear(false);

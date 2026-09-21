@@ -8,6 +8,7 @@
 // Brand names ("SikhAI", "Gemini", "Rohan Singh") are never translated.
 
 import type { ChatCopy } from '@/lib/chat/config';
+import type { CitationStatus } from '@/lib/gurbani/citations';
 import type { DetectedInput, NoteKind } from '@/lib/translate/config';
 import type { PhraseCategoryId } from '@/lib/translate/phrasebook';
 import type { Theme } from '@/lib/theme';
@@ -364,6 +365,25 @@ const en = {
         regenerateAria: 'Regenerate response',
         discussing: 'Discussing: {title}',
         stopDiscussingAria: 'Stop discussing this passage',
+        // Cards under a reply that check its Gurbani quotes against GurbaniNow
+        citations: {
+            heading: 'Gurbani check',
+            sourceNote: 'Lines, translations, and Ang numbers in this box come word for word from GurbaniNow — not from the AI.',
+            statusLabels: {
+                'verified': 'Matches the source',
+                'wrong-ang': 'Found on a different Ang',
+                'close': 'Wording differs from the source',
+                'unverified': "Couldn't verify this line",
+            } satisfies Record<CitationStatus, string>,
+            spellingNote: 'The spelling in the reply differs slightly. The line shown here is the source text.',
+            wrongAngNote: 'The reply cites Ang {cited}. GurbaniNow places this line on Ang {ang}.',
+            inReply: 'In the reply',
+            closestLine: 'Closest line in the source',
+            closeNote: 'The reply’s wording does not match the source exactly. Please rely on the source line shown here.',
+            unverifiedNote: 'This line could not be found in GurbaniNow. It may be paraphrased or misquoted — please check it against a trusted source before sharing it.',
+            pageN: 'Page {n}',
+            openAng: 'Open Ang {n}',
+        },
         config: chatConfig,
     },
 

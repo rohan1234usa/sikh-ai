@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "tsx --test \"tests/**/*.test.ts\"",
     "mock:gemini": "tsx scripts/mock-gemini.ts",
+    "fixtures:gurbani": "tsx scripts/gurbani-fixtures/record.ts",
     "audit:i18n": "tsx scripts/i18n-audit/index.ts",
     "eval:translate": "tsx scripts/translate-eval/index.ts"
   },
