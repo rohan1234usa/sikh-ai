@@ -179,6 +179,17 @@ export const FIXTURES: ChatFixture[] = [
             { name: 'goes line by line', run: r => { const n = r.context ? passageLinesQuoted(r.text, r.context) : 0; return n >= 4 ? null : `quotes ${n} lines of the passage`; } },
         ],
     },
+    {
+        id: 'shabad-line-by-line-punjabi',
+        why: 'The same whole Ang explained in Gurmukhi: the answer most likely to reach the output cap, since Gurmukhi costs more tokens per word than English.',
+        lensId: 'sikhai', modeId: 'balanced', languageId: 'punjabi', script: 'gurmukhi', passage: 'shabad',
+        message: 'ਇਸ ਸ਼ਬਦ ਦੀ ਤੁਕ-ਤੁਕ ਕਰਕੇ ਵਿਆਖਿਆ ਕਰੋ।',
+        checks: [
+            { name: 'finishes inside the cap', run: r => finishedNormally(r) },
+            { name: 'goes line by line', run: r => { const n = r.context ? passageLinesQuoted(r.text, r.context) : 0; return n >= 4 ? null : `quotes ${n} lines of the passage`; } },
+            { name: 'no foreign letters', run: r => { const f = foreignIndic(r.text); return f.length ? `other-script letters: ${f.join(' ')}` : null; } },
+        ],
+    },
 ];
 
 export const SETS = {
