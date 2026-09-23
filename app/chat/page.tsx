@@ -39,6 +39,9 @@ export default function ChatPage() {
   const { prefs, update: updatePrefs, hydrated: prefsHydrated } = useChatPrefs();
 
   const abortRef = useRef<AbortController | null>(null);
+  // Set by the Stop button: a reply the user stopped still has its quotes
+  // checked, but one dropped by "New chat" or by leaving the page does not.
+  const stoppedRef = useRef(false);
   // One per reply under check: two answers can be verified at once, and a
   // finished reply must not cancel the check running for the one before it —
   // nothing would ever retry it, leaving that answer's quotes unchecked.
@@ -138,6 +141,9 @@ export default function ChatPage() {
 
     const controller = new AbortController();
     abortRef.current = controller;
+    stoppedRef.current = false;
+    // Outside the try, so a reply cut short can still be checked below.
+    let full = '';
 
     try {
       // History: only completed (user -> non-error AI) exchanges, kept in
@@ -181,7 +187,6 @@ export default function ChatPage() {
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      let full = '';
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -195,12 +200,11 @@ export default function ChatPage() {
           m.id === aiMsg.id ? { ...m, text: tRef.current.errors.generic, isError: true } : m
         ));
       } else {
-        // Only a reply that finished normally is checked; an interrupted one
-        // lands in the catch below.
         void verifyCitations(aiMsg.id, full);
       }
     } catch (err: unknown) {
-      if (err instanceof DOMException && err.name === 'AbortError') {
+      const aborted = err instanceof DOMException && err.name === 'AbortError';
+      if (aborted) {
         // User pressed Stop: keep partial text; drop the bubble if nothing arrived
         setMessages(prev => prev.flatMap(m =>
           m.id !== aiMsg.id ? [m] : m.text ? [{ ...m, interrupted: true }] : []
@@ -215,15 +219,19 @@ export default function ChatPage() {
             : m
         ));
       }
+      // A reply cut short by the output cap, a filter, the deadline or Stop
+      // still shows the quotes that arrived, so they are checked too. A last
+      // line cut mid-way has no closing ॥, so it only gets a card if it verifies.
+      if (full.trim() && (!aborted || stoppedRef.current)) void verifyCitations(aiMsg.id, full);
     } finally {
       abortRef.current = null;
       setIsStreaming(false);
     }
   }
 
-  // Checks the Gurbani a finished reply quotes (lib/gurbani/verify.ts) and
-  // attaches the result as cards. Best effort: any failure just means no
-  // cards, and the chat never waits on it.
+  // Checks the Gurbani a reply quotes once it has stopped streaming
+  // (lib/gurbani/verify.ts) and attaches the result as cards. Best effort:
+  // any failure just means no cards, and the chat never waits on it.
   function abortVerifications() {
     for (const controller of verifyAbortsRef.current) controller.abort();
     verifyAbortsRef.current.clear();
@@ -420,7 +428,10 @@ export default function ChatPage() {
         value={input}
         onChange={setInput}
         onSend={() => send(input, messages)}
-        onStop={() => abortRef.current?.abort()}
+        onStop={() => {
+          stoppedRef.current = true;
+          abortRef.current?.abort();
+        }}
         isStreaming={isStreaming}
       />
 
