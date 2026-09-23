@@ -6,7 +6,8 @@
 // a real line containing every word of the quote. What comes back:
 //   verified   — found; the card shows the source's own spelling
 //   wrong-ang  — found, but not on the Ang the reply cited
-//   close      — no real line contains it, but one clearly resembles it
+//   close      — the source answered every lookup; no real line contains the
+//                quote, but one clearly resembles it
 //   unverified — the source answered every lookup and nothing matched
 // When the source can't be reached, or the per-reply budget runs out, a quote
 // gets no card at all: silence is never turned into an accusation.
@@ -168,8 +169,10 @@ async function verifyQuote(q: QuoteInput, s: Session, depth = 0): Promise<Citati
     }
 
     // Nothing contains the quote. Without a danda the reply never claimed it
-    // was scripture, so there is nothing to flag.
-    if (!q.hasDanda) return [];
+    // was scripture, so there is nothing to flag. With a lookup unanswered,
+    // the line that does contain it may be the one we missed: "close" is an
+    // accusation too, so it needs every answer, just as "unverified" does.
+    if (!q.hasDanda || incomplete) return [];
     const cited = q.citedAng !== undefined ? { citedAng: q.citedAng } : {};
     if (close.length > 0) {
         close.sort((a, b) =>
@@ -179,7 +182,7 @@ async function verifyQuote(q: QuoteInput, s: Session, depth = 0): Promise<Citati
             || (a.line.ang ?? Infinity) - (b.line.ang ?? Infinity));
         return [{ quote: q.text, status: 'close', ...cited, line: toCitationLine(close[0].line) }];
     }
-    return incomplete ? [] : [{ quote: q.text, status: 'unverified', ...cited }];
+    return [{ quote: q.text, status: 'unverified', ...cited }];
 }
 
 async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {

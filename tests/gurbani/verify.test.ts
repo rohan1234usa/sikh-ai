@@ -109,6 +109,14 @@ test('a spent budget skips the rest instead of guessing', async () => {
     assert.deepEqual(citations, [], 'one search answered is not enough to call a line unverified');
 });
 
+test('a line that only resembles the quote is not flagged until every lookup has answered', async () => {
+    // One lookup reads the cited Ang, where a similar line sits. The searches
+    // that could still find the quote word for word never ran.
+    const { client, calls } = fakeClient();
+    assert.deepEqual(await verifyReply(reply('arjan-grief-gurbani-first:36'), { client, maxOutbound: 1 }), []);
+    assert.deepEqual(calls, ['ang:394']);
+});
+
 test('payload parsers: null means no answer, [] means no match', () => {
     assert.equal(parseAngPayload({ error: true }), null);
     assert.equal(parseAngPayload({ page: [] }), null, 'an empty Ang page is an upstream fault');
