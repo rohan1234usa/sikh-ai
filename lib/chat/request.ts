@@ -8,8 +8,10 @@ import { MAX_MESSAGE_CHARS, type ChatContext, type LanguageId, type LensId, type
 import { composeSystemInstruction } from './prompts';
 
 // Replies on 3.8 Flash run ~270-1,000 output tokens; explaining a whole Ang
-// line by line (41 lines, npm run eval:chat) took 3,059 in 12.8 s. Thinking
-// tokens draw from the same budget. A higher cap would mostly buy time against
+// line by line (41 lines, npm run eval:chat) took 3,059 in 12.8 s. In
+// Punjabi, which costs more tokens per word, 3.7 Flash took 2,642 with its
+// thinking for 33 tuks — about 3,300 for the whole Ang. Thinking tokens draw
+// from the same budget. A higher cap would mostly buy time against
 // the route's 27 s stream deadline. A reply that hits the cap is cut short, and
 // the route reports it that way.
 export const CHAT_MAX_OUTPUT_TOKENS = 4096;
