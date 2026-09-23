@@ -113,6 +113,13 @@ test('six quotes by default, the cards the chat can show; the eval can ask for e
     assert.deepEqual(extractQuotes(text), all.slice(0, 6));
 });
 
+test("a Punjabi gloss that ends on the verse number is the reply's own words", () => {
+    // Teeka style: each meaning repeats its tuk's verse number. In a 3.8 Flash
+    // answer, two glosses each earned a "couldn't verify this line" card.
+    const text = `**${TUK}**\n**ਅਰਥ:** ਇਸ ਲਈ ਸਾਧ ਸੰਗਤ ਵਿੱਚ ਜੁੜ ਕੇ ਕੇਵਲ ਪ੍ਰਭੂ ਦੇ ਨਾਮ ਦਾ ਸਿਮਰਨ ਕਰ ॥੧॥`;
+    assert.deepEqual(extractQuotes(text).map(q => q.quote), extractQuotes(TUK).map(q => q.quote));
+});
+
 test('a lead-in stops at the end of its sentence', () => {
     // Since a lead-in may bind across the blank line before a blockquote, a
     // sentence that merely ends on an Ang must not hand it to the next quote.

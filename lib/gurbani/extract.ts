@@ -32,6 +32,11 @@ const HEADING = /^\s*(?:>\s*)*#{1,6}\s/;
 const LIST_START = /^\s*(?:>\s*)*(?:\d{1,2}[.)]|[-*+])\s+/;
 const RUN = /\p{Script=Gurmukhi}(?:[\p{Script=Gurmukhi}\p{M}।॥​-‍﻿0-9 \t ,;]|(?!\p{Script=Latin})\p{L})*/gu;
 const HEADER = /(?:ਮਹਲਾ|ਮਃ|ਮਹਲੁ)\s*[੦-੯0-9]/; // ਮਹਲਾ / ਮਃ / ਮਹਲੁ + number
+// The reply's own commentary, introduced the way Punjabi teekas introduce it:
+// ਅਰਥ: (meaning), ਪਦ ਅਰਥ:, ਭਾਵ:, ਭਾਵ ਅਰਥ:, ਭਾਵਾਰਥ:, ਵਿਆਖਿਆ:. Teeka style ends
+// the meaning with the tuk's verse number ("… ਸਿਮਰਨ ਕਰ ॥੧॥"), and 3.8 Flash
+// does just that in a line-by-line answer, so the ॥ there is no verse claim.
+const GLOSS = /^\s*(?:>\s*)*(?:(?:\d{1,2}[.)]|[-*+])\s+)?(?:ਅਰਥ|ਪਦ ?ਅਰਥ|ਭਾਵ(?: ?ਅਰਥ)?|ਭਾਵਾਰਥ|ਵਿਆਖਿਆ)\s*:/;
 const ANG_EN = /\b(?:Ang|Ank|Panna)\b\.?\s*(?:No\.?|Number)?\s*[:#]?\s*(\d{1,4})\b(?!\s*[-–—]\s*\d)/giu;
 const ANG_PA = /(?:ਅੰਗ|ਪੰਨਾ|ਪੰਨੇ)\s*(?:ਨੰ[:.]?|ਨੰਬਰ)?\s*[:#]?\s*([੦-੯0-9]{1,4})(?![੦-੯0-9])(?!\s*[-–—]\s*[੦-੯0-9])/gu; // ਅੰਗ / ਪੰਨਾ / ਪੰਨੇ
 // A lead-in never runs past the end of a sentence (. ! ? or a danda then a
@@ -51,7 +56,7 @@ function toAng(digits: string): number | null {
     return Number.isInteger(n) && n >= 1 && n <= MAX_ANG ? n : null;
 }
 
-type Line = { text: string; block: number; listStart: boolean; heading: boolean };
+type Line = { text: string; block: number; listStart: boolean; heading: boolean; gloss: boolean };
 type Mention = { ang: number; at: number; end: number; line: number; block: number; boundTo?: Quote };
 type Quote = ExtractedQuote & { end: number; line: number; block: number; key: string };
 
@@ -67,11 +72,13 @@ export function extractQuotes(text: string, opts: { punjabiReply?: boolean; limi
         const blank = BLANK.test(raw);
         const heading = HEADING.test(raw);
         if (blank || heading) block++;
+        const text = raw.replace(/[*_`]/g, '');
         lines.push({
-            text: raw.replace(/[*_`]/g, ''),
+            text,
             block,
             listStart: LIST_START.test(raw),
             heading: blank || heading,
+            gloss: GLOSS.test(text),
         });
         if (heading) block++;
     }
@@ -93,6 +100,7 @@ export function extractQuotes(text: string, opts: { punjabiReply?: boolean; limi
                 if (ang) mentions.push({ ang, at: base + m.index!, end: base + m.index! + m[0].length, line: n, block: line.block });
             }
         }
+        if (line.gloss) return; // its Ang mentions count, its Gurmukhi is not a quote
         RUN.lastIndex = 0;
         for (const run of line.text.matchAll(RUN)) {
             const parts = run[0].split(/([।॥]+)/);
