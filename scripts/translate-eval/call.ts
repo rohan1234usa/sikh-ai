@@ -7,7 +7,7 @@
 import { ApiError, type GenerateContentParameters, type GenerateContentResponse, type GoogleGenAI } from '@google/genai';
 import type { CachedRun } from './cache';
 
-export type Outcome = { run: CachedRun } | { stop: string } | { skip: string };
+export type Outcome<T = CachedRun> = { run: T } | { stop: string } | { skip: string };
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -70,7 +70,7 @@ export async function generate(
 export async function withRetries<T>(
     send: () => Promise<T>,
     pace: () => Promise<void>,
-): Promise<{ run: T } | { stop: string } | { skip: string }> {
+): Promise<Outcome<T>> {
     for (let attempt = 1; ; attempt++) {
         await pace();
         try {

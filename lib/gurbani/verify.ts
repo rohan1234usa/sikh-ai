@@ -53,7 +53,7 @@ function session(client: GurbaniClient, maxOutbound: number, signal?: AbortSigna
 
 type Plan = { query: string; type: SearchType; results: number };
 
-export function planSearches(keys: LineKeys): Plan[] {
+function planSearches(keys: LineKeys): Plan[] {
     const letters = toSearchLetters(keys.first);
     if (!letters) return [];
     const plans: Plan[] = [{ query: letters.slice(0, 12), type: SEARCH_TYPES.firstLettersAnywhere, results: 30 }];
@@ -65,13 +65,15 @@ export function planSearches(keys: LineKeys): Plan[] {
     } else {
         // Short quotes match too many lines by first letters alone; two whole
         // words narrow it (all words must appear).
-        const longest = [...new Set(keys.raw)].sort((a, b) => [...b].length - [...a].length).slice(0, 2);
+        // Folded: the query goes to GurbaniNow, which spells the subjoined
+        // letters its own way (see foldSubjoined in ./score).
+        const longest = [...new Set(keys.folded)].sort((a, b) => [...b].length - [...a].length).slice(0, 2);
         if (longest.length === 2) plans.push({ query: longest.join(' '), type: SEARCH_TYPES.allWords, results: 20 });
     }
     return plans;
 }
 
-export function toCitationLine(line: GurbaniLine): CitationLine {
+function toCitationLine(line: GurbaniLine): CitationLine {
     return {
         gurmukhi: line.gurmukhi,
         translation: line.translation,
@@ -117,23 +119,29 @@ async function verifyQuote(q: QuoteInput, s: Session, depth = 0): Promise<Citati
     // Returns citations once a line contains (or, peeled, starts or ends) the
     // quote; otherwise records "close" candidates and returns null.
     const scan = async (lines: GurbaniLine[]): Promise<Citation[] | null> => {
-        for (const line of lines) {
-            if (line.isHeader) continue;
-            const lk = lineKeys(line.gurmukhi);
+        const candidates = lines.filter(line => !line.isHeader).map(line => ({ line, lk: lineKeys(line.gurmukhi) }));
+
+        // One line holding the whole quote is the answer, wherever it sits in
+        // the results — a shorter line that merely starts the quote must not
+        // win just by being ranked higher.
+        for (const { line, lk } of candidates) {
             const cmp = compare(keys, lk);
             if (cmp.contained) return [verdict(line, cmp.exact)];
-            const rest = depth < MAX_PEEL_DEPTH ? peel(keys, lk) : null;
-            if (rest) {
-                const found = verdict(line, containedRun(lk.raw, keys.raw));
-                const restKeys = lineKeys(rest.join(' '));
-                if (restKeys.raw.length < 3 || restKeys.letters < 7) return [found];
-                return [found, ...await verifyQuote(
-                    { text: rest.join(' '), hasDanda: q.hasDanda, nearAng: line.ang ?? undefined },
-                    s,
-                    depth + 1,
-                )];
-            }
             if (q.hasDanda && isClose(cmp)) close.push({ line, cmp });
+        }
+
+        if (depth >= MAX_PEEL_DEPTH) return null;
+        for (const { line, lk } of candidates) {
+            const rest = peel(keys, lk);
+            if (!rest) continue;
+            const found = verdict(line, containedRun(lk.folded, keys.folded));
+            const restKeys = lineKeys(rest.join(' '));
+            if (restKeys.raw.length < 3 || restKeys.letters < 7) return [found];
+            return [found, ...await verifyQuote(
+                { text: rest.join(' '), hasDanda: q.hasDanda, nearAng: line.ang ?? undefined },
+                s,
+                depth + 1,
+            )];
         }
         return null;
     };

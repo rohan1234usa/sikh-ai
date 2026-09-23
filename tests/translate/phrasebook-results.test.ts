@@ -23,7 +23,9 @@ function resultFor(phrase: Phrase): TranslationResult {
         gurmukhi: phrase.gurmukhi,
         roman: phrase.roman,
         english: phrase.english,
-        words: [{ source: phrase.roman, gurmukhi: phrase.gurmukhi, roman: phrase.roman.toLowerCase(), meaning: 'a gloss' }],
+        // Spelled as the entry spells it: the check re-runs the build's own
+        // rules, which a lowercased "Sat Sri Akal" would (rightly) fail.
+        words: [{ source: phrase.roman, gurmukhi: phrase.gurmukhi, roman: phrase.roman, meaning: 'a gloss' }],
         notes: [],
         pronunciation: [],
     };

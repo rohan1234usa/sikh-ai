@@ -274,7 +274,7 @@ npm run build:phrasebook -- --dry-run
 
 Each phrase goes out as exactly the request a tap would send, and the results land in `lib/translate/phrasebook-results.generated.json`, which the page loads as its own chunk the first time a phrase row opens. The curated Gurmukhi, romanization, and English replace the model's own, so what you tapped is what you see. The word glosses, notes, and pronunciation tips are the model's, and they must spell every word as the entry does. A phrase whose answer re-spells the entry goes to the live translator instead, and `scripts/phrasebook-build/review.md` lays out every result for the fluent reviewer, open questions first.
 
-Answers are cached in `scripts/phrasebook-build/cache.json`, so a rebuild only pays for phrases that are new, edited, or asked again with `--redo id,...`. `npm test` fails while the file is stale (the translate prompt, the model, or a phrase changed since the last build), and `--check` explains why without calling the API. Until the rebuild, an edited phrase's tap uses the live translator rather than showing its old result.
+Answers are cached in `scripts/phrasebook-build/cache.json`, so a rebuild only pays for phrases that are new, edited, or asked again with `--redo id,...`; `--prune` afterwards drops the answers a build did not use (opt-in, because a run under a `GEMINI_TRANSLATE_MODEL` override would otherwise throw away everything already paid for on the pinned model). `npm test` fails while the file is stale (the translate prompt, the model, or a phrase changed since the last build), and `--check` explains why without calling the API. Until the rebuild, an edited phrase's tap uses the live translator rather than showing its old result.
 
 ## 🗺️ Roadmap
 

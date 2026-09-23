@@ -110,7 +110,10 @@ export function extractQuotes(text: string, opts: { punjabiReply?: boolean } = {
                 const trimmed = segment.trim();
                 quotes.push({
                     quote: danda ? `${trimmed} ${danda[0]}` : trimmed,
-                    hasDanda: danda !== '',
+                    // Only ॥ marks a verse. A single । ends an ordinary Punjabi
+                    // sentence, and a reply's own prose must never earn a card
+                    // saying it was not found in Gurbani.
+                    hasDanda: closedByVerse,
                     index: segStart,
                     end: segStart + trimmed.length + danda.length,
                     line: n,
@@ -125,22 +128,27 @@ export function extractQuotes(text: string, opts: { punjabiReply?: boolean } = {
     mentions.sort((a, b) => a.at - b.at);
 
     // Lead-in: "On Ang 394, Guru Arjan Dev Ji says:" binds that Ang to the
-    // quote that follows, and to no other.
+    // quote that follows, and to no other. Markdown normally puts a blank line
+    // between the lead-in and the blockquote, which starts a new block, so one
+    // block of distance counts as "next" — but no more, since a hint carried
+    // across a paragraph could accuse the reply of an Ang it never cited.
+    const NEAR = 1;
     for (const mention of mentions) {
-        const next = quotes.find(q => q.index >= mention.end && q.block === mention.block);
+        const next = quotes.find(q => q.index >= mention.end && q.block - mention.block <= NEAR);
         if (next && next.angHint === undefined && LEAD_IN.test(flat.slice(mention.end, next.index))) {
             next.angHint = mention.ang;
             mention.boundTo = next;
         }
     }
 
-    // Otherwise a quote takes the first Ang cited after it in the same
-    // paragraph, within six lines and not past the start of another list
-    // item. There is no backward rule: a wrong hint would accuse the reply of
-    // a wrong Ang, while a missing one only costs a search.
+    // Otherwise a quote takes the first Ang cited after it — the attribution
+    // line under a blockquote is the common shape — within six lines, at most
+    // one block away, and not past the start of another list item. There is no
+    // backward rule: a wrong hint would accuse the reply of a wrong Ang, while
+    // a missing one only costs a search.
     for (const quote of quotes) {
         if (quote.angHint !== undefined) continue;
-        const mention = mentions.find(m => m.at >= quote.end && m.block === quote.block);
+        const mention = mentions.find(m => m.at >= quote.end && m.block - quote.block <= NEAR);
         if (!mention || mention.line - quote.line > 6) continue;
         const crossesItem = lines.slice(quote.line + 1, mention.line + 1).some(l => l.listStart);
         if (crossesItem || (mention.boundTo && mention.boundTo !== quote)) continue;

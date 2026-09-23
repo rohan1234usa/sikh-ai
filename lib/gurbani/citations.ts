@@ -35,8 +35,13 @@ export type Citation = {
 };
 
 // Worth asking the verifier at all: three Gurmukhi words in a row somewhere.
+// The separators match what the extractor treats as a word break (RUN in
+// ./extract), commas and zero-width joiners included — a gate that turned away
+// text the extractor would quote would skip the check with nothing to show.
+const GURMUKHI_RUN = /(?:[਀-੿]+[\s।॥,;​-‍﻿]+){2}[਀-੿]/;
+
 export function hasGurmukhiRun(text: string): boolean {
-    return /(?:[਀-੿]+[\s।॥]+){2}[਀-੿]/.test(text);
+    return GURMUKHI_RUN.test(text);
 }
 
 const str = (v: unknown, max: number): string => (typeof v === 'string' ? v.slice(0, max) : '');

@@ -41,7 +41,7 @@ export function isAbortError(err: unknown): boolean {
     return name === 'AbortError' || name === 'TimeoutError';
 }
 
-export function isRetryable(err: unknown, callerAborted: boolean): boolean {
+function isRetryable(err: unknown, callerAborted: boolean): boolean {
     if (callerAborted) return false;
     const status = statusOf(err);
     return status !== undefined ? RETRYABLE_STATUS.has(status) : isAbortError(err);

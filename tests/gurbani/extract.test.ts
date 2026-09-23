@@ -1,7 +1,19 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { hasGurmukhiRun } from '@/lib/gurbani/citations';
 import { extractQuotes, isPunjabiReply } from '@/lib/gurbani/extract';
+import type { GurbaniLine } from '@/lib/gurbani/gurbaninow';
 import { replies, reply } from './helpers';
+
+// A real line the extractor does treat as a quote (not a heading, and not the
+// greeting vocabulary it suppresses), so nothing here depends on scripture
+// typed by hand.
+const TUK = Object.values(JSON.parse(
+    readFileSync(resolve(import.meta.dirname, 'fixtures/gurbaninow.json'), 'utf8')) as Record<string, GurbaniLine[] | null>)
+    .flatMap(l => l ?? [])
+    .find(l => !l.isHeader && l.gurmukhi.split(/\s+/).length >= 6 && extractQuotes(l.gurmukhi).length === 1)!.gurmukhi;
 
 const summary = (id: string) => extractQuotes(reply(id)).map(q => `${q.angHint ?? '-'} ${q.quote}`);
 
@@ -76,4 +88,33 @@ test('a quote repeated later can supply the missing Ang', () => {
     const quotes = extractQuotes(text);
     assert.equal(quotes.length, 1);
     assert.equal(quotes[0].angHint, 394);
+});
+
+test('a lead-in binds across the blank line markdown puts before a blockquote', () => {
+    // The shape models actually emit; before, the blank line started a new
+    // block and the Ang was dropped, so wrong-Ang could never be reported.
+    assert.equal(extractQuotes(`On Ang 394, Guru Arjan Dev Ji says:\n\n> ${TUK}`)[0].angHint, 394);
+    assert.equal(extractQuotes(`> ${TUK}\n\n— Guru Arjan Dev Ji, Ang 394`)[0].angHint, 394);
+});
+
+test('a hint does not carry across a paragraph of its own', () => {
+    const text = `Ang 394 holds that shabad.\n\nSomething else entirely.\n\n> ${TUK}`;
+    assert.equal(extractQuotes(text)[0].angHint, undefined, 'a distant mention must not accuse the reply');
+});
+
+// A bilingual reply: mostly English, so Gurmukhi sentences are kept even
+// without ॥ — the case where a single danda decides whether the reply is
+// accused of misquoting.
+const BILINGUAL = { punjabiReply: false };
+
+test('a single danda is ordinary punctuation, not a claim about Gurbani', () => {
+    assert.equal(extractQuotes(TUK.replace(/॥/g, '।'), BILINGUAL)[0].hasDanda, false);
+    assert.equal(extractQuotes(TUK, BILINGUAL)[0].hasDanda, true, '॥ marks a verse');
+});
+
+test('the verify gate lets through everything the extractor would quote', () => {
+    const commas = `${TUK.replace(/॥/g, '').trim().split(/\s+/).join(', ')} ॥`;
+    assert.ok(extractQuotes(commas, BILINGUAL).length > 0);
+    assert.ok(hasGurmukhiRun(commas), 'a comma between words must not switch the whole check off');
+    assert.ok(!hasGurmukhiRun('Just English here.'));
 });

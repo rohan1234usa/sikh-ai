@@ -121,8 +121,11 @@ export async function startMockGemini(opts: MockOptions = {}): Promise<MockGemin
     const delay = opts.chunkDelayMs ?? 0;
 
     const server = http.createServer(async (req, res) => {
-        let raw = '';
-        for await (const chunk of req) raw += chunk;
+            const chunks: Buffer[] = [];
+    // Concatenated before decoding: a Gurmukhi character split across two
+    // socket reads would otherwise decode to U+FFFD in each half.
+    for await (const chunk of req) chunks.push(chunk as Buffer);
+    const raw = Buffer.concat(chunks).toString('utf8');
         const body: Json = raw ? JSON.parse(raw) : {};
         const match = /models\/([^:]+):(generateContent|streamGenerateContent)/.exec(req.url ?? '');
         const model = match?.[1] ?? '?';

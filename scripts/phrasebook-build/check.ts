@@ -13,6 +13,8 @@ import { parseTranslationResult } from '../../lib/translate/parse';
 import type { Phrase } from '../../lib/translate/phrasebook';
 import { buildTranslateRequest } from '../../lib/translate/prompts';
 import { runKey } from '../translate-eval/cache';
+import { conventionIssues } from '../translate-eval/score';
+import { spellingDrift } from './assemble';
 
 export type GeneratedMeta = {
     model: string;
@@ -78,6 +80,13 @@ export function checkPhrasebookResults(generated: Generated, phrases: Phrase[], 
         // anything the parser would trim or discard would show differently.
         if (!isDeepStrictEqual(parseTranslationResult(JSON.stringify(result), 'punjabi-latin'), result)) {
             problems.push(`${phrase.id}: the client parser would not show this result as stored`);
+        }
+        // The fingerprint covers the request, not the rules that decide what
+        // may ship. Re-running them here keeps a result the build would now
+        // refuse from sitting in the file unnoticed.
+        const broken = [...spellingDrift(phrase, result), ...conventionIssues(result)];
+        if (broken.length) {
+            problems.push(`${phrase.id}: ${broken[0]}${broken.length > 1 ? ` (+${broken.length - 1} more)` : ''}`);
         }
     }
     return problems;

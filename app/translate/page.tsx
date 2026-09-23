@@ -36,13 +36,12 @@ export default function TranslatePage() {
   // The request behind the result on screen, so submitting it unchanged can
   // mean "translate again" rather than "show me the saved answer".
   const [shown, setShown] = useState<{ input: string; sourceHint: SourceHint } | null>(null);
+  // The request in flight, if any: the controller doubles as the "busy" flag,
+  // since reading `loading` from a closure can give a stale answer.
   const abortRef = useRef<AbortController | null>(null);
   // Bumped by every new request, so a slow one can tell it has been replaced.
   const requestSeqRef = useRef(0);
   const resultRegionRef = useRef<HTMLDivElement>(null);
-  // The text that produced the current result — "Not right?" re-runs this
-  // even if the textarea has been edited since.
-  const lastSubmittedRef = useRef('');
   const history = useTranslateHistory();
 
   // Word order around the highlighted word differs per language, so split the
@@ -51,9 +50,16 @@ export default function TranslatePage() {
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
+  // Drops the request in flight, if any. Choosing a phrase or a history entry
+  // is a deliberate change of mind, so it cancels rather than being ignored.
+  const cancelInFlight = () => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setLoading(false);
+  };
+
   // Puts a result on screen and records the request that produced it.
   const show = (input: string, sourceHint: SourceHint, shownResult: TranslationResult) => {
-    lastSubmittedRef.current = input;
     setShown({ input, sourceHint });
     setResult(shownResult);
     setError('');
@@ -70,28 +76,24 @@ export default function TranslatePage() {
       setError(t.errors.translate_too_long);
       return;
     }
-    // The submit button is disabled while loading, but the phrasebook and the
-    // Ctrl/Cmd+Enter shortcut both call in directly. Aborting a request does
-    // not un-bill it, so drop the extra call rather than racing it.
-    if (loading) return;
+    // The submit button is disabled while loading, but the Ctrl/Cmd+Enter
+    // shortcut calls in directly. Aborting a request does not un-bill it, so
+    // drop the extra call rather than racing it; callers that mean to replace
+    // the request in flight call cancelInFlight() first.
+    if (abortRef.current) return;
     const seq = ++requestSeqRef.current;
 
     // The same request answered before is shown again for free — unless the
     // user asked for a fresh one ("Translate again").
     const cached = fresh ? undefined : history.lookup(trimmed, sourceHint);
     if (cached) {
-      abortRef.current?.abort();
       show(trimmed, sourceHint, cached.result);
       history.add({ input: trimmed, sourceHint, result: cached.result });
       return;
     }
 
-    // Abort any in-flight request; the guard in `finally` keeps the stale
-    // request's cleanup from clobbering this one's loading state.
-    abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
-    lastSubmittedRef.current = trimmed;
 
     setLoading(true);
     setError('');
@@ -104,6 +106,9 @@ export default function TranslatePage() {
         body: JSON.stringify({ text: trimmed, sourceHint }),
         signal: controller.signal,
       });
+      // Anything shown since this request started replaces it — including its
+      // errors, so this comes before the response is read at all.
+      if (seq !== requestSeqRef.current) return;
       // A rate limiter or proxy in front of the API can answer with HTML, so
       // an unparseable body must not surface as a raw SyntaxError.
       const data = await res.json().catch(() => null);
@@ -111,17 +116,22 @@ export default function TranslatePage() {
       if (!res.ok || !data) {
         throw new FriendlyError(responseErrorText(t, res, data, 'translate_busy'));
       }
-      if (seq !== requestSeqRef.current) return;
 
       const parsed = data as TranslationResult;
       show(trimmed, sourceHint, parsed);
       history.add({ input: trimmed, sourceHint, result: parsed });
     } catch (err) {
-      if (err instanceof DOMException && err.name === 'AbortError') return;
+      // Aborting rejects mid-body too, where res.json()'s catch has already
+      // turned the AbortError into a null body — so ask the controller.
+      if (controller.signal.aborted || (err instanceof DOMException && err.name === 'AbortError')) return;
       console.error(err);
       setError(err instanceof FriendlyError ? err.message : t.errors.generic);
     } finally {
-      if (abortRef.current === controller) setLoading(false);
+      // Only if nothing has replaced it: a newer request owns the flag now.
+      if (abortRef.current === controller) {
+        abortRef.current = null;
+        setLoading(false);
+      }
     }
   };
 
@@ -129,7 +139,7 @@ export default function TranslatePage() {
   const showingThis = result !== null && shown !== null && sameRequest(shown, { input: text, sourceHint: hint });
   const handleSubmit = () => translate(text, hint, showingThis);
 
-  const handleRetryAs = (as: DetectedInput) => translate(lastSubmittedRef.current, as);
+  const handleRetryAs = (as: DetectedInput) => translate(shown?.input ?? text, as);
 
   // The phrasebook and history sit below the results, so a selection there
   // changes content a viewport or two up with nothing to show for it locally.
@@ -150,12 +160,14 @@ export default function TranslatePage() {
     const seq = ++requestSeqRef.current;
     const stored = await loadPhraseResult(phrase);
     if (seq !== requestSeqRef.current) return; // something newer started meanwhile
+    // The tap replaces whatever was running, so the request in flight goes
+    // before either path — otherwise translate() below would find itself busy
+    // and quietly do nothing.
+    cancelInFlight();
     if (!stored) {
       translate(phrase.roman, 'punjabi-latin');
       return;
     }
-    abortRef.current?.abort();
-    setLoading(false);
     show(phrase.roman, 'punjabi-latin', stored);
     history.add({ input: phrase.roman, sourceHint: 'punjabi-latin', result: stored });
   };
@@ -163,10 +175,9 @@ export default function TranslatePage() {
   // Restoring from history is free — the full stored result is re-displayed
   // with no API call. The aria-live region announces it like a fresh result.
   const handleHistorySelect = (entry: TranslateHistoryEntry) => {
-    abortRef.current?.abort();
     ++requestSeqRef.current;
+    cancelInFlight();
     setText(entry.input);
-    setLoading(false);
     // Restore the chip too, so it can't sit on a value that contradicts the
     // result being shown.
     setHint(entry.sourceHint);
@@ -221,7 +232,7 @@ export default function TranslatePage() {
               <TranslationCard
                 result={result}
                 onRetryAs={wasAutoLatin ? handleRetryAs : undefined}
-                onRetry={() => translate(lastSubmittedRef.current, shown?.sourceHint ?? hint)}
+                onRetry={() => translate(shown?.input ?? text, shown?.sourceHint ?? hint)}
               />
               <WordBreakdown words={result.words} />
               <TrickyNotes notes={result.notes} />

@@ -39,7 +39,10 @@ export default function ChatPage() {
   const { prefs, update: updatePrefs, hydrated: prefsHydrated } = useChatPrefs();
 
   const abortRef = useRef<AbortController | null>(null);
-  const verifyAbortRef = useRef<AbortController | null>(null);
+  // One per reply under check: two answers can be verified at once, and a
+  // finished reply must not cancel the check running for the one before it —
+  // nothing would ever retry it, leaving that answer's quotes unchecked.
+  const verifyAbortsRef = useRef<Set<AbortController>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
   const atBottomRef = useRef(true);
   const [showJump, setShowJump] = useState(false);
@@ -99,7 +102,7 @@ export default function ChatPage() {
   // Abort any in-flight stream or citation check on unmount
   useEffect(() => () => {
     abortRef.current?.abort();
-    verifyAbortRef.current?.abort();
+    abortVerifications();
   }, []);
 
   const onScroll = () => {
@@ -221,11 +224,15 @@ export default function ChatPage() {
   // Checks the Gurbani a finished reply quotes (lib/gurbani/verify.ts) and
   // attaches the result as cards. Best effort: any failure just means no
   // cards, and the chat never waits on it.
+  function abortVerifications() {
+    for (const controller of verifyAbortsRef.current) controller.abort();
+    verifyAbortsRef.current.clear();
+  }
+
   async function verifyCitations(messageId: string, text: string) {
     if (!hasGurmukhiRun(text)) return;
-    verifyAbortRef.current?.abort();
     const controller = new AbortController();
-    verifyAbortRef.current = controller;
+    verifyAbortsRef.current.add(controller);
     try {
       const res = await fetch('/api/chat/verify', {
         method: 'POST',
@@ -240,7 +247,7 @@ export default function ChatPage() {
     } catch {
       // Aborted or offline: no cards.
     } finally {
-      if (verifyAbortRef.current === controller) verifyAbortRef.current = null;
+      verifyAbortsRef.current.delete(controller);
     }
   }
 
@@ -249,14 +256,14 @@ export default function ChatPage() {
     const lastUserIdx = messages.findLastIndex(m => m.role === 'user');
     if (lastUserIdx === -1) return;
     // The reply being replaced may still be under check.
-    verifyAbortRef.current?.abort();
+    abortVerifications();
     // send() re-appends the user message, so slice it off the base
     send(messages[lastUserIdx].text, messages.slice(0, lastUserIdx));
   };
 
   const confirmClear = () => {
     abortRef.current?.abort();
-    verifyAbortRef.current?.abort();
+    abortVerifications();
     clear([{ ...initialMessages[0], text: lens.greeting }]);
     setContextError(false);
     setConfirmingClear(false);

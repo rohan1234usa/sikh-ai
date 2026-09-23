@@ -54,9 +54,7 @@ firestore.rules
 scripts/i18n-audit/cache.json.tmp
 scripts/i18n-audit/notes-pa.generated.json
 
-# Same for the translator eval, chat eval, and phrasebook build: their
-# cache.json files are committed; only a temp file from an interrupted write
-# is ignored.
-scripts/translate-eval/cache.json.tmp
-scripts/chat-eval/cache.json.tmp
-scripts/phrasebook-build/cache.json.tmp
+# The caches themselves are committed; saveCache writes <name>.json.tmp first
+# and renames, so only a temp file left by an interrupted write is ignored —
+# one rule, for every script that uses it.
+scripts/**/*.json.tmp

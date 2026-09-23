@@ -17,6 +17,7 @@ import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { GoogleGenAI } from '@google/genai';
 import { geminiModel } from '../../lib/gemini/models';
+import type { TranslationResult } from '../../lib/translate/config';
 import { PHRASES, type Phrase } from '../../lib/translate/phrasebook';
 import { loadEnvLocal } from '../i18n-audit/env';
 import { loadCache, pruneCache, runKey, saveCache } from '../translate-eval/cache';
@@ -44,16 +45,17 @@ Usage: npm run build:phrasebook -- [flags]
   --dry-run      Show the plan and how many requests it would send; no API calls
   --check        Exit 1 if the committed results are stale; no API calls
   --redo a,b     Discard these phrases' cached answers and ask again
+  --prune        Afterwards, drop cached answers this build did not use
   --rpm N        Requests per minute (default ${DEFAULT_RPM})
   --help         This message
 
 Every request is billed on a paid key (roughly 0.3 cents each on Flash).
 `;
 
-type Options = { dryRun: boolean; check: boolean; redo: string[]; rpm: number };
+type Options = { dryRun: boolean; check: boolean; redo: string[]; rpm: number; prune: boolean };
 
 function parseArgs(argv: string[]): Options {
-    const opts: Options = { dryRun: false, check: false, redo: [], rpm: DEFAULT_RPM };
+    const opts: Options = { dryRun: false, check: false, redo: [], rpm: DEFAULT_RPM, prune: false };
     for (let i = 0; i < argv.length; i++) {
         const flag = argv[i];
         const value = () => {
@@ -62,6 +64,7 @@ function parseArgs(argv: string[]): Options {
             return next;
         };
         if (flag === '--dry-run') opts.dryRun = true;
+        else if (flag === '--prune') opts.prune = true;
         else if (flag === '--check') opts.check = true;
         else if (flag === '--redo') opts.redo = value().split(',').map(id => id.trim()).filter(Boolean);
         else if (flag === '--rpm') {
@@ -141,14 +144,13 @@ async function main(): Promise<void> {
 
     const runs = PHRASES.map(phrase => ({ phrase, run: cache.entries[keyFor(phrase)] }));
     const assembled = new Map(runs.map(({ phrase, run }) => [phrase.id, assemble(phrase, run.text)]));
-    const results = Object.fromEntries(runs.flatMap(({ phrase }) => {
-        const { result } = assembled.get(phrase.id)!;
-        return result ? [[phrase.id, result]] : [];
-    }));
-    const dropped = Object.fromEntries(runs.flatMap(({ phrase }) => {
+    const results: Record<string, TranslationResult> = {};
+    const dropped: Record<string, string> = {};
+    for (const { phrase } of runs) {
         const { result, problems } = assembled.get(phrase.id)!;
-        return result ? [] : [[phrase.id, problems[0] + (problems.length > 1 ? ` (+${problems.length - 1} more)` : '')]];
-    }));
+        if (result) results[phrase.id] = result;
+        else dropped[phrase.id] = problems[0] + (problems.length > 1 ? ` (+${problems.length - 1} more)` : '');
+    }
     const generated: Generated = {
         _meta: {
             model,
@@ -166,8 +168,16 @@ async function main(): Promise<void> {
     if (problems.length) throw new Error(`The results just assembled fail their own check:\n${problems.join('\n')}`);
     writeFileSync(GENERATED_PATH, JSON.stringify(generated, null, 2) + '\n', 'utf8');
     const reviewPath = writeReview(generated._meta!, PHRASES, assembled);
-    const removed = pruneCache(cache, new Set(PHRASES.map(keyFor)));
-    if (removed) saveCache(cache, CACHE_PATH);
+    // Opt-in, as in the evals: keys carry the model, so an exploratory run
+    // under GEMINI_TRANSLATE_MODEL would otherwise throw away every answer
+    // already paid for on the pinned one.
+    if (opts.prune) {
+        const removed = pruneCache(cache, new Set(PHRASES.map(keyFor)));
+        if (removed) {
+            saveCache(cache, CACHE_PATH);
+            console.log(`Pruned ${removed} cached answers this build did not use.`);
+        }
+    }
 
     console.log(`\n${generated._meta!.count} of ${PHRASES.length} phrases shipped.`);
     for (const [id, reason] of Object.entries(dropped)) console.log(`  left to the live translator: ${id}: ${reason}`);

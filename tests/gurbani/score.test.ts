@@ -6,6 +6,13 @@ import type { GurbaniLine } from '@/lib/gurbani/gurbaninow';
 import { tokens } from '@/lib/gurbani/gurmukhi';
 import { compare, containedRun, isClose, lineKeys, looseKey, peel, toSearchLetters } from '@/lib/gurbani/score';
 
+// Real lines as GurbaniNow records them: the ground truth a comparison is
+// measured against is never typed here by hand.
+const PAGES: Record<string, GurbaniLine[] | null> = JSON.parse(
+    readFileSync(resolve(import.meta.dirname, 'fixtures/gurbaninow.json'), 'utf8'));
+const RECORDED = Object.values(PAGES).flatMap(l => l ?? []);
+const wordsOf = (line: string) => lineKeys(line).raw;
+
 test('the lifted tokenizer kept its invisible characters', () => {
     // A zero-width space marks a word break in larivaar text; losing it in the
     // copy would fuse these into one token.
@@ -26,10 +33,12 @@ test('search letters use the carriers GurbaniNow indexes vowels under', () => {
 });
 
 test('containment is on whole words, spacing aside, and rejects a cut-off word', () => {
-    const line = lineKeys('ੴ ਸਤਿ ਨਾਮੁ ਕਰਤਾ ਪੁਰਖੁ ॥').loose;
-    assert.ok(containedRun(lineKeys('ਸਤਿਨਾਮੁ ਕਰਤਾ').loose, line), 'different spacing still matches');
-    const verse = lineKeys('ਤੇਰਾ ਕੀਆ ਮੀਠਾ ਲਾਗੈ ॥').loose;
-    assert.ok(!containedRun(lineKeys('ਤੇਰਾ ਕੀਆ ਮੀਠਾ ਲ').loose, verse), 'a truncated last word is not a match');
+    const source = RECORDED.find(l => wordsOf(l.gurmukhi).length >= 5)!;
+    const words = wordsOf(source.gurmukhi);
+    const line = lineKeys(source.gurmukhi).loose;
+    assert.ok(containedRun(lineKeys(words.slice(1, 3).join('')).loose, line), 'different spacing still matches');
+    const cutOff = `${words.slice(1, 3).join(' ')} ${[...words[3]][0]}`;
+    assert.ok(!containedRun(lineKeys(cutOff).loose, line), 'a truncated last word is not a match');
 });
 
 test('a subjoined ha matches whether written as GurbaniNow does or as standard Unicode', () => {
@@ -37,15 +46,24 @@ test('a subjoined ha matches whether written as GurbaniNow does or as standard U
     // + ha. Found in the chat eval: 3.7 Flash quoted a line correctly and it
     // was reported as altered. The quote is made from a recorded line, so no
     // scripture is typed here.
-    const recorded: Record<string, GurbaniLine[] | null> = JSON.parse(
-        readFileSync(resolve(import.meta.dirname, 'fixtures/gurbaninow.json'), 'utf8'));
-    const lines = Object.values(recorded).flatMap(l => l ?? []).filter(l => l.gurmukhi.includes('\u0A51'));
+    const lines = RECORDED.filter(l => l.gurmukhi.includes('\u0A51'));
     assert.ok(lines.length > 0, 'the recordings include a line with U+0A51');
     for (const line of lines) {
         const quote = line.gurmukhi.replaceAll('\u0A51', '\u0A4D\u0A39');
         const c = compare(lineKeys(quote), lineKeys(line.gurmukhi));
         assert.ok(c.contained && c.exact, line.gurmukhi);
     }
+});
+
+test('the fold is for comparing, never for quoting back at the reader', () => {
+    // peel() hands these words back as the next quote, and a card prints them
+    // under "In the reply" — so they must stay spelled as the reply wrote them.
+    const line = RECORDED.find(l => l.gurmukhi.includes('\u0A51'))!.gurmukhi;
+    const asModelsWriteIt = line.replaceAll('\u0A51', '\u0A4D\u0A39');
+    const keys = lineKeys(asModelsWriteIt);
+    assert.ok(keys.raw.join(' ').includes('\u0A4D\u0A39'), 'raw keeps virama + ha');
+    assert.ok(!keys.raw.join(' ').includes('\u0A51'));
+    assert.ok(keys.folded.join(' ').includes('\u0A51'), 'folded carries GurbaniNow\'s spelling');
 });
 
 test('the altered line from the model comparison is close, not verified', () => {
@@ -63,8 +81,12 @@ test('sharing words with a much longer line is not "close"', () => {
 });
 
 test('two verse lines run together peel apart', () => {
-    const quote = lineKeys('ਤੇਰਾ ਕੀਆ ਮੀਠਾ ਲਾਗੈ ਹਰਿ ਨਾਮੁ ਪਦਾਰਥੁ ਨਾਨਕੁ ਮਾਂਗੈ');
-    assert.deepEqual(peel(quote, lineKeys('ਤੇਰਾ ਕੀਆ ਮੀਠਾ ਲਾਗੈ ॥')), ['ਹਰਿ', 'ਨਾਮੁ', 'ਪਦਾਰਥੁ', 'ਨਾਨਕੁ', 'ਮਾਂਗੈ']);
-    assert.deepEqual(peel(quote, lineKeys('ਹਰਿ ਨਾਮੁ ਪਦਾਰਥੁ ਨਾਨਕੁ ਮਾਂਗੈ ॥੨॥')), ['ਤੇਰਾ', 'ਕੀਆ', 'ਮੀਠਾ', 'ਲਾਗੈ']);
-    assert.equal(peel(quote, lineKeys('ਮੀਠਾ ਲਾਗੈ ਹਰਿ')), null, 'a middle fragment is not a peel');
+    // Two consecutive lines of one recorded page, quoted with no ॥ between.
+    const page = Object.values(PAGES).find(p => (p ?? []).filter(l => !l.isHeader && wordsOf(l.gurmukhi).length >= 4).length >= 2)!;
+    const [first, second] = page!.filter(l => !l.isHeader && wordsOf(l.gurmukhi).length >= 4);
+    const quote = lineKeys(`${first.gurmukhi} ${second.gurmukhi}`.replace(/[॥।]/g, ' '));
+    assert.deepEqual(peel(quote, lineKeys(first.gurmukhi)), wordsOf(second.gurmukhi));
+    assert.deepEqual(peel(quote, lineKeys(second.gurmukhi)), wordsOf(first.gurmukhi));
+    const middle = [...wordsOf(first.gurmukhi).slice(-2), ...wordsOf(second.gurmukhi).slice(0, 2)].join(' ');
+    assert.equal(peel(quote, lineKeys(middle)), null, 'a middle fragment is not a peel');
 });

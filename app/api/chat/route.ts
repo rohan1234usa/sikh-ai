@@ -2,16 +2,18 @@ import { FinishReason, GoogleGenAI, type GenerateContentResponse } from "@google
 import { NextResponse } from "next/server";
 import { DEFAULT_PREFS, MAX_MESSAGE_CHARS, isLensId, isModeId, isLanguageId, isScript, type ChatContext } from "@/lib/chat/config";
 import { buildChatRequest, toChatHistory, type ChatInput } from "@/lib/chat/request";
+import { CHAT_BUDGET_MS, CHAT_FIRST_TEXT_MS } from "@/lib/gemini/budgets";
 import { isAbortError, isCapacityError, statusOf, withModelFallback, withTransport } from "@/lib/gemini/fallback";
 import { errorFields, logGeminiCall, usageFields, type GeminiOutcome } from "@/lib/gemini/log";
 
 export const maxDuration = 30;
 
-// The whole exchange, fallback included, has to finish inside maxDuration.
-const STREAM_DEADLINE_MS = 27_000;
+// The whole exchange, fallback included, has to finish inside maxDuration;
+// see lib/gemini/budgets for how these two relate to the fallback.
+const STREAM_DEADLINE_MS = CHAT_BUDGET_MS;
 // Time to first text is ~1 s on 3.8 Flash. Ten means the call is stuck, and
 // still leaves time to ask the fallback model.
-const FIRST_TEXT_TIMEOUT_MS = 10_000;
+const FIRST_TEXT_TIMEOUT_MS = CHAT_FIRST_TEXT_MS;
 
 const FRIENDLY_ERROR = "Sorry, something went wrong on our end. Please try again.";
 const BUSY_ERROR = "SikhAI is very busy right now. Please wait a minute and try again.";

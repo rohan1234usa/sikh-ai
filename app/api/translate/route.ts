@@ -1,5 +1,6 @@
-import { FinishReason, GoogleGenAI } from "@google/genai";
+import { ApiError, FinishReason, GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
+import { TRANSLATE_ATTEMPT_MS, TRANSLATE_BUDGET_MS } from "@/lib/gemini/budgets";
 import { isCapacityError, statusOf, withModelFallback, withTransport } from "@/lib/gemini/fallback";
 import { logEvent, logGeminiCall, usageFields } from "@/lib/gemini/log";
 import {
@@ -18,9 +19,10 @@ export const maxDuration = 30;
 
 // Budget for Gemini, fallback model included, sized so the Cloud Translation
 // fallback (8 s timeout) still fits inside maxDuration after it. A full
-// 1,000-character input glossed word by word takes ~11 s on 3.8 Flash.
-const GEMINI_BUDGET_MS = 20_000;
-const ATTEMPT_TIMEOUT_MS = 15_000;
+// 1,000-character input glossed word by word takes ~11 s on 3.8 Flash. The
+// numbers, and why the gap between them matters, live in lib/gemini/budgets.
+const GEMINI_BUDGET_MS = TRANSLATE_BUDGET_MS;
+const ATTEMPT_TIMEOUT_MS = TRANSLATE_ATTEMPT_MS;
 
 const FRIENDLY_ERROR = "Sorry, the translation failed. Please try again.";
 const TOO_LONG_ERROR = "That text is too long. Please try up to 1,000 characters.";
@@ -189,9 +191,11 @@ export async function POST(req: Request) {
     if (req.signal.aborted) return new Response(null, { status: 499 });
 
     // `text` is only non-empty once validation passed, so a bad body or a
-    // validation throw skips the fallback and costs nothing. Past that point
-    // the failure came from Gemini — both models, already logged.
-    if (!text) console.error("Translate Error:", error);
+    // validation throw skips the fallback and costs nothing. Past that point a
+    // Gemini failure is already logged by logGeminiCall — but anything else
+    // (a response shape the SDK changed, a bug in the code around the call)
+    // would otherwise 500 with nothing in the host's log to explain it.
+    if (!text || !(error instanceof ApiError)) console.error("Translate Error:", error);
 
     // Both models failed (overloaded, rate-limited, out of prepaid credit, or
     // timed out) or the request itself was rejected. Either way a basic

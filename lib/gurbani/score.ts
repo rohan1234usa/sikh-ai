@@ -16,7 +16,7 @@ const LONG_TO_SHORT: Record<string, string> = {
 };
 
 export function looseKey(token: string): string {
-    return skeletonToken(token).replace(/[ਆਈਊਐਔ]/g, ch => LONG_TO_SHORT[ch]);
+    return skeletonToken(foldSubjoined(token)).replace(/[ਆਈਊਐਔ]/g, ch => LONG_TO_SHORT[ch]);
 }
 
 // GurbaniNow's first-letter index files a vowel-initial word under its
@@ -33,10 +33,11 @@ export function toSearchLetters(letters: string): string {
 }
 
 export type LineKeys = {
-    raw: string[];   // Gurmukhi words, NFC, punctuation and verse numbers gone
-    loose: string[]; // the same words as loose keys
-    first: string;   // first letters, one per word
-    letters: number; // total letters across the loose keys
+    raw: string[];    // Gurmukhi words as written, NFC, punctuation and verse numbers gone
+    folded: string[]; // the same words with one spelling of the subjoined letters
+    loose: string[];  // the same words as loose keys
+    first: string;    // first letters, one per word
+    letters: number;  // total letters across the loose keys
 };
 
 const HAS_GURMUKHI = /[਀-੿]/;
@@ -45,15 +46,22 @@ const HAS_GURMUKHI = /[਀-੿]/;
 // (U+0A51, U+0A75: ਸੰਮੑਾਲਿ), where standard Unicode, and so every model, writes
 // a virama and the letter (ਸੰਮ੍ਹਾਲਿ). Same word either way; without this fold,
 // every correct quote with a subjoined ha was reported as altered.
-export function foldSubjoined(text: string): string {
+//
+// `raw` stays unfolded because it is what the reader sees: peel() hands the
+// leftover words back as the next quote, and a citation card shows them under
+// "In the reply", where the model's own spelling belongs. Comparing and
+// querying use `folded`, and looseKey() folds on its own so keys built
+// straight from it \u2014 the extractor's dedupe and greeting keys \u2014 agree too.
+function foldSubjoined(text: string): string {
     return text.replace(/\u0A4D\u0A39/g, '\u0A51').replace(/\u0A4D\u0A2F/g, '\u0A75');
 }
 
 export function lineKeys(text: string): LineKeys {
-    const raw = tokens(foldSubjoined(text)).filter(token => HAS_GURMUKHI.test(token));
+    const raw = tokens(text).filter(token => HAS_GURMUKHI.test(token));
     const loose = raw.map(looseKey);
     return {
         raw,
+        folded: raw.map(foldSubjoined),
         loose,
         first: firstLetters(raw.join(' ')),
         letters: loose.reduce((n, key) => n + [...key].length, 0),
@@ -128,7 +136,7 @@ export function compare(quote: LineKeys, line: LineKeys): Comparison {
     const contained = containedRun(quote.loose, line.loose);
     return {
         contained,
-        exact: contained && containedRun(quote.raw, line.raw),
+        exact: contained && containedRun(quote.folded, line.folded),
         matched: weightedLcs(quote.loose, line.loose),
         lettersQ: quote.letters,
         lettersV: line.letters,

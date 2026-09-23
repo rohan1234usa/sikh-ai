@@ -6,6 +6,7 @@ import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { ChatContext } from '../../lib/chat/config';
 import { CITATION_STATUSES, type Citation, type CitationStatus } from '../../lib/gurbani/citations';
+import { finishedNormally } from './checks';
 import type { ChatFixture } from './fixtures';
 import type { ChatRun } from './run';
 
@@ -19,7 +20,7 @@ export type Answer = {
     cost: number | null;
 };
 
-export type Row = { fixture: ChatFixture; answers: Answer[] };
+type Row = { fixture: ChatFixture; answers: Answer[] };
 
 type ReportInput = {
     variants: string[]; // baseline first
@@ -50,7 +51,9 @@ function median(xs: number[]): number {
     return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
-const endedEarly = (run: ChatRun) => !(run.finishReason === undefined || run.finishReason === 'STOP' || run.finishReason === 'FINISH_REASON_UNSPECIFIED');
+// The same rule the checks and the route apply, so a reply cannot be "cut
+// short" in one column and fine in another.
+const endedEarly = (run: ChatRun) => finishedNormally({ text: run.text, context: null, finishReason: run.finishReason }) !== null;
 
 function citationCounts(citations: Citation[]): string {
     if (!citations.length) return 'none quoted';
@@ -68,7 +71,7 @@ function problems(answer: Answer): number {
     return answer.failures.length + quotes + (endedEarly(answer.run) ? 1 : 0);
 }
 
-function summary(variant: string, answers: Answer[], expected: number): string[][] {
+function summary(answers: Answer[], expected: number): [string, string][] {
     const runs = answers.map(a => a.run);
     const checked = runs.filter(r => r.citations !== undefined);
     const citations = checked.flatMap(r => r.citations!);
@@ -90,7 +93,7 @@ function summary(variant: string, answers: Answer[], expected: number): string[]
         ['Gurbani quotes', `${citationCounts(citations)}${exact ? ` (${exact} spelled exactly)` : ''}`],
         ['Answers with quotes not checked', `${runs.length - checked.length}`],
         ['Served as', versions],
-    ].map(([label, value]) => [label, value, variant]);
+    ];
 }
 
 function quoteLines(citations: Citation[] | undefined): string[] {
@@ -125,7 +128,7 @@ export function writeReport(input: ReportInput): string {
         `| --- |${variants.map(() => ' --- |').join('')}`,
     ];
 
-    const table = variants.map(v => summary(v, rows.flatMap(r => r.answers.filter(a => a.variant === v)), expected));
+    const table = variants.map(v => summary(rows.flatMap(r => r.answers.filter(a => a.variant === v)), expected));
     for (let i = 0; i < table[0].length; i++) {
         lines.push(`| ${table[0][i][0]} | ${table.map(col => cell(col[i][1])).join(' | ')} |`);
     }

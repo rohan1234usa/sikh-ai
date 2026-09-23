@@ -113,7 +113,9 @@ test('payload parsers: null means no answer, [] means no match', () => {
     assert.equal(parseAngPayload({ error: true }), null);
     assert.equal(parseAngPayload({ page: [] }), null, 'an empty Ang page is an upstream fault');
     assert.deepEqual(parseSearchPayload({ count: 0, shabads: [] }), []);
+    assert.deepEqual(parseSearchPayload({ error: 'Nothing Found!' }), [], 'the search endpoint says so in words');
     assert.equal(parseSearchPayload({ error: true }), null);
+    assert.equal(parseSearchPayload({ unexpected: 'shape' }), null, 'a shape we do not know is not "nothing matched"');
     const [line] = parseAngPayload({
         source: { id: 1, english: 'Sri Guru Granth Sahib Ji', unicode: 'ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ' },
         page: [{ line: { id: 'X1', type: 2, shabadid: 'S1', pageno: 7, lineno: 1, gurmukhi: { unicode: 'ਹੈਡਰ ॥' } } }],

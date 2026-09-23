@@ -23,7 +23,7 @@ import { angContext, hukamnamaContext } from '../../app/components/chat/deepLink
 import type { ChatContext } from '../../lib/chat/config';
 import { buildChatRequest } from '../../lib/chat/request';
 import { geminiFallbackModel, geminiModel } from '../../lib/gemini/models';
-import { hasGurmukhiRun, type Citation } from '../../lib/gurbani/citations';
+import { hasGurmukhiRun, MAX_CITATIONS, type Citation } from '../../lib/gurbani/citations';
 import { gurbaniNow, type GurbaniClient } from '../../lib/gurbani/gurbaninow';
 import { verifyReply } from '../../lib/gurbani/verify';
 import { getDictionary } from '../../lib/i18n';
@@ -178,7 +178,11 @@ async function verify(text: string): Promise<Citation[] | undefined> {
         fetchAng: (ang, signal) => watch(gurbaniNow.fetchAng(ang, signal)),
         searchLines: (query, type, results, signal) => watch(gurbaniNow.searchLines(query, type, results, signal)),
     };
-    const citations = await verifyReply(text, { client });
+    // A budget large enough that it never binds: the route rations lookups to
+    // stay inside its deadline, but an eval that scored only the first few
+    // quotes of a reply would report a verified rate over a subset it chose,
+    // and a spent budget looks the same as "nothing matched" from here.
+    const citations = await verifyReply(text, { client, maxOutbound: MAX_CITATIONS * 4 });
     return unanswered ? undefined : citations;
 }
 
@@ -273,8 +277,13 @@ async function main(): Promise<void> {
         const run = cache.entries[job.key];
         if (run && (run.citations === undefined || opts.reverify)) {
             reverified++;
-            run.citations = await verify(run.text);
-            if (run.citations !== undefined) saveCache(cache, CACHE_PATH);
+            // Only overwrite with an answer: a run during a GurbaniNow outage
+            // must not blank verdicts the cache already holds.
+            const checked = await verify(run.text);
+            if (checked !== undefined) {
+                run.citations = checked;
+                saveCache(cache, CACHE_PATH);
+            }
         }
     }
     if (opts.reverify) console.log(`Checked the Gurbani in ${reverified} cached answers again.`);

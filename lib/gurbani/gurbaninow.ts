@@ -86,12 +86,16 @@ export function parseAngPayload(data: unknown): GurbaniLine[] | null {
     return lines.length > 0 ? lines : null;
 }
 
-// Search results carry their own source each.
+// Search results carry their own source each. Only a shape we recognise may
+// answer "nothing matched" ([]); anything else is no answer at all (null), or
+// a correct quote would earn a card saying it could not be found.
 export function parseSearchPayload(data: unknown): GurbaniLine[] | null {
     const d = obj(data);
     if (d.error === true) return null;
-    if (!Array.isArray(d.shabads)) return [];
-    return d.shabads.map(item => toLine(obj(item).shabad)).filter((l): l is GurbaniLine => l !== null);
+    if (Array.isArray(d.shabads)) {
+        return d.shabads.map(item => toLine(obj(item).shabad)).filter((l): l is GurbaniLine => l !== null);
+    }
+    return typeof d.error === 'string' ? [] : null; // "Nothing Found!" vs a shape we do not know
 }
 
 let counterDate = '';

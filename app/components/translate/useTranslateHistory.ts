@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { TRANSLATE_RESULT_REV, type SourceHint, type TranslationResult } from '@/lib/translate/config';
 import { findCachedTranslation, upsertHistory } from '@/lib/translate/history';
 
@@ -58,21 +58,28 @@ export function useTranslateHistory() {
         setHydrated(true);
     }, []);
 
+    // Saving happens here rather than inside the updaters below: React may run
+    // an updater more than once (it does in development), and a write — or a
+    // fresh crypto.randomUUID() — inside one would run twice, storing an entry
+    // under a different id than the one in state.
+    const persistedRef = useRef<TranslateHistoryEntry[] | null>(null);
+    useEffect(() => {
+        if (!hydrated || persistedRef.current === entries) return; // nothing to save before the first read
+        persistedRef.current = entries;
+        persist(entries);
+    }, [entries, hydrated, persist]);
+
     // Called once a result is shown, so persistence is save-on-finalize by
     // construction. Re-adding a request moves it to the top.
     const add = useCallback((entry: Omit<TranslateHistoryEntry, 'id' | 'createdAt' | 'rev'>) => {
-        setEntries(prev => {
-            const full: TranslateHistoryEntry = {
-                ...entry,
-                id: crypto.randomUUID(),
-                createdAt: Date.now(),
-                rev: TRANSLATE_RESULT_REV,
-            };
-            const next = upsertHistory(prev, full, MAX_ENTRIES);
-            if (next !== prev) persist(next);
-            return next;
-        });
-    }, [persist]);
+        const full: TranslateHistoryEntry = {
+            ...entry,
+            id: crypto.randomUUID(),
+            createdAt: Date.now(),
+            rev: TRANSLATE_RESULT_REV,
+        };
+        setEntries(prev => upsertHistory(prev, full, MAX_ENTRIES));
+    }, []);
 
     // A saved result for exactly this request, if one can be reused.
     const lookup = useCallback(
@@ -81,16 +88,16 @@ export function useTranslateHistory() {
     );
 
     const remove = useCallback((id: string) => {
-        setEntries(prev => {
-            const next = prev.filter(e => e.id !== id);
-            persist(next);
-            return next;
-        });
-    }, [persist]);
+        setEntries(prev => prev.filter(e => e.id !== id));
+    }, []);
 
     const clear = useCallback(() => {
         try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
-        setEntries([]);
+        // Marked as saved before the state change, so the effect above does not
+        // write the key straight back as an empty list.
+        const empty: TranslateHistoryEntry[] = [];
+        persistedRef.current = empty;
+        setEntries(empty);
     }, []);
 
     return { entries, hydrated, add, lookup, remove, clear };

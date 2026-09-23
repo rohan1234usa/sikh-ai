@@ -4,7 +4,9 @@
 // reviewer reads first.
 
 import type { ChatContext } from '../../lib/chat/config';
-import type { Citation } from '../../lib/gurbani/citations';
+import { hasGurmukhiRun, type Citation } from '../../lib/gurbani/citations';
+import { gurmukhiLetterShare } from '../../lib/gurbani/gurmukhi';
+import { lineKeys } from '../../lib/gurbani/score';
 
 export type Reply = {
     text: string;
@@ -34,12 +36,10 @@ export function blocks(text: string): string[] {
     return plain(text).split('\n').map(line => line.trim()).filter(Boolean);
 }
 
-// Share of letters that are Gurmukhi. Vowel signs are marks, not letters, so
-// they neither help nor hurt.
-export function gurmukhiShare(text: string): number {
-    const letters = text.match(/\p{L}/gu) ?? [];
-    return letters.length ? letters.filter(ch => GURMUKHI.test(ch)).length / letters.length : 0;
-}
+// Share of letters that are Gurmukhi — the verifier's own measure, which it
+// uses to decide whether a reply is Punjabi, so the two cannot disagree about
+// what language an answer is in.
+export const gurmukhiShare = gurmukhiLetterShare;
 
 // Letters and signs from the neighbouring Indic scripts (Devanagari, Bengali,
 // Gujarati, Oriya, Tamil, Telugu, Kannada, Malayalam, Sinhala) that a model
@@ -49,14 +49,13 @@ export function foreignIndic(text: string): string[] {
     return [...new Set(text.match(/[\u0900-\u09FF\u0A80-\u0DFF]/gu) ?? [])].filter(ch => ch !== '\u0964' && ch !== '\u0965');
 }
 
-const RUN = /[\u0A00-\u0A7F]+(?:[\s\u0964\u0965]+[\u0A00-\u0A7F]+){2,}/u; // three Gurmukhi words in a row
-
 // Gurbani-first mode: "at least one Gurbani quotation, presented before your
 // explanation". A greeting may come first; the first paragraph of real
-// English explanation may not.
+// English explanation may not. "Is there a quotation here" is the verifier's
+// own gate, so a paragraph it would check is one this counts.
 export function quoteFirst(text: string): string | null {
     const paras = paragraphs(text);
-    const quoteAt = paras.findIndex(p => RUN.test(p));
+    const quoteAt = paras.findIndex(p => hasGurmukhiRun(p));
     if (quoteAt < 0) return 'no Gurbani quotation in Gurmukhi';
     const explainAt = paras.findIndex(p => !GURMUKHI.test(p) && wordCount(p) >= 25);
     return explainAt >= 0 && explainAt < quoteAt ? 'the explanation starts before the first quotation' : null;
@@ -88,12 +87,12 @@ export function firstPersonGuru(text: string): string | null {
 }
 
 // Passage lines, as the deep link sends them: each line's Gurmukhi, then its
-// translation. Compared on words only (no dandas, verse numbers, or
-// punctuation), and on a line's first four words so a partial quote counts.
-const gurmukhiWords = (s: string) =>
-    s.normalize('NFC').replace(/[\u0964\u0965\u0A66-\u0A6F\d\p{P}]/gu, ' ').split(/\s+/).filter(w => GURMUKHI.test(w));
+// translation. Compared as the verifier compares them — loose keys, which
+// ignore punctuation, verse numbers and the spelling slips it forgives — and
+// on a line's first four words, so a partial quote counts.
+const gurmukhiWords = (s: string) => lineKeys(s).loose;
 
-export function passageLines(context: ChatContext): string[][] {
+function passageLines(context: ChatContext): string[][] {
     return context.text.split(/\n\s*\n/)
         .map(item => gurmukhiWords(item.split('\n')[0]))
         .filter(words => words.length >= 3);

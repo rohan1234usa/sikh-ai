@@ -118,7 +118,10 @@ export const FIXTURES: ChatFixture[] = [
             {
                 name: 'no Ang for Dasam lines',
                 run: r => {
-                    const bad = (r.citations ?? []).find(c => c.line && c.line.source.id !== SGGS_SOURCE_ID && c.citedAng !== undefined);
+                    // Unchecked is not the same as clean: saying nothing here
+                    // would record a pass for a check that never ran.
+                    if (r.citations === undefined) return 'the quotes could not be checked';
+                    const bad = r.citations.find(c => c.line && c.line.source.id !== SGGS_SOURCE_ID && c.citedAng !== undefined);
                     return bad ? `cites Ang ${bad.citedAng} for a ${bad.line!.source.name} line` : null;
                 },
             },

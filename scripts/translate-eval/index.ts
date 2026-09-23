@@ -158,7 +158,14 @@ async function main(): Promise<void> {
             return run ? [[model, { run, score: score(fixture, run.text) }]] : [];
         })),
     }));
-    const fingerprint = runKey('', buildTranslateRequest('', '', { sourceHint: 'auto', detectedScript: 'latin' }).config, '').slice(0, 12);
+    // Both script branches and the models: the prompt differs per detected
+    // script, so a fingerprint from one branch would stay put while the other
+    // changed underneath the report.
+    const fingerprint = runKey(
+        models.join(','),
+        (['latin', 'gurmukhi'] as const).map(script => buildTranslateRequest('', '', { sourceHint: 'auto', detectedScript: script }).config),
+        '',
+    ).slice(0, 12);
     const path = writeReport({ models, rows, totalFixtures: all.length, fingerprint });
 
     console.log('');
