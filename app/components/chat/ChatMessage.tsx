@@ -62,7 +62,7 @@ export default function ChatMessage({ message, isTyping, showActions, onRegenera
                 <p className="text-xs text-ink-faint italic mt-1">{t.chat.interrupted}</p>
             )}
 
-            {!isUser && message.citations && <Citations citations={message.citations} />}
+            {!isUser && message.citations && <Citations citations={message.citations} replyText={message.text} />}
 
             {showActions && (
                 <div className="flex gap-1 mt-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100 transition-opacity">

@@ -371,6 +371,7 @@ const en = {
         citations: {
             heading: 'Gurbani check',
             sourceNote: 'Lines, translations, and Ang numbers in this box come word for word from GurbaniNow — not from the AI.',
+            moreQuoted: 'Only the first {max} of the {total} lines this reply quotes were checked.',
             statusLabels: {
                 'verified': 'Matches the source',
                 'wrong-ang': 'Found on a different Ang',

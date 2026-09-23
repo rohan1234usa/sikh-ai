@@ -367,6 +367,7 @@ const paLatn: Dictionary = {
         citations: {
             heading: 'Gurbani di jaanch',
             sourceNote: 'Is dabbe vichlian tukkan, arth ate Ang number hu-ba-hu GurbaniNow ton laye gaye han — AI vallon nahi.',
+            moreQuoted: 'Is jawab vich dittian {total} tukkan vichon sirf pehlian {max} di jaanch kiti gayi hai.',
             statusLabels: {
                 'verified': 'Srot naal mel khandi hai',
                 'wrong-ang': 'Vakhre Ang utte mili',

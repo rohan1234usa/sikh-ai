@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { ArrowTopRightOnSquareIcon, CheckBadgeIcon, ExclamationTriangleIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import { useLanguage } from '../../context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
-import { MAX_ANG, SGGS_SOURCE_ID, sanitizeCitations, type Citation, type CitationLine } from '@/lib/gurbani/citations';
+import { MAX_ANG, MAX_CITATIONS, SGGS_SOURCE_ID, sanitizeCitations, type Citation, type CitationLine } from '@/lib/gurbani/citations';
+import { extractQuotes } from '@/lib/gurbani/extract';
 
 // Cards under an AI reply showing what GurbaniNow says about each line the
 // reply quoted. Everything in a card's source line — the Gurmukhi, the
@@ -113,11 +114,15 @@ function CitationItem({ citation }: { citation: Citation }) {
     );
 }
 
-export default function Citations({ citations }: { citations: unknown }) {
+export default function Citations({ citations, replyText }: { citations: unknown; replyText: string }) {
     const { t } = useLanguage();
     // Re-checked here: messages come back from localStorage, which anything
     // on the page could have written.
     const list = useMemo(() => sanitizeCitations(citations), [citations]);
+    // The chat checks only the first MAX_CITATIONS lines a reply quotes; the
+    // rest must not pass for checked. Counted with the verifier's own
+    // extractor, so the two agree on what a quote is.
+    const quoted = useMemo(() => extractQuotes(replyText, { limit: Infinity }).length, [replyText]);
     if (list.length === 0) return null;
     return (
         <aside
@@ -128,6 +133,11 @@ export default function Citations({ citations }: { citations: unknown }) {
             <ul className="divide-y divide-edge">
                 {list.map((citation, i) => <CitationItem key={`${i}:${citation.quote}`} citation={citation} />)}
             </ul>
+            {quoted > MAX_CITATIONS && (
+                <p className="px-4 py-2 border-t border-edge text-xs text-ink-muted">
+                    {fmt(t.chat.citations.moreQuoted, { max: MAX_CITATIONS, total: quoted })}
+                </p>
+            )}
             <p className="px-4 py-2 border-t border-edge text-xs text-ink-muted">{t.chat.citations.sourceNote}</p>
         </aside>
     );

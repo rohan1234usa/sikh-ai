@@ -367,6 +367,7 @@ const pa: Dictionary = {
         citations: {
             heading: 'ਗੁਰਬਾਣੀ ਦੀ ਜਾਂਚ',
             sourceNote: 'ਇਸ ਡੱਬੇ ਵਿਚਲੀਆਂ ਤੁਕਾਂ, ਅਰਥ ਅਤੇ ਅੰਗ ਨੰਬਰ ਹੂ-ਬ-ਹੂ GurbaniNow ਤੋਂ ਲਏ ਗਏ ਹਨ — AI ਵੱਲੋਂ ਨਹੀਂ।',
+            moreQuoted: 'ਇਸ ਜਵਾਬ ਵਿੱਚ ਦਿੱਤੀਆਂ {total} ਤੁਕਾਂ ਵਿੱਚੋਂ ਸਿਰਫ਼ ਪਹਿਲੀਆਂ {max} ਦੀ ਜਾਂਚ ਕੀਤੀ ਗਈ ਹੈ।',
             statusLabels: {
                 'verified': 'ਸਰੋਤ ਨਾਲ ਮੇਲ ਖਾਂਦੀ ਹੈ',
                 'wrong-ang': 'ਵੱਖਰੇ ਅੰਗ ਉੱਤੇ ਮਿਲੀ',
