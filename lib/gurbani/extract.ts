@@ -34,7 +34,9 @@ const RUN = /\p{Script=Gurmukhi}(?:[\p{Script=Gurmukhi}\p{M}।॥​-‍﻿0-9 
 const HEADER = /(?:ਮਹਲਾ|ਮਃ|ਮਹਲੁ)\s*[੦-੯0-9]/; // ਮਹਲਾ / ਮਃ / ਮਹਲੁ + number
 const ANG_EN = /\b(?:Ang|Ank|Panna)\b\.?\s*(?:No\.?|Number)?\s*[:#]?\s*(\d{1,4})\b(?!\s*[-–—]\s*\d)/giu;
 const ANG_PA = /(?:ਅੰਗ|ਪੰਨਾ|ਪੰਨੇ)\s*(?:ਨੰ[:.]?|ਨੰਬਰ)?\s*[:#]?\s*([੦-੯0-9]{1,4})(?![੦-੯0-9])(?!\s*[-–—]\s*[੦-੯0-9])/gu; // ਅੰਗ / ਪੰਨਾ / ਪੰਨੇ
-const LEAD_IN = /^[^\n]{0,80}:\s*(?:\n\s*(?:>\s*)*)?["“'‘>\s]*$/;
+// A lead-in never runs past the end of a sentence (. ! ? or a danda then a
+// space): "... on Ang 12. Elsewhere Guru Ji writes:" gives no Ang to the quote.
+const LEAD_IN = /^(?:(?![.!?।]\s)[^\n]){0,80}:\s*(?:\n\s*(?:>\s*)*)?["“'‘>\s]*$/;
 
 // Words that make up greetings and titles; a segment made only of these is
 // never checked. Compared as loose keys so every spelling variant counts.

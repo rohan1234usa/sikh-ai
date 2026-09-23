@@ -105,6 +105,17 @@ test('a hint does not carry across a paragraph of its own', () => {
     assert.equal(extractQuotes(text)[0].angHint, undefined, 'a distant mention must not accuse the reply');
 });
 
+test('a lead-in stops at the end of its sentence', () => {
+    // Since a lead-in may bind across the blank line before a blockquote, a
+    // sentence that merely ends on an Ang must not hand it to the next quote.
+    const english = `This shabad is on Ang 12, in Kirtan Sohila. Elsewhere, Guru Arjan Dev Ji writes:\n\n> ${TUK}`;
+    assert.equal(extractQuotes(english)[0].angHint, undefined);
+    const punjabi = `ਇਹ ਸ਼ਬਦ ਅੰਗ 12 ਉੱਤੇ ਹੈ। ਗੁਰੂ ਜੀ ਹੋਰ ਥਾਂ ਫ਼ੁਰਮਾਉਂਦੇ ਹਨ:\n\n> ${TUK}`;
+    assert.equal(extractQuotes(punjabi)[0].angHint, undefined, 'a danda ends a Punjabi sentence');
+    const oneSentence = `On Ang 394 (Raag Asa), Guru Arjan Dev Ji says:\n\n> ${TUK}`;
+    assert.equal(extractQuotes(oneSentence)[0].angHint, 394);
+});
+
 test('an Ang cited inline belongs to the quote on its own line', () => {
     // The shape of a 3.8 Flash answer: a blockquote, then a sentence quoting
     // a second line with "(Ang 268)". Both used to take 268, so the first was
