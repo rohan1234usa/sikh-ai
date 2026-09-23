@@ -151,8 +151,9 @@ export default function TranslatePage() {
   // Curated phrases ship with results generated ahead of time (npm run
   // build:phrasebook): shown instantly, no request, and still there when
   // Gemini is not. A phrase without one falls back to the API. Phrasebook rows
-  // are known romanized Punjabi, so that is the hint; the user's chip
-  // preference is left untouched.
+  // are known romanized Punjabi, so that is the hint, and the chip moves to
+  // match it (as for a history entry) — where it stays for whatever is typed
+  // next.
   const handleUsePhrase = async (phrase: Phrase) => {
     setText(phrase.roman);
     setHint('punjabi-latin'); // as for a history entry: the chip matches the result

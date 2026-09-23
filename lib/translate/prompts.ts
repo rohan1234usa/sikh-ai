@@ -32,7 +32,7 @@ const FIDELITY = `Translate faithfully and consistently:
 // dictionary. A blanket "double every long vowel" rule gave "Chaachaa ji" and
 // "Taaiaa Ji" where families write Chacha ji and Taya ji, so length is only
 // marked where a learner needs to hear it. The examples come from the pa-latn
-// dictionary and the phrases the eval's default --limit 20 covers. The other
+// dictionary and the 20 phrases `--limit 20` covers in the eval. The other
 // 30 phrases were the check that the rules generalize
 // (npm run eval:translate -- --limit 50); a few of their words were pinned
 // here afterwards, where the model wavered (Kirtan, Ardaas, Ji aayan nu, nahi).
