@@ -42,6 +42,9 @@ export default function TranslatePage() {
   // Bumped by every new request, so a slow one can tell it has been replaced.
   const requestSeqRef = useRef(0);
   const resultRegionRef = useRef<HTMLDivElement>(null);
+  // Set when a phrase or history entry moved the chip: the text it was set
+  // for, and the user's own choice to go back to.
+  const chipSetForRef = useRef<{ text: string; own: SourceHint } | null>(null);
   const history = useTranslateHistory();
 
   // Word order around the highlighted word differs per language, so split the
@@ -56,6 +59,29 @@ export default function TranslatePage() {
     abortRef.current?.abort();
     abortRef.current = null;
     setLoading(false);
+  };
+
+  // Choosing a phrase or a history entry sets the chip to match what is shown.
+  // Once the user types something else, their own choice comes back, so
+  // English typed after a phrase tap is not sent labelled as romanized
+  // Punjabi. Picking a chip themselves ends it.
+  const setChipFor = (forText: string, next: SourceHint) => {
+    chipSetForRef.current = { text: forText, own: chipSetForRef.current?.own ?? hint };
+    setHint(next);
+  };
+
+  const handleText = (next: string) => {
+    setText(next);
+    const set = chipSetForRef.current;
+    if (set && next !== set.text) {
+      chipSetForRef.current = null;
+      setHint(set.own);
+    }
+  };
+
+  const handleHint = (next: SourceHint) => {
+    chipSetForRef.current = null;
+    setHint(next);
   };
 
   // Puts a result on screen and records the request that produced it.
@@ -151,12 +177,11 @@ export default function TranslatePage() {
   // Curated phrases ship with results generated ahead of time (npm run
   // build:phrasebook): shown instantly, no request, and still there when
   // Gemini is not. A phrase without one falls back to the API. Phrasebook rows
-  // are known romanized Punjabi, so that is the hint, and the chip moves to
-  // match it (as for a history entry) — where it stays for whatever is typed
-  // next.
+  // are known romanized Punjabi, so that is the hint, and the chip matches it
+  // until the user types something else (setChipFor).
   const handleUsePhrase = async (phrase: Phrase) => {
     setText(phrase.roman);
-    setHint('punjabi-latin'); // as for a history entry: the chip matches the result
+    setChipFor(phrase.roman, 'punjabi-latin');
     revealResults();
     const seq = ++requestSeqRef.current;
     const stored = await loadPhraseResult(phrase);
@@ -180,8 +205,8 @@ export default function TranslatePage() {
     cancelInFlight();
     setText(entry.input);
     // Restore the chip too, so it can't sit on a value that contradicts the
-    // result being shown.
-    setHint(entry.sourceHint);
+    // result being shown — until the user types something else.
+    setChipFor(entry.input, entry.sourceHint);
     show(entry.input, entry.sourceHint, entry.result);
     revealResults();
   };
@@ -199,9 +224,9 @@ export default function TranslatePage() {
         </p>
         <TranslateInput
           text={text}
-          onText={setText}
+          onText={handleText}
           hint={hint}
-          onHint={setHint}
+          onHint={handleHint}
           loading={loading}
           again={showingThis}
           onSubmit={handleSubmit}
