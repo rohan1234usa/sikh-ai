@@ -360,7 +360,7 @@ const en = {
         stopAria: 'Stop generating',
         thinking: 'SikhAI is thinking',
         interrupted: 'Response interrupted',
-        disclaimer: 'SikhAI can make mistakes — verify Gurbani quotes. Messages are sent to Google Gemini; your history stays in this browser.',
+        disclaimer: 'SikhAI can make mistakes — verify Gurbani quotes. Each message goes to Google Gemini with your recent conversation; the chat is saved only in this browser.',
         charCount: '{n} / {max}',
         copyAria: 'Copy message',
         copiedAria: 'Copied',

@@ -357,7 +357,7 @@ const paLatn: Dictionary = {
         stopAria: 'Jawab roko',
         thinking: 'SikhAI soch riha hai',
         interrupted: 'Jawab vichale ruk gaya',
-        disclaimer: 'SikhAI ton galti ho sakdi hai — Gurbani dian tukkan di pushti karo. Sunehe Google Gemini nu bheje jaande han; tuhada itihaas ise browser vich rehnda hai.',
+        disclaimer: 'SikhAI ton galti ho sakdi hai — Gurbani dian tukkan di pushti karo. Har suneha tuhadi halia gallbaat samet Google Gemini nu bhejia jaanda hai; gallbaat sirf ise browser vich sambhali jaandi hai.',
         charCount: '{n} / {max}',
         copyAria: 'Suneha copy karo',
         copiedAria: 'Copy ho gaya',
