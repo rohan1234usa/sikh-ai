@@ -86,11 +86,11 @@ function CitationItem({ citation }: { citation: Citation }) {
             {citation.status === 'close' && line && (
                 <>
                     <div>
-                        <p className="text-[11px] uppercase tracking-wider text-ink-faint font-bold">{c.inReply}</p>
+                        <p className="text-[11px] uppercase tracking-wider text-ink-muted font-bold">{c.inReply}</p>
                         <p lang="pa" className="font-gurmukhi text-ink-muted line-through decoration-ink-faint/60">{citation.quote}</p>
                     </div>
                     <div>
-                        <p className="text-[11px] uppercase tracking-wider text-ink-faint font-bold">{c.closestLine}</p>
+                        <p className="text-[11px] uppercase tracking-wider text-ink-muted font-bold">{c.closestLine}</p>
                         <SourceLine line={line} />
                     </div>
                     <p className="text-xs text-ink-muted">{c.closeNote}</p>
@@ -102,7 +102,7 @@ function CitationItem({ citation }: { citation: Citation }) {
                     {/* The reply's own words, labelled as such: the box's footer
                         says its lines come from GurbaniNow. */}
                     <div>
-                        <p className="text-[11px] uppercase tracking-wider text-ink-faint font-bold">{c.inReply}</p>
+                        <p className="text-[11px] uppercase tracking-wider text-ink-muted font-bold">{c.inReply}</p>
                         <p lang="pa" className="font-gurmukhi text-ink-muted">{citation.quote}</p>
                     </div>
                     <p className="text-xs text-ink-muted">{c.unverifiedNote}</p>
@@ -124,7 +124,7 @@ export default function Citations({ citations }: { citations: unknown }) {
             aria-label={t.chat.citations.heading}
             className="max-w-[85%] md:max-w-[75%] w-full mt-2 rounded-xl border border-edge bg-surface-raised text-sm"
         >
-            <p className="px-4 pt-3 text-[11px] uppercase tracking-widest text-ink-faint font-bold">{t.chat.citations.heading}</p>
+            <p className="px-4 pt-3 text-[11px] uppercase tracking-widest text-ink-muted font-bold">{t.chat.citations.heading}</p>
             <ul className="divide-y divide-edge">
                 {list.map((citation, i) => <CitationItem key={`${i}:${citation.quote}`} citation={citation} />)}
             </ul>
