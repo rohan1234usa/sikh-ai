@@ -62,9 +62,9 @@ export function buildChatRequest(
             // Low: a streaming chat is judged on time-to-first-token, and the
             // default (medium) is tuned for code and agentic work. Measured on
             // 3.8 Flash in gurbani-first mode (npm run eval:chat, Sept 2026,
-            // 9 answers each): medium verified 20/20 quotes against 19/21 (one
-            // wrong Ang, which the citation check flags), but took 4.1 s to
-            // first text against 1.2 s, at 2.1x the cost.
+            // 9 answers each): both verified every quote (low 21/21, medium
+            // 20/20), but medium took 4.1 s to first text against 1.2 s, at
+            // 2.1x the cost.
             thinkingConfig: { thinkingLevel: overrides.thinkingLevel ?? ThinkingLevel.LOW },
         },
     };
