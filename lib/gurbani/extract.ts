@@ -55,7 +55,8 @@ type Line = { text: string; block: number; listStart: boolean; heading: boolean 
 type Mention = { ang: number; at: number; end: number; line: number; block: number; boundTo?: Quote };
 type Quote = ExtractedQuote & { end: number; line: number; block: number; key: string };
 
-export function extractQuotes(text: string, opts: { punjabiReply?: boolean } = {}): ExtractedQuote[] {
+// `limit` defaults to the cards the chat shows; the eval lifts it.
+export function extractQuotes(text: string, opts: { punjabiReply?: boolean; limit?: number } = {}): ExtractedQuote[] {
     const punjabiReply = opts.punjabiReply ?? isPunjabiReply(text);
     const source = text.normalize('NFC').replace(/\r\n?/g, '\n').slice(0, MAX_VERIFY_CHARS);
 
@@ -170,7 +171,7 @@ export function extractQuotes(text: string, opts: { punjabiReply?: boolean } = {
         else if (seen.angHint === undefined && quote.angHint !== undefined) seen.angHint = quote.angHint;
     }
 
-    return [...byKey.values()].slice(0, MAX_CITATIONS).map(q => ({
+    return [...byKey.values()].slice(0, opts.limit ?? MAX_CITATIONS).map(q => ({
         quote: q.quote,
         hasDanda: q.hasDanda,
         index: q.index,

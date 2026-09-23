@@ -118,7 +118,8 @@ export function writeReport(input: ReportInput): string {
             `${input.passages.hukamnama.title}; ${input.passages.shabad.title}.`,
         '',
         'Every answer went through the production request (`buildChatRequest`), streamed as the route streams it. ' +
-            'Gurbani quotes are checked by the chat page\'s own verifier against GurbaniNow: *altered* means the ' +
+            'Every Gurbani quote is checked by the chat page\'s own verifier against GurbaniNow (the chat itself ' +
+            'shows cards for the first six): *altered* means the ' +
             'closest real line differs from the quote, *not found* means no line matched at all. Costs use the ' +
             'introductory Sept 2026 prices, which double on 1 Jan 2027.',
         '',

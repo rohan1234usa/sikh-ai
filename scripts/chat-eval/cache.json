@@ -1179,6 +1179,468 @@
               "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
             }
           }
+        },
+        {
+          "quote": "ਮਨ ਏਕੁ ਨ ਚੇਤਸਿ ਮੂੜ ਮਨਾ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਮਨ ਏਕੁ ਨ ਚੇਤਸਿ ਮੂੜ ਮਨਾ ॥",
+            "translation": "In your mind, you do not remember the One Lord-you fool!",
+            "ang": 12,
+            "lineNo": 4,
+            "shabadId": "JHX",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਹਰਿ ਬਿਸਰਤ ਤੇਰੇ ਗੁਣ ਗਲਿਆ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਹਰਿ ਬਿਸਰਤ ਤੇਰੇ ਗੁਣ ਗਲਿਆ ॥੧॥ ਰਹਾਉ ॥",
+            "translation": "You have forgotten the Lord; your virtues shall wither away. ||1||Pause||",
+            "ang": 12,
+            "lineNo": 4,
+            "shabadId": "JHX",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਨਾ ਹਉ ਜਤੀ ਸਤੀ ਨਹੀ ਪੜਿਆ ਮੂਰਖ ਮੁਗਧਾ ਜਨਮੁ ਭਇਆ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਨਾ ਹਉ ਜਤੀ ਸਤੀ ਨਹੀ ਪੜਿਆ ਮੂਰਖ ਮੁਗਧਾ ਜਨਮੁ ਭਇਆ ॥",
+            "translation": "I am not celibate, nor truthful, nor scholarly. I was born foolish and ignorant into this world.",
+            "ang": 12,
+            "lineNo": 4,
+            "shabadId": "JHX",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਪ੍ਰਣਵਤਿ ਨਾਨਕ ਤਿਨ ਕੀ ਸਰਣਾ ਜਿਨ ਤੂ ਨਾਹੀ ਵੀਸਰਿਆ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਪ੍ਰਣਵਤਿ ਨਾਨਕ ਤਿਨ ਕੀ ਸਰਣਾ ਜਿਨ ਤੂ ਨਾਹੀ ਵੀਸਰਿਆ ॥੨॥੩॥",
+            "translation": "Prays Nanak, I seek the Sanctuary of those who have not forgotten You, O Lord! ||2||3||",
+            "ang": 12,
+            "lineNo": 5,
+            "shabadId": "JHX",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਭਈ ਪਰਾਪਤਿ ਮਾਨੁਖ ਦੇਹੁਰੀਆ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਭਈ ਪਰਾਪਤਿ ਮਾਨੁਖ ਦੇਹੁਰੀਆ ॥",
+            "translation": "This human body has been given to you.",
+            "ang": 12,
+            "lineNo": 6,
+            "shabadId": "919",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਗੋਬਿੰਦ ਮਿਲਣ ਕੀ ਇਹ ਤੇਰੀ ਬਰੀਆ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਗੋਬਿੰਦ ਮਿਲਣ ਕੀ ਇਹ ਤੇਰੀ ਬਰੀਆ ॥",
+            "translation": "This is your chance to meet the Lord of the Universe.",
+            "ang": 12,
+            "lineNo": 6,
+            "shabadId": "919",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਅਵਰਿ ਕਾਜ ਤੇਰੈ ਕਿਤੈ ਨ ਕਾਮ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਅਵਰਿ ਕਾਜ ਤੇਰੈ ਕਿਤੈ ਨ ਕਾਮ ॥",
+            "translation": "Nothing else will work.",
+            "ang": 12,
+            "lineNo": 6,
+            "shabadId": "919",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਮਿਲੁ ਸਾਧਸੰਗਤਿ ਭਜੁ ਕੇਵਲ ਨਾਮ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਮਿਲੁ ਸਾਧਸੰਗਤਿ ਭਜੁ ਕੇਵਲ ਨਾਮ ॥੧॥",
+            "translation": "Join the Saadh Sangat, the Company of the Holy; vibrate and meditate on the Jewel of the Naam. ||1||",
+            "ang": 12,
+            "lineNo": 7,
+            "shabadId": "919",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਸਰੰਜਾਮਿ ਲਾਗੁ ਭਵਜਲ ਤਰਨ ਕੈ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਸਰੰਜਾਮਿ ਲਾਗੁ ਭਵਜਲ ਤਰਨ ਕੈ ॥",
+            "translation": "Make every effort to cross over this terrifying world-ocean.",
+            "ang": 12,
+            "lineNo": 7,
+            "shabadId": "919",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਜਨਮੁ ਬ੍ਰਿਥਾ ਜਾਤ ਰੰਗਿ ਮਾਇਆ ਕੈ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਜਨਮੁ ਬ੍ਰਿਥਾ ਜਾਤ ਰੰਗਿ ਮਾਇਆ ਕੈ ॥੧॥ ਰਹਾਉ ॥",
+            "translation": "You are squandering this life uselessly in the love of Maya. ||1||Pause||",
+            "ang": 12,
+            "lineNo": 8,
+            "shabadId": "919",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਜਪੁ ਤਪੁ ਸੰਜਮੁ ਧਰਮੁ ਨ ਕਮਾਇਆ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਜਪੁ ਤਪੁ ਸੰਜਮੁ ਧਰਮੁ ਨ ਕਮਾਇਆ ॥",
+            "translation": "I have not practiced meditation, self-discipline, self-restraint or righteous living.",
+            "ang": 12,
+            "lineNo": 8,
+            "shabadId": "919",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਸੇਵਾ ਸਾਧ ਨ ਜਾਨਿਆ ਹਰਿ ਰਾਇਆ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਸੇਵਾ ਸਾਧ ਨ ਜਾਨਿਆ ਹਰਿ ਰਾਇਆ ॥",
+            "translation": "I have not served the Holy; I have not acknowledged the Lord, my King.",
+            "ang": 12,
+            "lineNo": 8,
+            "shabadId": "919",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਕਹੁ ਨਾਨਕ ਹਮ ਨੀਚ ਕਰੰਮਾ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਕਹੁ ਨਾਨਕ ਹਮ ਨੀਚ ਕਰੰਮਾ ॥",
+            "translation": "Says Nanak, my actions are contemptible!",
+            "ang": 12,
+            "lineNo": 9,
+            "shabadId": "919",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਸਰਣਿ ਪਰੇ ਕੀ ਰਾਖਹੁ ਸਰਮਾ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਸਰਣਿ ਪਰੇ ਕੀ ਰਾਖਹੁ ਸਰਮਾ ॥੨॥੪॥",
+            "translation": "O Lord, I seek Your Sanctuary; please, preserve my honor! ||2||4||",
+            "ang": 12,
+            "lineNo": 9,
+            "shabadId": "919",
+            "writer": "Guru Arjan Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ",
+            "raag": "So Purakh",
+            "raagGurmukhi": "ਸੋ ਪੁਰਖੁ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਜੈ ਘਰਿ ਕੀਰਤਿ ਆਖੀਐ ਕਰਤੇ ਕਾ ਹੋਇ ਬੀਚਾਰੋ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਜੈ ਘਰਿ ਕੀਰਤਿ ਆਖੀਐ ਕਰਤੇ ਕਾ ਹੋਇ ਬੀਚਾਰੋ ॥",
+            "translation": "In that house where the Praises of the Creator are chanted and contemplated",
+            "ang": 12,
+            "lineNo": 11,
+            "shabadId": "GPZ",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Sohila",
+            "raagGurmukhi": "ਸੋਹਿਲਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਤਿਤੁ ਘਰਿ ਗਾਵਹੁ ਸੋਹਿਲਾ ਸਿਵਰਿਹੁ ਸਿਰਜਣਹਾਰੋ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਤਿਤੁ ਘਰਿ ਗਾਵਹੁ ਸੋਹਿਲਾ ਸਿਵਰਿਹੁ ਸਿਰਜਣਹਾਰੋ ॥੧॥",
+            "translation": "-in that house, sing Songs of Praise; meditate and remember the Creator Lord. ||1||",
+            "ang": 12,
+            "lineNo": 11,
+            "shabadId": "GPZ",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Sohila",
+            "raagGurmukhi": "ਸੋਹਿਲਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਤੁਮ ਗਾਵਹੁ ਮੇਰੇ ਨਿਰਭਉ ਕਾ ਸੋਹਿਲਾ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਤੁਮ ਗਾਵਹੁ ਮੇਰੇ ਨਿਰਭਉ ਕਾ ਸੋਹਿਲਾ ॥",
+            "translation": "Sing the Songs of Praise of my Fearless Lord.",
+            "ang": 12,
+            "lineNo": 12,
+            "shabadId": "GPZ",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Sohila",
+            "raagGurmukhi": "ਸੋਹਿਲਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਹਉ ਵਾਰੀ ਜਿਤੁ ਸੋਹਿਲੈ ਸਦਾ ਸੁਖੁ ਹੋਇ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਹਉ ਵਾਰੀ ਜਿਤੁ ਸੋਹਿਲੈ ਸਦਾ ਸੁਖੁ ਹੋਇ ॥੧॥ ਰਹਾਉ ॥",
+            "translation": "I am a sacrifice to that Song of Praise which brings eternal peace. ||1||Pause||",
+            "ang": 12,
+            "lineNo": 12,
+            "shabadId": "GPZ",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Sohila",
+            "raagGurmukhi": "ਸੋਹਿਲਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਨਿਤ ਨਿਤ ਜੀਅੜੇ ਸਮਾਲੀਅਨਿ ਦੇਖੈਗਾ ਦੇਵਣਹਾਰੁ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਨਿਤ ਨਿਤ ਜੀਅੜੇ ਸਮਾਲੀਅਨਿ ਦੇਖੈਗਾ ਦੇਵਣਹਾਰੁ ॥",
+            "translation": "Day after day, He cares for His beings; the Great Giver watches over all.",
+            "ang": 12,
+            "lineNo": 13,
+            "shabadId": "GPZ",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Sohila",
+            "raagGurmukhi": "ਸੋਹਿਲਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਤੇਰੇ ਦਾਨੈ ਕੀਮਤਿ ਨਾ ਪਵੈ ਤਿਸੁ ਦਾਤੇ ਕਵਣੁ ਸੁਮਾਰੁ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਤੇਰੇ ਦਾਨੈ ਕੀਮਤਿ ਨਾ ਪਵੈ ਤਿਸੁ ਦਾਤੇ ਕਵਣੁ ਸੁਮਾਰੁ ॥੨॥",
+            "translation": "Your Gifts cannot be appraised; how can anyone compare to the Giver? ||2||",
+            "ang": 12,
+            "lineNo": 13,
+            "shabadId": "GPZ",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Sohila",
+            "raagGurmukhi": "ਸੋਹਿਲਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਸੰਬਤਿ ਸਾਹਾ ਲਿਖਿਆ ਮਿਲਿ ਕਰਿ ਪਾਵਹੁ ਤੇਲੁ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਸੰਬਤਿ ਸਾਹਾ ਲਿਖਿਆ ਮਿਲਿ ਕਰਿ ਪਾਵਹੁ ਤੇਲੁ ॥",
+            "translation": "The day of my wedding is pre-ordained. Come, gather together and pour the oil over the threshold.",
+            "ang": 12,
+            "lineNo": 14,
+            "shabadId": "GPZ",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Sohila",
+            "raagGurmukhi": "ਸੋਹਿਲਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਦੇਹੁ ਸਜਣ ਅਸੀਸੜੀਆ ਜਿਉ ਹੋਵੈ ਸਾਹਿਬ ਸਿਉ ਮੇਲੁ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਦੇਹੁ ਸਜਣ ਅਸੀਸੜੀਆ ਜਿਉ ਹੋਵੈ ਸਾਹਿਬ ਸਿਉ ਮੇਲੁ ॥੩॥",
+            "translation": "My friends, give me your blessings, that I may merge with my Lord and Master. ||3||",
+            "ang": 12,
+            "lineNo": 14,
+            "shabadId": "GPZ",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Sohila",
+            "raagGurmukhi": "ਸੋਹਿਲਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
         }
       ]
     },

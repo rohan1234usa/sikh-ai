@@ -23,7 +23,7 @@ import { angContext, hukamnamaContext } from '../../app/components/chat/deepLink
 import type { ChatContext } from '../../lib/chat/config';
 import { buildChatRequest } from '../../lib/chat/request';
 import { geminiFallbackModel, geminiModel } from '../../lib/gemini/models';
-import { hasGurmukhiRun, MAX_CITATIONS, type Citation } from '../../lib/gurbani/citations';
+import { hasGurmukhiRun, type Citation } from '../../lib/gurbani/citations';
 import { gurbaniNow, type GurbaniClient } from '../../lib/gurbani/gurbaninow';
 import { verifyReply } from '../../lib/gurbani/verify';
 import { getDictionary } from '../../lib/i18n';
@@ -178,11 +178,13 @@ async function verify(text: string): Promise<Citation[] | undefined> {
         fetchAng: (ang, signal) => watch(gurbaniNow.fetchAng(ang, signal)),
         searchLines: (query, type, results, signal) => watch(gurbaniNow.searchLines(query, type, results, signal)),
     };
-    // A budget large enough that it never binds: the route rations lookups to
-    // stay inside its deadline, but an eval that scored only the first few
-    // quotes of a reply would report a verified rate over a subset it chose,
-    // and a spent budget looks the same as "nothing matched" from here.
-    const citations = await verifyReply(text, { client, maxOutbound: MAX_CITATIONS * 4 });
+    // Every quote, and no lookup budget. The route checks only the first six
+    // quotes (the cards it can show) and rations lookups to stay inside its
+    // deadline, but an eval that scored a subset would report a verified rate
+    // over whatever it happened to reach — a whole-Ang explanation quotes
+    // ~40 lines — and a refused lookup never reaches `watch` above, so it
+    // would pass for "nothing matched".
+    const citations = await verifyReply(text, { client, maxOutbound: Infinity, maxCitations: Infinity });
     return unanswered ? undefined : citations;
 }
 
@@ -273,6 +275,7 @@ async function main(): Promise<void> {
     // Verdicts that could not be had earlier (GurbaniNow was down) are retried,
     // and with --reverify, every verdict is redone.
     let reverified = 0;
+    let kept = 0;
     for (const job of jobs) {
         const run = cache.entries[job.key];
         if (run && (run.citations === undefined || opts.reverify)) {
@@ -283,10 +286,12 @@ async function main(): Promise<void> {
             if (checked !== undefined) {
                 run.citations = checked;
                 saveCache(cache, CACHE_PATH);
-            }
+            } else kept++;
         }
     }
     if (opts.reverify) console.log(`Checked the Gurbani in ${reverified} cached answers again.`);
+    // Otherwise the report would mix old and new verdicts without a word.
+    if (kept) console.warn(`${kept} answers kept their earlier verdicts: GurbaniNow did not answer every lookup. Run again.`);
 
     const rows = fixtures.map(fixture => ({
         fixture,

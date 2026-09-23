@@ -105,6 +105,14 @@ test('a hint does not carry across a paragraph of its own', () => {
     assert.equal(extractQuotes(text)[0].angHint, undefined, 'a distant mention must not accuse the reply');
 });
 
+test('six quotes by default, the cards the chat can show; the eval can ask for every one', () => {
+    // A whole-Ang explanation quotes dozens of lines.
+    const text = [...new Set(QUOTABLE)].slice(0, 12).map(line => `> ${line}`).join('\n\n');
+    const all = extractQuotes(text, { limit: Infinity });
+    assert.ok(all.length > 6, `only ${all.length} distinct quotes`);
+    assert.deepEqual(extractQuotes(text), all.slice(0, 6));
+});
+
 test('a lead-in stops at the end of its sentence', () => {
     // Since a lead-in may bind across the blank line before a blockquote, a
     // sentence that merely ends on an Ang must not hand it to the next quote.

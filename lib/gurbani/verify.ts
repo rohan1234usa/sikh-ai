@@ -200,9 +200,12 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promis
 
 export async function verifyReply(
     text: string,
-    opts: { client?: GurbaniClient; signal?: AbortSignal; maxOutbound?: number } = {},
+    opts: { client?: GurbaniClient; signal?: AbortSignal; maxOutbound?: number; maxCitations?: number } = {},
 ): Promise<Citation[]> {
-    const quotes = extractQuotes(text, { punjabiReply: isPunjabiReply(text) });
+    // The chat shows at most MAX_CITATIONS cards, so it checks that many
+    // quotes; npm run eval:chat lifts both limits to score every quote.
+    const limit = opts.maxCitations ?? MAX_CITATIONS;
+    const quotes = extractQuotes(text, { punjabiReply: isPunjabiReply(text), limit });
     if (quotes.length === 0) return [];
     const s = session(opts.client ?? gurbaniNow, opts.maxOutbound ?? MAX_OUTBOUND, opts.signal);
     const perQuote = await mapLimit(quotes, CONCURRENCY, q =>
@@ -216,7 +219,7 @@ export async function verifyReply(
         if (seen.has(key)) continue;
         seen.add(key);
         out.push(citation);
-        if (out.length === MAX_CITATIONS) break;
+        if (out.length === limit) break;
     }
     return out;
 }

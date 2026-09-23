@@ -2,7 +2,7 @@
 
 Set `all`: 12 fixtures × 2 variants. Request fingerprint `1f8cbf028ff1`. Passages captured 2026-09-21: Today's Hukamnama — Ang 584; Ang 12 — Guru Granth Sahib Ji.
 
-Every answer went through the production request (`buildChatRequest`), streamed as the route streams it. Gurbani quotes are checked by the chat page's own verifier against GurbaniNow: *altered* means the closest real line differs from the quote, *not found* means no line matched at all. Costs use the introductory Sept 2026 prices, which double on 1 Jan 2027.
+Every answer went through the production request (`buildChatRequest`), streamed as the route streams it. Every Gurbani quote is checked by the chat page's own verifier against GurbaniNow (the chat itself shows cards for the first six): *altered* means the closest real line differs from the quote, *not found* means no line matched at all. Costs use the introductory Sept 2026 prices, which double on 1 Jan 2027.
 
 ## Summary
 
@@ -16,7 +16,7 @@ Every answer went through the production request (`buildChatRequest`), streamed 
 | Est. cost per answer | $0.0034 | $0.0031 |
 | Checks failed | 0 | 0 |
 | Cut short (not a normal finish) | 0 | 0 |
-| Gurbani quotes | 21 verified (21 spelled exactly) | 21 verified (19 spelled exactly) |
+| Gurbani quotes | 43 verified (43 spelled exactly) | 21 verified (19 spelled exactly) |
 | Answers with quotes not checked | 0 | 0 |
 | Served as | gemini-3.8-flash | gemini-3.7-flash |
 
@@ -866,7 +866,7 @@ balanced mode · sikhai lens · english · passage: Ang 12 — Guru Granth Sahib
 | | `gemini-3.8-flash` | `gemini-3.7-flash` |
 | --- | --- | --- |
 | Checks | ✓ | ✓ |
-| Gurbani quotes | 6 verified | 6 verified |
+| Gurbani quotes | 28 verified | 6 verified |
 | First text · total | 0.8 s · 12.8 s | 0.8 s · 3.3 s |
 | Words · tokens out | 1668 · 3059 | 353 · 703 |
 
@@ -1047,6 +1047,28 @@ Gurbani check:
 - verified: ਜਨ ਨਾਨਕ ਗੁਰਮੁਖਿ ਪਰਗਟੁ ਹੋਇ ॥ — Ang 12, Guru Ramdas Ji
 - verified: ਤਿਤੁ ਸਰਵਰੜੈ ਭਈਲੇ ਨਿਵਾਸਾ ਪਾਣੀ ਪਾਵਕੁ ਤਿਨਹਿ ਕੀਆ ॥ — Ang 12, Guru Nanak Dev Ji
 - verified: ਪੰਕਜੁ ਮੋਹ ਪਗੁ ਨਹੀ ਚਾਲੈ ਹਮ ਦੇਖਾ ਤਹ ਡੂਬੀਅਲੇ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਮਨ ਏਕੁ ਨ ਚੇਤਸਿ ਮੂੜ ਮਨਾ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਹਰਿ ਬਿਸਰਤ ਤੇਰੇ ਗੁਣ ਗਲਿਆ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਨਾ ਹਉ ਜਤੀ ਸਤੀ ਨਹੀ ਪੜਿਆ ਮੂਰਖ ਮੁਗਧਾ ਜਨਮੁ ਭਇਆ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਪ੍ਰਣਵਤਿ ਨਾਨਕ ਤਿਨ ਕੀ ਸਰਣਾ ਜਿਨ ਤੂ ਨਾਹੀ ਵੀਸਰਿਆ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਭਈ ਪਰਾਪਤਿ ਮਾਨੁਖ ਦੇਹੁਰੀਆ ॥ — Ang 12, Guru Arjan Dev Ji
+- verified: ਗੋਬਿੰਦ ਮਿਲਣ ਕੀ ਇਹ ਤੇਰੀ ਬਰੀਆ ॥ — Ang 12, Guru Arjan Dev Ji
+- verified: ਅਵਰਿ ਕਾਜ ਤੇਰੈ ਕਿਤੈ ਨ ਕਾਮ ॥ — Ang 12, Guru Arjan Dev Ji
+- verified: ਮਿਲੁ ਸਾਧਸੰਗਤਿ ਭਜੁ ਕੇਵਲ ਨਾਮ ॥ — Ang 12, Guru Arjan Dev Ji
+- verified: ਸਰੰਜਾਮਿ ਲਾਗੁ ਭਵਜਲ ਤਰਨ ਕੈ ॥ — Ang 12, Guru Arjan Dev Ji
+- verified: ਜਨਮੁ ਬ੍ਰਿਥਾ ਜਾਤ ਰੰਗਿ ਮਾਇਆ ਕੈ ॥ — Ang 12, Guru Arjan Dev Ji
+- verified: ਜਪੁ ਤਪੁ ਸੰਜਮੁ ਧਰਮੁ ਨ ਕਮਾਇਆ ॥ — Ang 12, Guru Arjan Dev Ji
+- verified: ਸੇਵਾ ਸਾਧ ਨ ਜਾਨਿਆ ਹਰਿ ਰਾਇਆ ॥ — Ang 12, Guru Arjan Dev Ji
+- verified: ਕਹੁ ਨਾਨਕ ਹਮ ਨੀਚ ਕਰੰਮਾ ॥ — Ang 12, Guru Arjan Dev Ji
+- verified: ਸਰਣਿ ਪਰੇ ਕੀ ਰਾਖਹੁ ਸਰਮਾ ॥ — Ang 12, Guru Arjan Dev Ji
+- verified: ਜੈ ਘਰਿ ਕੀਰਤਿ ਆਖੀਐ ਕਰਤੇ ਕਾ ਹੋਇ ਬੀਚਾਰੋ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਤਿਤੁ ਘਰਿ ਗਾਵਹੁ ਸੋਹਿਲਾ ਸਿਵਰਿਹੁ ਸਿਰਜਣਹਾਰੋ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਤੁਮ ਗਾਵਹੁ ਮੇਰੇ ਨਿਰਭਉ ਕਾ ਸੋਹਿਲਾ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਹਉ ਵਾਰੀ ਜਿਤੁ ਸੋਹਿਲੈ ਸਦਾ ਸੁਖੁ ਹੋਇ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਨਿਤ ਨਿਤ ਜੀਅੜੇ ਸਮਾਲੀਅਨਿ ਦੇਖੈਗਾ ਦੇਵਣਹਾਰੁ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਤੇਰੇ ਦਾਨੈ ਕੀਮਤਿ ਨਾ ਪਵੈ ਤਿਸੁ ਦਾਤੇ ਕਵਣੁ ਸੁਮਾਰੁ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਸੰਬਤਿ ਸਾਹਾ ਲਿਖਿਆ ਮਿਲਿ ਕਰਿ ਪਾਵਹੁ ਤੇਲੁ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਦੇਹੁ ਸਜਣ ਅਸੀਸੜੀਆ ਜਿਉ ਹੋਵੈ ਸਾਹਿਬ ਸਿਉ ਮੇਲੁ ॥ — Ang 12, Guru Nanak Dev Ji
 
 </details>
 
