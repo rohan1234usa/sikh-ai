@@ -99,7 +99,12 @@ function CitationItem({ citation }: { citation: Citation }) {
 
             {citation.status === 'unverified' && (
                 <>
-                    <p lang="pa" className="font-gurmukhi text-ink-muted">{citation.quote}</p>
+                    {/* The reply's own words, labelled as such: the box's footer
+                        says its lines come from GurbaniNow. */}
+                    <div>
+                        <p className="text-[11px] uppercase tracking-wider text-ink-faint font-bold">{c.inReply}</p>
+                        <p lang="pa" className="font-gurmukhi text-ink-muted">{citation.quote}</p>
+                    </div>
                     <p className="text-xs text-ink-muted">{c.unverifiedNote}</p>
                     {citation.citedAng !== undefined && <AngLink ang={citation.citedAng} />}
                 </>
