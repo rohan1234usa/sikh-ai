@@ -42,10 +42,11 @@ export default function ChatPage() {
   // Set by the Stop button: a reply the user stopped still has its quotes
   // checked, but one dropped by "New chat" or by leaving the page does not.
   const stoppedRef = useRef(false);
-  // One per reply under check: two answers can be verified at once, and a
-  // finished reply must not cancel the check running for the one before it —
-  // nothing would ever retry it, leaving that answer's quotes unchecked.
-  const verifyAbortsRef = useRef<Set<AbortController>>(new Set());
+  // One per reply under check, by message id: two answers can be verified at
+  // once, and neither a finished reply nor a regenerate may cancel the check
+  // running for another — nothing would ever retry it, leaving that answer's
+  // quotes unchecked.
+  const verifyAbortsRef = useRef<Map<string, AbortController>>(new Map());
   const scrollRef = useRef<HTMLDivElement>(null);
   const atBottomRef = useRef(true);
   const [showJump, setShowJump] = useState(false);
@@ -232,15 +233,19 @@ export default function ChatPage() {
   // Checks the Gurbani a reply quotes once it has stopped streaming
   // (lib/gurbani/verify.ts) and attaches the result as cards. Best effort:
   // any failure just means no cards, and the chat never waits on it.
-  function abortVerifications() {
-    for (const controller of verifyAbortsRef.current) controller.abort();
-    verifyAbortsRef.current.clear();
+  // Every check, or only those for the given replies.
+  function abortVerifications(messageIds?: string[]) {
+    for (const [id, controller] of verifyAbortsRef.current) {
+      if (messageIds && !messageIds.includes(id)) continue;
+      controller.abort();
+      verifyAbortsRef.current.delete(id);
+    }
   }
 
   async function verifyCitations(messageId: string, text: string) {
     if (!hasGurmukhiRun(text)) return;
     const controller = new AbortController();
-    verifyAbortsRef.current.add(controller);
+    verifyAbortsRef.current.set(messageId, controller);
     try {
       const res = await fetch('/api/chat/verify', {
         method: 'POST',
@@ -255,7 +260,7 @@ export default function ChatPage() {
     } catch {
       // Aborted or offline: no cards.
     } finally {
-      verifyAbortsRef.current.delete(controller);
+      if (verifyAbortsRef.current.get(messageId) === controller) verifyAbortsRef.current.delete(messageId);
     }
   }
 
@@ -263,8 +268,8 @@ export default function ChatPage() {
     if (isStreaming) return;
     const lastUserIdx = messages.findLastIndex(m => m.role === 'user');
     if (lastUserIdx === -1) return;
-    // The reply being replaced may still be under check.
-    abortVerifications();
+    // The reply being replaced may still be under check; earlier replies keep theirs.
+    abortVerifications(messages.slice(lastUserIdx).map(m => m.id));
     // send() re-appends the user message, so slice it off the base
     send(messages[lastUserIdx].text, messages.slice(0, lastUserIdx));
   };
