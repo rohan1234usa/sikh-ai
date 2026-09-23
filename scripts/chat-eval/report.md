@@ -16,7 +16,7 @@ Every answer went through the production request (`buildChatRequest`), streamed 
 | Est. cost per answer | $0.0034 | $0.0031 |
 | Checks failed | 0 | 0 |
 | Cut short (not a normal finish) | 0 | 0 |
-| Gurbani quotes | 43 verified (43 spelled exactly) | 21 verified (19 spelled exactly) |
+| Gurbani quotes | 52 verified (52 spelled exactly) | 21 verified (19 spelled exactly) |
 | Answers with quotes not checked | 0 | 0 |
 | Served as | gemini-3.8-flash | gemini-3.7-flash |
 
@@ -866,7 +866,7 @@ balanced mode · sikhai lens · english · passage: Ang 12 — Guru Granth Sahib
 | | `gemini-3.8-flash` | `gemini-3.7-flash` |
 | --- | --- | --- |
 | Checks | ✓ | ✓ |
-| Gurbani quotes | 28 verified | 6 verified |
+| Gurbani quotes | 37 verified | 6 verified |
 | First text · total | 0.8 s · 12.8 s | 0.8 s · 3.3 s |
 | Words · tokens out | 1668 · 3059 | 353 · 703 |
 
@@ -1069,6 +1069,15 @@ Gurbani check:
 - verified: ਤੇਰੇ ਦਾਨੈ ਕੀਮਤਿ ਨਾ ਪਵੈ ਤਿਸੁ ਦਾਤੇ ਕਵਣੁ ਸੁਮਾਰੁ ॥ — Ang 12, Guru Nanak Dev Ji
 - verified: ਸੰਬਤਿ ਸਾਹਾ ਲਿਖਿਆ ਮਿਲਿ ਕਰਿ ਪਾਵਹੁ ਤੇਲੁ ॥ — Ang 12, Guru Nanak Dev Ji
 - verified: ਦੇਹੁ ਸਜਣ ਅਸੀਸੜੀਆ ਜਿਉ ਹੋਵੈ ਸਾਹਿਬ ਸਿਉ ਮੇਲੁ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਘਰਿ ਘਰਿ ਏਹੋ ਪਾਹੁਚਾ ਸਦੜੇ ਨਿਤ ਪਵੰਨਿ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਸਦਣਹਾਰਾ ਸਿਮਰੀਐ ਨਾਨਕ ਸੇ ਦਿਹ ਆਵੰਨਿ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਛਿਅ ਘਰ ਛਿਅ ਗੁਰ ਛਿਅ ਉਪਦੇਸ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਗੁਰੁ ਗੁਰੁ ਏਕੋ ਵੇਸ ਅਨੇਕ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਬਾਬਾ ਜੈ ਘਰਿ ਕਰਤੇ ਕੀਰਤਿ ਹੋਇ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਸੋ ਘਰੁ ਰਾਖੁ ਵਡਾਈ ਤੋਇ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਵਿਸੁਏ ਚਸਿਆ ਘੜੀਆ ਪਹਰਾ ਥਿਤੀ ਵਾਰੀ ਮਾਹੁ ਹੋਆ ॥ — Ang 12, Guru Nanak Dev Ji
+- verified: ਸੂਰਜੁ ਏਕੋ ਰੁਤਿ ਅਨੇਕ ॥ — Ang 357, Guru Nanak Dev Ji
+- verified: ਨਾਨਕ ਕਰਤੇ ਕੇ ਕੇਤੇ ਵੇਸ ॥ — Ang 357, Guru Nanak Dev Ji
 
 </details>
 

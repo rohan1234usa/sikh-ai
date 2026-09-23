@@ -5,7 +5,11 @@
 // Ang, writer, raag — comes verbatim from GurbaniNow. The model's reply is
 // never edited; the check only sits beside it.
 
-export const MAX_VERIFY_CHARS = 8000;
+// A whole reply: the chat's 4,096-token cap comes to ~14,000 characters of
+// English (a whole Ang explained line by line ran to 10,383 at 3,059 tokens).
+// At 8,000 the tail of the longest answers was never read, by the chat or
+// the eval.
+export const MAX_VERIFY_CHARS = 20_000;
 export const MAX_CITATIONS = 6;
 export const SGGS_SOURCE_ID = 1;
 export const MAX_ANG = 1430;

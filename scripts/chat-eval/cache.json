@@ -1641,6 +1641,195 @@
               "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
             }
           }
+        },
+        {
+          "quote": "ਘਰਿ ਘਰਿ ਏਹੋ ਪਾਹੁਚਾ ਸਦੜੇ ਨਿਤ ਪਵੰਨਿ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਘਰਿ ਘਰਿ ਏਹੋ ਪਾਹੁਚਾ ਸਦੜੇ ਨਿਤ ਪਵੰਨਿ ॥",
+            "translation": "Unto each and every home, into each and every heart, this summons is sent out; the call comes each and every day.",
+            "ang": 12,
+            "lineNo": 15,
+            "shabadId": "GPZ",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Sohila",
+            "raagGurmukhi": "ਸੋਹਿਲਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਸਦਣਹਾਰਾ ਸਿਮਰੀਐ ਨਾਨਕ ਸੇ ਦਿਹ ਆਵੰਨਿ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਸਦਣਹਾਰਾ ਸਿਮਰੀਐ ਨਾਨਕ ਸੇ ਦਿਹ ਆਵੰਨਿ ॥੪॥੧॥",
+            "translation": "Remember in meditation the One who summons us; O Nanak, that day is drawing near! ||4||1||",
+            "ang": 12,
+            "lineNo": 16,
+            "shabadId": "GPZ",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Sohila",
+            "raagGurmukhi": "ਸੋਹਿਲਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਛਿਅ ਘਰ ਛਿਅ ਗੁਰ ਛਿਅ ਉਪਦੇਸ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਛਿਅ ਘਰ ਛਿਅ ਗੁਰ ਛਿਅ ਉਪਦੇਸ ॥",
+            "translation": "There are six schools of philosophy, six teachers, and six sets of teachings.",
+            "ang": 12,
+            "lineNo": 16,
+            "shabadId": "FVA",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Sohila",
+            "raagGurmukhi": "ਸੋਹਿਲਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਗੁਰੁ ਗੁਰੁ ਏਕੋ ਵੇਸ ਅਨੇਕ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਗੁਰੁ ਗੁਰੁ ਏਕੋ ਵੇਸ ਅਨੇਕ ॥੧॥",
+            "translation": "But the Teacher of teachers is the One, who appears in so many forms. ||1||",
+            "ang": 12,
+            "lineNo": 17,
+            "shabadId": "FVA",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Sohila",
+            "raagGurmukhi": "ਸੋਹਿਲਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਬਾਬਾ ਜੈ ਘਰਿ ਕਰਤੇ ਕੀਰਤਿ ਹੋਇ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਬਾਬਾ ਜੈ ਘਰਿ ਕਰਤੇ ਕੀਰਤਿ ਹੋਇ ॥",
+            "translation": "O Baba: that system in which the Praises of the Creator are sung",
+            "ang": 12,
+            "lineNo": 17,
+            "shabadId": "FVA",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Sohila",
+            "raagGurmukhi": "ਸੋਹਿਲਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਸੋ ਘਰੁ ਰਾਖੁ ਵਡਾਈ ਤੋਇ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਸੋ ਘਰੁ ਰਾਖੁ ਵਡਾਈ ਤੋਇ ॥੧॥ ਰਹਾਉ ॥",
+            "translation": "-follow that system; in it rests true greatness. ||1||Pause||",
+            "ang": 12,
+            "lineNo": 17,
+            "shabadId": "FVA",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Sohila",
+            "raagGurmukhi": "ਸੋਹਿਲਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਵਿਸੁਏ ਚਸਿਆ ਘੜੀਆ ਪਹਰਾ ਥਿਤੀ ਵਾਰੀ ਮਾਹੁ ਹੋਆ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਵਿਸੁਏ ਚਸਿਆ ਘੜੀਆ ਪਹਰਾ ਥਿਤੀ ਵਾਰੀ ਮਾਹੁ ਹੋਆ ॥",
+            "translation": "The seconds, minutes and hours, days, weeks and months,",
+            "ang": 12,
+            "lineNo": 18,
+            "shabadId": "FVA",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Sohila",
+            "raagGurmukhi": "ਸੋਹਿਲਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਸੂਰਜੁ ਏਕੋ ਰੁਤਿ ਅਨੇਕ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਸੂਰਜੁ ਏਕੋ ਰੁਤਿ ਅਨੇਕ ॥",
+            "translation": "And seasons all originate from the one sun,",
+            "ang": 357,
+            "lineNo": 17,
+            "shabadId": "DC5",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Raag Aasaa",
+            "raagGurmukhi": "ਰਾਗੁ ਆਸਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
+        },
+        {
+          "quote": "ਨਾਨਕ ਕਰਤੇ ਕੇ ਕੇਤੇ ਵੇਸ ॥",
+          "status": "verified",
+          "exact": true,
+          "line": {
+            "gurmukhi": "ਨਾਨਕ ਕਰਤੇ ਕੇ ਕੇਤੇ ਵੇਸ ॥੨॥੩੦॥",
+            "translation": "O Nanak, so do all forms originate from the One Creator. ||2||30||",
+            "ang": 357,
+            "lineNo": 18,
+            "shabadId": "DC5",
+            "writer": "Guru Nanak Dev Ji",
+            "writerGurmukhi": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ",
+            "raag": "Raag Aasaa",
+            "raagGurmukhi": "ਰਾਗੁ ਆਸਾ",
+            "source": {
+              "id": 1,
+              "name": "Sri Guru Granth Sahib Ji",
+              "nameGurmukhi": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+            }
+          }
         }
       ]
     },

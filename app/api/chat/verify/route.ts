@@ -10,8 +10,9 @@ import { verifyReply } from "@/lib/gurbani/verify";
 export const maxDuration = 15;
 
 const DEADLINE_MS = 8000;
-// Room for the reply plus JSON escaping; anything larger is not a chat reply.
-const MAX_BODY_CHARS = 40_000;
+// Room for the reply plus JSON escaping (at worst twice its length) and the
+// wrapper; anything larger is not a chat reply.
+const MAX_BODY_CHARS = 2 * MAX_VERIFY_CHARS + 1000;
 const NO_STORE = { "Cache-Control": "no-store" };
 
 export async function POST(req: Request) {
