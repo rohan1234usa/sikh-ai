@@ -86,6 +86,15 @@ test('a Dasam Granth line verifies under its own source name', async () => {
     assert.equal(citations[0].line?.source.name, 'Sri Dasam Granth');
 });
 
+test('the hand-written replies quote scripture exactly as the source has it', async () => {
+    // They are typed, not recorded, so this is what keeps a stray mark out of
+    // them; the Dasam one once carried a bindi and passed on the fuzzy path.
+    for (const id of ['synthetic:wrong-ang', 'synthetic:near-ang', 'synthetic:two-lines-one-danda', 'synthetic:dasam']) {
+        const { citations } = await check(id);
+        assert.ok(citations.length > 0 && citations.every(c => c.exact === true), `${id} differs from the recorded line`);
+    }
+});
+
 test('unmarked Punjabi prose gets no card', async () => {
     assert.deepEqual((await check('synthetic:prose-phrase')).citations, []);
 });
