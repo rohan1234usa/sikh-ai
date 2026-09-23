@@ -122,6 +122,7 @@ test('payload parsers: null means no answer, [] means no match', () => {
     assert.equal(parseAngPayload({ page: [] }), null, 'an empty Ang page is an upstream fault');
     assert.deepEqual(parseSearchPayload({ count: 0, shabads: [] }), []);
     assert.deepEqual(parseSearchPayload({ error: 'Nothing Found!' }), [], 'the search endpoint says so in words');
+    assert.equal(parseSearchPayload({ error: 'Too many requests' }), null, 'any other message is a failure, not an answer');
     assert.equal(parseSearchPayload({ error: true }), null);
     assert.equal(parseSearchPayload({ unexpected: 'shape' }), null, 'a shape we do not know is not "nothing matched"');
     const [line] = parseAngPayload({

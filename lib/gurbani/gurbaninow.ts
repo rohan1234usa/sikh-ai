@@ -88,14 +88,16 @@ export function parseAngPayload(data: unknown): GurbaniLine[] | null {
 
 // Search results carry their own source each. Only a shape we recognise may
 // answer "nothing matched" ([]); anything else is no answer at all (null), or
-// a correct quote would earn a card saying it could not be found.
+// a correct quote would earn a card saying it could not be found. The live
+// endpoint says it as { count: 0, shabads: [], error: false }; of the worded
+// errors, only its "Nothing Found!" means that — any other is a failure.
 export function parseSearchPayload(data: unknown): GurbaniLine[] | null {
     const d = obj(data);
     if (d.error === true) return null;
     if (Array.isArray(d.shabads)) {
         return d.shabads.map(item => toLine(obj(item).shabad)).filter((l): l is GurbaniLine => l !== null);
     }
-    return typeof d.error === 'string' ? [] : null; // "Nothing Found!" vs a shape we do not know
+    return typeof d.error === 'string' && /^nothing found/i.test(d.error.trim()) ? [] : null;
 }
 
 let counterDate = '';
