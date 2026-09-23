@@ -378,7 +378,9 @@ const en = {
                 'close': 'Wording differs from the source',
                 'unverified': "Couldn't verify this line",
             } satisfies Record<CitationStatus, string>,
-            spellingNote: 'The spelling in the reply differs slightly. The line shown here is the source text.',
+            // A verified quote that matches only once vowel signs are set aside
+            respelled: 'Same line, spelled differently',
+            spellingNote: 'The reply spells this line differently from the source. In Gurbani a single vowel sign can change the meaning, so rely on the line shown here.',
             wrongAngNote: 'The reply cites Ang {cited}. GurbaniNow places this line on Ang {ang}.',
             inReply: 'In the reply',
             closestLine: 'Closest line in the source',

@@ -14,6 +14,8 @@ import { extractQuotes } from '@/lib/gurbani/extract';
 
 const STATUS = {
     'verified': { Icon: CheckBadgeIcon, tone: 'text-emerald-700 dark:text-emerald-400' },
+    // Verified, but matched only once vowel signs were set aside.
+    'respelled': { Icon: CheckBadgeIcon, tone: 'text-accent-text' },
     'wrong-ang': { Icon: ExclamationTriangleIcon, tone: 'text-accent-text' },
     'close': { Icon: ExclamationTriangleIcon, tone: 'text-accent-text' },
     'unverified': { Icon: QuestionMarkCircleIcon, tone: 'text-ink-muted' },
@@ -62,14 +64,18 @@ function SourceLine({ line }: { line: CitationLine }) {
 function CitationItem({ citation }: { citation: Citation }) {
     const { t } = useLanguage();
     const c = t.chat.citations;
-    const { Icon, tone } = STATUS[citation.status];
+    // The match ignores vowel signs, but in Gurbani a lagan matra can change
+    // the meaning (ਮਨੁ / ਮਨਿ), so a quote that is not letter-perfect never
+    // reads as a plain match.
+    const respelled = citation.status === 'verified' && citation.exact === false;
+    const { Icon, tone } = STATUS[respelled ? 'respelled' : citation.status];
     const { line } = citation;
 
     return (
         <li className="px-4 py-3 space-y-2">
             <p className={`flex items-center gap-1.5 text-xs font-bold ${tone}`}>
                 <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
-                {c.statusLabels[citation.status]}
+                {respelled ? c.respelled : c.statusLabels[citation.status]}
             </p>
 
             {(citation.status === 'verified' || citation.status === 'wrong-ang') && line && (
@@ -78,9 +84,7 @@ function CitationItem({ citation }: { citation: Citation }) {
                     {citation.status === 'wrong-ang' && citation.citedAng !== undefined && line.ang !== null && (
                         <p className="text-xs text-ink-muted">{fmt(c.wrongAngNote, { cited: citation.citedAng, ang: line.ang })}</p>
                     )}
-                    {citation.status === 'verified' && citation.exact === false && (
-                        <p className="text-xs text-ink-muted">{c.spellingNote}</p>
-                    )}
+                    {respelled && <p className="text-xs text-ink-muted">{c.spellingNote}</p>}
                 </>
             )}
 
