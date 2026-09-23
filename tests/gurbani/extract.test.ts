@@ -7,13 +7,16 @@ import { extractQuotes, isPunjabiReply } from '@/lib/gurbani/extract';
 import type { GurbaniLine } from '@/lib/gurbani/gurbaninow';
 import { replies, reply } from './helpers';
 
-// A real line the extractor does treat as a quote (not a heading, and not the
+// Real lines the extractor does treat as quotes (not headings, and not the
 // greeting vocabulary it suppresses), so nothing here depends on scripture
-// typed by hand.
-const TUK = Object.values(JSON.parse(
+// typed by hand. OTHER_TUK is a second, different line.
+const QUOTABLE = Object.values(JSON.parse(
     readFileSync(resolve(import.meta.dirname, 'fixtures/gurbaninow.json'), 'utf8')) as Record<string, GurbaniLine[] | null>)
     .flatMap(l => l ?? [])
-    .find(l => !l.isHeader && l.gurmukhi.split(/\s+/).length >= 6 && extractQuotes(l.gurmukhi).length === 1)!.gurmukhi;
+    .filter(l => !l.isHeader && l.gurmukhi.split(/\s+/).length >= 6 && extractQuotes(l.gurmukhi).length === 1)
+    .map(l => l.gurmukhi);
+const TUK = QUOTABLE[0];
+const OTHER_TUK = QUOTABLE.find(l => extractQuotes(l)[0].quote !== extractQuotes(TUK)[0].quote)!;
 
 const summary = (id: string) => extractQuotes(reply(id)).map(q => `${q.angHint ?? '-'} ${q.quote}`);
 
@@ -100,6 +103,16 @@ test('a lead-in binds across the blank line markdown puts before a blockquote', 
 test('a hint does not carry across a paragraph of its own', () => {
     const text = `Ang 394 holds that shabad.\n\nSomething else entirely.\n\n> ${TUK}`;
     assert.equal(extractQuotes(text)[0].angHint, undefined, 'a distant mention must not accuse the reply');
+});
+
+test('an Ang cited inline belongs to the quote on its own line', () => {
+    // The shape of a 3.8 Flash answer: a blockquote, then a sentence quoting
+    // a second line with "(Ang 268)". Both used to take 268, so the first was
+    // reported as found on a different Ang than the reply cited.
+    const text = `> ${TUK}\n   The Guru also says: *"${OTHER_TUK}"* (Ang 268).`;
+    const [first, second] = extractQuotes(text);
+    assert.equal(first.angHint, undefined, 'the reply never cited an Ang for the blockquote');
+    assert.equal(second.angHint, 268);
 });
 
 // A bilingual reply: mostly English, so Gurmukhi sentences are kept even

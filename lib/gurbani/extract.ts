@@ -143,15 +143,20 @@ export function extractQuotes(text: string, opts: { punjabiReply?: boolean } = {
 
     // Otherwise a quote takes the first Ang cited after it — the attribution
     // line under a blockquote is the common shape — within six lines, at most
-    // one block away, and not past the start of another list item. There is no
-    // backward rule: a wrong hint would accuse the reply of a wrong Ang, while
-    // a missing one only costs a search.
+    // one block away, and not past the start of another list item. An Ang
+    // cited after a quote on its own line belongs to that line: a 3.8 Flash
+    // answer quoted two lines from Ang 624, then a Sukhmani line ending
+    // "(Ang 268)" on the next, and all four took 268. There is no backward
+    // rule: a wrong hint would accuse the reply of a wrong Ang, while a missing
+    // one only costs a search.
     for (const quote of quotes) {
         if (quote.angHint !== undefined) continue;
         const mention = mentions.find(m => m.at >= quote.end && m.block - quote.block <= NEAR);
         if (!mention || mention.line - quote.line > 6) continue;
         const crossesItem = lines.slice(quote.line + 1, mention.line + 1).some(l => l.listStart);
-        if (crossesItem || (mention.boundTo && mention.boundTo !== quote)) continue;
+        const citesItsOwnLine = mention.line !== quote.line
+            && quotes.some(q => q.line === mention.line && q.index < mention.at);
+        if (crossesItem || citesItsOwnLine || (mention.boundTo && mention.boundTo !== quote)) continue;
         quote.angHint = mention.ang;
     }
 
