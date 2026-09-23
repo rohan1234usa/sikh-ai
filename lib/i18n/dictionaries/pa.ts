@@ -359,6 +359,7 @@ const pa: Dictionary = {
         interrupted: 'ਜਵਾਬ ਵਿਚਾਲੇ ਰੁਕ ਗਿਆ',
         disclaimer: 'SikhAI ਤੋਂ ਗ਼ਲਤੀ ਹੋ ਸਕਦੀ ਹੈ — ਗੁਰਬਾਣੀ ਦੀਆਂ ਤੁਕਾਂ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ। ਹਰ ਸੁਨੇਹਾ ਤੁਹਾਡੀ ਹਾਲੀਆ ਗੱਲਬਾਤ ਸਮੇਤ Google Gemini ਨੂੰ ਭੇਜਿਆ ਜਾਂਦਾ ਹੈ; ਗੱਲਬਾਤ ਸਿਰਫ਼ ਇਸੇ ਬ੍ਰਾਊਜ਼ਰ ਵਿੱਚ ਸੰਭਾਲੀ ਜਾਂਦੀ ਹੈ।',
         charCount: '{n} / {max}',
+        charLimit: 'ਅੱਖਰਾਂ ਦੀ ਹੱਦ ਪੂਰੀ ਹੋ ਗਈ: {max}',
         copyAria: 'ਸੁਨੇਹਾ ਕਾਪੀ ਕਰੋ',
         copiedAria: 'ਕਾਪੀ ਹੋ ਗਿਆ',
         regenerateAria: 'ਜਵਾਬ ਦੁਬਾਰਾ ਬਣਾਓ',

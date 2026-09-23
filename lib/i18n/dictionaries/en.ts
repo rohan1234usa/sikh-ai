@@ -362,6 +362,7 @@ const en = {
         interrupted: 'Response interrupted',
         disclaimer: 'SikhAI can make mistakes — verify Gurbani quotes. Each message goes to Google Gemini with your recent conversation; the chat is saved only in this browser.',
         charCount: '{n} / {max}',
+        charLimit: 'Character limit reached: {max}',
         copyAria: 'Copy message',
         copiedAria: 'Copied',
         regenerateAria: 'Regenerate response',

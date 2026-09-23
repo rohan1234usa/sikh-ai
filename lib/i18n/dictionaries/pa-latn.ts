@@ -359,6 +359,7 @@ const paLatn: Dictionary = {
         interrupted: 'Jawab vichale ruk gaya',
         disclaimer: 'SikhAI ton galti ho sakdi hai — Gurbani dian tukkan di pushti karo. Har suneha tuhadi halia gallbaat samet Google Gemini nu bhejia jaanda hai; gallbaat sirf ise browser vich sambhali jaandi hai.',
         charCount: '{n} / {max}',
+        charLimit: 'Akhran di hadd puri ho gayi: {max}',
         copyAria: 'Suneha copy karo',
         copiedAria: 'Copy ho gaya',
         regenerateAria: 'Jawab dubara banao',

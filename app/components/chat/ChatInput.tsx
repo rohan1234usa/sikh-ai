@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { PaperAirplaneIcon, StopIcon } from '@heroicons/react/24/solid';
 import { useT } from '../../context/LanguageContext';
 import { MAX_MESSAGE_CHARS } from '@/lib/chat/config';
@@ -17,6 +17,9 @@ type Props = {
 export default function ChatInput({ value, onChange, onSend, onStop, isStreaming }: Props) {
     const t = useT();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const countId = useId();
+    const nearCap = value.length >= MAX_MESSAGE_CHARS * 0.8;
+    const atCap = value.length >= MAX_MESSAGE_CHARS;
 
     // Auto-grow up to max-h, and collapse back when cleared after send
     useEffect(() => {
@@ -39,6 +42,8 @@ export default function ChatInput({ value, onChange, onSend, onStop, isStreaming
                 onSubmit={(e) => { e.preventDefault(); onSend(); }}
                 className="max-w-4xl mx-auto relative flex gap-2"
             >
+                {/* maxLength stops typing without a word, so the counter describes
+                    the field once it shows, and reaching the limit is announced. */}
                 <textarea
                     ref={textareaRef}
                     rows={1}
@@ -50,6 +55,7 @@ export default function ChatInput({ value, onChange, onSend, onStop, isStreaming
                     onKeyDown={handleKeyDown}
                     placeholder={t.chat.inputPlaceholder}
                     maxLength={MAX_MESSAGE_CHARS}
+                    aria-describedby={nearCap ? countId : undefined}
                     className="w-full p-4 pr-14 rounded-xl border border-edge bg-surface-raised text-ink placeholder:text-ink-faint resize-none max-h-40 overflow-y-auto focus:ring-2 focus:ring-kesri"
                 />
                 {isStreaming ? (
@@ -77,11 +83,14 @@ export default function ChatInput({ value, onChange, onSend, onStop, isStreaming
                 in dark mode, which ink-faint does not. */}
             <div className="max-w-4xl mx-auto mt-2 flex items-start justify-between gap-3 text-[11px] text-ink-muted">
                 <p>{t.chat.disclaimer}</p>
-                {value.length >= MAX_MESSAGE_CHARS * 0.8 && (
-                    <span className={`shrink-0 tabular-nums ${value.length >= MAX_MESSAGE_CHARS ? 'text-red-600 dark:text-red-400 font-semibold' : ''}`}>
+                {nearCap && (
+                    <span id={countId} className={`shrink-0 tabular-nums ${atCap ? 'text-red-600 dark:text-red-400 font-semibold' : ''}`}>
                         {fmt(t.chat.charCount, { n: value.length, max: MAX_MESSAGE_CHARS })}
                     </span>
                 )}
+                <span className="sr-only" aria-live="polite">
+                    {atCap ? fmt(t.chat.charLimit, { max: MAX_MESSAGE_CHARS }) : ''}
+                </span>
             </div>
         </div>
     );
