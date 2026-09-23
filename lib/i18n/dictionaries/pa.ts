@@ -530,6 +530,18 @@ const pa: Dictionary = {
         submit: 'ਸੇਵਾ ਸਮਾਗਮ ਬਣਾਓ',
     },
 
+    notFound: {
+        heading: 'ਪੰਨਾ ਨਹੀਂ ਮਿਲਿਆ',
+        body: 'ਜਿਸ ਪੰਨੇ ਨੂੰ ਤੁਸੀਂ ਲੱਭ ਰਹੇ ਹੋ, ਉਹ ਮੌਜੂਦ ਨਹੀਂ ਜਾਂ ਕਿਤੇ ਹੋਰ ਚਲਾ ਗਿਆ ਹੈ।',
+        home: 'ਮੁੱਖ ਪੰਨੇ ਉੱਤੇ ਵਾਪਸ ਜਾਓ',
+    },
+
+    errorPage: {
+        heading: 'ਕੁਝ ਗ਼ਲਤ ਹੋ ਗਿਆ',
+        body: 'ਇਸ ਪੰਨੇ ਵਿੱਚ ਇੱਕ ਅਚਾਨਕ ਗ਼ਲਤੀ ਆ ਗਈ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ, ਜਾਂ ਮੁੱਖ ਪੰਨੇ ਉੱਤੇ ਵਾਪਸ ਜਾਓ।',
+        retry: 'ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ',
+    },
+
     footer: {
         builtBy: 'ਨਿਰਮਾਤਾ:',
         navAria: 'ਫੁੱਟਰ',
@@ -547,6 +559,7 @@ const pa: Dictionary = {
         sevaCreateTitle: 'ਸੇਵਾ ਸਮਾਗਮ ਪਾਓ',
         hukamnamaTitle: 'ਅੱਜ ਦਾ ਹੁਕਮਨਾਮਾ',
         translateTitle: 'ਪੰਜਾਬੀ ਅਨੁਵਾਦਕ',
+        notFoundTitle: 'ਪੰਨਾ ਨਹੀਂ ਮਿਲਿਆ',
     },
 
     errors: {

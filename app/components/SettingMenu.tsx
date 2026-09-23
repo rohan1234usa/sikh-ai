@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { CheckIcon } from '@heroicons/react/24/outline';
 
-/** Any heroicon — they all take just a className */
+/** Any icon component that takes just a className (heroicons, ThemeIcon) */
 export type IconComponent = React.ComponentType<{ className?: string }>;
 
 export type MenuOption<T extends string> = {
@@ -17,6 +17,9 @@ export type MenuOption<T extends string> = {
     labelClassName?: string;
 };
 
+// A press on one of these owns where focus goes; see the dismissal effect.
+const INTERACTIVE = 'a[href], button, input, select, textarea, summary, [tabindex], [contenteditable]';
+
 // The Navbar's single-choice picker: an icon button that opens a menu of
 // options with a check on the active one. Both the language and the theme
 // pickers are this component, so the two look alike and share one set of
@@ -27,6 +30,7 @@ export default function SettingMenu<T extends string>({
     value,
     options,
     onSelect,
+    name,
 }: {
     /** Names the control for screen readers, e.g. "Change language" */
     label: string;
@@ -34,28 +38,40 @@ export default function SettingMenu<T extends string>({
     value: T;
     options: readonly MenuOption<T>[];
     onSelect: (next: T) => void;
+    /**
+     * The trigger's accessible name as content instead of an aria-label, for a
+     * caller that has to choose it in CSS before hydration (see ThemeToggle).
+     */
+    name?: React.ReactNode;
 }) {
     const [open, setOpen] = useState(false);
     const rootRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
     const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
     const wasOpen = useRef(false);
+    // True from a press on the trigger until the click it produces; see onBlur.
+    const pressingTrigger = useRef(false);
     const active = options.find((o) => o.id === value);
     const activeIndex = options.findIndex((o) => o.id === value);
 
-    // Close on outside pointerdown
+    // Close when a pointer goes down outside the widget. (Focus leaving is the
+    // root's onBlur.) Runs before the press moves focus, so it can also mark a
+    // press on the trigger for onBlur.
     useEffect(() => {
         if (!open) return;
         const onPointerDown = (e: PointerEvent) => {
-            if (!rootRef.current || rootRef.current.contains(e.target as Node)) return;
+            const target = e.target as Element;
+            pressingTrigger.current = !!triggerRef.current?.contains(target);
+            if (!rootRef.current || rootRef.current.contains(target)) return;
             const hadFocus = rootRef.current.contains(document.activeElement);
             setOpen(false);
-            // The menu item holding focus just unmounted. If the click landed
-            // on something focusable the browser moves focus there, but on
-            // plain page content it drops focus on <body> and the next Tab
-            // restarts from the top of the document. Re-home it on the trigger
-            // once the browser has settled, and only in that case.
-            if (hadFocus) setTimeout(() => {
+            // The menu item holding focus just unmounted, and on plain page
+            // content the browser drops focus on <body>, so the next Tab would
+            // restart from the top. Re-home it on the trigger once the browser
+            // has settled — unless the press was on a control, which owns focus
+            // (Safari and Firefox on macOS leave <body> focused after a button
+            // click, and re-homing would pull focus away from what was clicked).
+            if (hadFocus && !target.closest?.(INTERACTIVE)) setTimeout(() => {
                 if (document.activeElement === document.body) triggerRef.current?.focus();
             });
         };
@@ -79,10 +95,13 @@ export default function SettingMenu<T extends string>({
         }
         if (e.key === 'Tab') {
             // Move focus to the trigger (which stays mounted) BEFORE closing, so
-            // the menu item unmounting can't drop focus to the top of the page;
-            // native Tab/Shift+Tab then advances from the trigger normally.
+            // the menu item unmounting can't drop focus to the top of the page.
+            // Tab then carries on natively from the trigger to what follows it.
+            // Shift+Tab must stop ON the trigger — it's the element just before
+            // the menu — so cancel the native move, which would skip past it.
             triggerRef.current?.focus();
             setOpen(false);
+            if (e.shiftKey) e.preventDefault();
             return;
         }
         if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
@@ -109,24 +128,31 @@ export default function SettingMenu<T extends string>({
             ref={rootRef}
             className="relative"
             onBlur={(e) => {
-                // Close when focus leaves the widget entirely (complements the
-                // outside-pointerdown listener for keyboard users)
-                if (!rootRef.current?.contains(e.relatedTarget as Node)) setOpen(false);
+                // Close when focus leaves the widget: to another element, to
+                // <body>, into an iframe, or with the window.
+                if (rootRef.current?.contains(e.relatedTarget as Node)) return;
+                // Except mid-press on the trigger. Safari and Firefox on macOS
+                // don't focus a <button> on click, so that press blurs the open
+                // menu with no relatedTarget before the click lands; closing
+                // here would let the click re-open it. The click closes it.
+                if (pressingTrigger.current) return;
+                setOpen(false);
             }}
         >
             <button
                 ref={triggerRef}
                 type="button"
-                onClick={() => setOpen((o) => !o)}
+                onClick={() => { pressingTrigger.current = false; setOpen((o) => !o); }}
                 aria-haspopup="menu"
                 aria-expanded={open}
                 // The icon carries the current value for sighted users, but
                 // heroicons render aria-hidden, so name the value here too —
                 // otherwise every state announces identically.
-                aria-label={active ? `${label} (${active.label})` : label}
+                aria-label={name ? undefined : active ? `${label} (${active.label})` : label}
                 className="p-2 rounded-lg text-slate-300 hover:text-kesri transition-colors"
             >
                 <TriggerIcon className="w-5 h-5" />
+                {name && <span className="sr-only">{name}</span>}
             </button>
 
             {open && (

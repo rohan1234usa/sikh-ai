@@ -58,10 +58,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const viewport: Viewport = {
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#020617" },
-    { media: "(prefers-color-scheme: light)", color: "#F8FAFC" },
-  ],
+  // No `themeColor` here, on purpose: the theme-color tag is owned entirely by
+  // lib/theme.ts, which knows the user's choice. Emitting one from Next as well
+  // put two parties on the same tag, and React's hydration mixed them up.
 };
 
 export default async function RootLayout({

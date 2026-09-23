@@ -6,7 +6,7 @@
 //   npm run audit:i18n -- --localize-notes  one-time MT of phrasebook notes → Gurmukhi
 //   npm run audit:i18n -- --prune           drop cache entries no live string maps to
 //
-// Everything the API returns is cached in cache.json (committed), so a rerun
+// Everything the API returns is cached in cache.json (meant to be committed), so a rerun
 // pays only for strings that changed.
 
 import { writeFileSync } from 'node:fs';
@@ -35,7 +35,7 @@ Usage: npm run audit:i18n -- [flag]
 
   (no flag)          Full audit: free checks + cached back-translation
   --dry-run          Free checks only; prints what a full run would cost
-  --probe            One ~5-char call to verify the API key works
+  --probe            One ~3-char call to verify the API key works
   --localize-notes   Machine-translate phrasebook notes to Gurmukhi
   --prune            Remove cache entries no current string maps to
   --reset-cache      Discard an unreadable cache.json instead of failing

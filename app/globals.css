@@ -59,7 +59,7 @@
 
 :root {
   color-scheme: light;
-  --surface: #F8FAFC;         /* page background */
+  --surface: #F8FAFC;         /* page background; = THEME_COLORS.light in lib/theme.ts */
   --surface-raised: #FFFFFF;  /* cards */
   --ink: #0F172A;             /* primary text */
   --ink-muted: #475569;       /* secondary text */
@@ -70,7 +70,7 @@
 
 .dark {
   color-scheme: dark;
-  --surface: #020617;         /* darker than navy so navy panels still read */
+  --surface: #020617;         /* darker than navy so navy panels still read; = THEME_COLORS.dark */
   --surface-raised: #0F172A;
   --ink: #F1F5F9;
   --ink-muted: #94A3B8;
