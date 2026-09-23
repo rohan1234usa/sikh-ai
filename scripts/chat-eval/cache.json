@@ -2177,9 +2177,8 @@
         },
         {
           "quote": "ਜੈਸਾ ਬਾਲਕੁ ਭਾਇ ਸੁਭਾਈ ਲਖ ਅਪਰਾਧ ਕਮਾਵੈ ॥",
-          "status": "wrong-ang",
+          "status": "verified",
           "exact": true,
-          "citedAng": 268,
           "line": {
             "gurmukhi": "ਜੈਸਾ ਬਾਲਕੁ ਭਾਇ ਸੁਭਾਈ ਲਖ ਅਪਰਾਧ ਕਮਾਵੈ ॥",
             "translation": "Like the child, innocently making thousands of mistakes",
@@ -2199,9 +2198,8 @@
         },
         {
           "quote": "ਕਰਿ ਉਪਦੇਸੁ ਝਿੜਕੇ ਬਹੁ ਭਾਤੀ ਬਹੁੜਿ ਪਿਤਾ ਗਲਿ ਲਾਵੈ ॥",
-          "status": "wrong-ang",
+          "status": "verified",
           "exact": true,
-          "citedAng": 268,
           "line": {
             "gurmukhi": "ਕਰਿ ਉਪਦੇਸੁ ਝਿੜਕੇ ਬਹੁ ਭਾਤੀ ਬਹੁੜਿ ਪਿਤਾ ਗਲਿ ਲਾਵੈ ॥",
             "translation": "his father teaches him, and scolds him so many times, but still, he hugs him close in his embrace.",
