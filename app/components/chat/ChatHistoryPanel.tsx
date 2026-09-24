@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDoubleLeftIcon, CloudIcon, PencilSquareIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { deriveTitle, sanitizeTitle } from '@/lib/chat/chatMeta';
 import { MAX_ACCOUNT_CHATS, MAX_PINNED_CHATS } from '@/lib/chat/config';
@@ -27,6 +27,24 @@ type Props = {
     onShare?: (chat: ChatListItem) => void;
 };
 
+const startOfToday = () => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+};
+
+// The start of today, moved on at midnight, so "Today" and "Yesterday" follow
+// the calendar while the page stays open.
+function useToday(): number {
+    const [today, setToday] = useState(startOfToday);
+    useEffect(() => {
+        const next = new Date(today);
+        next.setDate(next.getDate() + 1);
+        const timer = setTimeout(() => setToday(startOfToday()), Math.max(1000, next.getTime() - Date.now()));
+        return () => clearTimeout(timer);
+    }, [today]);
+    return today;
+}
+
 const plainLeftClick = (e: React.MouseEvent) =>
     e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
 
@@ -41,7 +59,8 @@ export default function ChatHistoryPanel({ variant, headingId, activeId, onNavig
     const evicted = useEvictions();
     const offer = useMoveOffer(list.browserOnly);
     const [pinLimitHit, setPinLimitHit] = useState(false);
-    const sections = useMemo(() => groupChats(list.main, new Date()), [list.main]);
+    const today = useToday();
+    const sections = useMemo(() => groupChats(list.main, new Date(today)), [list.main, today]);
     const inOrder = [...sections.flatMap((s) => s.chats), ...list.browserOnly];
     const hasActive = inOrder.some((c) => c.id === activeId);
 
@@ -110,7 +129,7 @@ export default function ChatHistoryPanel({ variant, headingId, activeId, onNavig
             key={chat.id}
             chat={chat}
             active={chat.id === activeId}
-            replying={list.replies.get(chat.id)?.reply.status === 'streaming'}
+            replying={list.replying.has(chat.id)}
             initialFocus={variant === 'drawer' && chat.id === activeId}
             onOpen={(e) => open(e, chat)}
             onTogglePin={() => void togglePin(chat)}

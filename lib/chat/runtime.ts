@@ -57,6 +57,9 @@ export class ReplyRuntime {
     private jobs = new Map<string, Job>();
     // By chat id, for the view; a new Map on every change (useSyncExternalStore).
     private snapshot: ReadonlyMap<string, InflightReply> = new Map();
+    // The chats with a reply streaming, for lists: a new Set only when that
+    // changes, so a list isn't redrawn for every chunk.
+    private replying: ReadonlySet<string> = new Set();
     // Final replies whose save failed: still shown, by chat id.
     private unsaved = new Map<string, InflightReply>();
     private listeners = new Set<() => void>();
@@ -71,6 +74,7 @@ export class ReplyRuntime {
     };
 
     getSnapshot = (): ReadonlyMap<string, InflightReply> => this.snapshot;
+    getReplying = (): ReadonlySet<string> => this.replying;
 
     isBusy(chatId: string): boolean {
         return [...this.jobs.values()].some((j) => j.chatId === chatId);
@@ -80,6 +84,8 @@ export class ReplyRuntime {
         const next = new Map<string, InflightReply>(this.unsaved);
         for (const j of this.jobs.values()) next.set(j.chatId, { chatId: j.chatId, exchangeId: j.exchangeId, reply: j.reply });
         this.snapshot = next;
+        const streaming = [...this.jobs.values()].filter((j) => j.reply.status === 'streaming').map((j) => j.chatId);
+        if (streaming.length !== this.replying.size || streaming.some((id) => !this.replying.has(id))) this.replying = new Set(streaming);
         for (const cb of [...this.listeners]) cb();
     }
 

@@ -87,6 +87,14 @@ function chatEntryOk(d) {
       && (!('text' in d) || chatStr(d.text, 300))));
 }
 
+// An exchange keeps its reply attempt or takes a newer one, never an older
+// one: a slow device's late write can't bring back a reply that was retried.
+function chatAttemptOk(next, prev) {
+  return prev.kind != 'exchange' || next.kind != 'exchange'
+    || next.reply.id == prev.reply.id
+    || next.reply.startedAt >= prev.reply.startedAt;
+}
+
 // A signed-in user's own chats: only they can read or write them.
 match /users/{uid}/chats/{chatId} {
   allow read, delete: if chatAuthIs(uid);
@@ -94,7 +102,9 @@ match /users/{uid}/chats/{chatId} {
 
   match /entries/{entryId} {
     allow read, delete: if chatAuthIs(uid);
-    allow create, update: if chatAuthIs(uid) && entryId.size() <= 100 && chatEntryOk(request.resource.data);
+    allow create: if chatAuthIs(uid) && entryId.size() <= 100 && chatEntryOk(request.resource.data);
+    allow update: if chatAuthIs(uid) && entryId.size() <= 100 && chatEntryOk(request.resource.data)
+      && chatAttemptOk(request.resource.data, resource.data);
   }
 }
 

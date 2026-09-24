@@ -198,3 +198,31 @@ test('changes made in another tab reach this one', async () => {
     assert.equal(store.getChat(UUID(1)).status, 'missing');
     assert.deepEqual(store.getList().chats, []);
 });
+
+test('when the list itself hits the quota, the chat that made room leaves the list too', async () => {
+    // Storage that refuses the next write of the list once, as a full one would.
+    class TightList extends FakeStorage {
+        refuseList = false;
+        setItem(k: string, v: string) {
+            if (k === LOCAL_INDEX_KEY && this.refuseList) {
+                this.refuseList = false;
+                throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+            }
+            super.setItem(k, v);
+        }
+    }
+    const storage = new TightList();
+    const store = new LocalChatStore({ storage });
+    await store.createChat(meta(1), null, [exchange('Oldest')]);
+    await store.createChat(meta(2), null, [exchange('Newer')]);
+    const evicted: string[] = [];
+    const watched = new LocalChatStore({ storage, onEvicted: (ids) => evicted.push(...ids) });
+    storage.refuseList = true;
+    await watched.createChat(meta(3), null, [exchange('Newest')]);
+
+    assert.deepEqual(evicted, [UUID(1)]);
+    const listed = (JSON.parse(storage.getItem(LOCAL_INDEX_KEY)!) as { chats: { id: string }[] }).chats.map((c) => c.id);
+    assert.deepEqual(listed, [UUID(3), UUID(2)]);
+    assert.deepEqual(watched.getList().chats.map((c) => c.id), [UUID(3), UUID(2)]);
+    assert.equal(storage.getItem(LOCAL_CHAT_PREFIX + UUID(1)), null);
+});

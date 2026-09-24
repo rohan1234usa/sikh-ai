@@ -15,6 +15,9 @@ export async function moveChats(
         // A chat with a reply still arriving stays where the reply will save.
         isBusy: (chatId: string) => boolean;
         onProgress?: (moved: number) => void;
+        // Moved as used now (to share it), rather than at its old place in the
+        // list, where a full account would drop it (see the 'cap' refusal).
+        touch?: number;
     },
 ): Promise<MoveResult> {
     let moved = 0;
@@ -25,8 +28,11 @@ export async function moveChats(
             skipped++;
             continue;
         }
+        const record = opts.touch === undefined
+            ? state.record
+            : { ...state.record, meta: { ...state.record.meta, updatedAt: Math.max(state.record.meta.updatedAt, opts.touch) } };
         try {
-            await to.importChat(state.record);
+            await to.importChat(record);
             // A question asked while the copy was on its way went to this
             // browser's copy: deleting it now would lose that. Leave the chat
             // here for now; the next move takes it whole.
@@ -36,7 +42,8 @@ export async function moveChats(
             }
             await from.deleteChat(id);
         } catch (e) {
-            // Stop at the first refusal: the rest would be refused too.
+            // Stop at the first refusal: the rest would be refused too (they
+            // come most recent first, so past the account's cap, so are they).
             return { moved, skipped, failed: storeErrorCode(e) };
         }
         moved++;

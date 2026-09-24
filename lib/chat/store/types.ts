@@ -16,8 +16,10 @@ export type ChatRecord = { meta: ChatMeta; context: ChatContext | null; transcri
 // gone: the chat (or entry) no longer exists, e.g. deleted in another tab
 // permission: the account refused (signed out, or its rules aren't deployed)
 // quota: this browser's storage is full and nothing could be cleared
+// cap: the account keeps only its most recent chats, and this one is older
+//      than all of them (it would be removed the moment it arrived)
 // unavailable: anything else; worth trying again later
-export type StoreErrorCode = 'gone' | 'permission' | 'quota' | 'unavailable';
+export type StoreErrorCode = 'gone' | 'permission' | 'quota' | 'cap' | 'unavailable';
 
 export class ChatStoreError extends Error {
     constructor(readonly code: StoreErrorCode, message: string = code) {

@@ -112,42 +112,53 @@ export class LocalChatStore implements ChatStore {
     // ── Writing ──────────────────────────────────────────────────────────────
 
     // The least recently used chat that can go: not pinned, not the one being
-    // written, not open here and not replying.
-    private pickVictim(keep: string): string | null {
+    // written, not open here, not replying, and not one already let go (the
+    // list may still name it until it is written again).
+    private pickVictim(keep: string, gone: readonly string[]): string | null {
         const candidates = this.readIndex()
-            .filter((m) => !m.pinned && m.id !== keep && !this.opts.isProtected?.(m.id))
+            .filter((m) => !m.pinned && m.id !== keep && !gone.includes(m.id) && !this.opts.isProtected?.(m.id))
             .sort((a, b) => a.updatedAt - b.updatedAt);
         return candidates[0]?.id ?? null;
     }
 
-    private dropChat(id: string) {
-        try { this.opts.storage.removeItem(chatKey(id)); } catch { /* ignore */ }
-        this.writeIndex(this.readIndex().filter((m) => m.id !== id), id, []);
+    // Evicting removes the chat's record; the list drops it when next written,
+    // which every caller then does (with `evicted` left out).
+    private evict(keep: string, evicted: string[]): boolean {
+        const victim = this.pickVictim(keep, evicted);
+        if (!victim) return false;
+        try { this.opts.storage.removeItem(chatKey(victim)); } catch { /* ignore */ }
+        evicted.push(victim);
+        return true;
     }
 
     // setItem, making room by evicting old chats when storage is full. Never
-    // trims the chat being written: if nothing can go, the write fails.
-    private setWithRoom(key: string, value: string, keep: string, evicted: string[]) {
+    // trims the chat being written: if nothing can go, the write fails. The
+    // value is built again for each try, so a list written after an eviction
+    // no longer names the chat that made room.
+    private setWithRoom(key: string, value: () => string, keep: string, evicted: string[]) {
         for (;;) {
             try {
-                this.opts.storage.setItem(key, value);
+                this.opts.storage.setItem(key, value());
                 return;
             } catch (e) {
                 if (!isQuotaError(e)) throw new ChatStoreError('unavailable', String(e));
-                const victim = this.pickVictim(keep);
-                if (!victim) throw new ChatStoreError('quota');
-                this.dropChat(victim);
-                evicted.push(victim);
+                if (!this.evict(keep, evicted)) throw new ChatStoreError('quota');
             }
         }
     }
 
-    private writeIndex(metas: ChatMeta[], keep: string, evicted: string[]) {
-        const payload: StoredIndex = { v: 3, chats: sortChats(metas) };
-        this.setWithRoom(LOCAL_INDEX_KEY, JSON.stringify(payload), keep, evicted);
+    // The list as written: `metas` without anything evicted along the way.
+    private writeIndex(metas: ChatMeta[], keep: string, evicted: string[]): ChatMeta[] {
+        let written = metas;
+        this.setWithRoom(LOCAL_INDEX_KEY, () => {
+            written = sortChats(metas.filter((m) => !evicted.includes(m.id)));
+            return JSON.stringify({ v: 3, chats: written } satisfies StoredIndex);
+        }, keep, evicted);
+        return written;
     }
 
-    // Record first, then the list; then the snapshots and the listeners.
+    // Record first, then the list; then the snapshots and the listeners. The
+    // snapshots come from what was just written, not from reading it back.
     private save(record: ChatRecord, evicted: string[] = []) {
         const { meta } = record;
         const payload: StoredChat = {
@@ -156,21 +167,28 @@ export class LocalChatStore implements ChatStore {
             context: record.context,
             entries: record.transcript.map(toStoredEntry),
         };
-        this.setWithRoom(chatKey(meta.id), JSON.stringify(payload), meta.id, evicted);
-        this.writeIndex([...this.readIndex().filter((m) => m.id !== meta.id), meta], meta.id, evicted);
-        this.chats.set(meta.id, { status: 'ready', record: this.readChat(meta.id) ?? record });
-        this.refreshList();
+        const json = JSON.stringify(payload);
+        this.setWithRoom(chatKey(meta.id), () => json, meta.id, evicted);
+        const listed = this.writeIndex([...this.readIndex().filter((m) => m.id !== meta.id), meta], meta.id, evicted);
+        const saved: ChatRecord = {
+            meta: sanitizeMeta(meta, meta.id) ?? meta,
+            context: sanitizeChatContext(record.context),
+            transcript: normalizeTranscript(payload.entries),
+        };
+        this.chats.set(meta.id, { status: 'ready', record: saved });
+        this.list = { status: 'ready', chats: listed };
+        for (const cb of [...this.listListeners]) cb();
         this.notifyChat(meta.id);
         this.afterEviction(evicted);
     }
 
+    // The list written by save() already leaves these out.
     private afterEviction(evicted: string[]) {
         if (evicted.length === 0) return;
         for (const id of evicted) {
             this.chats.delete(id);
             this.notifyChat(id);
         }
-        this.refreshList();
         this.opts.onEvicted?.(evicted);
     }
 
@@ -308,13 +326,7 @@ export class LocalChatStore implements ChatStore {
         const evicted: string[] = [];
         // At the cap, the oldest chat that can go makes room first.
         const count = this.readIndex().filter((m) => m.id !== meta.id).length;
-        if (count >= MAX_LOCAL_CHATS) {
-            const victim = this.pickVictim(meta.id);
-            if (victim) {
-                this.dropChat(victim);
-                evicted.push(victim);
-            }
-        }
+        if (count >= MAX_LOCAL_CHATS) this.evict(meta.id, evicted);
         this.save({ meta, context, transcript: normalizeTranscript(entries.map(toStoredEntry)) }, evicted);
     }
 

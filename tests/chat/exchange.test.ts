@@ -202,3 +202,15 @@ test('only the last reply offers Retry or Regenerate, and never while it streams
     const live = toDisplayItems([exchange('a', { reply: { status: 'streaming', text: 'x' } })]).at(-1)!;
     assert.deepEqual(live.kind === 'reply' && [live.canRetry, live.canRegenerate], [false, false]);
 });
+
+test('a new attempt is newer than the one it replaces, even on a device whose clock is behind', () => {
+    const t: Transcript = [exchange('What is Naam?', { order: 1, reply: { status: 'error', startedAt: 50_000 } })];
+    const behind = ctx({ now: 10_000 });
+    const retried = planRetry(t, behind)!;
+    assert.equal(retried.exchange.reply.startedAt, 50_001);
+    assert.equal(shouldReplaceReply(t[0].kind === 'exchange' ? t[0].reply : undefined, retried.exchange.reply), true);
+    const askedAgain = sent(t, 'what is naam?', behind);
+    assert.equal(askedAgain.exchange.reply.startedAt, 50_001);
+    // A new question has nothing to replace: it starts when it's asked.
+    assert.equal(sent(t, 'And Simran?', behind).exchange.reply.startedAt, 10_000);
+});

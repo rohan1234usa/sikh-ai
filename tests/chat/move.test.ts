@@ -89,3 +89,27 @@ test('a question asked in a chat while it moves keeps that chat here, question a
     const here = from.getChat(UUID(1));
     assert.equal(here.status === 'ready' && here.record.transcript.length, 2, 'the new question is still here');
 });
+
+test('chats a full account would drop at once stay in this browser, and the move stops there', async () => {
+    const from = await browserWith(3); // chat 3 most recent, chat 1 oldest
+    const target = new LocalChatStore({ storage: new FakeStorage() });
+    // An account full of chats newer than 2: it takes 3 and turns 2 away.
+    const full = {
+        importChat: async (record: ChatRecord) => {
+            if (record.meta.updatedAt <= 2) throw new ChatStoreError('cap');
+            await target.importChat(record);
+        },
+    } as unknown as ChatStore;
+    const result = await moveChats([UUID(3), UUID(2), UUID(1)], from, full, { isBusy: () => false });
+    assert.deepEqual(result, { moved: 1, skipped: 0, failed: 'cap' });
+    assert.deepEqual(from.getList().chats.map((c) => c.id), [UUID(2), UUID(1)], 'the older ones are still here');
+    assert.deepEqual(target.getList().chats.map((c) => c.id), [UUID(3)]);
+});
+
+test('a chat moved to be shared arrives as used now', async () => {
+    const from = await browserWith(1);
+    const target = new LocalChatStore({ storage: new FakeStorage() });
+    const result = await moveChats([UUID(1)], from, target, { isBusy: () => false, touch: 5_000 });
+    assert.deepEqual(result, { moved: 1, skipped: 0 });
+    assert.equal(target.getList().chats[0].updatedAt, 5_000);
+});

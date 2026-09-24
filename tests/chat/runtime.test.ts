@@ -277,3 +277,19 @@ test('the next question leaves the last answer\'s Gurbani check running; retryin
     assert.equal(second.reply.id, 'retry-reply');
     assert.equal(second.reply.citations, undefined, 'the replaced attempt\'s cards never land on the new one');
 });
+
+test('the list of replying chats changes when a reply starts and ends, not with every chunk', async () => {
+    const t = setup();
+    assert.equal(t.runtime.getReplying().size, 0);
+    await t.send(UUID(1), 'What is Naam?');
+    const replying = t.runtime.getReplying();
+    assert.deepEqual([...replying], [UUID(1)]);
+    t.calls[0].push('Naam is ');
+    await settle();
+    t.calls[0].push('the Name.');
+    await settle();
+    assert.equal(t.runtime.getReplying(), replying, 'the same object while it streams');
+    t.calls[0].end();
+    await settle();
+    assert.equal(t.runtime.getReplying().size, 0);
+});

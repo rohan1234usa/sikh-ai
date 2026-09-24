@@ -413,6 +413,7 @@ const paLatn: Dictionary = {
             moving: '{total} vichon {done} bhejian ja rahian han…',
             moved: 'Tuhadian gallbaatan hun tuhade khaate vich han.',
             moveError: 'Kujh gallbaatan bhejian nahi ja sakian. Dubara koshish karo.',
+            moveFull: 'Tuhada khaata tuhadian {max} sabh ton halia gallbaatan sambhalda hai, is layi puranian gallbaatan is browser vich hi rehngian.',
         },
         shareDialog: {
             title: 'Gallbaat saanjhi karo',

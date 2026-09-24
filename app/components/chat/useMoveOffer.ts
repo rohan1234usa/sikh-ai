@@ -8,7 +8,8 @@ import type { ChatListItem } from './useChatList';
 
 const DISMISSED_KEY = 'sikhai.chats.moveOffer.dismissed';
 
-export type MoveProgress = { phase: 'idle' | 'moving' | 'done' | 'error'; done: number; total: number };
+// full: the account keeps only its most recent chats; the older ones stay here.
+export type MoveProgress = { phase: 'idle' | 'moving' | 'done' | 'full' | 'error'; done: number; total: number };
 
 // Signed in with chats still in this browser: offer to move them to the
 // account. "Not now" lasts for this browser session; the chats stay listed
@@ -29,7 +30,8 @@ export function useMoveOffer(browserChats: ChatListItem[]) {
             isBusy: (id) => runtime.isBusy(id),
             onProgress: (done) => setProgress({ phase: 'moving', done, total: ids.length }),
         });
-        setProgress({ phase: result.failed ? 'error' : 'done', done: result.moved, total: ids.length });
+        const phase = result.failed === 'cap' ? 'full' : result.failed ? 'error' : 'done';
+        setProgress({ phase, done: result.moved, total: ids.length });
     };
 
     const dismiss = () => {

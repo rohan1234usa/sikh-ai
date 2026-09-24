@@ -45,6 +45,7 @@ import {
     planUnshare,
     type Op,
 } from './firestorePlans';
+import { shouldReplaceReply } from '../exchange';
 import { withCitations, withContext, withEntries, withMeta, withReply } from './records';
 import { ChatStoreError, type ChatRecord, type ChatState, type ChatStore, type ListState, type MetaPatch, type StoreErrorCode } from './types';
 
@@ -328,8 +329,19 @@ export class FirestoreChatStore implements ChatStore {
     }
 
     async putReply(chatId: string, exchangeId: string, reply: Reply): Promise<void> {
+        // An attempt a newer one has replaced: refused here, as the rules
+        // refuse it on the server (a device that can't tell yet).
+        if (this.replaced(chatId, exchangeId, reply)) return;
         this.apply(chatId, (r) => withReply(r, exchangeId, reply));
         return this.send([planPutReply(this.uid, chatId, exchangeId, reply)], { chatId, kind: 'write' });
+    }
+
+    // Whether this tab already holds a newer attempt at the exchange.
+    private replaced(chatId: string, exchangeId: string, reply: Reply): boolean {
+        const state = this.chats.get(chatId);
+        if (state?.status !== 'ready') return false;
+        const current = state.record.transcript.find((e) => e.kind === 'exchange' && e.id === exchangeId);
+        return current?.kind === 'exchange' && !shouldReplaceReply(current.reply, reply);
     }
 
     async setCitations(chatId: string, exchangeId: string, replyId: string, citations: Citation[]): Promise<void> {
@@ -369,11 +381,22 @@ export class FirestoreChatStore implements ChatStore {
     }
 
     async importChat(record: ChatRecord): Promise<void> {
+        // Older than every chat a full account keeps, it would be the first to
+        // go (makeRoom) the moment it arrived: refused, so it stays where it is.
+        if (this.pastCap(record.meta)) throw new ChatStoreError('cap');
         await this.sendAndWait(planImport(this.uid, record.meta, record.context, record.transcript));
         this.scheduleRoom();
     }
 
     // ── The cap ──────────────────────────────────────────────────────────────
+
+    // Whether a chat arriving now would land past the end of a full list.
+    private pastCap(meta: ChatMeta): boolean {
+        const end = this.listEnd;
+        if (!end || meta.pinned || this.list.chats.some((c) => c.id === meta.id)) return false;
+        const last = metaOf(end.id, end.data());
+        return last !== null && meta.updatedAt <= last.updatedAt;
+    }
 
     // A chat arrived: once the list holds it, see whether the account is over.
     private scheduleRoom() {
@@ -389,14 +412,19 @@ export class FirestoreChatStore implements ChatStore {
     private async makeRoom() {
         const end = this.listEnd;
         if (!end) return;
+        const removed: string[] = [];
         try {
             const chats = collection(this.db, 'users', this.uid, 'chats');
             const past = await getDocs(query(chats, orderBy('updatedAt', 'desc'), startAfter(end), limit(OVERFLOW_BATCH)));
-            const victims = planEvictions(metas(past.docs), (id) => this.opts.inUse?.(id) ?? false);
-            for (const meta of victims) await this.remove(meta.id, meta.share?.id);
-            if (victims.length > 0) this.opts.onEvicted?.(victims.map((m) => m.id));
+            for (const meta of planEvictions(metas(past.docs), (id) => this.opts.inUse?.(id) ?? false)) {
+                await this.remove(meta.id, meta.share?.id);
+                removed.push(meta.id);
+            }
         } catch {
             // Offline or refused: the next new chat tries again.
+        } finally {
+            // Whatever did go is said, even if a later one couldn't.
+            if (removed.length > 0) this.opts.onEvicted?.(removed);
         }
     }
 

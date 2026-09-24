@@ -86,8 +86,12 @@ function lensBefore(t: Transcript, exchangeId?: string): LensId | undefined {
     return undefined;
 }
 
-function newReply(ctx: SendContext): Reply {
-    return { id: ctx.newId(), status: 'streaming', text: '', settings: ctx.settings, startedAt: ctx.now };
+// A new attempt starts after the one it replaces, whatever this device's clock
+// says, so "the newer attempt wins" (shouldReplaceReply here, the rules in the
+// account) holds between devices whose clocks disagree.
+function newReply(ctx: SendContext, replacing?: Reply): Reply {
+    const startedAt = replacing ? Math.max(ctx.now, replacing.startedAt + 1) : ctx.now;
+    return { id: ctx.newId(), status: 'streaming', text: '', settings: ctx.settings, startedAt };
 }
 
 // Places `exchange` (last in the chat) after a lens notice when one is due,
@@ -130,7 +134,7 @@ export function planSend(t: Transcript, text: string, ctx: SendContext): SendRes
     if (last?.reply.status === 'streaming') return { kind: 'busy' };
 
     if (last && replaceable(last.reply) && sameQuestion(last.question.text, question)) {
-        const again: Exchange = { ...last, question: { text: question, createdAt: ctx.now }, reply: newReply(ctx) };
+        const again: Exchange = { ...last, question: { text: question, createdAt: ctx.now }, reply: newReply(ctx, last.reply) };
         return { kind: 'send', plan: place(t, again, ctx, false, last.reply.id) };
     }
     if (exchangesOf(t).length >= MAX_EXCHANGES_PER_CHAT) return { kind: 'full' };
@@ -150,7 +154,7 @@ export function planSend(t: Transcript, text: string, ctx: SendContext): SendRes
 export function planRetry(t: Transcript, ctx: SendContext): SendPlan | null {
     const last = lastExchange(t);
     if (!last || last.reply.status === 'streaming') return null;
-    const again: Exchange = { ...last, reply: newReply(ctx) };
+    const again: Exchange = { ...last, reply: newReply(ctx, last.reply) };
     return place(t, again, ctx, false, last.reply.id);
 }
 

@@ -419,6 +419,7 @@ const en = {
             moving: 'Moving {done} of {total}…',
             moved: 'Your chats are now in your account.',
             moveError: "Some chats couldn't be moved. Try again.",
+            moveFull: 'Your account keeps your {max} most recent chats, so older ones stay in this browser.',
         },
         // Making, updating and ending a chat's public read-only link
         shareDialog: {

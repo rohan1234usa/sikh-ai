@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useSyncExternalStore } from 'react';
+import { useCallback, useMemo, useState, useSyncExternalStore } from 'react';
 import { CheckIcon, LinkIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import type { ChatHome, ShareRef } from '@/lib/chat/chatMeta';
 import { buildShareSnapshot, newSinceShared } from '@/lib/chat/share';
@@ -73,7 +73,8 @@ function ShareBody({ chat, onClose }: { chat: ChatListItem; onClose: () => void 
     const record = state.status === 'ready' ? state.record : null;
     const share = made === undefined ? record?.meta.share ?? null : made;
     const streaming = replies.get(chat.id)?.reply.status === 'streaming';
-    const snapshot = record ? buildShareSnapshot(record) : null;
+    // Serializes the whole chat: only when the chat changes, not on every render.
+    const snapshot = useMemo(() => (record ? buildShareSnapshot(record) : null), [record]);
     const url = share ? `${window.location.origin}/share/${share.id}` : '';
 
     const publish = async () => {
@@ -83,8 +84,11 @@ function ShareBody({ chat, onClose }: { chat: ChatListItem; onClose: () => void 
         try {
             if (home === 'local') {
                 // The link belongs to the account: move the chat there first.
+                // As used now: sharing it is using it, and a full account keeps
+                // only its most recent chats.
                 const moved = await moveChats([record.meta.id], getLocalChatStore(), getAccountChatStore(uid), {
                     isBusy: (id) => getReplyRuntime().isBusy(id),
+                    touch: Date.now(),
                 });
                 if (moved.failed || moved.moved === 0) throw new Error('move failed');
                 setHome('account');

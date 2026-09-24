@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import type { ChatHome, ChatMeta } from '@/lib/chat/chatMeta';
-import type { InflightReply } from '@/lib/chat/runtime';
 import type { ListState } from '@/lib/chat/store/types';
 import { NO_EVICTIONS, evictions, getAccountChatStore, getLocalChatStore, getReplyRuntime } from './chatStores';
 import { useChatHomes } from './useChatHomes';
@@ -10,13 +9,13 @@ import { useChatHomes } from './useChatHomes';
 export type ChatListItem = ChatMeta & { home: ChatHome };
 
 const LOADING: ListState = { status: 'loading', chats: [] };
-const NONE: ReadonlyMap<string, InflightReply> = new Map();
+const NONE: ReadonlySet<string> = new Set();
 const none = () => () => {};
 
 const subscribeLocal = (cb: () => void) => getLocalChatStore().subscribeList(cb);
 const getLocal = () => getLocalChatStore().getList();
 const subscribeReplies = (cb: () => void) => getReplyRuntime().subscribe(cb);
-const getReplies = () => getReplyRuntime().getSnapshot();
+const getReplying = () => getReplyRuntime().getReplying();
 
 const tag = (chats: ChatMeta[], home: ChatHome): ChatListItem[] => chats.map((c) => ({ ...c, home }));
 
@@ -29,7 +28,7 @@ export function useChatList() {
     const subscribeAccount = useCallback((cb: () => void) => (uid ? getAccountChatStore(uid).subscribeList(cb) : none()), [uid]);
     const getAccount = useCallback(() => (uid ? getAccountChatStore(uid).getList() : LOADING), [uid]);
     const account = useSyncExternalStore(subscribeAccount, getAccount, () => LOADING);
-    const replies = useSyncExternalStore(subscribeReplies, getReplies, () => NONE);
+    const replying = useSyncExternalStore(subscribeReplies, getReplying, () => NONE);
 
     const localItems = useMemo(() => tag(local.chats, 'local'), [local.chats]);
     const accountItems = useMemo(() => (accountOk ? tag(account.chats, 'account') : []), [accountOk, account.chats]);
@@ -42,7 +41,8 @@ export function useChatList() {
         browserOnly: accountOk ? localItems : [],
         status: accountOk ? account.status : authLoading ? 'loading' as const : local.status,
         all,
-        replies,
+        // Chats with a reply arriving now.
+        replying,
     };
 }
 
