@@ -88,7 +88,7 @@ export default function ChatScreen() {
     const script = languageId === 'punjabi' ? siteScript(lang) : undefined;
     const settings: ReplySettings = { lensId: prefs.lensId, modeId: prefs.modeId, languageId, ...(script ? { script } : {}) };
 
-    const title = activeId ? list.chats.find((c) => c.id === activeId)?.title || null : null;
+    const title = activeId ? list.all.find((c) => c.id === activeId)?.title || null : null;
 
     return (
         <div className="flex h-[calc(100dvh-4rem)] min-h-0">

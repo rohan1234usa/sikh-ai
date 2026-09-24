@@ -86,6 +86,10 @@ export class ReplyRuntime {
     start(job: ReplyJob): void {
         const full: Job = { ...job, controller: new AbortController() };
         this.unsaved.delete(job.chatId);
+        // A new attempt at this exchange: a check still running for the one it
+        // replaces must not attach its cards to this one. (Checks for other
+        // exchanges carry on: the next question doesn't cancel the last's.)
+        this.abortChecks(`${job.chatId}/${job.exchangeId}/`);
         this.jobs.set(job.reply.id, full);
         this.publish();
         void this.run(full);
@@ -107,18 +111,29 @@ export class ReplyRuntime {
             job.stoppedBy = 'discard';
             job.controller.abort();
         }
-        for (const [id, c] of this.verifications) if (id.startsWith(`${chatId}/`)) c.abort();
+        this.abortChecks(`${chatId}/`);
         this.publish();
     }
 
-    // Signing out: stop every reply the predicate picks. Their partial text is
-    // saved if the store still accepts it; there is no citation check.
-    stopAll(pick: (job: InflightReply) => boolean): void {
+    // Checks are keyed chat/exchange/reply; this ends those under a prefix.
+    private abortChecks(prefix: string) {
+        for (const [key, c] of this.verifications) if (key.startsWith(prefix)) c.abort();
+    }
+
+    // Signing out: stop every reply bound for that account. Their partial
+    // text is saved if the store still accepts it; there is no citation check.
+    stopFor(store: ChatStore): void {
         for (const job of this.jobs.values()) {
-            if (!pick({ chatId: job.chatId, exchangeId: job.exchangeId, reply: job.reply })) continue;
+            if (job.store !== store) continue;
             job.stoppedBy = 'signout';
             job.controller.abort();
         }
+    }
+
+    // The account refused a new chat and its copy now lives in this browser:
+    // the reply already running for it saves there instead.
+    retarget(chatId: string, store: ChatStore): void {
+        for (const job of this.jobs.values()) if (job.chatId === chatId) job.store = store;
     }
 
     // pagehide: save what every reply has so far, as the page may be gone
@@ -128,7 +143,6 @@ export class ReplyRuntime {
     }
 
     private async run(job: Job) {
-        const { store } = job;
         let lastCheckpoint = this.deps.now();
         let outcome: StreamOutcome;
         try {
@@ -151,9 +165,10 @@ export class ReplyRuntime {
                     if (!chunk) continue;
                     job.reply = { ...job.reply, text: (job.reply.text + chunk).slice(0, MAX_REPLY_CHARS) };
                     this.publish();
-                    if (this.deps.now() - lastCheckpoint >= store.checkpointMs) {
+                    // job.store, read each time: it can be retargeted mid-reply.
+                    if (this.deps.now() - lastCheckpoint >= job.store.checkpointMs) {
                         lastCheckpoint = this.deps.now();
-                        void store.putReply(job.chatId, job.exchangeId, job.reply).catch(() => {});
+                        void job.store.putReply(job.chatId, job.exchangeId, job.reply).catch(() => {});
                     }
                 }
                 outcome = { kind: 'closed' };
@@ -174,7 +189,7 @@ export class ReplyRuntime {
         this.publish();
         let saved = true;
         try {
-            await store.putReply(job.chatId, job.exchangeId, job.reply);
+            await job.store.putReply(job.chatId, job.exchangeId, job.reply);
         } catch (error) {
             saved = false;
             if (storeErrorCode(error) !== 'gone') {
@@ -195,7 +210,7 @@ export class ReplyRuntime {
     private async check(job: Job) {
         const { text, id: replyId } = job.reply;
         if (!hasGurmukhiRun(text)) return;
-        const key = `${job.chatId}/${replyId}`;
+        const key = `${job.chatId}/${job.exchangeId}/${replyId}`;
         const controller = new AbortController();
         this.verifications.set(key, controller);
         try {

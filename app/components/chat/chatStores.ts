@@ -4,10 +4,14 @@
 // first use in the browser (never during server rendering), and never torn
 // down: a reply keeps going while the user is elsewhere on the site.
 
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth, db } from '@/lib/firebase';
+import { FirestoreChatStore, type WriteFailure } from '@/lib/chat/store/firestore';
 import { LocalChatStore, type StorageLike } from '@/lib/chat/store/local';
 import { ReplyRuntime, verifyOverHttp } from '@/lib/chat/runtime';
 
 let local: LocalChatStore | null = null;
+let account: FirestoreChatStore | null = null;
 let runtime: ReplyRuntime | null = null;
 // The chat on screen in this tab: never evicted to make room for another.
 let openChatId: string | null = null;
@@ -63,9 +67,38 @@ export function getReplyRuntime(): ReplyRuntime {
         // The page may be gone before the next checkpoint: save what every
         // reply has so far. Registered once, here, rather than in an effect.
         window.addEventListener('pagehide', () => created.flush());
+        // Signing out (here or in another tab) ends the account's replies and
+        // drops its chats from memory, wherever on the site it happens.
+        onAuthStateChanged(auth, (user) => {
+            if (!account || account.uid === user?.uid) return;
+            created.stopFor(account);
+            account.dispose();
+            account = null;
+        });
         runtime = created;
     }
     return runtime;
+}
+
+// The account refused a chat it was just asked to create (its rules aren't
+// deployed yet): the chat stays in this browser instead, under the same id,
+// and the reply already on its way saves there.
+function onAccountWriteFailed(failure: WriteFailure) {
+    if (failure.kind !== 'create' || failure.code !== 'permission' || !failure.record) return;
+    const browser = getLocalChatStore();
+    void browser.importChat(failure.record)
+        .then(() => getReplyRuntime().retarget(failure.chatId, browser))
+        .catch(() => {});
+}
+
+// The signed-in account's chats; one store per user.
+export function getAccountChatStore(uid: string): FirestoreChatStore {
+    getReplyRuntime(); // its sign-out handling must be in place first
+    if (!account || account.uid !== uid) {
+        account?.dispose();
+        account = new FirestoreChatStore(db, uid, onAccountWriteFailed);
+    }
+    return account;
 }
 
 export function getLocalChatStore(): LocalChatStore {

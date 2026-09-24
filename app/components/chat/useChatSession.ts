@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState, useSyncExternalStore } from 'react';
-import { deriveTitle, type ChatMeta } from '@/lib/chat/chatMeta';
+import { deriveTitle, type ChatHome, type ChatMeta } from '@/lib/chat/chatMeta';
 import { MAX_EXCHANGES_PER_CHAT, type ChatContext } from '@/lib/chat/config';
 import {
     buildHistory,
@@ -16,7 +16,8 @@ import {
 import type { ChatRequestBody, InflightReply } from '@/lib/chat/runtime';
 import { storeErrorCode, type ChatState, type ChatStore, type StoreErrorCode } from '@/lib/chat/store/types';
 import type { ReplySettings, Transcript } from '@/lib/chat/transcript';
-import { getLocalChatStore, getReplyRuntime } from './chatStores';
+import { getAccountChatStore, getLocalChatStore, getReplyRuntime } from './chatStores';
+import { storeFor, useChatHomes } from './useChatHomes';
 
 // draft: /chat, a new chat with nothing saved yet
 // loading: a saved chat still being read
@@ -47,18 +48,37 @@ export function useChatSession({ routeId, settings, onCreated }: {
     settings: ReplySettings;
     onCreated: (chatId: string) => void;
 }) {
+    const { uid, authLoading, homeForNew } = useChatHomes();
     const [createdId, setCreatedId] = useState<string | null>(null);
     // A passage from a deep link, held until the first question saves the chat.
     const [draftContext, setDraftContext] = useState<ChatContext | null>(null);
     const invalid = routeId === 'invalid';
     const chatId = invalid ? null : routeId ?? createdId;
 
-    const subscribeChat = useCallback(
+    // The chat in each home. This browser is asked first; the account only
+    // when this browser doesn't have it (a move deletes the local copy).
+    const subscribeLocal = useCallback(
         (cb: () => void) => (chatId ? getLocalChatStore().subscribeChat(chatId, cb) : noop),
         [chatId],
     );
-    const getChat = useCallback(() => (chatId ? getLocalChatStore().getChat(chatId) : MISSING), [chatId]);
-    const chat = useSyncExternalStore(subscribeChat, getChat, () => LOADING);
+    const getLocal = useCallback(() => (chatId ? getLocalChatStore().getChat(chatId) : MISSING), [chatId]);
+    const localChat = useSyncExternalStore(subscribeLocal, getLocal, () => LOADING);
+    const askAccount = chatId !== null && uid !== null && localChat.status !== 'ready';
+    const subscribeAccount = useCallback(
+        (cb: () => void) => (askAccount ? getAccountChatStore(uid!).subscribeChat(chatId!, cb) : noop),
+        [askAccount, uid, chatId],
+    );
+    const getAccount = useCallback(() => (askAccount ? getAccountChatStore(uid!).getChat(chatId!) : MISSING), [askAccount, uid, chatId]);
+    const accountChat = useSyncExternalStore(subscribeAccount, getAccount, () => LOADING);
+
+    const [home, chat]: [ChatHome, ChatState] = chatId === null
+        ? [homeForNew, MISSING]
+        : localChat.status === 'ready' || localChat.status === 'loading'
+            ? ['local', localChat]
+            : uid
+                ? ['account', accountChat]
+                // Not here; may still be the account's once sign-in is restored.
+                : ['local', authLoading ? LOADING : localChat];
     const replies = useSyncExternalStore(subscribeReplies, getReplies, () => NONE);
     const live = chatId ? replies.get(chatId) : undefined;
 
@@ -107,7 +127,7 @@ export function useChatSession({ routeId, settings, onCreated }: {
     const entriesOf = (plan: SendPlan) => (plan.notice ? [plan.notice, plan.exchange] : [plan.exchange]);
 
     const send = async (text: string): Promise<SendResult> => {
-        const store = getLocalChatStore();
+        const store = storeFor(home, uid);
         const now = Date.now();
         const ctx = { now, newId, settings };
         if (status === 'draft') {
@@ -141,7 +161,7 @@ export function useChatSession({ routeId, settings, onCreated }: {
     // question again, with the settings chosen now.
     const retry = async (): Promise<SendResult> => {
         if (status !== 'ready' || !chatId) return 'unavailable';
-        const store = getLocalChatStore();
+        const store = storeFor(home, uid);
         const now = Date.now();
         const plan = planRetry(transcript, { now, newId, settings });
         if (!plan) return 'busy';
@@ -158,12 +178,14 @@ export function useChatSession({ routeId, settings, onCreated }: {
             setDraftContext(null);
             return;
         }
-        await getLocalChatStore().setContext(chatId, null).catch(() => {});
+        await storeFor(home, uid).setContext(chatId, null).catch(() => {});
     };
 
     return {
         status,
         chatId,
+        // Where this chat is (or, before its first question, will be) saved.
+        home,
         meta: record?.meta ?? null,
         context,
         transcript,

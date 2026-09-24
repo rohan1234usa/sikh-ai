@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { planSend, type SendPlan } from '@/lib/chat/exchange';
+import { planRetry, planSend, type SendPlan } from '@/lib/chat/exchange';
 import { ReplyRuntime, type ChatRequestBody, type RuntimeDeps } from '@/lib/chat/runtime';
 import { LocalChatStore } from '@/lib/chat/store/local';
 import type { ChatState } from '@/lib/chat/store/types';
@@ -237,4 +237,43 @@ test('a reply that could not be saved stays on screen for this visit', async () 
     assert.equal(failures.length, 1);
     assert.equal(t.runtime.getSnapshot().get(UUID(1))?.reply.status, 'done');
     assert.equal(t.verified.length, 0, 'no check for a reply that was not saved');
+});
+
+test('the next question leaves the last answer\'s Gurbani check running; retrying that answer ends it', async () => {
+    const pending: { text: string; resolve: () => void }[] = [];
+    const card: Citation = { quote: 'ਸਤਿ ਨਾਮੁ ਕਰਤਾ ਪੁਰਖੁ', status: 'unverified' };
+    const t = setup({
+        verify: (text, signal) => new Promise((resolve, reject) => {
+            pending.push({ text, resolve: () => resolve([card]) });
+            signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
+        }),
+    });
+    const gurbani = 'ਸਤਿ ਨਾਮੁ ਕਰਤਾ ਪੁਰਖੁ ॥';
+    await t.send(UUID(1), 'One');
+    t.calls[0].push(gurbani);
+    t.calls[0].end();
+    await settle();
+    assert.equal(pending.length, 1, 'the first answer is being checked');
+
+    await t.send(UUID(1), 'Two'); // a new question, while that check runs
+    pending[0].resolve();
+    await settle();
+    assert.equal(exchangesIn(t.store.getChat(UUID(1)))[0].reply.citations?.length, 1, 'its cards still arrive');
+
+    t.calls[1].push(gurbani);
+    t.calls[1].end();
+    await settle();
+    assert.equal(pending.length, 2);
+
+    // Regenerate the second answer while its check is still out.
+    const state = t.store.getChat(UUID(1));
+    const plan = planRetry(state.status === 'ready' ? state.record.transcript : [], { now: 5_000, newId: () => 'retry-reply', settings: SIKHAI })!;
+    await t.store.putEntries(UUID(1), [plan.exchange], { touch: 5_000, removeIds: plan.removeNoticeIds });
+    t.runtime.start({ store: t.store, chatId: UUID(1), exchangeId: plan.exchange.id, reply: plan.exchange.reply, body: { message: 'Two', history: [], ...SIKHAI } });
+    await settle();
+    pending[1].resolve();
+    await settle();
+    const second = exchangesIn(t.store.getChat(UUID(1)))[1];
+    assert.equal(second.reply.id, 'retry-reply');
+    assert.equal(second.reply.citations, undefined, 'the replaced attempt\'s cards never land on the new one');
 });

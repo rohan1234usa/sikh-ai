@@ -7,11 +7,11 @@
 // between, and a crash between the two writes is healed by reconcile() on
 // the next start, in either direction, without bringing a deleted chat back.
 
-import { sanitizeCitations, type Citation } from '@/lib/gurbani/citations';
+import type { Citation } from '@/lib/gurbani/citations';
 import { MAX_LOCAL_CHATS, sanitizeChatContext, type ChatContext } from '../config';
 import { deriveTitle, isChatId, sanitizeMeta, sortChats, type ChatMeta } from '../chatMeta';
-import { shouldReplaceReply } from '../exchange';
-import { fromLegacyMessages, normalizeTranscript, toStoredEntry, type Entry, type Exchange, type Reply, type Transcript } from '../transcript';
+import { fromLegacyMessages, normalizeTranscript, toStoredEntry, type Entry, type Exchange, type Reply } from '../transcript';
+import { merged, withCitations, withContext, withEntries, withMeta, withReply } from './records';
 import { ChatStoreError, type ChatRecord, type ChatState, type ChatStore, type ListState, type MetaPatch } from './types';
 
 export type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem' | 'key' | 'length'>;
@@ -241,7 +241,7 @@ export class LocalChatStore implements ChatStore {
                         },
                         context: existing?.context ?? sanitizeChatContext(parsed?.context),
                         // What this app wrote since wins over the old copy.
-                        transcript: normalizeTranscript([...transcript, ...(existing?.transcript ?? [])]),
+                        transcript: normalizeTranscript([...transcript, ...(existing?.transcript ?? []).map(toStoredEntry)]),
                     });
                 } catch {
                     continue; // storage full or blocked: keep the old key for another try
@@ -319,47 +319,31 @@ export class LocalChatStore implements ChatStore {
     }
 
     async putEntries(chatId: string, entries: Entry[], opts: { touch: number; removeIds?: string[] }): Promise<void> {
-        const record = this.mustRead(chatId);
-        const replaced = new Set([...(opts.removeIds ?? []), ...entries.map((e) => e.id)]);
-        const transcript = normalizeTranscript([
-            ...record.transcript.filter((e) => !replaced.has(e.id)),
-            ...entries.map(toStoredEntry),
-        ]);
-        this.save({
-            ...record,
-            meta: { ...record.meta, updatedAt: Math.max(opts.touch, record.meta.updatedAt) },
-            transcript,
-        });
+        this.save(withEntries(this.mustRead(chatId), entries, opts.touch, opts.removeIds));
     }
 
-    private updateExchange(chatId: string, exchangeId: string, change: (e: Exchange) => Exchange | null) {
-        const record = this.mustRead(chatId);
-        const index = record.transcript.findIndex((e) => e.kind === 'exchange' && e.id === exchangeId);
-        if (index === -1) throw new ChatStoreError('gone');
-        const next = change(record.transcript[index] as Exchange);
-        if (!next) return;
-        const transcript: Transcript = [...record.transcript];
-        transcript[index] = next;
-        this.save({ ...record, transcript: normalizeTranscript(transcript.map(toStoredEntry)) });
+    // Saved only when something changed: a refused write rewrites nothing.
+    private saveChanged(before: ChatRecord, after: ChatRecord | null) {
+        if (!after) throw new ChatStoreError('gone');
+        if (after !== before) this.save(after);
     }
 
     async putReply(chatId: string, exchangeId: string, reply: Reply): Promise<void> {
-        this.updateExchange(chatId, exchangeId, (e) => (shouldReplaceReply(e.reply, reply) ? { ...e, reply } : null));
+        const record = this.mustRead(chatId);
+        this.saveChanged(record, withReply(record, exchangeId, reply));
     }
 
     async setCitations(chatId: string, exchangeId: string, replyId: string, citations: Citation[]): Promise<void> {
-        const clean = sanitizeCitations(citations);
-        this.updateExchange(chatId, exchangeId, (e) =>
-            e.reply.id === replyId && clean.length ? { ...e, reply: { ...e.reply, citations: clean } } : null);
+        const record = this.mustRead(chatId);
+        this.saveChanged(record, withCitations(record, exchangeId, replyId, citations));
     }
 
     async setContext(chatId: string, context: ChatContext | null): Promise<void> {
-        this.save({ ...this.mustRead(chatId), context: sanitizeChatContext(context) });
+        this.save(withContext(this.mustRead(chatId), context));
     }
 
     async updateMeta(chatId: string, patch: MetaPatch): Promise<void> {
-        const record = this.mustRead(chatId);
-        this.save({ ...record, meta: { ...record.meta, ...patch } });
+        this.save(withMeta(this.mustRead(chatId), patch));
     }
 
     async deleteChat(chatId: string): Promise<void> {
@@ -372,9 +356,10 @@ export class LocalChatStore implements ChatStore {
         this.notifyChat(chatId);
     }
 
+    // What this browser already holds of the chat wins over the copy.
     async importChat(record: ChatRecord): Promise<void> {
         const existing = this.readChat(record.meta.id);
-        const transcript = normalizeTranscript([...record.transcript.map(toStoredEntry), ...(existing?.transcript ?? [])]);
-        await this.createChat(existing?.meta ?? record.meta, existing?.context ?? record.context, transcript);
+        const chat = existing ? merged(record, existing) : record;
+        await this.createChat(chat.meta, chat.context, chat.transcript);
     }
 }

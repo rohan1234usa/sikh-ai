@@ -286,7 +286,7 @@ export default function ChatConversation({
                         contextError={contextError}
                         onDismissContext={dismissContext}
                         onDismissContextError={() => setContextError(false)}
-                        disclaimer={t.chat.disclaimer}
+                        disclaimer={session.home === 'account' ? t.chat.disclaimerAccount : t.chat.disclaimerLocal}
                     />
                 </>
             )}
