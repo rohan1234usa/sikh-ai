@@ -193,6 +193,19 @@ export function shouldReplaceReply(current: Reply | undefined, next: Reply): boo
     return next.startedAt >= current.startedAt;
 }
 
+// The store's transcript with the reply still arriving laid over its
+// exchange — unless the store already holds a newer attempt.
+export function withLiveReply(t: Transcript, live?: { exchangeId: string; reply: Reply }): Transcript {
+    if (!live) return t;
+    const i = t.findIndex((e) => e.kind === 'exchange' && e.id === live.exchangeId);
+    if (i === -1) return t;
+    const current = t[i] as Exchange;
+    if (!shouldReplaceReply(current.reply, live.reply)) return t;
+    const next = [...t];
+    next[i] = { ...current, reply: live.reply };
+    return next;
+}
+
 export type DisplayItem =
     | { kind: 'notice'; notice: Notice }
     | { kind: 'question'; exchange: Exchange }

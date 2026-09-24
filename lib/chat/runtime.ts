@@ -33,7 +33,8 @@ export type ReplyJob = {
     body: ChatRequestBody;
 };
 
-export type InflightReply = { chatId: string; exchangeId: string; reply: Reply };
+// unsaved: finished, but the store refused it (storage full); shown for this visit.
+export type InflightReply = { chatId: string; exchangeId: string; reply: Reply; unsaved?: true };
 
 export type RuntimeDeps = {
     fetch: typeof fetch;
@@ -63,14 +64,13 @@ export class ReplyRuntime {
 
     constructor(private readonly deps: RuntimeDeps) {}
 
-    subscribe(onChange: () => void): () => void {
+    // Arrow properties: handed to useSyncExternalStore unbound.
+    subscribe = (onChange: () => void): (() => void) => {
         this.listeners.add(onChange);
         return () => { this.listeners.delete(onChange); };
-    }
+    };
 
-    getSnapshot(): ReadonlyMap<string, InflightReply> {
-        return this.snapshot;
-    }
+    getSnapshot = (): ReadonlyMap<string, InflightReply> => this.snapshot;
 
     isBusy(chatId: string): boolean {
         return [...this.jobs.values()].some((j) => j.chatId === chatId);
@@ -178,7 +178,7 @@ export class ReplyRuntime {
         } catch (error) {
             saved = false;
             if (storeErrorCode(error) !== 'gone') {
-                const inflight = { chatId: job.chatId, exchangeId: job.exchangeId, reply: job.reply };
+                const inflight: InflightReply = { chatId: job.chatId, exchangeId: job.exchangeId, reply: job.reply, unsaved: true };
                 this.unsaved.set(job.chatId, inflight);
                 this.deps.onSaveFailed?.(inflight, error);
             }

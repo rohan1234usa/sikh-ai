@@ -8,6 +8,7 @@
 // Brand names ("SikhAI", "Gemini", "Rohan Singh") are never translated.
 
 import type { ChatCopy } from '@/lib/chat/config';
+import type { ChatSectionId } from '@/lib/chat/historyGroups';
 import type { CitationStatus } from '@/lib/gurbani/citations';
 import type { DetectedInput, NoteKind } from '@/lib/translate/config';
 import type { PhraseCategoryId } from '@/lib/translate/phrasebook';
@@ -332,10 +333,7 @@ const en = {
     chat: {
         title: 'Ask SikhAI',
         newChat: 'New chat',
-        clearPrompt: 'Clear this chat?',
-        clearConfirm: 'Clear',
         cancel: 'Cancel',
-        confirmClearAria: 'Confirm clearing the conversation',
         latest: 'Latest',
         dismiss: 'Dismiss',
         browseByTopic: 'Browse by topic',
@@ -364,6 +362,45 @@ const en = {
         discussing: 'Discussing: {title}',
         stopDiscussingAria: 'Stop discussing this passage',
         // Cards under a reply that check its Gurbani quotes against GurbaniNow
+        retry: 'Retry',
+        stopped: 'Stopped before SikhAI replied',
+        answeredWith: 'Answered with {settings}',
+        notSaved: "This reply couldn't be saved: this browser's storage is full.",
+        storageFull: "This browser's storage is full, so the chat couldn't be saved. Delete some chats and try again.",
+        chatFull: 'This chat has reached its limit. Start a new chat to keep going.',
+        loadingChat: 'Loading chat…',
+        notFoundHeading: "This chat isn't here",
+        notFoundBody: "It may have been deleted, or it's saved in another browser.",
+        // The list of saved chats: a sidebar on wide screens, a drawer on phones
+        history: {
+            title: 'Your chats',
+            open: 'Chats',
+            show: 'Show chats',
+            hide: 'Hide chats',
+            close: 'Close',
+            groups: {
+                pinned: 'Pinned',
+                today: 'Today',
+                yesterday: 'Yesterday',
+                week: 'Previous 7 days',
+                month: 'Previous 30 days',
+                older: 'Older',
+            } satisfies Record<ChatSectionId, string>,
+            empty: 'No chats yet. Your conversations will show up here.',
+            untitled: 'Untitled chat',
+            replying: 'Replying',
+            optionsAria: 'Options for {title}',
+            pin: 'Pin',
+            unpin: 'Unpin',
+            rename: 'Rename',
+            renameAria: 'Chat name',
+            delete: 'Delete',
+            deletePrompt: 'Delete this chat?',
+            deleteGroupAria: 'Confirm deleting {title}',
+            pinLimit: 'You can pin up to {max} chats.',
+            evicted: 'To make room in this browser, older chats were removed ({n}).',
+            localHint: 'Chats are saved in this browser.',
+        },
         citations: {
             heading: 'Gurbani check',
             sourceNote: 'Lines, translations, and Ang numbers in this box come word for word from GurbaniNow — not from the AI.',

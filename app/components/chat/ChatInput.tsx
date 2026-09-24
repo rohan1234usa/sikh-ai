@@ -51,6 +51,12 @@ export default function ChatInput({
     const atCap = value.length >= MAX_MESSAGE_CHARS;
     const canSubmit = canSend && value.trim() !== '';
 
+    // Ready to type on arrival — with a mouse or trackpad. On a touch screen
+    // focus opens the keyboard over the chat just opened, so it waits for a tap.
+    useEffect(() => {
+        if (window.matchMedia('(pointer: fine)').matches) textareaRef.current?.focus({ preventScroll: true });
+    }, []);
+
     // Auto-grow up to max-h, and collapse back when cleared after send
     useEffect(() => {
         const el = textareaRef.current;
@@ -133,7 +139,6 @@ export default function ChatInput({
                     <textarea
                         ref={textareaRef}
                         rows={1}
-                        autoFocus
                         enterKeyHint="send"
                         aria-label={t.chat.messageAria}
                         value={value}

@@ -16,8 +16,9 @@ export default function Footer() {
         { href: '/translate', label: t.nav.translate },
     ];
 
-    // The chat page is a fixed-height app screen with no room for a footer
-    if (pathname === '/chat') return null;
+    // The chat screen (/chat and each saved chat) is a fixed-height app screen
+    // with no room for a footer
+    if (pathname === '/chat' || pathname.startsWith('/chat/')) return null;
 
     return (
         <footer className="border-t border-edge bg-surface-raised mt-auto">
