@@ -3,16 +3,18 @@
 import { useEffect } from 'react';
 import { useModalDialog } from '../useModalDialog';
 import ChatHistoryPanel from './ChatHistoryPanel';
+import type { ChatListItem } from './useChatList';
 
 type Props = {
     open: boolean;
     onClose: () => void;
     activeId: string | null;
     onNavigate: (href: string) => void;
+    onShare?: (chat: ChatListItem) => void;
 };
 
 // Narrow screens: the chat list slides over the page as a modal <dialog>.
-export default function ChatHistoryDrawer({ open, onClose, activeId, onNavigate }: Props) {
+export default function ChatHistoryDrawer({ open, onClose, activeId, onNavigate, onShare }: Props) {
     const { ref, onCancel, onClick } = useModalDialog(open, onClose);
 
     // Widened to where the sidebar shows: a hidden modal would still leave
@@ -41,6 +43,7 @@ export default function ChatHistoryDrawer({ open, onClose, activeId, onNavigate 
                     activeId={activeId}
                     onNavigate={onNavigate}
                     onClose={onClose}
+                    onShare={onShare}
                 />
             )}
         </dialog>

@@ -10,6 +10,8 @@ import {
     planMeta,
     planPutEntries,
     planPutReply,
+    planShare,
+    planUnshare,
     type Op,
 } from '@/lib/chat/store/firestorePlans';
 import { exchange, notice, reply } from './helpers';
@@ -81,4 +83,16 @@ test('moving a long chat splits into batches, with the meta written last', () =>
     assert.deepEqual(exact.map((b) => b.length), [MAX_BATCH_OPS, 1], 'a full batch leaves the meta its own');
     assert.deepEqual(planImport(UID, meta(1), null, []).map((b) => b.map(at)), [[`set users/user-1/chats/${meta(1).id}`]]);
     assert.deepEqual(chunk(entries.map(() => ({ type: 'delete', path: ['x'] }) as Op)).map((b) => b.length), [MAX_BATCH_OPS, 5]);
+});
+
+test('a link and the chat\'s note of it are written together, and ended together', () => {
+    const ref = { id: 'share-12345', createdAt: 1, updatedAt: 2, lastOrder: 9 };
+    const doc = { v: 1, ownerUid: UID, chatId: 'chat-123456', title: 'Seva', payload: '{}', createdAt: 1, updatedAt: 2 };
+    assert.deepEqual(planShare(UID, 'chat-123456', 'share-12345', doc, ref).map(at), [
+        'set shared_chats/share-12345',
+        'update users/user-1/chats/chat-123456',
+    ]);
+    const unshare = planUnshare(UID, 'chat-123456', 'share-12345');
+    assert.deepEqual(unshare.map(at), ['delete shared_chats/share-12345', 'update users/user-1/chats/chat-123456']);
+    assert.deepEqual((unshare[1] as { data: object }).data, { share: null });
 });

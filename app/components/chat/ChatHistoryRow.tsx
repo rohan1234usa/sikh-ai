@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { BookmarkIcon, BookmarkSlashIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { BookmarkIcon, BookmarkSlashIcon, LinkIcon, PencilIcon, ShareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { MAX_CHAT_TITLE_CHARS, type ChatMeta } from '@/lib/chat/chatMeta';
 import { useT } from '../../context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
@@ -18,13 +18,15 @@ type Props = {
     onTogglePin: () => void;
     onRename: (title: string) => void;
     onDelete: () => void;
+    // Only where shared links are on (see cloudChatsEnabled).
+    onShare?: () => void;
 };
 
 type Mode = 'view' | 'rename' | 'delete';
 
 // One saved chat in the list: a link to it and its "⋯" menu, which renames it
 // in place or asks before deleting it.
-export default function ChatHistoryRow({ chat, active, replying, initialFocus, onOpen, onTogglePin, onRename, onDelete }: Props) {
+export default function ChatHistoryRow({ chat, active, replying, initialFocus, onOpen, onTogglePin, onRename, onDelete, onShare }: Props) {
     const t = useT();
     const h = t.chat.history;
     const [mode, setMode] = useState<Mode>('view');
@@ -114,6 +116,12 @@ export default function ChatHistoryRow({ chat, active, replying, initialFocus, o
                             className="flex min-w-0 flex-1 items-center gap-2 py-2 pl-2.5 pr-1 text-sm text-ink-muted group-hover:text-ink aria-[current=page]:font-medium aria-[current=page]:text-ink"
                         >
                             <span className="truncate">{title}</span>
+                            {chat.share && (
+                                <>
+                                    <LinkIcon className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
+                                    <span className="sr-only">, {h.shared}</span>
+                                </>
+                            )}
                             {replying && (
                                 <>
                                     <span className="ml-auto h-2 w-2 shrink-0 animate-pulse rounded-full bg-kesri" aria-hidden="true" />
@@ -139,6 +147,7 @@ export default function ChatHistoryRow({ chat, active, replying, initialFocus, o
                                         setMode('rename');
                                     },
                                 },
+                                ...(onShare ? [{ id: 'share', label: h.shareItem, icon: ShareIcon, onSelect: onShare }] : []),
                                 { id: 'delete', label: h.delete, icon: TrashIcon, danger: true, onSelect: () => setMode('delete') },
                             ]}
                         />

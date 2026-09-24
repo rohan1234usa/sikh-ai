@@ -24,9 +24,22 @@ import {
 } from 'firebase/firestore';
 import type { Citation } from '@/lib/gurbani/citations';
 import { sanitizeChatContext, type ChatContext } from '../config';
-import { sanitizeMeta, sortChats, type ChatMeta } from '../chatMeta';
+import { sanitizeMeta, sortChats, type ChatMeta, type ShareRef } from '../chatMeta';
+import { SHARE_VERSION, type ShareDoc, type Snapshot } from '../share';
 import { normalizeTranscript, toStoredEntry, type Entry, type Reply } from '../transcript';
-import { chunk, planCitations, planCreate, planDelete, planImport, planMeta, planPutEntries, planPutReply, type Op } from './firestorePlans';
+import {
+    chunk,
+    planCitations,
+    planCreate,
+    planDelete,
+    planImport,
+    planMeta,
+    planPutEntries,
+    planPutReply,
+    planShare,
+    planUnshare,
+    type Op,
+} from './firestorePlans';
 import { withCitations, withContext, withEntries, withMeta, withReply } from './records';
 import { ChatStoreError, type ChatRecord, type ChatState, type ChatStore, type ListState, type MetaPatch, type StoreErrorCode } from './types';
 
@@ -329,5 +342,35 @@ export class FirestoreChatStore implements ChatStore {
 
     async importChat(record: ChatRecord): Promise<void> {
         await this.sendAndWait(planImport(this.uid, record.meta, record.context, record.transcript));
+    }
+
+    // ── Shared links ─────────────────────────────────────────────────────────
+
+    // Publishes the snapshot (or refreshes it, under the same link) and waits:
+    // a link is handed out only once it works.
+    async share(record: ChatRecord, snapshot: Snapshot): Promise<ShareRef> {
+        const now = Date.now();
+        const existing = record.meta.share;
+        const id = existing?.id ?? doc(collection(this.db, 'shared_chats')).id;
+        const createdAt = existing?.createdAt ?? now;
+        const shared: ShareDoc = {
+            v: SHARE_VERSION,
+            ownerUid: this.uid,
+            chatId: record.meta.id,
+            title: record.meta.title,
+            payload: snapshot.payload,
+            createdAt,
+            updatedAt: now,
+        };
+        const ref: ShareRef = { id, createdAt, updatedAt: now, lastOrder: snapshot.lastOrder };
+        await this.sendAndWait([planShare(this.uid, record.meta.id, id, shared, ref)]);
+        this.apply(record.meta.id, (r) => withMeta(r, { share: ref }));
+        return ref;
+    }
+
+    // The link stops working at once: its snapshot is deleted, not hidden.
+    async unshare(chatId: string, shareId: string): Promise<void> {
+        await this.sendAndWait([planUnshare(this.uid, chatId, shareId)]);
+        this.apply(chatId, (r) => withMeta(r, { share: null }));
     }
 }

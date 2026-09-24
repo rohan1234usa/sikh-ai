@@ -1,4 +1,4 @@
-// SikhAI — Firestore rules for saved chats (and, below them, shared links).
+// SikhAI — Firestore rules for saved chats and shared links.
 //
 // NOT a complete rules file, and not referenced from firebase.json: the
 // production rules live in the Firebase console, and `firebase deploy` of a
@@ -96,6 +96,29 @@ match /users/{uid}/chats/{chatId} {
     allow read, delete: if chatAuthIs(uid);
     allow create, update: if chatAuthIs(uid) && entryId.size() <= 100 && chatEntryOk(request.resource.data);
   }
+}
+
+function chatShareOk(d) {
+  return d.keys().hasOnly(['v', 'ownerUid', 'chatId', 'title', 'payload', 'createdAt', 'updatedAt'])
+    && d.v is int && d.ownerUid == request.auth.uid
+    && chatIdOk(d.chatId) && chatStr(d.title, 200)
+    && d.payload is string && d.payload.size() <= 1000000
+    && d.createdAt is number && d.updatedAt is number;
+}
+
+// A shared link: anyone holding it can read that one snapshot, but no one can
+// list them. Only the owner of the chat it copies can make, refresh or end it;
+// a refresh keeps its chat and its creation time.
+match /shared_chats/{shareId} {
+  allow get: if true;
+  allow list: if false;
+  allow create: if request.auth != null && chatIdOk(shareId) && chatShareOk(request.resource.data)
+    && exists(/databases/$(database)/documents/users/$(request.auth.uid)/chats/$(request.resource.data.chatId));
+  allow update: if request.auth != null && resource.data.ownerUid == request.auth.uid
+    && chatShareOk(request.resource.data)
+    && request.resource.data.chatId == resource.data.chatId
+    && request.resource.data.createdAt == resource.data.createdAt;
+  allow delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;
 }
 
 // ─── END SikhAI chat rules ───────────────────────────────────────────────────

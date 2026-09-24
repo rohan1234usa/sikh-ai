@@ -1,6 +1,6 @@
 'use client';
 
-import { ChatBubbleLeftRightIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleLeftRightIcon, PencilSquareIcon, ShareIcon } from '@heroicons/react/24/outline';
 import { useT } from '../../context/LanguageContext';
 
 type Props = {
@@ -10,6 +10,8 @@ type Props = {
     onOpenDrawer: () => void;
     onShowSidebar: () => void;
     onNewChat: () => void;
+    // Shown for a saved chat when shared links are on.
+    onShare?: () => void;
 };
 
 const BUTTON = 'flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink transition-colors p-1.5 rounded-lg hover:bg-edge/60 shrink-0';
@@ -17,7 +19,7 @@ const BUTTON = 'flex items-center gap-1.5 text-sm font-medium text-ink-muted hov
 // Above the conversation: the way to the chat list (the drawer on narrow
 // screens, or the sidebar once hidden), the open chat's name, and New chat —
 // which no longer clears anything: the chat just left stays in the list.
-export default function ChatHeader({ title, sidebarOpen, drawerOpen, onOpenDrawer, onShowSidebar, onNewChat }: Props) {
+export default function ChatHeader({ title, sidebarOpen, drawerOpen, onOpenDrawer, onShowSidebar, onNewChat, onShare }: Props) {
     const t = useT();
     const h = t.chat.history;
     return (
@@ -42,6 +44,12 @@ export default function ChatHeader({ title, sidebarOpen, drawerOpen, onOpenDrawe
             <p className="min-w-0 flex-1 truncate px-1.5 text-sm font-medium text-ink" title={title ?? undefined}>
                 {title}
             </p>
+            {onShare && (
+                <button type="button" onClick={onShare} aria-haspopup="dialog" className={BUTTON}>
+                    <ShareIcon className="h-4 w-4" aria-hidden="true" />
+                    <span className="sr-only sm:not-sr-only">{t.chat.share}</span>
+                </button>
+            )}
             <button type="button" onClick={onNewChat} className={BUTTON}>
                 <PencilSquareIcon className="h-4 w-4" aria-hidden="true" />
                 <span className="sr-only sm:not-sr-only">{t.chat.newChat}</span>

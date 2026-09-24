@@ -11,7 +11,9 @@ import ChatConversation from './ChatConversation';
 import ChatHeader from './ChatHeader';
 import ChatHistoryDrawer from './ChatHistoryDrawer';
 import ChatHistoryPanel from './ChatHistoryPanel';
-import { useChatList } from './useChatList';
+import ShareDialog from './ShareDialog';
+import { useChatHomes } from './useChatHomes';
+import { useChatList, type ChatListItem } from './useChatList';
 import { useChatPrefs } from './useChatPrefs';
 
 // The whole chat screen, rendered by app/chat/layout.tsx rather than a page:
@@ -26,8 +28,12 @@ export default function ChatScreen() {
     const { lang, t } = useLanguage();
     const { prefs, update: updatePrefs, hydrated: prefsHydrated } = useChatPrefs();
     const list = useChatList();
+    const { cloud } = useChatHomes();
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    // The chat whose share dialog is open (opened from its row or the header).
+    const [sharing, setSharing] = useState<ChatListItem | null>(null);
+    const closeShare = useCallback(() => setSharing(null), []);
 
     // The conversation view is keyed so every other chat, and every new one,
     // starts fresh — except when a new chat's first question saves it and the
@@ -88,7 +94,8 @@ export default function ChatScreen() {
     const script = languageId === 'punjabi' ? siteScript(lang) : undefined;
     const settings: ReplySettings = { lensId: prefs.lensId, modeId: prefs.modeId, languageId, ...(script ? { script } : {}) };
 
-    const title = activeId ? list.all.find((c) => c.id === activeId)?.title || null : null;
+    const active = activeId ? list.all.find((c) => c.id === activeId) ?? null : null;
+    const title = active?.title || null;
 
     return (
         <div className="flex h-[calc(100dvh-4rem)] min-h-0">
@@ -104,6 +111,7 @@ export default function ChatScreen() {
                         activeId={activeId}
                         onNavigate={(href) => (href === '/chat' ? startNewChat() : navigate(href))}
                         onHide={hideSidebar}
+                        onShare={setSharing}
                     />
                 </nav>
             )}
@@ -116,6 +124,7 @@ export default function ChatScreen() {
                     onOpenDrawer={() => setDrawerOpen(true)}
                     onShowSidebar={showSidebar}
                     onNewChat={startNewChat}
+                    onShare={cloud && active ? () => setSharing(active) : undefined}
                 />
                 <ChatConversation
                     key={viewKey}
@@ -135,7 +144,9 @@ export default function ChatScreen() {
                 onClose={closeDrawer}
                 activeId={activeId}
                 onNavigate={(href) => (href === '/chat' ? startNewChat() : navigate(href))}
+                onShare={setSharing}
             />
+            <ShareDialog chat={sharing} onClose={closeShare} />
         </div>
     );
 }

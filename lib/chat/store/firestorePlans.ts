@@ -10,7 +10,8 @@
 
 import type { Citation } from '@/lib/gurbani/citations';
 import type { ChatContext } from '../config';
-import type { ChatMeta } from '../chatMeta';
+import type { ChatMeta, ShareRef } from '../chatMeta';
+import type { ShareDoc } from '../share';
 import { normalizeReply, toStoredEntry, type Entry, type Reply } from '../transcript';
 import type { MetaPatch } from './types';
 
@@ -26,6 +27,7 @@ export const META_VERSION = 1;
 
 export const chatPath = (uid: string, chatId: string): DocPath => ['users', uid, 'chats', chatId];
 export const entryPath = (uid: string, chatId: string, entryId: string): DocPath => [...chatPath(uid, chatId), 'entries', entryId];
+export const sharePath = (shareId: string): DocPath => ['shared_chats', shareId];
 
 export function metaDoc(meta: ChatMeta, context: ChatContext | null): Record<string, unknown> {
     return {
@@ -89,7 +91,7 @@ export function planMeta(uid: string, chatId: string, patch: MetaPatch & { conte
 export function planDelete(uid: string, chatId: string, entryIds: string[], shareId?: string | null): Op[] {
     return [
         { type: 'delete', path: chatPath(uid, chatId) },
-        ...(shareId ? [{ type: 'delete' as const, path: ['shared_chats', shareId] }] : []),
+        ...(shareId ? [{ type: 'delete' as const, path: sharePath(shareId) }] : []),
         ...entryIds.map((id): Op => ({ type: 'delete', path: entryPath(uid, chatId, id) })),
     ];
 }
@@ -112,4 +114,20 @@ export function chunk(ops: Op[]): Op[][] {
     const out: Op[][] = [];
     for (let i = 0; i < ops.length; i += MAX_BATCH_OPS) out.push(ops.slice(i, i + MAX_BATCH_OPS));
     return out;
+}
+
+// A link made or refreshed: the public snapshot, and the chat's note of it,
+// in one batch, so neither exists without the other.
+export function planShare(uid: string, chatId: string, shareId: string, doc: ShareDoc, ref: ShareRef): Op[] {
+    return [
+        { type: 'set', path: sharePath(shareId), data: { ...doc } },
+        { type: 'update', path: chatPath(uid, chatId), data: { share: ref } },
+    ];
+}
+
+export function planUnshare(uid: string, chatId: string, shareId: string): Op[] {
+    return [
+        { type: 'delete', path: sharePath(shareId) },
+        { type: 'update', path: chatPath(uid, chatId), data: { share: null } },
+    ];
 }

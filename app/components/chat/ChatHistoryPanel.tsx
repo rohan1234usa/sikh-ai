@@ -23,6 +23,7 @@ type Props = {
     onNavigate: (href: string) => void;
     onHide?: () => void;  // sidebar
     onClose?: () => void; // drawer
+    onShare?: (chat: ChatListItem) => void;
 };
 
 const plainLeftClick = (e: React.MouseEvent) =>
@@ -30,7 +31,7 @@ const plainLeftClick = (e: React.MouseEvent) =>
 
 // The saved chats: pinned first, then by how recently each was used. The same
 // panel is the sidebar on wide screens and the drawer on narrow ones.
-export default function ChatHistoryPanel({ variant, headingId, activeId, onNavigate, onHide, onClose }: Props) {
+export default function ChatHistoryPanel({ variant, headingId, activeId, onNavigate, onHide, onClose, onShare }: Props) {
     const t = useT();
     const h = t.chat.history;
     const { signIn } = useAuth();
@@ -110,6 +111,7 @@ export default function ChatHistoryPanel({ variant, headingId, activeId, onNavig
             onTogglePin={() => void togglePin(chat)}
             onRename={(title) => void rename(chat, title)}
             onDelete={() => void remove(chat)}
+            onShare={cloud && onShare ? () => onShare(chat) : undefined}
         />
     );
 
