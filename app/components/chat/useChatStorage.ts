@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ChatContext } from '@/lib/chat/config';
+import type { Citation } from '@/lib/gurbani/citations';
 
 export type Message = {
     id: string;
@@ -10,6 +11,10 @@ export type Message = {
     createdAt: number;
     isError?: boolean;
     interrupted?: boolean; // partial answer after abort/stream failure
+    // Gurbani check of the quotes in an AI reply. Stored so a reload shows the
+    // cards without asking again; optional, so older saved chats still load.
+    // Re-validated on render (sanitizeCitations), since storage is untrusted.
+    citations?: Citation[];
 };
 
 const STORAGE_KEY = 'sikhai.chat.v2'; // bump the suffix on schema changes

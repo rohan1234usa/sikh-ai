@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import type { SourceHint, TranslationResult } from '@/lib/translate/config';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { TRANSLATE_RESULT_REV, type SourceHint, type TranslationResult } from '@/lib/translate/config';
+import { findCachedTranslation, upsertHistory } from '@/lib/translate/history';
 
 export type TranslateHistoryEntry = {
     id: string;
@@ -11,6 +12,7 @@ export type TranslateHistoryEntry = {
     // instant and free — no re-fetch. 30 entries ≈ 60 KB, trivial vs quota.
     result: TranslationResult;
     createdAt: number;
+    rev?: number; // see TRANSLATE_RESULT_REV; absent on entries saved before it
 };
 
 const STORAGE_KEY = 'sikhai.translate.history.v1'; // bump the suffix on schema changes
@@ -56,37 +58,47 @@ export function useTranslateHistory() {
         setHydrated(true);
     }, []);
 
-    // Called only on successful API completion, so persistence is
-    // save-on-finalize by construction.
-    const add = useCallback((entry: Omit<TranslateHistoryEntry, 'id' | 'createdAt'>) => {
-        setEntries(prev => {
-            const full: TranslateHistoryEntry = {
-                ...entry,
-                id: crypto.randomUUID(),
-                createdAt: Date.now(),
-            };
-            // Consecutive dedupe: re-running the top entry replaces it with the
-            // fresh result instead of stacking duplicates.
-            const dupOfTop =
-                prev[0]?.input.trim().toLowerCase() === entry.input.trim().toLowerCase();
-            const next = [full, ...(dupOfTop ? prev.slice(1) : prev)].slice(0, MAX_ENTRIES);
-            persist(next);
-            return next;
-        });
-    }, [persist]);
+    // Saving happens here rather than inside the updaters below: React may run
+    // an updater more than once (it does in development), and a write — or a
+    // fresh crypto.randomUUID() — inside one would run twice, storing an entry
+    // under a different id than the one in state.
+    const persistedRef = useRef<TranslateHistoryEntry[] | null>(null);
+    useEffect(() => {
+        if (!hydrated || persistedRef.current === entries) return; // nothing to save before the first read
+        persistedRef.current = entries;
+        persist(entries);
+    }, [entries, hydrated, persist]);
+
+    // Called once a result is shown, so persistence is save-on-finalize by
+    // construction. Re-adding a request moves it to the top.
+    const add = useCallback((entry: Omit<TranslateHistoryEntry, 'id' | 'createdAt' | 'rev'>) => {
+        const full: TranslateHistoryEntry = {
+            ...entry,
+            id: crypto.randomUUID(),
+            createdAt: Date.now(),
+            rev: TRANSLATE_RESULT_REV,
+        };
+        setEntries(prev => upsertHistory(prev, full, MAX_ENTRIES));
+    }, []);
+
+    // A saved result for exactly this request, if one can be reused.
+    const lookup = useCallback(
+        (input: string, sourceHint: SourceHint) => findCachedTranslation(entries, input, sourceHint),
+        [entries],
+    );
 
     const remove = useCallback((id: string) => {
-        setEntries(prev => {
-            const next = prev.filter(e => e.id !== id);
-            persist(next);
-            return next;
-        });
-    }, [persist]);
+        setEntries(prev => prev.filter(e => e.id !== id));
+    }, []);
 
     const clear = useCallback(() => {
         try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
-        setEntries([]);
+        // Marked as saved before the state change, so the effect above does not
+        // write the key straight back as an empty list.
+        const empty: TranslateHistoryEntry[] = [];
+        persistedRef.current = empty;
+        setEntries(empty);
     }, []);
 
-    return { entries, hydrated, add, remove, clear };
+    return { entries, hydrated, add, lookup, remove, clear };
 }

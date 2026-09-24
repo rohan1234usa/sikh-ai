@@ -44,23 +44,32 @@ function buildContext(type: ChatContext['type'], title: string, text: string): C
 // The dictionary composes the context title in the current site language —
 // the chip renders it verbatim, so a hardcoded English title would produce a
 // mixed-language chip in the Punjabi UIs.
+//
+// The two builders take the API proxies' JSON; `npm run eval:chat -- --capture`
+// uses them too, so its passages are exactly what a deep link sends.
+export function hukamnamaContext(data: { title?: string; text?: string; ang?: number | null }, t: Dictionary): ChatContext {
+    if (!data.text) throw new Error('Hukamnama unavailable');
+    const title = typeof data.ang === 'number'
+        ? `${t.hukamnama.title} — ${fmt(t.hukamnama.ang, { n: data.ang })}`
+        : t.hukamnama.title;
+    return buildContext('hukamnama', title, data.text);
+}
+
+export function angContext(ang: number, data: { page?: unknown }, t: Dictionary): ChatContext {
+    const page: AngItem[] = Array.isArray(data?.page) ? data.page : [];
+    const lines = page.map(normalizeLine).filter(Boolean);
+    if (lines.length === 0) throw new Error('Ang unavailable');
+    return buildContext('shabad', `${fmt(t.shabad.angLabel, { n: ang })} — ${t.shabad.granth}`, lines.join('\n\n'));
+}
+
 export async function fetchChatContext(link: DeepLink, t: Dictionary): Promise<ChatContext> {
     if (link.type === 'hukamnama') {
         const res = await fetch('/api/hukamnama');
         if (!res.ok) throw new Error('Failed to load the Hukamnama');
-        const data = (await res.json()) as { title?: string; text?: string; ang?: number | null };
-        if (!data.text) throw new Error('Hukamnama unavailable');
-        const title = typeof data.ang === 'number'
-            ? `${t.hukamnama.title} — ${fmt(t.hukamnama.ang, { n: data.ang })}`
-            : t.hukamnama.title;
-        return buildContext('hukamnama', title, data.text);
+        return hukamnamaContext(await res.json(), t);
     }
 
     const res = await fetch(`/api/shabad?query=${link.ang}`);
     if (!res.ok) throw new Error('Failed to load that Ang');
-    const data = await res.json();
-    const page: AngItem[] = Array.isArray(data?.page) ? data.page : [];
-    const lines = page.map(normalizeLine).filter(Boolean);
-    if (lines.length === 0) throw new Error('Ang unavailable');
-    return buildContext('shabad', `${fmt(t.shabad.angLabel, { n: link.ang })} — ${t.shabad.granth}`, lines.join('\n\n'));
+    return angContext(link.ang, await res.json(), t);
 }

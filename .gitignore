@@ -53,3 +53,8 @@ firestore.rules
 # an intermediate artifact that gets hand-applied to phrasebook.ts.
 scripts/i18n-audit/cache.json.tmp
 scripts/i18n-audit/notes-pa.generated.json
+
+# The caches themselves are committed; saveCache writes <name>.json.tmp first
+# and renames, so only a temp file left by an interrupted write is ignored —
+# one rule, for every script that uses it.
+scripts/**/*.json.tmp

@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ClipboardIcon, CheckIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { markdownComponents } from './markdownComponents';
+import Citations from './Citations';
 import { useT } from '../../context/LanguageContext';
 import type { Message } from './useChatStorage';
 
@@ -60,6 +61,8 @@ export default function ChatMessage({ message, isTyping, showActions, onRegenera
             {message.interrupted && (
                 <p className="text-xs text-ink-faint italic mt-1">{t.chat.interrupted}</p>
             )}
+
+            {!isUser && message.citations && <Citations citations={message.citations} replyText={message.text} />}
 
             {showActions && (
                 <div className="flex gap-1 mt-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100 transition-opacity">

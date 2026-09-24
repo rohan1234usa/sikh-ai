@@ -1,9 +1,9 @@
-// SERVER-ONLY: system-prompt text and response schema for /api/translate.
-// Do not import from client components — this file is meant for the route
-// handler so prompt text never ships in the client bundle. IDs come from
-// ./config so the schema enums and TypeScript unions stay in lockstep.
+// SERVER-ONLY: system-prompt text, response schema, and the full model request
+// for /api/translate. Do not import from client components — this file is meant
+// for the route handler so prompt text never ships in the client bundle. IDs
+// come from ./config so the schema enums and TypeScript unions stay in lockstep.
 
-import { SchemaType, type ResponseSchema } from '@google/generative-ai';
+import { ThinkingLevel, Type, type GenerateContentParameters, type Schema } from '@google/genai';
 import { DETECTED_INPUTS, NOTE_KINDS, type SourceHint } from './config';
 
 const IDENTITY = `You are the SikhAI translator, a Punjabi ↔ English translation engine serving Punjabi Americans reconnecting with their roots and learning the language.
@@ -18,16 +18,40 @@ const TASK = `Always produce all three renditions of the same content:
 - If the input is English: "gurmukhi" and "roman" are your Punjabi translation written in Gurmukhi script and in romanization; "english" is the input text lightly normalized (fix obvious typos, otherwise keep it verbatim).
 - If the input is Punjabi (either script): "english" is your translation; "gurmukhi" and "roman" are the source itself rendered in both scripts (correct obvious misspellings, but keep the user's wording and word order).`;
 
+// Replaces the low sampling temperature this translator used to request:
+// Gemini 3.x deprecates temperature, and Google's guidance is to get
+// determinism from explicit rules in the system instruction instead.
+const FIDELITY = `Translate faithfully and consistently:
+- Carry the full meaning and tone across — never add, drop, soften, or embellish anything.
+- Keep the translation natural rather than stilted word-for-word, but never paraphrase beyond what the source says.
+- Where several renderings are equally correct, use the most common everyday one. Never vary word choice for style, and never offer alternatives.`;
+
 // The romanization contract that keeps "roman", "words[].roman", and
 // "pronunciation[].roman" consistent with each other AND with the site's
-// pa-latn dictionary conventions (community spellings, no diacritics).
-const ROMANIZATION = `Use one learner-friendly community romanization in every field — never ISO 15919:
-- No diacritics, no dots, no apostrophes.
-- Long vowels doubled: aa (ਾ), ee (ੀ), oo (ੂ); short vowels single a/i/u; e (ੇ), ai (ੈ), o (ੋ), au (ੌ).
-- Aspirated consonants as consonant + h: kh, gh, chh, jh, th, dh, ph, bh.
-- Nasalization written as n or m as commonly heard (main, punjabi, vichon) — no special marks.
-- Retroflex and dental are both spelled t/d — cover that difference in pronunciation tips, not in spelling.
-- Keep familiar community spellings: Waheguru, Gurdwara, Sat Sri Akal, Hukamnama, langar, seva.
+// house style — the spellings in lib/translate/phrasebook.ts and the pa-latn
+// dictionary. A blanket "double every long vowel" rule gave "Chaachaa ji" and
+// "Taaiaa Ji" where families write Chacha ji and Taya ji, so length is only
+// marked where a learner needs to hear it. The examples come from the pa-latn
+// dictionary and the 20 phrases `--limit 20` covers in the eval. The other
+// 30 phrases were the check that the rules generalize
+// (npm run eval:translate -- --limit 50); a few of their words were pinned
+// here afterwards, where the model wavered (Kirtan, Ardaas, Ji aayan nu, nahi).
+//
+// Changing this changes what results look like: bump TRANSLATE_RESULT_REV in
+// ./config so saved history stops being reused, and rerun
+// npm run build:phrasebook.
+const ROMANIZATION = `Use one learner-friendly community romanization in every field — the way Punjabi families text each other, never ISO 15919:
+- Plain ASCII only: no diacritics, no dots, no apostrophes.
+- A vowel sign at the END of a word is always one letter: ਾ → a, ੀ → i, ੂ → u (ਕੀ ki, ਜੀ ji, ਤੁਸੀਂ tusi, ਰੋਟੀ roti, ਖਾ kha, ਅੱਛਾ achha, ਸਕਦਾ sakda, ਮੈਨੂੰ mainu).
+- Inside a word, double a long vowel only where a learner needs to hear the length — in a one-syllable word or in the last syllable of a longer one: ਹਾਲ haal, ਨਾਲ naal, ਪਾਠ paath, ਠੀਕ theek, ਸੁਆਦ suaad, ਇਤਿਹਾਸ itihaas, ਅਨੁਵਾਦ anuvaad, ਪਰਿਵਾਰ parivaar. A one-syllable word keeps it before a nasal (ਹਾਂ haan, ਹਾਂਜੀ haanji); at the end of a longer word ਾਂ is an (ਪਹਿਲਾਂ pehlan, ਸ਼ਬਦਾਂ shabdan).
+- Everywhere else write the long vowel once, as the community does: kinship terms (ਚਾਚਾ chacha, ਤਾਇਆ taya, ਮਾਮਾ mama, ਮਾਸੀ masi), everyday words (ਦੁਬਾਰਾ dubara, ਚਾਹੀਦਾ chahida, ਬਿਮਾਰੀ bimari), and Sikh terms (Khalsa, Sangat, Guru, Sahib, Bani, Kirtan).
+- Short vowels single a/i/u; ੇ → e, ੈ → ai (hai, main, lai), ੋ → o, ੌ → au (hauli, kaun); ਇਹ ih, ਪਹਿਲਾਂ pehlan. After a vowel, ਇਆ/ਈ → ya/yi (ਤਾਇਆ taya, ਗਿਆ gaya, ਲਈ layi); after a consonant, ਿਆ → ia (ਮਿਲਿਆ milia, ਸਕਿਆ sakia).
+- Aspirated consonants as consonant + h: kh, gh, chh, jh, th, dh, ph, bh. ੜ is rh (ਥੋੜ੍ਹੀ thorhi, ਪੜ੍ਹੋ parho, ਨੇੜਲੀ nerhli). ਵ is v (vich, seva, lavo) except in the fixed spellings below.
+- A doubled consonant (ੱ) is written twice — ਬੱਸ bass, ਰੱਜ rajj, ਦੱਸੋ dasso, ਗੱਲਬਾਤ gallbaat, ਲੱਭੋ labbho — except ch, chh, kh and th, which stay single: ਅੱਛਾ achha, ਪੁੱਛੋ puchho, ਵਿੱਚ vich, ਸਿੱਖ Sikh, ਮੱਥਾ matha, ਮਿੱਠਾ mitha, ਇੱਥੇ ithe.
+- Nasalization is written n or m as commonly heard (main, haan, ton, vichon, Punjabi) — no special marks — and not at all after a final ੀ or ੂ (ਤੁਸੀਂ tusi, ਨਹੀਂ nahi, ਮੈਨੂੰ mainu). Retroflex and dental are both spelled t/d/n — cover that difference in pronunciation tips, not in spelling. English loanwords keep their English spelling.
+- Fixed community spellings, always exactly so, even where they break the rules above: Waheguru, Gurdwara, Khalsa, Punjabi, Hukamnama, Darbar Sahib, Akal, Ardaas, Parshad, Karah Parshad, langar, seva, and the greetings Sat Sri Akal, Ji aayan nu, Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.
+- Capitalize like an English sentence: the first word of each sentence, plus proper nouns and Sikh terms of reverence (Waheguru, Guru, Gurdwara, Khalsa, Hukamnama, Punjabi, Sat Sri Akal); everything else lowercase. "ji" is lowercase after a kinship or everyday word (Chacha ji, Hor lavo ji) and capitalized only inside a name or formal title (Guru Nanak Dev Ji, Waheguru Ji Ka Khalsa). In "words" and "pronunciation", write roman forms in lowercase unless they are one of those proper nouns.
+- When the input is already romanized Punjabi, keep the user's own spelling in "roman" unless it breaks a rule above — never lengthen a vowel the user wrote short (Chacha ji stays Chacha ji, not Chaachaa ji).
 - One spelling per word, identical across every field of the response.`;
 
 const WORDS = `"words": split the SOURCE text, in order, into words or small phrases. Keep idiomatic or fixed multi-word units together as one entry — never gloss an idiom word by word. Each entry gives "source" exactly as it appears in the input, its "gurmukhi" and "roman" forms, and a "meaning" of a few English words (no sentences). Cover the whole input; group longer input into phrases; at most 30 entries.`;
@@ -70,6 +94,7 @@ export function composeTranslateInstruction(opts: {
     return [
         IDENTITY,
         `## Task\n${TASK}`,
+        `## Fidelity\n${FIDELITY}`,
         `## Input\n${inputSection(opts.sourceHint, opts.detectedScript)}`,
         `## Romanization\n${ROMANIZATION}`,
         `## Word by word\n${WORDS}`,
@@ -90,47 +115,47 @@ export function buildUserMessage(text: string): string {
 
 // Constrains Gemini's decoding (responseMimeType: 'application/json').
 // Runtime validation in ./parse.ts still applies — never trust the schema
-// alone. NOTE: enum fields require format: 'enum' in SDK 0.24.x.
-export const RESPONSE_SCHEMA: ResponseSchema = {
-    type: SchemaType.OBJECT,
+// alone. Enum fields carry format: 'enum', the API's documented enum form.
+export const RESPONSE_SCHEMA: Schema = {
+    type: Type.OBJECT,
     properties: {
-        detectedInput: { type: SchemaType.STRING, format: 'enum', enum: [...DETECTED_INPUTS] },
-        gurmukhi: { type: SchemaType.STRING },
-        roman: { type: SchemaType.STRING },
-        english: { type: SchemaType.STRING },
+        detectedInput: { type: Type.STRING, format: 'enum', enum: [...DETECTED_INPUTS] },
+        gurmukhi: { type: Type.STRING },
+        roman: { type: Type.STRING },
+        english: { type: Type.STRING },
         words: {
-            type: SchemaType.ARRAY,
+            type: Type.ARRAY,
             items: {
-                type: SchemaType.OBJECT,
+                type: Type.OBJECT,
                 properties: {
-                    source: { type: SchemaType.STRING },
-                    gurmukhi: { type: SchemaType.STRING },
-                    roman: { type: SchemaType.STRING },
-                    meaning: { type: SchemaType.STRING },
+                    source: { type: Type.STRING },
+                    gurmukhi: { type: Type.STRING },
+                    roman: { type: Type.STRING },
+                    meaning: { type: Type.STRING },
                 },
                 required: ['source', 'gurmukhi', 'roman', 'meaning'],
             },
         },
         notes: {
-            type: SchemaType.ARRAY,
+            type: Type.ARRAY,
             items: {
-                type: SchemaType.OBJECT,
+                type: Type.OBJECT,
                 properties: {
-                    kind: { type: SchemaType.STRING, format: 'enum', enum: [...NOTE_KINDS] },
-                    title: { type: SchemaType.STRING },
-                    body: { type: SchemaType.STRING },
+                    kind: { type: Type.STRING, format: 'enum', enum: [...NOTE_KINDS] },
+                    title: { type: Type.STRING },
+                    body: { type: Type.STRING },
                 },
                 required: ['kind', 'title', 'body'],
             },
         },
         pronunciation: {
-            type: SchemaType.ARRAY,
+            type: Type.ARRAY,
             items: {
-                type: SchemaType.OBJECT,
+                type: Type.OBJECT,
                 properties: {
-                    gurmukhi: { type: SchemaType.STRING },
-                    roman: { type: SchemaType.STRING },
-                    tip: { type: SchemaType.STRING },
+                    gurmukhi: { type: Type.STRING },
+                    roman: { type: Type.STRING },
+                    tip: { type: Type.STRING },
                 },
                 required: ['gurmukhi', 'roman', 'tip'],
             },
@@ -138,3 +163,29 @@ export const RESPONSE_SCHEMA: ResponseSchema = {
     },
     required: ['detectedInput', 'gurmukhi', 'roman', 'english', 'words', 'notes', 'pronunciation'],
 };
+
+// The complete request for one translation. Shared by the route and
+// `npm run eval:translate`, so a model trial measures exactly what production
+// sends.
+export function buildTranslateRequest(
+    model: string,
+    text: string,
+    opts: { sourceHint: SourceHint; detectedScript: 'gurmukhi' | 'latin' },
+): GenerateContentParameters {
+    return {
+        model,
+        contents: buildUserMessage(text),
+        config: {
+            systemInstruction: composeTranslateInstruction(opts),
+            responseMimeType: 'application/json',
+            responseSchema: RESPONSE_SCHEMA,
+            // Headroom for the worst case: a full 1,000-char input glossed word by
+            // word, with the model's own thinking tokens drawn from the same budget.
+            maxOutputTokens: 8192,
+            // Low leaves most of that budget to the gloss while still reasoning
+            // through the tricky-notes calls. No temperature: Gemini 3.x deprecates
+            // it, and the Fidelity rules above do its job instead.
+            thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+        },
+    };
+}

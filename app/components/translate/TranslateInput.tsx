@@ -11,12 +11,15 @@ type Props = {
     hint: SourceHint;
     onHint: (hint: SourceHint) => void;
     loading: boolean;
+    // The text and hint are exactly what produced the result on screen, so a
+    // submit asks for a fresh translation rather than the saved one.
+    again?: boolean;
     onSubmit: () => void;
 };
 
 // Input card for the navy page header: textarea + source-hint chips + the
 // live "Detected:" helper line driven by the client-side script heuristic.
-export default function TranslateInput({ text, onText, hint, onHint, loading, onSubmit }: Props) {
+export default function TranslateInput({ text, onText, hint, onHint, loading, again = false, onSubmit }: Props) {
     const t = useT();
 
     const chipLabels: Record<SourceHint, string> = {
@@ -62,7 +65,7 @@ export default function TranslateInput({ text, onText, hint, onHint, loading, on
                         disabled={loading || !hasText}
                         className="bg-navy text-white px-6 py-2 rounded-lg font-bold hover:bg-kesri hover:text-navy transition disabled:opacity-60 disabled:hover:bg-navy disabled:hover:text-white"
                     >
-                        {loading ? t.translate.translating : t.translate.translateButton}
+                        {loading ? t.translate.translating : again ? t.translate.translateAgain : t.translate.translateButton}
                     </button>
                 </div>
             </div>

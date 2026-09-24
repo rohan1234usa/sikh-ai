@@ -1,5 +1,8 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { ApiError, FinishReason, GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
+import { TRANSLATE_ATTEMPT_MS, TRANSLATE_BUDGET_MS } from "@/lib/gemini/budgets";
+import { isCapacityError, statusOf, withModelFallback, withTransport } from "@/lib/gemini/fallback";
+import { logEvent, logGeminiCall, usageFields } from "@/lib/gemini/log";
 import {
   MAX_TRANSLATE_CHARS,
   isSourceHint,
@@ -9,10 +12,17 @@ import {
 } from "@/lib/translate/config";
 import { detectScript, looksRomanizedPunjabi } from "@/lib/translate/detect";
 import { cloudTranslate } from "@/lib/translate/cloud";
-import { RESPONSE_SCHEMA, buildUserMessage, composeTranslateInstruction } from "@/lib/translate/prompts";
+import { buildTranslateRequest } from "@/lib/translate/prompts";
 import { parseTranslationResult } from "@/lib/translate/parse";
 
 export const maxDuration = 30;
+
+// Budget for Gemini, fallback model included, sized so the Cloud Translation
+// fallback (8 s timeout) still fits inside maxDuration after it. A full
+// 1,000-character input glossed word by word takes ~11 s on 3.8 Flash. The
+// numbers, and why the gap between them matters, live in lib/gemini/budgets.
+const GEMINI_BUDGET_MS = TRANSLATE_BUDGET_MS;
+const ATTEMPT_TIMEOUT_MS = TRANSLATE_ATTEMPT_MS;
 
 const FRIENDLY_ERROR = "Sorry, the translation failed. Please try again.";
 const TOO_LONG_ERROR = "That text is too long. Please try up to 1,000 characters.";
@@ -126,67 +136,84 @@ export async function POST(req: Request) {
           : hint !== 'auto' ? hint
             : 'english';
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-flash-latest",
-      systemInstruction: composeTranslateInstruction({ sourceHint: hint, detectedScript }),
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: RESPONSE_SCHEMA,
-        // Low for fidelity and run-to-run stability, non-zero so phrasing
-        // stays natural rather than stilted word-for-word.
-        temperature: 0.2,
-        // Headroom for the worst case: a full 1,000-char input glossed word by
-        // word, with the model's own thinking tokens drawn from the same budget.
-        maxOutputTokens: 8192,
-      },
+    const ai = new GoogleGenAI({ apiKey });
+    const deadline = Date.now() + GEMINI_BUDGET_MS;
+    const started = Date.now();
+    const { value: result, model, depth } = await withModelFallback(
+      "translate",
+      m => ai.models.generateContent(withTransport(
+        buildTranslateRequest(m, text, { sourceHint: hint, detectedScript }),
+        { signal: req.signal, timeoutMs: Math.min(ATTEMPT_TIMEOUT_MS, deadline - Date.now()) },
+      )),
+      { signal: req.signal, deadline },
+    );
+    const finishReason = result.candidates?.[0]?.finishReason;
+    const blockReason = result.promptFeedback?.blockReason;
+    const logCall = (outcome: "ok" | "truncated" | "unusable" | "blocked") => logGeminiCall({
+      feature: "translate", model, depth, outcome, ms: Date.now() - started,
+      modelVersion: result.modelVersion, ...usageFields(result.usageMetadata), finishReason, blockReason,
     });
 
-    const result = await model.generateContent(buildUserMessage(text));
-
-    // MAX_TOKENS is not one of the SDK's "bad finish reasons", so a truncated
-    // response returns as ordinary text and only fails later at JSON.parse.
-    // Catch it here to give advice the user can actually act on.
-    if (result.response.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
-      console.error("Translate Error: response truncated at maxOutputTokens");
+    // The SDK returns a truncated response as ordinary text, so it would only
+    // fail later at JSON.parse. Catch it here to give advice the user can
+    // actually act on.
+    if (finishReason === FinishReason.MAX_TOKENS) {
+      logCall("truncated");
       // MAX_TOKENS is an output-budget signal, not an input-length one: the
       // model's own thinking trace draws from the same budget, so a short input
       // can truncate while a near-cap one does not. "Shorten it" is therefore
       // often wrong advice — try a basic rendering before falling back to it.
       const viaCloud = await attemptCloudFallback(text, hint, detectedScript);
+      logEvent("cloud_fallback", { feature: "translate", reason: "truncated", served: !!viaCloud });
       if (viaCloud) return NextResponse.json(viaCloud, { headers: { "Cache-Control": "no-store" } });
       return NextResponse.json({ error: TOO_LONG_ERROR, code: "translate_too_long" }, { status: 400 });
     }
 
-    const parsed = parseTranslationResult(result.response.text(), fallbackDetected);
+    const parsed = parseTranslationResult(result.text ?? "", fallbackDetected);
 
     if (!parsed) {
-      console.error("Translate Error: unusable model output");
+      // Blocked or filtered replies land here too: the SDK returns them with
+      // no text rather than throwing.
+      logCall(blockReason ? "blocked" : "unusable");
       // Gemini answered, just not usably — a plain rendering still beats an error.
       const viaCloud = await attemptCloudFallback(text, hint, detectedScript);
+      logEvent("cloud_fallback", { feature: "translate", reason: "unusable", served: !!viaCloud });
       if (viaCloud) return NextResponse.json(viaCloud, { headers: { "Cache-Control": "no-store" } });
       return NextResponse.json({ error: FRIENDLY_ERROR, code: "translate_failed" }, { status: 502 });
     }
 
+    logCall("ok");
     return NextResponse.json(parsed, { headers: { "Cache-Control": "no-store" } });
 
   } catch (error) {
-    console.error("Translate Error:", error);
+    // A newer request replaced this one (the page aborts the old fetch); the
+    // answer would go nowhere, so don't spend Cloud credit on it.
+    if (req.signal.aborted) return new Response(null, { status: 499 });
 
     // `text` is only non-empty once validation passed, so a bad body or a
-    // validation throw skips this and costs nothing. Gemini's free tier is 20
-    // requests/day, which makes the 429 below an everyday event rather than an
-    // edge case — serving a basic translation is the whole point of this path.
+    // validation throw skips the fallback and costs nothing. Past that point a
+    // Gemini failure is already logged by logGeminiCall — but anything else
+    // (a response shape the SDK changed, a bug in the code around the call)
+    // would otherwise 500 with nothing in the host's log to explain it.
+    if (!text || !(error instanceof ApiError)) console.error("Translate Error:", error);
+
+    // Both models failed (overloaded, rate-limited, out of prepaid credit, or
+    // timed out) or the request itself was rejected. Either way a basic
+    // translation beats an error — that is the whole point of this path.
     if (text) {
       const viaCloud = await attemptCloudFallback(text, hint, detectedScript);
+      logEvent("cloud_fallback", { feature: "translate", reason: "gemini_failed", served: !!viaCloud });
       if (viaCloud) return NextResponse.json(viaCloud, { headers: { "Cache-Control": "no-store" } });
     }
 
-    // Quota/rate-limit exhaustion is a routine condition on Gemini's free tier,
-    // and "try again" is actively wrong advice for it — waiting is the fix.
-    const status = (error as { status?: number })?.status;
-    if (status === 429) {
-      return NextResponse.json({ error: BUSY_ERROR, code: "translate_busy" }, { status: 429 });
+    // Capacity failures (429, 5xx, a timeout, or 402 when the prepaid balance
+    // is used up) are "wait and retry" conditions, not a bad request — and
+    // "try again" right now is the wrong advice for them.
+    if (isCapacityError(error) || statusOf(error) === 402) {
+      return NextResponse.json(
+        { error: BUSY_ERROR, code: "translate_busy" },
+        { status: statusOf(error) === 429 ? 429 : 503 },
+      );
     }
     return NextResponse.json({ error: FRIENDLY_ERROR, code: "translate_failed" }, { status: 500 });
   }

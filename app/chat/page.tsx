@@ -13,7 +13,8 @@ import { useChatPrefs } from '../components/chat/useChatPrefs';
 import { parseDeepLink, fetchChatContext } from '../components/chat/deepLink';
 import { DEFAULT_PREFS, siteDefaultLanguageId, siteScript, type LensId } from '@/lib/chat/config';
 import { useLanguage } from '../context/LanguageContext';
-import { apiErrorText } from '@/lib/i18n/apiError';
+import { FriendlyError, responseErrorText } from '@/lib/i18n/apiError';
+import { MAX_VERIFY_CHARS, hasGurmukhiRun, sanitizeCitations } from '@/lib/gurbani/citations';
 import { fmt } from '@/lib/i18n/fmt';
 
 export default function ChatPage() {
@@ -38,6 +39,14 @@ export default function ChatPage() {
   const { prefs, update: updatePrefs, hydrated: prefsHydrated } = useChatPrefs();
 
   const abortRef = useRef<AbortController | null>(null);
+  // Set by the Stop button: a reply the user stopped still has its quotes
+  // checked, but one dropped by "New chat" or by leaving the page does not.
+  const stoppedRef = useRef(false);
+  // One per reply under check, by message id: two answers can be verified at
+  // once, and neither a finished reply nor a regenerate may cancel the check
+  // running for another — nothing would ever retry it, leaving that answer's
+  // quotes unchecked.
+  const verifyAbortsRef = useRef<Map<string, AbortController>>(new Map());
   const scrollRef = useRef<HTMLDivElement>(null);
   const atBottomRef = useRef(true);
   const [showJump, setShowJump] = useState(false);
@@ -94,8 +103,11 @@ export default function ChatPage() {
     if (el && atBottomRef.current) el.scrollTop = el.scrollHeight;
   }, [messages]);
 
-  // Abort any in-flight stream on unmount
-  useEffect(() => () => abortRef.current?.abort(), []);
+  // Abort any in-flight stream or citation check on unmount
+  useEffect(() => () => {
+    abortRef.current?.abort();
+    abortVerifications();
+  }, []);
 
   const onScroll = () => {
     const el = scrollRef.current;
@@ -130,6 +142,9 @@ export default function ChatPage() {
 
     const controller = new AbortController();
     abortRef.current = controller;
+    stoppedRef.current = false;
+    // Outside the try, so a reply cut short can still be checked below.
+    let full = '';
 
     try {
       // History: only completed (user -> non-error AI) exchanges, kept in
@@ -165,46 +180,87 @@ export default function ChatPage() {
       });
 
       if (!res.ok || !res.body) {
-        let friendly: string | null = null;
-        if (res.headers.get('content-type')?.includes('json')) {
-          friendly = apiErrorText(tRef.current, await res.json());
-        }
-        throw new Error(friendly ?? tRef.current.errors.generic);
+        const data = res.headers.get('content-type')?.includes('json')
+          ? await res.json().catch(() => null)
+          : null;
+        throw new FriendlyError(responseErrorText(tRef.current, res, data, 'chat_busy'));
       }
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      let received = false;
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value, { stream: true });
-        if (chunk) received = true;
+        full += chunk;
         setMessages(prev => prev.map(m => (m.id === aiMsg.id ? { ...m, text: m.text + chunk } : m)));
       }
-      if (!received) {
+      if (!full) {
         // Never leave a permanently empty bubble
         setMessages(prev => prev.map(m =>
           m.id === aiMsg.id ? { ...m, text: tRef.current.errors.generic, isError: true } : m
         ));
+      } else {
+        void verifyCitations(aiMsg.id, full);
       }
     } catch (err: unknown) {
-      if (err instanceof DOMException && err.name === 'AbortError') {
+      const aborted = err instanceof DOMException && err.name === 'AbortError';
+      if (aborted) {
         // User pressed Stop: keep partial text; drop the bubble if nothing arrived
         setMessages(prev => prev.flatMap(m =>
           m.id !== aiMsg.id ? [m] : m.text ? [{ ...m, interrupted: true }] : []
         ));
       } else {
-        const friendly = err instanceof Error && err.message ? err.message : tRef.current.errors.generic;
+        // Only our own messages are shown; a dropped stream's error text comes
+        // from the browser ("network error", "Load failed") and isn't translated.
+        const friendly = err instanceof FriendlyError ? err.message : tRef.current.errors.generic;
         setMessages(prev => prev.map(m =>
           m.id === aiMsg.id
             ? (m.text ? { ...m, interrupted: true } : { ...m, text: friendly, isError: true })
             : m
         ));
       }
+      // A reply cut short by the output cap, a filter, the deadline or Stop
+      // still shows the quotes that arrived, so they are checked too. A last
+      // line cut mid-way has no closing ॥, so it only gets a card if it verifies.
+      if (full.trim() && (!aborted || stoppedRef.current)) void verifyCitations(aiMsg.id, full);
     } finally {
       abortRef.current = null;
       setIsStreaming(false);
+    }
+  }
+
+  // Checks the Gurbani a reply quotes once it has stopped streaming
+  // (lib/gurbani/verify.ts) and attaches the result as cards. Best effort:
+  // any failure just means no cards, and the chat never waits on it.
+  // Every check, or only those for the given replies.
+  function abortVerifications(messageIds?: string[]) {
+    for (const [id, controller] of verifyAbortsRef.current) {
+      if (messageIds && !messageIds.includes(id)) continue;
+      controller.abort();
+      verifyAbortsRef.current.delete(id);
+    }
+  }
+
+  async function verifyCitations(messageId: string, text: string) {
+    if (!hasGurmukhiRun(text)) return;
+    const controller = new AbortController();
+    verifyAbortsRef.current.set(messageId, controller);
+    try {
+      const res = await fetch('/api/chat/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text.slice(0, MAX_VERIFY_CHARS) }),
+        signal: controller.signal,
+      });
+      if (!res.ok) return;
+      const citations = sanitizeCitations((await res.json().catch(() => null))?.citations);
+      if (citations.length === 0) return;
+      setMessages(prev => prev.map(m => (m.id === messageId ? { ...m, citations } : m)));
+    } catch {
+      // Aborted or offline: no cards.
+    } finally {
+      if (verifyAbortsRef.current.get(messageId) === controller) verifyAbortsRef.current.delete(messageId);
     }
   }
 
@@ -212,12 +268,15 @@ export default function ChatPage() {
     if (isStreaming) return;
     const lastUserIdx = messages.findLastIndex(m => m.role === 'user');
     if (lastUserIdx === -1) return;
+    // The reply being replaced may still be under check; earlier replies keep theirs.
+    abortVerifications(messages.slice(lastUserIdx).map(m => m.id));
     // send() re-appends the user message, so slice it off the base
     send(messages[lastUserIdx].text, messages.slice(0, lastUserIdx));
   };
 
   const confirmClear = () => {
     abortRef.current?.abort();
+    abortVerifications();
     clear([{ ...initialMessages[0], text: lens.greeting }]);
     setContextError(false);
     setConfirmingClear(false);
@@ -374,7 +433,10 @@ export default function ChatPage() {
         value={input}
         onChange={setInput}
         onSend={() => send(input, messages)}
-        onStop={() => abortRef.current?.abort()}
+        onStop={() => {
+          stoppedRef.current = true;
+          abortRef.current?.abort();
+        }}
         isStreaming={isStreaming}
       />
 

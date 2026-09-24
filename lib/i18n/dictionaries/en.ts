@@ -8,6 +8,7 @@
 // Brand names ("SikhAI", "Gemini", "Rohan Singh") are never translated.
 
 import type { ChatCopy } from '@/lib/chat/config';
+import type { CitationStatus } from '@/lib/gurbani/citations';
 import type { DetectedInput, NoteKind } from '@/lib/translate/config';
 import type { PhraseCategoryId } from '@/lib/translate/phrasebook';
 import type { Theme } from '@/lib/theme';
@@ -359,11 +360,36 @@ const en = {
         stopAria: 'Stop generating',
         thinking: 'SikhAI is thinking',
         interrupted: 'Response interrupted',
+        disclaimer: 'SikhAI can make mistakes — verify Gurbani quotes. Each message goes to Google Gemini with your recent conversation; the chat is saved only in this browser.',
+        charCount: '{n} / {max}',
+        charLimit: 'Character limit reached: {max}',
         copyAria: 'Copy message',
         copiedAria: 'Copied',
         regenerateAria: 'Regenerate response',
         discussing: 'Discussing: {title}',
         stopDiscussingAria: 'Stop discussing this passage',
+        // Cards under a reply that check its Gurbani quotes against GurbaniNow
+        citations: {
+            heading: 'Gurbani check',
+            sourceNote: 'Lines, translations, and Ang numbers in this box come word for word from GurbaniNow — not from the AI.',
+            moreQuoted: 'Only the first {max} of the {total} lines this reply quotes were checked.',
+            statusLabels: {
+                'verified': 'Matches the source',
+                'wrong-ang': 'Found on a different Ang',
+                'close': 'Wording differs from the source',
+                'unverified': "Couldn't verify this line",
+            } satisfies Record<CitationStatus, string>,
+            // A verified quote that matches only once vowel signs are set aside
+            respelled: 'Same line, spelled differently',
+            spellingNote: 'The reply spells this line differently from the source. In Gurbani a single vowel sign can change the meaning, so rely on the line shown here.',
+            wrongAngNote: 'The reply cites Ang {cited}. GurbaniNow places this line on Ang {ang}.',
+            inReply: 'In the reply',
+            closestLine: 'Closest line in the source',
+            closeNote: 'The reply’s wording does not match the source exactly. Please rely on the source line shown here.',
+            unverifiedNote: 'This line could not be found in GurbaniNow. It may be paraphrased or misquoted — please check it against a trusted source before sharing it.',
+            pageN: 'Page {n}',
+            openAng: 'Open Ang {n}',
+        },
         config: chatConfig,
     },
 
@@ -404,6 +430,7 @@ const en = {
         inputAria: 'Text to translate',
         inputPlaceholder: 'Type in English or Punjabi…',
         translateButton: 'Translate',
+        translateAgain: 'Translate again',
         translating: 'Translating…',
         charCount: '{n} / {max}',
         sourceChipsAria: 'Input language',
@@ -552,6 +579,8 @@ const en = {
         chat_empty: 'Please enter a message.',
         chat_too_long: 'That message is too long. Please shorten it and try again.',
         chat_failed: 'Sorry, something went wrong on our end. Please try again.',
+        chat_busy: 'SikhAI is very busy right now. Please wait a minute and try again.',
+        chat_blocked: "SikhAI couldn't respond to that message. Please try rephrasing your question.",
         missing_query: 'Missing query',
         invalid_ang: 'Invalid Ang number',
         source_error: 'Could not reach the Gurbani source. Please try again.',

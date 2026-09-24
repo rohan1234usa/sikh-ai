@@ -10,6 +10,22 @@
 // terms against lib/i18n/dictionaries/pa-latn.ts so spellings never drift.
 // `note` (one-line cultural/usage note) is English-only in v1 — a known
 // limitation, kept to avoid tripling the fluent-review burden.
+//
+// Open questions for that review, where an entry and the translator's house
+// romanization (ROMANIZATION in lib/translate/prompts.ts) disagree.
+// `npm run eval:translate -- --all` lists them first, and
+// scripts/phrasebook-build/review.md shows what every phrase tap displays.
+// - sir-dhak-lavo, bhukh-lagi-hai: "dhak", "lagi" for ਢੱਕ, ਲੱਗੀ. Elsewhere ੱ
+//   doubles a plain letter (rajj, gall), which would give dhakk, laggi.
+// - bahut-vadiya: "vadiya" for ਵਧੀਆ, where ਧ is dh everywhere else (vadhiya).
+// - fer-milange: "Fer" for ਫੇਰ, where the rules and pa-latn write ਫ as ph (phir).
+// - tuhada-naam-ki-hai: "naam" spells ਨਾਮ, but the Gurmukhi is ਨਾਂ, which
+//   pa-latn writes as naan. One of the two should change.
+// - chaa-peeoge, parshad-lai-lavo: the model writes ਚਾਹ as "chah" and
+//   "Parshad" as ਪਰਸ਼ਾਦ, so its glosses cannot match these entries.
+// Those last three phrases use the live translator on tap until settled.
+// After editing any entry, run `npm run build:phrasebook`; `npm test` fails
+// until then, and meanwhile that phrase's tap uses the live translator too.
 
 export const PHRASE_CATEGORIES = ['greetings', 'family', 'gurdwara', 'everyday', 'food'] as const;
 export type PhraseCategoryId = (typeof PHRASE_CATEGORIES)[number];

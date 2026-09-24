@@ -10,6 +10,7 @@ import {
     type Phrase,
     type PhraseCategoryId,
 } from '@/lib/translate/phrasebook';
+import { preloadPhraseResults } from '@/lib/translate/phrasebookResults';
 import CopyButton from './CopyButton';
 
 type Props = {
@@ -72,7 +73,12 @@ export default function Phrasebook({ onUsePhrase }: Props) {
                             phrase={phrase}
                             expanded={expandedId === phrase.id}
                             showCategory={searching}
-                            onToggle={() => setExpandedId(prev => (prev === phrase.id ? null : phrase.id))}
+                            onToggle={() => {
+                                // Fetch the pre-generated results while the row is read,
+                                // so "use" is instant.
+                                void preloadPhraseResults();
+                                setExpandedId(prev => (prev === phrase.id ? null : phrase.id));
+                            }}
                             onUse={() => onUsePhrase(phrase)}
                         />
                     ))}
