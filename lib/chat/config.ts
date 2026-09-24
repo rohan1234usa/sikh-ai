@@ -84,6 +84,20 @@ export const MAX_EXCHANGES_PER_CHAT = 100;
 export const MAX_LOCAL_CHATS = 50;
 export const MAX_PINNED_CHATS = 10;
 
+// A passage read back from storage or the network: untrusted, rebuilt.
+export function sanitizeChatContext(raw: unknown): ChatContext | null {
+    if (!raw || typeof raw !== 'object') return null;
+    const c = raw as Record<string, unknown>;
+    if (c.type !== 'hukamnama' && c.type !== 'shabad') return null;
+    if (typeof c.text !== 'string' || c.text.trim() === '') return null;
+    return {
+        type: c.type,
+        title: typeof c.title === 'string' ? c.title.slice(0, MAX_CONTEXT_TITLE_CHARS) : '',
+        text: c.text.slice(0, MAX_CONTEXT_TEXT_CHARS),
+        capturedAt: typeof c.capturedAt === 'number' && Number.isFinite(c.capturedAt) ? c.capturedAt : 0,
+    };
+}
+
 export const isLensId = (v: unknown): v is LensId => LENS_IDS.includes(v as LensId);
 export const isModeId = (v: unknown): v is ModeId => MODE_IDS.includes(v as ModeId);
 export const isLanguageId = (v: unknown): v is LanguageId => LANGUAGE_IDS.includes(v as LanguageId);
