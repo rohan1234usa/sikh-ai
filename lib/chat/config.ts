@@ -74,6 +74,16 @@ export const MAX_MESSAGE_CHARS = 4000;
 export const MAX_CONTEXT_TITLE_CHARS = 200;
 export const MAX_CONTEXT_TEXT_CHARS = 8000;
 
+// Saved chats. A reply is capped at 4,096 output tokens (~14,000 characters of
+// English); 40,000 leaves room for Punjabi, which spends more per word, and
+// still bounds what storage will accept. The per-chat and pinned caps keep a
+// browser's ~5 MB of localStorage able to hold a useful number of chats, and
+// guarantee there is always an unpinned chat to make room.
+export const MAX_REPLY_CHARS = 40_000;
+export const MAX_EXCHANGES_PER_CHAT = 100;
+export const MAX_LOCAL_CHATS = 50;
+export const MAX_PINNED_CHATS = 10;
+
 export const isLensId = (v: unknown): v is LensId => LENS_IDS.includes(v as LensId);
 export const isModeId = (v: unknown): v is ModeId => MODE_IDS.includes(v as ModeId);
 export const isLanguageId = (v: unknown): v is LanguageId => LANGUAGE_IDS.includes(v as LanguageId);
