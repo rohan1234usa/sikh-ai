@@ -109,6 +109,13 @@ export function planImport(uid: string, meta: ChatMeta, context: ChatContext | n
     return batches;
 }
 
+// The chats past an account's cap that go (FirestoreChatStore.makeRoom): all
+// of them but pinned ones and those in use here (open, or being answered),
+// which stay until a later pass.
+export function planEvictions(overflow: ChatMeta[], inUse: (chatId: string) => boolean): ChatMeta[] {
+    return overflow.filter((m) => !m.pinned && !inUse(m.id));
+}
+
 // Splits any list of operations into batches Firestore accepts.
 export function chunk(ops: Op[]): Op[][] {
     const out: Op[][] = [];

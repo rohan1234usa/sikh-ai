@@ -6,6 +6,7 @@ import {
     planCitations,
     planCreate,
     planDelete,
+    planEvictions,
     planImport,
     planMeta,
     planPutEntries,
@@ -95,4 +96,11 @@ test('a link and the chat\'s note of it are written together, and ended together
     const unshare = planUnshare(UID, 'chat-123456', 'share-12345');
     assert.deepEqual(unshare.map(at), ['delete shared_chats/share-12345', 'update users/user-1/chats/chat-123456']);
     assert.deepEqual((unshare[1] as { data: object }).data, { share: null });
+});
+
+test('past the cap, every unpinned chat goes, except one in use here', () => {
+    const overflow = [meta(1), meta(2, { pinned: true }), meta(3), meta(4)];
+    const inUse = (id: string) => id === meta(3).id;
+    assert.deepEqual(planEvictions(overflow, inUse).map((m) => m.id), [meta(1).id, meta(4).id]);
+    assert.deepEqual(planEvictions([], inUse), []);
 });

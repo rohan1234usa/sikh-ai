@@ -4,14 +4,13 @@ import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import type { ChatHome, ChatMeta } from '@/lib/chat/chatMeta';
 import type { InflightReply } from '@/lib/chat/runtime';
 import type { ListState } from '@/lib/chat/store/types';
-import { evictions, getAccountChatStore, getLocalChatStore, getReplyRuntime } from './chatStores';
+import { NO_EVICTIONS, evictions, getAccountChatStore, getLocalChatStore, getReplyRuntime } from './chatStores';
 import { useChatHomes } from './useChatHomes';
 
 export type ChatListItem = ChatMeta & { home: ChatHome };
 
 const LOADING: ListState = { status: 'loading', chats: [] };
 const NONE: ReadonlyMap<string, InflightReply> = new Map();
-const NO_EVICTIONS: string[] = [];
 const none = () => () => {};
 
 const subscribeLocal = (cb: () => void) => getLocalChatStore().subscribeList(cb);
@@ -47,7 +46,7 @@ export function useChatList() {
     };
 }
 
-// Chats removed to make room in this browser's storage, until dismissed.
+// Chats removed to make room (in this browser, or past the account's cap), until dismissed.
 export function useEvictions() {
     return useSyncExternalStore(evictions.subscribe, evictions.get, () => NO_EVICTIONS);
 }

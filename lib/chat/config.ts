@@ -83,6 +83,9 @@ export const MAX_REPLY_CHARS = 40_000;
 export const MAX_EXCHANGES_PER_CHAT = 100;
 export const MAX_LOCAL_CHATS = 50;
 export const MAX_PINNED_CHATS = 10;
+// An account keeps its most recently used chats up to this many (exactly what
+// its chat list shows), plus any pinned chat older than those.
+export const MAX_ACCOUNT_CHATS = 100;
 
 // A passage read back from storage or the network: untrusted, rebuilt.
 export function sanitizeChatContext(raw: unknown): ChatContext | null {

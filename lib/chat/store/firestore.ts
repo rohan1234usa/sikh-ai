@@ -19,13 +19,15 @@ import {
     onSnapshot,
     orderBy,
     query,
+    startAfter,
     where,
     writeBatch,
     type Firestore,
+    type QueryDocumentSnapshot,
     type Unsubscribe,
 } from 'firebase/firestore';
 import type { Citation } from '@/lib/gurbani/citations';
-import { sanitizeChatContext, type ChatContext } from '../config';
+import { MAX_ACCOUNT_CHATS, sanitizeChatContext, type ChatContext } from '../config';
 import { sanitizeMeta, sortChats, type ChatMeta, type ShareRef } from '../chatMeta';
 import { SHARE_VERSION, type ShareDoc, type Snapshot } from '../share';
 import { normalizeTranscript, toStoredEntry, type Entry, type Reply } from '../transcript';
@@ -34,6 +36,7 @@ import {
     planCitations,
     planCreate,
     planDelete,
+    planEvictions,
     planImport,
     planMeta,
     planPutEntries,
@@ -61,8 +64,14 @@ type Watch = {
 };
 
 const LINGER_MS = 2000;
-// Recent chats listed; pinned ones (at most 10) are listed whatever their age.
-const LIST_LIMIT = 100;
+// Recent chats listed: all an account keeps, bar pinned ones older than
+// those, which are listed whatever their age.
+const LIST_LIMIT = MAX_ACCOUNT_CHATS;
+// How long after a chat arrives the account makes room: long enough for the
+// list to hold it, and for a move of many chats to be tidied up in one pass.
+const ROOM_DELAY_MS = 2000;
+// Chats past the cap removed per pass; a later new chat takes the rest.
+const OVERFLOW_BATCH = 50;
 const LOADING: ChatState = { status: 'loading' };
 const MISSING: ChatState = { status: 'missing' };
 
@@ -74,6 +83,15 @@ function codeOf(e: unknown): StoreErrorCode {
 }
 
 const metaOf = (id: string, data: Record<string, unknown>) => sanitizeMeta({ ...data, id });
+const metas = (docs: { id: string; data(): Record<string, unknown> }[]) =>
+    docs.map((d) => metaOf(d.id, d.data())).filter((m): m is ChatMeta => m !== null);
+
+export type AccountStoreOptions = {
+    onWriteFailed?: (failure: WriteFailure) => void;
+    // Chats in use here (open, or being answered): never removed to make room.
+    inUse?: (chatId: string) => boolean;
+    onEvicted?: (chatIds: string[]) => void;
+};
 
 export class FirestoreChatStore implements ChatStore {
     readonly home = 'account' as const;
@@ -87,6 +105,9 @@ export class FirestoreChatStore implements ChatStore {
     private listStopTimer?: ReturnType<typeof setTimeout>;
     private recent: ChatMeta[] | null = null;
     private pinned: ChatMeta[] | null = null;
+    // The last chat the list holds, when it's full: whatever is older is past the cap.
+    private listEnd: QueryDocumentSnapshot | null = null;
+    private roomTimer?: ReturnType<typeof setTimeout>;
 
     private chats = new Map<string, ChatState>();
     private watches = new Map<string, Watch>();
@@ -97,7 +118,7 @@ export class FirestoreChatStore implements ChatStore {
     constructor(
         private readonly db: Firestore,
         readonly uid: string,
-        private readonly onWriteFailed?: (failure: WriteFailure) => void,
+        private readonly opts: AccountStoreOptions = {},
     ) {}
 
     // ── Health ───────────────────────────────────────────────────────────────
@@ -142,11 +163,10 @@ export class FirestoreChatStore implements ChatStore {
             this.list = { status: 'error', chats: [], error: code };
             this.emitList();
         };
-        const metas = (docs: { id: string; data(): Record<string, unknown> }[]) =>
-            docs.map((d) => metaOf(d.id, d.data())).filter((m): m is ChatMeta => m !== null);
         this.listUnsubs = [
             onSnapshot(query(chats, orderBy('updatedAt', 'desc'), limit(LIST_LIMIT)), (snap) => {
                 this.recent = metas(snap.docs);
+                this.listEnd = snap.docs.length === LIST_LIMIT ? snap.docs[snap.docs.length - 1] : null;
                 this.rebuildList();
             }, failed),
             onSnapshot(query(chats, where('pinned', '==', true)), (snap) => {
@@ -161,6 +181,7 @@ export class FirestoreChatStore implements ChatStore {
         for (const unsub of this.listUnsubs) unsub();
         this.listUnsubs = [];
         this.recent = this.pinned = null;
+        this.listEnd = null;
         this.list = { status: 'loading', chats: [] };
     }
 
@@ -233,6 +254,7 @@ export class FirestoreChatStore implements ChatStore {
 
     // Everything this store listens to, on sign-out.
     dispose() {
+        clearTimeout(this.roomTimer);
         for (const id of [...this.watches.keys()]) {
             const w = this.watches.get(id)!;
             clearTimeout(w.stopTimer);
@@ -276,7 +298,7 @@ export class FirestoreChatStore implements ChatStore {
             } catch (e) {
                 const code = codeOf(e);
                 if (failure.kind === 'create') this.refused(code);
-                this.onWriteFailed?.({ ...failure, code });
+                this.opts.onWriteFailed?.({ ...failure, code });
             }
         })();
         return Promise.resolve();
@@ -295,7 +317,9 @@ export class FirestoreChatStore implements ChatStore {
     async createChat(meta: ChatMeta, context: ChatContext | null, entries: Entry[]): Promise<void> {
         const record: ChatRecord = { meta, context, transcript: normalizeTranscript(entries.map(toStoredEntry)) };
         this.setChat(meta.id, { status: 'ready', record });
-        return this.send([planCreate(this.uid, meta, context, entries)], { chatId: meta.id, kind: 'create', record });
+        const sent = this.send([planCreate(this.uid, meta, context, entries)], { chatId: meta.id, kind: 'create', record });
+        this.scheduleRoom();
+        return sent;
     }
 
     async putEntries(chatId: string, entries: Entry[], opts: { touch: number; removeIds?: string[] }): Promise<void> {
@@ -330,19 +354,50 @@ export class FirestoreChatStore implements ChatStore {
     }
 
     async deleteChat(chatId: string): Promise<void> {
-        // Every entry document, including any the transcript repair set aside.
-        const w = this.watches.get(chatId);
-        const entryIds = w?.entryIds
-            ?? (await getDocs(collection(this.db, 'users', this.uid, 'chats', chatId, 'entries'))).docs.map((d) => d.id);
         // The link from what is being listened to now: the open chat, else the list.
-        const state = w ? this.chats.get(chatId) : undefined;
+        const state = this.watches.has(chatId) ? this.chats.get(chatId) : undefined;
         const shareId = (state?.status === 'ready' ? state.record.meta.share : this.list.chats.find((c) => c.id === chatId)?.share)?.id;
+        return this.remove(chatId, shareId);
+    }
+
+    private async remove(chatId: string, shareId: string | null | undefined): Promise<void> {
+        // Every entry document, including any the transcript repair set aside.
+        const entryIds = this.watches.get(chatId)?.entryIds
+            ?? (await getDocs(collection(this.db, 'users', this.uid, 'chats', chatId, 'entries'))).docs.map((d) => d.id);
         this.setChat(chatId, MISSING);
         return this.send(chunk(planDelete(this.uid, chatId, entryIds, shareId)), { chatId, kind: 'write' });
     }
 
     async importChat(record: ChatRecord): Promise<void> {
         await this.sendAndWait(planImport(this.uid, record.meta, record.context, record.transcript));
+        this.scheduleRoom();
+    }
+
+    // ── The cap ──────────────────────────────────────────────────────────────
+
+    // A chat arrived: once the list holds it, see whether the account is over.
+    private scheduleRoom() {
+        clearTimeout(this.roomTimer);
+        this.roomTimer = setTimeout(() => void this.makeRoom(), ROOM_DELAY_MS);
+    }
+
+    // An account keeps its MAX_ACCOUNT_CHATS most recently used chats, as this
+    // browser keeps MAX_LOCAL_CHATS: the unpinned ones that fall past the end
+    // of the list go, so every chat kept is one the list shows. Only a full
+    // list costs a read here, and a list that isn't being read (the chat
+    // screen is closed) is left for the next new chat to tidy.
+    private async makeRoom() {
+        const end = this.listEnd;
+        if (!end) return;
+        try {
+            const chats = collection(this.db, 'users', this.uid, 'chats');
+            const past = await getDocs(query(chats, orderBy('updatedAt', 'desc'), startAfter(end), limit(OVERFLOW_BATCH)));
+            const victims = planEvictions(metas(past.docs), (id) => this.opts.inUse?.(id) ?? false);
+            for (const meta of victims) await this.remove(meta.id, meta.share?.id);
+            if (victims.length > 0) this.opts.onEvicted?.(victims.map((m) => m.id));
+        } catch {
+            // Offline or refused: the next new chat tries again.
+        }
     }
 
     // ── Shared links ─────────────────────────────────────────────────────────

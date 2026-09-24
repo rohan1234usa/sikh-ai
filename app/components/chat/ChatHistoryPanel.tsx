@@ -3,7 +3,7 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDoubleLeftIcon, CloudIcon, PencilSquareIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { deriveTitle, sanitizeTitle } from '@/lib/chat/chatMeta';
-import { MAX_PINNED_CHATS } from '@/lib/chat/config';
+import { MAX_ACCOUNT_CHATS, MAX_PINNED_CHATS } from '@/lib/chat/config';
 import { groupChats } from '@/lib/chat/historyGroups';
 import { readChat } from '@/lib/chat/store/read';
 import { useAuth } from '../../context/AuthContext';
@@ -168,9 +168,12 @@ export default function ChatHistoryPanel({ variant, headingId, activeId, onNavig
                 {offer.visible && (
                     <MoveChatsBanner progress={offer.progress} onMove={() => void offer.move()} onDismiss={offer.dismiss} />
                 )}
-                {evicted.length > 0 && (
+                {(evicted.local.length > 0 || evicted.account.length > 0) && (
                     <div role="status" className="mb-2 flex items-start gap-2 rounded-lg border border-edge bg-surface px-3 py-2 text-xs text-ink-muted">
-                        <p className="flex-1">{fmt(h.evicted, { n: evicted.length })}</p>
+                        <div className="flex-1 space-y-1">
+                            {evicted.local.length > 0 && <p>{fmt(h.evicted, { n: evicted.local.length })}</p>}
+                            {evicted.account.length > 0 && <p>{fmt(h.evictedAccount, { n: evicted.account.length, max: MAX_ACCOUNT_CHATS })}</p>}
+                        </div>
                         <button type="button" onClick={evictions.clear} aria-label={t.chat.dismiss} className="shrink-0 rounded p-0.5 hover:bg-edge/60">
                             <XMarkIcon className="h-4 w-4" />
                         </button>

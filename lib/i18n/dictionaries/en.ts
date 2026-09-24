@@ -405,6 +405,7 @@ const en = {
             deleteGroupAria: 'Confirm deleting {title}',
             pinLimit: 'You can pin up to {max} chats.',
             evicted: 'To make room in this browser, older chats were removed ({n}).',
+            evictedAccount: 'Your account keeps your {max} most recent chats, plus pinned ones, so older chats were removed ({n}).',
             localHint: 'Chats are saved in this browser.',
             browserGroup: 'On this browser',
             loadError: "Couldn't load your chats.",

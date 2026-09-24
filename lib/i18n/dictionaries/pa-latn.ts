@@ -399,6 +399,7 @@ const paLatn: Dictionary = {
             deleteGroupAria: '{title} mitaun di pushti karo',
             pinLimit: 'Tusi vadh ton vadh {max} gallbaatan pin kar sakde ho.',
             evicted: 'Is browser vich thaan banaun layi puranian gallbaatan hatayian gayian ({n}).',
+            evictedAccount: 'Tuhada khaata tuhadian {max} sabh ton halia gallbaatan ate pin kitian gallbaatan sambhalda hai, is layi puranian gallbaatan hatayian gayian ({n}).',
             localHint: 'Gallbaatan ise browser vich sambhalian jaandian han.',
             browserGroup: 'Is browser vich',
             loadError: 'Tuhadian gallbaatan load nahi ho sakian.',

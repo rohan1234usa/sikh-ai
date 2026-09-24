@@ -5,6 +5,7 @@
 // down: a reply keeps going while the user is elsewhere on the site.
 
 import { onAuthStateChanged } from 'firebase/auth';
+import type { ChatHome } from '@/lib/chat/chatMeta';
 import { auth, db } from '@/lib/firebase';
 import { FirestoreChatStore, type WriteFailure } from '@/lib/chat/store/firestore';
 import { LocalChatStore, type StorageLike } from '@/lib/chat/store/local';
@@ -20,9 +21,16 @@ export function setOpenChat(id: string | null) {
     openChatId = id;
 }
 
-// Chats evicted to make room, for the notice in the chat list.
-let evicted: string[] = [];
+// Chats removed to make room, by where they were kept, for the notice in the
+// chat list.
+export type Evictions = Readonly<Record<ChatHome, readonly string[]>>;
+export const NO_EVICTIONS: Evictions = { local: [], account: [] };
+let evicted: Evictions = NO_EVICTIONS;
 const evictedListeners = new Set<() => void>();
+function addEvicted(home: ChatHome, ids: string[]) {
+    evicted = { ...evicted, [home]: [...evicted[home], ...ids] };
+    for (const cb of evictedListeners) cb();
+}
 export const evictions = {
     subscribe(onChange: () => void) {
         evictedListeners.add(onChange);
@@ -30,10 +38,13 @@ export const evictions = {
     },
     get: () => evicted,
     clear() {
-        evicted = [];
+        evicted = NO_EVICTIONS;
         for (const cb of evictedListeners) cb();
     },
 };
+
+// Chats this tab is using, which are never removed to make room.
+const inUse = (id: string) => id === openChatId || getReplyRuntime().isBusy(id);
 
 // localStorage can be missing or throw (blocked cookies, some private modes);
 // chats then last as long as the tab.
@@ -96,7 +107,11 @@ export function getAccountChatStore(uid: string): FirestoreChatStore {
     getReplyRuntime(); // its sign-out handling must be in place first
     if (!account || account.uid !== uid) {
         account?.dispose();
-        account = new FirestoreChatStore(db, uid, onAccountWriteFailed);
+        account = new FirestoreChatStore(db, uid, {
+            onWriteFailed: onAccountWriteFailed,
+            inUse,
+            onEvicted: (ids) => addEvicted('account', ids),
+        });
     }
     return account;
 }
@@ -114,11 +129,8 @@ export function getLocalChatStore(): LocalChatStore {
                 window.addEventListener('storage', onStorage);
                 return () => window.removeEventListener('storage', onStorage);
             },
-            isProtected: (id) => id === openChatId || getReplyRuntime().isBusy(id),
-            onEvicted: (ids) => {
-                evicted = [...evicted, ...ids];
-                for (const cb of evictedListeners) cb();
-            },
+            isProtected: inUse,
+            onEvicted: (ids) => addEvicted('local', ids),
         });
     }
     return local;
