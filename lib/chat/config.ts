@@ -74,6 +74,33 @@ export const MAX_MESSAGE_CHARS = 4000;
 export const MAX_CONTEXT_TITLE_CHARS = 200;
 export const MAX_CONTEXT_TEXT_CHARS = 8000;
 
+// Saved chats. A reply is capped at 4,096 output tokens (~14,000 characters of
+// English); 40,000 leaves room for Punjabi, which spends more per word, and
+// still bounds what storage will accept. The per-chat and pinned caps keep a
+// browser's ~5 MB of localStorage able to hold a useful number of chats, and
+// guarantee there is always an unpinned chat to make room.
+export const MAX_REPLY_CHARS = 40_000;
+export const MAX_EXCHANGES_PER_CHAT = 100;
+export const MAX_LOCAL_CHATS = 50;
+export const MAX_PINNED_CHATS = 10;
+// An account keeps its most recently used chats up to this many (exactly what
+// its chat list shows), plus any pinned chat older than those.
+export const MAX_ACCOUNT_CHATS = 100;
+
+// A passage read back from storage or the network: untrusted, rebuilt.
+export function sanitizeChatContext(raw: unknown): ChatContext | null {
+    if (!raw || typeof raw !== 'object') return null;
+    const c = raw as Record<string, unknown>;
+    if (c.type !== 'hukamnama' && c.type !== 'shabad') return null;
+    if (typeof c.text !== 'string' || c.text.trim() === '') return null;
+    return {
+        type: c.type,
+        title: typeof c.title === 'string' ? c.title.slice(0, MAX_CONTEXT_TITLE_CHARS) : '',
+        text: c.text.slice(0, MAX_CONTEXT_TEXT_CHARS),
+        capturedAt: typeof c.capturedAt === 'number' && Number.isFinite(c.capturedAt) ? c.capturedAt : 0,
+    };
+}
+
 export const isLensId = (v: unknown): v is LensId => LENS_IDS.includes(v as LensId);
 export const isModeId = (v: unknown): v is ModeId => MODE_IDS.includes(v as ModeId);
 export const isLanguageId = (v: unknown): v is LanguageId => LANGUAGE_IDS.includes(v as LanguageId);

@@ -62,14 +62,14 @@ export function angContext(ang: number, data: { page?: unknown }, t: Dictionary)
     return buildContext('shabad', `${fmt(t.shabad.angLabel, { n: ang })} — ${t.shabad.granth}`, lines.join('\n\n'));
 }
 
-export async function fetchChatContext(link: DeepLink, t: Dictionary): Promise<ChatContext> {
+export async function fetchChatContext(link: DeepLink, t: Dictionary, signal?: AbortSignal): Promise<ChatContext> {
     if (link.type === 'hukamnama') {
-        const res = await fetch('/api/hukamnama');
+        const res = await fetch('/api/hukamnama', { signal });
         if (!res.ok) throw new Error('Failed to load the Hukamnama');
         return hukamnamaContext(await res.json(), t);
     }
 
-    const res = await fetch(`/api/shabad?query=${link.ang}`);
+    const res = await fetch(`/api/shabad?query=${link.ang}`, { signal });
     if (!res.ok) throw new Error('Failed to load that Ang');
     return angContext(link.ang, await res.json(), t);
 }

@@ -1,0 +1,136 @@
+// SikhAI — Firestore rules for saved chats and shared links.
+//
+// NOT a complete rules file, and not referenced from firebase.json: the
+// production rules live in the Firebase console, and `firebase deploy` of a
+// file would replace them (seva_events included). Paste everything between
+// the BEGIN and END lines INSIDE the existing block
+//
+//     match /databases/{database}/documents { … }
+//
+// next to the rules already there. Do not add a second `rules_version` line
+// or `service` block. Every function name starts with `chat`, so none clashes
+// with existing ones.
+//
+// Before relying on these, check the existing rules for a catch-all
+// (`match /{document=**}`), `allow read, write: if true`, or a test-mode
+// `request.time < …` rule: rules are OR-ed, so any of those would make every
+// saved chat readable and writable by anyone, whatever this block says.
+//
+// Shapes checked here are the ones lib/chat/store/firestorePlans.ts writes.
+
+// ─── BEGIN SikhAI chat rules ─────────────────────────────────────────────────
+
+function chatAuthIs(uid) {
+  return request.auth != null && request.auth.uid == uid;
+}
+
+function chatIdOk(id) {
+  return id is string && id.matches('^[A-Za-z0-9_-]{8,64}$');
+}
+
+function chatStr(v, max) {
+  return v is string && v.size() <= max;
+}
+
+function chatContextOk(c) {
+  return c == null || (c is map
+    && c.keys().hasOnly(['type', 'title', 'text', 'capturedAt'])
+    && c.type in ['hukamnama', 'shabad']
+    && chatStr(c.title, 200) && chatStr(c.text, 8000) && c.capturedAt is number);
+}
+
+function chatShareRefOk(s) {
+  return s == null || (s is map
+    && s.keys().hasOnly(['id', 'createdAt', 'updatedAt', 'lastOrder'])
+    && chatIdOk(s.id) && s.createdAt is number && s.updatedAt is number && s.lastOrder is number);
+}
+
+function chatMetaOk(d) {
+  return d.keys().hasOnly(['v', 'title', 'titleSource', 'createdAt', 'updatedAt', 'pinned', 'context', 'share'])
+    && d.v is int && chatStr(d.title, 200) && d.titleSource in ['auto', 'user']
+    && d.createdAt is number && d.updatedAt is number && d.pinned is bool
+    && chatContextOk(d.get('context', null)) && chatShareRefOk(d.get('share', null));
+}
+
+function chatSettingsOk(s) {
+  return s is map
+    && s.keys().hasOnly(['lensId', 'modeId', 'languageId', 'script'])
+    && chatStr(s.lensId, 40) && chatStr(s.modeId, 40) && chatStr(s.languageId, 20)
+    && (!('script' in s) || chatStr(s.script, 20));
+}
+
+function chatReplyOk(r) {
+  return r is map
+    && r.keys().hasOnly(['id', 'status', 'text', 'errorCode', 'settings', 'citations', 'startedAt', 'finishedAt'])
+    && chatStr(r.id, 100)
+    && r.status in ['done', 'interrupted', 'stopped', 'error']
+    && chatStr(r.text, 40000)
+    && (!('errorCode' in r) || chatStr(r.errorCode, 32))
+    && (!('settings' in r) || chatSettingsOk(r.settings))
+    && (!('citations' in r) || (r.citations is list && r.citations.size() <= 6))
+    && r.startedAt is number
+    && (!('finishedAt' in r) || r.finishedAt is number);
+}
+
+function chatEntryOk(d) {
+  return d.order is number && (
+    (d.kind == 'exchange'
+      && d.keys().hasOnly(['kind', 'order', 'question', 'reply'])
+      && d.question is map && d.question.keys().hasOnly(['text', 'createdAt'])
+      && d.question.text is string && d.question.text.size() > 0 && d.question.text.size() <= 4000
+      && d.question.createdAt is number
+      && chatReplyOk(d.reply))
+    || (d.kind == 'notice'
+      && d.keys().hasOnly(['kind', 'order', 'createdAt', 'lensId', 'text'])
+      && d.createdAt is number
+      && (d.get('lensId', null) == null || chatStr(d.lensId, 40))
+      && (!('text' in d) || chatStr(d.text, 300))));
+}
+
+// An exchange keeps its reply attempt or takes a newer one, never an older
+// one: a slow device's late write can't bring back a reply that was retried.
+function chatAttemptOk(next, prev) {
+  return prev.kind != 'exchange' || next.kind != 'exchange'
+    || next.reply.id == prev.reply.id
+    || next.reply.startedAt >= prev.reply.startedAt;
+}
+
+// A signed-in user's own chats: only they can read or write them.
+match /users/{uid}/chats/{chatId} {
+  allow read, delete: if chatAuthIs(uid);
+  allow create, update: if chatAuthIs(uid) && chatIdOk(chatId) && chatMetaOk(request.resource.data);
+
+  match /entries/{entryId} {
+    allow read, delete: if chatAuthIs(uid);
+    allow create: if chatAuthIs(uid) && entryId.size() <= 100 && chatEntryOk(request.resource.data);
+    allow update: if chatAuthIs(uid) && entryId.size() <= 100 && chatEntryOk(request.resource.data)
+      && chatAttemptOk(request.resource.data, resource.data);
+  }
+}
+
+function chatShareOk(d) {
+  return d.keys().hasOnly(['v', 'ownerUid', 'chatId', 'title', 'payload', 'createdAt', 'updatedAt'])
+    && d.v is int && d.ownerUid == request.auth.uid
+    && chatIdOk(d.chatId) && chatStr(d.title, 200)
+    && d.payload is string && d.payload.size() <= 1000000
+    && d.createdAt is number && d.updatedAt is number;
+}
+
+// A shared link: anyone holding it can read that one snapshot, but no one can
+// list them. Only the owner of the chat it copies can make, refresh or end it;
+// a refresh keeps its chat and its creation time.
+match /shared_chats/{shareId} {
+  allow get: if true;
+  allow list: if false;
+  allow create: if request.auth != null && chatIdOk(shareId) && chatShareOk(request.resource.data)
+    && exists(/databases/$(database)/documents/users/$(request.auth.uid)/chats/$(request.resource.data.chatId));
+  allow update: if request.auth != null && resource.data.ownerUid == request.auth.uid
+    && chatShareOk(request.resource.data)
+    && request.resource.data.chatId == resource.data.chatId
+    && request.resource.data.createdAt == resource.data.createdAt;
+  // A link already gone (ended on another device) may be deleted again, so
+  // deleting its chat still goes through.
+  allow delete: if request.auth != null && (resource == null || resource.data.ownerUid == request.auth.uid);
+}
+
+// ─── END SikhAI chat rules ───────────────────────────────────────────────────
