@@ -1,13 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ArrowDownIcon, ChevronDownIcon, PencilSquareIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { ArrowDownIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
 import ChatMessage from '../components/chat/ChatMessage';
 import ChatInput from '../components/chat/ChatInput';
 import StarterPrompts from '../components/chat/StarterPrompts';
 import TopicPacks from '../components/chat/TopicPacks';
-import ContextChip from '../components/chat/ContextChip';
-import ChatSettingsDialog from '../components/chat/ChatSettingsDialog';
+import ChatSettingsBar from '../components/chat/ChatSettingsBar';
 import { useChatStorage, type Message } from '../components/chat/useChatStorage';
 import { useChatPrefs } from '../components/chat/useChatPrefs';
 import { parseDeepLink, fetchChatContext } from '../components/chat/deepLink';
@@ -22,7 +21,6 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [confirmingClear, setConfirmingClear] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [contextError, setContextError] = useState(false);
 
   // Seed the greeting in the site language (default lens) so a fresh chat's
@@ -302,26 +300,13 @@ export default function ChatPage() {
 
   const lastMessage = messages[messages.length - 1];
   const starterPrompts = context ? t.chat.config.contextStarters[context.type] : lens.starterPrompts;
-  // Word order around the lens name differs per language, so split the
-  // template on {name} and render the styled span between the halves.
-  const [guidedBefore, guidedAfter] = t.chat.guidedBy.split('{name}');
 
   return (
     <main className="flex flex-col h-[calc(100dvh-4rem)]">
       <h1 className="sr-only">{t.chat.title}</h1>
 
       {/* Slim chat header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-surface-raised border-b border-edge shrink-0">
-        <button
-          type="button"
-          onClick={() => setSettingsOpen(true)}
-          aria-haspopup="dialog"
-          className="flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink transition-colors p-1.5 rounded-lg hover:bg-edge/60 min-w-0"
-        >
-          <SparklesIcon className="w-4 h-4 text-accent-text shrink-0" aria-hidden="true" />
-          <span className="truncate">{lens.name}</span>
-          <ChevronDownIcon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-        </button>
+      <div className="flex items-center justify-end px-4 py-2 bg-surface-raised border-b border-edge shrink-0">
         {confirmingClear ? (
           <div className="flex items-center gap-2 text-sm" role="group" aria-label={t.chat.confirmClearAria}>
             <span className="text-ink-muted">{t.chat.clearPrompt}</span>
@@ -381,19 +366,6 @@ export default function ChatPage() {
               ))}
               {messages.length <= 1 && !isStreaming && (
                 <div className="space-y-1">
-                  <div className="flex items-center justify-center gap-2 text-xs text-ink-muted flex-wrap px-2">
-                    <span>
-                      {guidedBefore}<span className="font-semibold text-ink">{lens.name}</span>{guidedAfter}
-                      {' · '}{t.chat.config.modes[prefs.modeId].name}{' · '}{t.chat.config.replyLanguages[effectiveLanguageId].name}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setSettingsOpen(true)}
-                      className="font-semibold text-accent-text hover:underline"
-                    >
-                      {t.chat.change}
-                    </button>
-                  </div>
                   <StarterPrompts prompts={starterPrompts} onSelect={(prompt) => send(prompt, messages)} />
                   {!context && <TopicPacks onSelect={(prompt) => send(prompt, messages)} />}
                 </div>
@@ -414,21 +386,6 @@ export default function ChatPage() {
         )}
       </div>
 
-      {(context || contextError) && (
-        <div className="flex justify-center px-4 pb-2 bg-surface shrink-0">
-          {context ? (
-            <ContextChip context={context} onDismiss={() => updateContext(null)} />
-          ) : (
-            <p role="alert" className="flex items-center gap-2 text-xs text-red-600 dark:text-red-400">
-              {t.errors.contextLoad}
-              <button type="button" onClick={() => setContextError(false)} className="underline font-semibold">
-                {t.chat.dismiss}
-              </button>
-            </p>
-          )}
-        </div>
-      )}
-
       <ChatInput
         value={input}
         onChange={setInput}
@@ -438,16 +395,20 @@ export default function ChatPage() {
           abortRef.current?.abort();
         }}
         isStreaming={isStreaming}
-      />
-
-      <ChatSettingsDialog
-        open={settingsOpen}
-        prefs={prefs}
-        effectiveLanguageId={effectiveLanguageId}
-        onSelectLens={selectLens}
-        onSelectMode={(modeId) => updatePrefs({ modeId })}
-        onSelectLanguage={(languageId) => updatePrefs({ languageId })}
-        onClose={() => setSettingsOpen(false)}
+        settings={
+          <ChatSettingsBar
+            prefs={prefs}
+            hydrated={prefsHydrated}
+            onSelectLens={selectLens}
+            onSelectMode={(modeId) => updatePrefs({ modeId })}
+            onSelectLanguage={(languageId) => updatePrefs({ languageId })}
+          />
+        }
+        context={context}
+        contextError={contextError}
+        onDismissContext={() => updateContext(null)}
+        onDismissContextError={() => setContextError(false)}
+        disclaimer={t.chat.disclaimer}
       />
     </main>
   );
