@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { ArrowDownIcon } from '@heroicons/react/24/outline';
+import { chatIdFromPath } from '@/lib/chat/chatMeta';
 import { DEFAULT_PREFS, type LanguageId, type LensId, type ModeId } from '@/lib/chat/config';
 import type { Exchange, Reply, ReplySettings, Transcript } from '@/lib/chat/transcript';
 import type { Dictionary } from '@/lib/i18n';
@@ -20,6 +21,9 @@ import type { ChatPrefs } from './useChatPrefs';
 
 // What the composer holds, per chat, across switching chats (this tab only).
 const drafts = new Map<string, string>();
+
+// How long a deep-linked passage may take before the chat goes on without it.
+const CONTEXT_TIMEOUT_MS = 10_000;
 
 type Props = {
     routeId: string | null | 'invalid';
@@ -43,12 +47,13 @@ function plainText(markdown: string): string {
         .trim();
 }
 
-// What a screen reader hears when a reply ends. An error is its own alert.
+// What a screen reader hears when a reply ends in this view.
 function spoken(t: Dictionary, reply: Reply): string {
     switch (reply.status) {
         case 'done': return plainText(reply.text);
         case 'interrupted': return `${plainText(reply.text)} ${t.chat.interrupted}`;
         case 'stopped': return t.chat.stopped;
+        case 'error': return t.errors[reply.errorCode ?? 'generic'];
         default: return '';
     }
 }
@@ -74,6 +79,9 @@ export default function ChatConversation({
     const draftKey = session.chatId ?? 'new';
     const [input, setInputState] = useState(() => drafts.get(draftKey) ?? '');
     const [contextError, setContextError] = useState(false);
+    // A deep-linked passage on its way: nothing is sent until it arrives, or
+    // the first answer would be given without it.
+    const [linkPending, setLinkPending] = useState(false);
     // Why the last question didn't go (storage full, chat full, …).
     const [blocked, setBlocked] = useState<string | null>(null);
     const [openedAs] = useState(routeId);
@@ -102,8 +110,13 @@ export default function ChatConversation({
         if (openedAs !== null) return;
         const link = parseDeepLink(window.location.search);
         if (!link) return;
+        // The link can only be read once mounted (the URL isn't known on the server).
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLinkPending(true);
         let cancelled = false;
-        fetchChatContext(link, tRef.current)
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), CONTEXT_TIMEOUT_MS);
+        fetchChatContext(link, tRef.current, controller.signal)
             .then((ctx) => {
                 if (cancelled) return;
                 setDraftContext(ctx);
@@ -111,8 +124,16 @@ export default function ChatConversation({
             })
             .catch(() => {
                 if (!cancelled) setContextError(true);
+            })
+            .finally(() => {
+                clearTimeout(timer);
+                if (!cancelled) setLinkPending(false);
             });
-        return () => { cancelled = true; };
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+            controller.abort();
+        };
     }, [openedAs, setDraftContext]);
 
     // Stick to the bottom while new content arrives, unless the user scrolled up.
@@ -164,6 +185,7 @@ export default function ChatConversation({
     };
 
     const submit = async (text: string, fromInput: boolean) => {
+        if (linkPending) return;
         setBlocked(null);
         atBottomRef.current = true;
         const result = await session.send(text);
@@ -196,6 +218,10 @@ export default function ChatConversation({
         ? t.chat.config.contextStarters[session.context.type]
         : t.chat.config.lenses[prefs.lensId].starterPrompts;
     const missing = session.status === 'missing';
+    // Deleted while open here: the URL has already moved on to /chat and the
+    // screen follows a moment later. Until then the chat is simply gone; "isn't
+    // here" is for a chat the URL still names (deleted elsewhere, or Back).
+    const leaving = missing && session.chatId !== null && chatIdFromPath(window.location.pathname) !== session.chatId;
 
     return (
         <>
@@ -204,7 +230,7 @@ export default function ChatConversation({
                     and must scroll (and be clipped) with the list, not stretch the page. */}
                 <div ref={scrollRef} onScroll={onScroll} className="relative h-full overflow-y-auto p-4 md:p-8">
                     <div className="mx-auto w-full max-w-3xl space-y-6">
-                        {missing ? (
+                        {leaving ? null : missing ? (
                             <ChatUnavailable onNewChat={onNewChat} />
                         ) : !prefsHydrated ? null : session.status === 'loading' ? (
                             <div className="space-y-6" aria-hidden="true">
@@ -231,7 +257,7 @@ export default function ChatConversation({
                                         />
                                     ),
                                 )}
-                                {!firstExchange && (
+                                {!firstExchange && !linkPending && (
                                     <div className="space-y-1">
                                         <StarterPrompts prompts={starterPrompts} onSelect={(prompt) => void submit(prompt, false)} />
                                         {!session.context && <TopicPacks onSelect={(prompt) => void submit(prompt, false)} />}
@@ -272,7 +298,7 @@ export default function ChatConversation({
                         onSend={() => void submit(input, true)}
                         onStop={session.stop}
                         isStreaming={!!session.streaming}
-                        canSend={session.status === 'draft' || session.status === 'ready'}
+                        canSend={(session.status === 'draft' || session.status === 'ready') && !linkPending}
                         settings={
                             <ChatSettingsBar
                                 prefs={prefs}
@@ -283,6 +309,7 @@ export default function ChatConversation({
                             />
                         }
                         context={session.context}
+                        contextLoading={linkPending}
                         contextError={contextError}
                         onDismissContext={dismissContext}
                         onDismissContextError={() => setContextError(false)}

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef } from 'react';
 import { PaperAirplaneIcon, StopIcon } from '@heroicons/react/24/solid';
+import { BookOpenIcon } from '@heroicons/react/24/outline';
 import { useT } from '../../context/LanguageContext';
 import { MAX_MESSAGE_CHARS, type ChatContext } from '@/lib/chat/config';
 import { fmt } from '@/lib/i18n/fmt';
@@ -19,6 +20,8 @@ type Props = {
     settings: React.ReactNode;
     /** A passage the chat is about, shown inside the box above the question */
     context: ChatContext | null;
+    // A deep-linked passage still loading.
+    contextLoading?: boolean;
     contextError: boolean;
     onDismissContext: () => void;
     onDismissContextError: () => void;
@@ -39,6 +42,7 @@ export default function ChatInput({
     canSend = true,
     settings,
     context,
+    contextLoading = false,
     contextError,
     onDismissContext,
     onDismissContextError,
@@ -118,9 +122,14 @@ export default function ChatInput({
                     onMouseDown={focusFromPadding}
                     className="cursor-text rounded-2xl border border-edge bg-surface-raised has-[textarea:focus]:outline-2 has-[textarea:focus]:outline-offset-2 has-[textarea:focus]:outline-kesri"
                 >
-                    {(context || contextError) && (
+                    {(context || contextLoading || contextError) && (
                         <div data-pad className="flex min-w-0 px-2.5 pt-2.5">
-                            {context ? (
+                            {contextLoading ? (
+                                <p role="status" className="flex items-center gap-2 rounded-full border border-edge px-3 py-1.5 text-xs text-ink-muted">
+                                    <BookOpenIcon className="h-4 w-4 shrink-0 animate-pulse" aria-hidden="true" />
+                                    {t.chat.loadingPassage}
+                                </p>
+                            ) : context ? (
                                 <ContextChip context={context} onDismiss={refocus(onDismissContext)} />
                             ) : (
                                 <p role="alert" className="flex items-center gap-2 px-1 text-xs text-red-600 dark:text-red-400">

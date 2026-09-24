@@ -359,6 +359,7 @@ const pa: Dictionary = {
         regenerateAria: 'ਜਵਾਬ ਦੁਬਾਰਾ ਬਣਾਓ',
         discussing: 'ਵਿਚਾਰ ਅਧੀਨ: {title}',
         stopDiscussingAria: 'ਇਸ ਪਾਠ ਦੀ ਵਿਚਾਰ ਬੰਦ ਕਰੋ',
+        loadingPassage: 'ਪਾਠ ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ…',
         retry: 'ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ',
         stopped: 'SikhAI ਦੇ ਜਵਾਬ ਤੋਂ ਪਹਿਲਾਂ ਰੋਕ ਦਿੱਤਾ ਗਿਆ',
         answeredWith: 'ਜਵਾਬ ਦੀਆਂ ਸੈਟਿੰਗਾਂ: {settings}',

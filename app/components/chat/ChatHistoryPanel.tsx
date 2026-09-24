@@ -5,6 +5,7 @@ import { ChevronDoubleLeftIcon, CloudIcon, PencilSquareIcon, XMarkIcon } from '@
 import { deriveTitle, sanitizeTitle } from '@/lib/chat/chatMeta';
 import { MAX_PINNED_CHATS } from '@/lib/chat/config';
 import { groupChats } from '@/lib/chat/historyGroups';
+import { readChat } from '@/lib/chat/store/read';
 import { useAuth } from '../../context/AuthContext';
 import { useT } from '../../context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
@@ -84,9 +85,11 @@ export default function ChatHistoryPanel({ variant, headingId, activeId, onNavig
             return;
         }
         // Cleared: back to the title the first question gives it.
-        const state = store.getChat(chat.id);
+        const state = await readChat(store, chat.id);
         const first = state.status === 'ready' ? state.record.transcript.find((e) => e.kind === 'exchange') : undefined;
-        await store.updateMeta(chat.id, { title: first ? deriveTitle(first.question.text) : chat.title, titleSource: 'auto' }).catch(() => {});
+        // Unreadable just now: the name stays, rather than become a guess.
+        if (!first) return;
+        await store.updateMeta(chat.id, { title: deriveTitle(first.question.text), titleSource: 'auto' }).catch(() => {});
     };
 
     const remove = async (chat: ChatListItem) => {
@@ -96,8 +99,10 @@ export default function ChatHistoryPanel({ variant, headingId, activeId, onNavig
         const neighbour = inOrder[at + 1] ?? inOrder[at - 1];
         focusAfter.current = neighbour ? `[data-chat-row="${neighbour.id}"] [data-row-link]` : `#${headingId}-new`;
         getReplyRuntime().discardChat(chat.id);
-        await storeFor(chat.home, uid).deleteChat(chat.id).catch(() => {});
+        // Leave first: the URL moves on before the chat is gone (see
+        // ChatConversation), so it never reads as a broken link.
         if (chat.id === activeId) onNavigate('/chat');
+        await storeFor(chat.home, uid).deleteChat(chat.id).catch(() => {});
     };
 
     const row = (chat: ChatListItem) => (

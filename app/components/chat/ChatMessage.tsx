@@ -92,10 +92,12 @@ export default function ReplyMessage({ reply, onRetry, onRegenerate, unsaved, ac
         );
     }
 
+    // No role="alert": errors are saved now, and an alert on each would be read
+    // out every time the chat opens. The conversation announces a live one.
     if (reply.status === 'error') {
         return (
             <div className="flex flex-col items-start gap-1">
-                <div role="alert" className={`${SHAPE} ${BUBBLE.error}`}>
+                <div className={`${SHAPE} ${BUBBLE.error}`}>
                     <p>{t.errors[reply.errorCode ?? 'generic']}</p>
                 </div>
                 {actions && onRetry && <RetryButton onRetry={onRetry} />}

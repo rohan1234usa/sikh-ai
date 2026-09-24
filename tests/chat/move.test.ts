@@ -73,3 +73,19 @@ test('a refusal stops the move with nothing lost, and running it again finishes 
     const chat2 = acct.target.getChat(UUID(2));
     assert.equal(chat2.status === 'ready' && chat2.record.transcript.length, 1, 'written over, not doubled');
 });
+
+test('a question asked in a chat while it moves keeps that chat here, question and all', async () => {
+    const from = await browserWith(1);
+    const target = new LocalChatStore({ storage: new FakeStorage() });
+    // The account takes its time; meanwhile the user asks another question.
+    const slowAccount = {
+        importChat: async (record: ChatRecord) => {
+            await target.importChat(record);
+            await from.putEntries(UUID(1), [exchange('Asked during the move', { id: 'ex-new', order: 99 })], { touch: 99 });
+        },
+    } as unknown as ChatStore;
+    const result = await moveChats([UUID(1)], from, slowAccount, { isBusy: () => false });
+    assert.deepEqual(result, { moved: 0, skipped: 1 });
+    const here = from.getChat(UUID(1));
+    assert.equal(here.status === 'ready' && here.record.transcript.length, 2, 'the new question is still here');
+});

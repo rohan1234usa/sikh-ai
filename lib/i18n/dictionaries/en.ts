@@ -363,6 +363,7 @@ const en = {
         regenerateAria: 'Regenerate response',
         discussing: 'Discussing: {title}',
         stopDiscussingAria: 'Stop discussing this passage',
+        loadingPassage: 'Loading the passage…',
         // Cards under a reply that check its Gurbani quotes against GurbaniNow
         retry: 'Retry',
         stopped: 'Stopped before SikhAI replied',

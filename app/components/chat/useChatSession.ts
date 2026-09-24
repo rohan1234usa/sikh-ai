@@ -104,24 +104,25 @@ export function useChatSession({ routeId, settings, onCreated }: {
         ...(ctx ? { context: { type: ctx.type, title: ctx.title, text: ctx.text } } : {}),
     });
 
-    // The reply starts as the write goes out, so it is on screen at once; if
-    // the write fails (storage full), the reply is called off.
-    const start = async (store: ChatStore, id: string, plan: SendPlan, history: HistoryTurn[], ctx: ChatContext | null, write: Promise<void>): Promise<SendResult> => {
-        const runtime = getReplyRuntime();
-        runtime.start({
+    // The question is written first, and the reply asked for only once it is:
+    // a question that can't be saved (storage full) is never answered into
+    // nowhere. Both stores apply a write at once (the account's syncs in the
+    // background), so this costs no visible time.
+    const start = async (store: ChatStore, id: string, plan: SendPlan, history: HistoryTurn[], ctx: ChatContext | null, write: () => Promise<void>, then?: () => void): Promise<SendResult> => {
+        try {
+            await write();
+        } catch (e) {
+            return storeErrorCode(e);
+        }
+        then?.();
+        getReplyRuntime().start({
             store,
             chatId: id,
             exchangeId: plan.exchange.id,
             reply: plan.exchange.reply,
             body: body(plan.exchange.question.text, history, ctx),
         });
-        try {
-            await write;
-            return 'sent';
-        } catch (e) {
-            runtime.discardChat(id);
-            return storeErrorCode(e);
-        }
+        return 'sent';
     };
 
     const entriesOf = (plan: SendPlan) => (plan.notice ? [plan.notice, plan.exchange] : [plan.exchange]);
@@ -144,16 +145,17 @@ export function useChatSession({ routeId, settings, onCreated }: {
                 pinned: false,
                 share: null,
             };
-            const write = store.createChat(meta, draftContext, entriesOf(plan));
-            setCreatedId(id);
-            onCreated(id);
-            return start(store, id, plan, [], draftContext, write);
+            // Only a chat that was saved becomes this view's, with its own URL.
+            return start(store, id, plan, [], draftContext, () => store.createChat(meta, draftContext, entriesOf(plan)), () => {
+                setCreatedId(id);
+                onCreated(id);
+            });
         }
         if (status !== 'ready' || !chatId) return 'unavailable';
         const result = planSend(transcript, text, ctx);
         if (result.kind !== 'send') return result.kind;
         const { plan } = result;
-        const write = store.putEntries(chatId, entriesOf(plan), { touch: now, removeIds: plan.removeNoticeIds });
+        const write = () => store.putEntries(chatId, entriesOf(plan), { touch: now, removeIds: plan.removeNoticeIds });
         return start(store, chatId, plan, buildHistory(transcript, plan.exchange.id), context, write);
     };
 
@@ -165,7 +167,7 @@ export function useChatSession({ routeId, settings, onCreated }: {
         const now = Date.now();
         const plan = planRetry(transcript, { now, newId, settings });
         if (!plan) return 'busy';
-        const write = store.putEntries(chatId, entriesOf(plan), { touch: now, removeIds: plan.removeNoticeIds });
+        const write = () => store.putEntries(chatId, entriesOf(plan), { touch: now, removeIds: plan.removeNoticeIds });
         return start(store, chatId, plan, buildHistory(transcript, plan.exchange.id), context, write);
     };
 

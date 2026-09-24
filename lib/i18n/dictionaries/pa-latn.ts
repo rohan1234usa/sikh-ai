@@ -359,6 +359,7 @@ const paLatn: Dictionary = {
         regenerateAria: 'Jawab dubara banao',
         discussing: 'Vichaar adheen: {title}',
         stopDiscussingAria: 'Is paath di vichaar band karo',
+        loadingPassage: 'Paath load ho riha hai…',
         retry: 'Dubara koshish karo',
         stopped: 'SikhAI de jawab ton pehlan rok ditta gaya',
         answeredWith: 'Jawab dian settingan: {settings}',

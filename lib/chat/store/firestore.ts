@@ -6,8 +6,10 @@
 // flicking between two chats, doesn't pay for the reads twice). Writes are
 // applied to this tab's cache at once and sent in the background: the chat
 // never waits on the network, and Firestore's own listeners bring the saved
-// state back. A write the account refuses (signed out, or its rules not yet
-// deployed) marks the account unavailable, so new chats go to this browser.
+// state back. When the account refuses to list chats or to create one (its
+// rules not deployed, most likely), it is marked unavailable and new chats go
+// to this browser. Any other refused write concerns that chat alone — say, one
+// deleted meanwhile on another device — and never hides the rest.
 
 import {
     collection,
@@ -107,6 +109,7 @@ export class FirestoreChatStore implements ChatStore {
 
     getHealth = (): AccountHealth => this.health;
 
+    // Only for refusals that say the account can't hold chats at all.
     private refused(code: StoreErrorCode) {
         if (code !== 'permission' || this.health === 'unavailable') return;
         this.health = 'unavailable';
@@ -196,11 +199,7 @@ export class FirestoreChatStore implements ChatStore {
 
     private startChat(chatId: string, w: Watch) {
         const chatRef = doc(this.db, 'users', this.uid, 'chats', chatId);
-        const failed = (e: unknown) => {
-            const code = codeOf(e);
-            this.refused(code);
-            this.setChat(chatId, { status: 'error', error: code });
-        };
+        const failed = (e: unknown) => this.setChat(chatId, { status: 'error', error: codeOf(e) });
         const combine = () => {
             if (w.head === undefined) return;
             if (w.head === null) return this.setChat(chatId, MISSING);
@@ -222,11 +221,14 @@ export class FirestoreChatStore implements ChatStore {
         ];
     }
 
+    // What was cached stops being current the moment nothing listens: it
+    // goes too, so no later read takes an old copy (a stale link, say) as fact.
     private stopChat(chatId: string) {
         const w = this.watches.get(chatId);
         if (!w || w.listeners.size > 0) return;
         for (const unsub of w.unsubs) unsub();
         this.watches.delete(chatId);
+        this.chats.delete(chatId);
     }
 
     // Everything this store listens to, on sign-out.
@@ -273,7 +275,7 @@ export class FirestoreChatStore implements ChatStore {
                 for (const batch of prepared) await batch.commit();
             } catch (e) {
                 const code = codeOf(e);
-                this.refused(code);
+                if (failure.kind === 'create') this.refused(code);
                 this.onWriteFailed?.({ ...failure, code });
             }
         })();
@@ -286,9 +288,7 @@ export class FirestoreChatStore implements ChatStore {
         try {
             for (const batch of this.batches(batches)) await batch.commit();
         } catch (e) {
-            const code = codeOf(e);
-            this.refused(code);
-            throw new ChatStoreError(code, String(e));
+            throw new ChatStoreError(codeOf(e), String(e));
         }
     }
 
@@ -334,7 +334,8 @@ export class FirestoreChatStore implements ChatStore {
         const w = this.watches.get(chatId);
         const entryIds = w?.entryIds
             ?? (await getDocs(collection(this.db, 'users', this.uid, 'chats', chatId, 'entries'))).docs.map((d) => d.id);
-        const state = this.chats.get(chatId);
+        // The link from what is being listened to now: the open chat, else the list.
+        const state = w ? this.chats.get(chatId) : undefined;
         const shareId = (state?.status === 'ready' ? state.record.meta.share : this.list.chats.find((c) => c.id === chatId)?.share)?.id;
         this.setChat(chatId, MISSING);
         return this.send(chunk(planDelete(this.uid, chatId, entryIds, shareId)), { chatId, kind: 'write' });

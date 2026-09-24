@@ -63,11 +63,14 @@ export default function ChatScreen() {
         if (window.location.pathname + window.location.search !== href) window.history.pushState(null, '', href);
     }, []);
 
+    // Leaving a chat for /chat starts a new one by itself (the URL change,
+    // above), so only a new chat asked for from /chat itself needs the nudge.
+    // Changing the key sooner would show the chat being left, remounted, for
+    // a frame, while the URL change is still on its way.
     const startNewChat = useCallback(() => {
-        setDraftKey((k) => k + 1);
-        setPromotedId(null);
+        if (routeId === null) setDraftKey((k) => k + 1);
         navigate('/chat');
-    }, [navigate]);
+    }, [navigate, routeId]);
 
     const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 

@@ -27,6 +27,13 @@ export async function moveChats(
         }
         try {
             await to.importChat(state.record);
+            // A question asked while the copy was on its way went to this
+            // browser's copy: deleting it now would lose that. Leave the chat
+            // here for now; the next move takes it whole.
+            if (opts.isBusy(id) || from.getChat(id) !== state) {
+                skipped++;
+                continue;
+            }
             await from.deleteChat(id);
         } catch (e) {
             // Stop at the first refusal: the rest would be refused too.

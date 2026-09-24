@@ -118,7 +118,9 @@ match /shared_chats/{shareId} {
     && chatShareOk(request.resource.data)
     && request.resource.data.chatId == resource.data.chatId
     && request.resource.data.createdAt == resource.data.createdAt;
-  allow delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;
+  // A link already gone (ended on another device) may be deleted again, so
+  // deleting its chat still goes through.
+  allow delete: if request.auth != null && (resource == null || resource.data.ownerUid == request.auth.uid);
 }
 
 // ─── END SikhAI chat rules ───────────────────────────────────────────────────
