@@ -24,8 +24,8 @@ Whether it's fetching the daily *Hukamnama* from Darbar Sahib, coordinating *Sev
 *   **🎛️ Response Styles & Languages**: Orthogonal to the lens, pick (from the chat bar) a response style (Balanced, Simple/newcomer, Gurbani-first, Vichaar/reflection, Sakhi/story) and a language (English, Punjabi-American bilingual, or Punjabi with Gurmukhi/romanized script-matching). All three axes are composed server-side into one Gemini `systemInstruction`.
 *   **🧩 Guided Prompting**: Per-lens starter chips plus categorized topic packs (Life advice, Hardship & grief, Concepts, History & sakhis, Daily practice), and deep links from the Hukamnama and Shabad pages that open the chat with that passage attached as context.
 *   **🔤 Punjabi ↔ English Translator**: Type English, Gurmukhi, or romanized Punjabi and get **all three renditions at once**, plus a word-by-word gloss, "tricky parts" notes (idioms, the ergative *ne*, honorifics, false friends), and pronunciation tips anchored to real words from the result. Input script is auto-detected and overridable. Built for diaspora learners who speak some Punjabi but may not read Gurmukhi — so it ships a 50-phrase curated phrasebook across five categories (greetings, kinship, gurdwara, everyday, food), whose results are generated ahead of time: a tap shows the full result at once, with no request, even when Gemini is down. Local history restores any past result with no re-fetch, and translating the same text again reuses it (the button then offers **Translate again** for a fresh answer). Romanization follows one house style, the way families text each other (Chacha ji, not Chaachaa ji), matching the phrasebook and the romanized-Punjabi interface. When Gemini is rate-limited, English and Gurmukhi input degrade gracefully to a clearly-labelled Cloud Translation rendering rather than an error — romanized Punjabi is the one case with no fallback, since Cloud Translation can neither read nor produce it. Full results can also be cross-checked against Google Translate on demand.
-*   **⚡ Daily Hukamnama**: Server-rendered fetch of the day's decree from Darbar Sahib (via the GurbaniNow API), rendered in Gurmukhi with English translation.
-*   **📖 Shabad Lookup**: Browse any Ang (1–1430) of the Guru Granth Sahib through a validated proxy to the GurbaniNow API.
+*   **⚡ Daily Hukamnama**: Server-rendered fetch of the day's decree from Darbar Sahib (via the GurbaniNow API), rendered in Gurmukhi with English translation. The decree is cached for ten minutes. A placeholder shows while it loads, and if the source is slow or down, a readable message appears within seconds instead of a hanging page.
+*   **📖 Shabad Lookup**: Browse any Ang (1–1430) of the Guru Granth Sahib through a validated proxy to the GurbaniNow API. An Ang's text never changes, so each one is cached for a month, in the server's data cache and at the CDN.
 *   **🤝 Seva Event Coordination**: An event board backed by Firestore, with Google sign-in (Firebase Auth) so Sangat can post and join volunteering opportunities.
 *   **🎨 Accessible, Themeable UI**: A bespoke design system in "Nihang Navy" and "Kesri Saffron" with a navbar theme picker offering Light / Dark / System (no-flash pre-paint script, class-based dark mode over semantic CSS-variable tokens; System tracks the OS live, and where browsers tint their bars from `theme-color` — chiefly Chrome and Samsung Internet on Android — the tint follows the choice too), keyboard focus-visible rings, ARIA-labelled controls, `prefers-reduced-motion` support, and an AA-contrast accent token.
 *   **🌐 Site-Wide Punjabi UI**: A navbar language picker — the same dropdown component as the theme picker, so both behave identically — switches the whole interface between English, ਪੰਜਾਬੀ (Gurmukhi), and romanized Punjabi. The choice is stored in a cookie so server-rendered pages and metadata arrive already translated (no flash of English), the `<html lang>` attribute and body font follow the script, and the chat's reply language defaults to the site language while remaining overridable from the language chip in the chat bar. All copy lives in typed dictionaries under `lib/i18n/dictionaries/` — missing translation keys are compile errors.
@@ -58,13 +58,20 @@ The chat client sends only whitelisted IDs (`lensId` / `modeId` / `languageId`, 
 *   **Streamed Responses**: The chat API returns a raw `text/plain` `ReadableStream`, so tokens render as they generate — minimizing time-to-first-token.
 *   **Schema-constrained JSON output**: The translator uses Gemini's `responseMimeType: 'application/json'` + `responseSchema`, with the schema enums generated from the same `as const` unions as the TypeScript types so the two can't drift. The response is then re-validated at runtime in `lib/translate/parse.ts` — malformed list entries are dropped rather than failing the whole translation, and a truncated response is caught via its `MAX_TOKENS` finish reason instead of surfacing as a JSON parse error.
 *   **Pinned models, not aliases**: Every Gemini call names a specific stable model, set in one place (`lib/gemini/models.ts`) with a per-feature env override (`GEMINI_CHAT_MODEL`, `GEMINI_TRANSLATE_MODEL`). Google hot-swaps the `gemini-flash-latest` alias on each release, so the model behind the prompts could change with no code change; pinning makes upgrades deliberate, and the override lets a preview deployment try a model first. Both routes set `thinkingLevel: LOW` and no sampling temperature, per Google's Gemini 3.x guidance, with the translator's fidelity rules stated in its system prompt instead.
-*   **Failure you can read**: When the pinned model is overloaded, rate-limited, unavailable, or silent too long (10 s to the chat's first word, 12 s for a translation), each route tries one fallback model (`gemini-3.7-flash`; `GEMINI_CHAT_FALLBACK_MODEL` / `GEMINI_TRANSLATE_FALLBACK_MODEL`, `off` to disable) — but never for a rejected request, a bad key, or an empty prepaid balance, which fail the same everywhere. Both routes run on a time budget inside the 30 s function limit, so the translator's Cloud fallback always gets its turn. The chat reads its stream up to the first word before answering, so a refused prompt gets a proper "couldn't respond" message and an overloaded service a "busy" one — never the browser's raw network error. A reply cut short by a filter or the 4,096-token output cap keeps its text and is marked interrupted rather than passed off as complete, and the quotes that did arrive are still checked. Every Gemini call writes one JSON log line (model served, fallback depth, latency, tokens, outcome — never message text).
+*   **Failure you can read**: When the pinned model is overloaded, rate-limited, unavailable, or silent too long (10 s to the chat's first word, 12 s for a translation), each route tries one fallback model (`gemini-3.7-flash`; `GEMINI_CHAT_FALLBACK_MODEL` / `GEMINI_TRANSLATE_FALLBACK_MODEL`, `off` to disable) — but never for a rejected request, a bad key, or an empty prepaid balance, which fail the same everywhere. Both routes run on a time budget inside the 30 s function limit, so the translator's Cloud fallback always gets its turn. The chat reads its stream up to the first word before answering, so a refused prompt gets a proper "couldn't respond" message and an overloaded service a "busy" one — never the browser's raw network error. A reply cut short by a filter or the 4,096-token output cap keeps its text and is marked interrupted rather than passed off as complete, and the quotes that did arrive are still checked. Every Gemini call writes one JSON log line (model served, fallback depth, latency, tokens, how many prompt tokens Gemini's implicit cache served, outcome — never message text).
 *   **Checking quotes without trusting the model** (`lib/gurbani/`): the verifier pulls quoted Gurmukhi out of a reply (in a Punjabi reply, only lines closed by `॥`; never greetings, raag headings, or the reply's own commentary introduced as ਅਰਥ: or ਭਾਵ:, which teeka style also closes with the verse number) and pairs each with the Ang the reply cites. It reads that Ang first — a match there costs no search — then falls back to GurbaniNow's first-letter search, mapping vowel-initial words to the carrier letters (ੲ ੳ ਅ) the index files them under. A quote verifies only when every word appears, in order, in one real line. Words are compared by their letters alone (vowel signs, vowel length and nasal marks are ignored), so a spelling slip (ਪਸਾਊ for ਪਸਾਉ) still matches and is flagged as a spelling difference, while a word swapped for one with different letters, or truncated, does not. When the source can't be reached, the quote simply gets no card — silence is never reported as a misquote. The tests replay real GurbaniNow answers recorded by `npm run fixtures:gurbani` over 18 real model replies. The few hand-written test replies must quote the recorded source letter for letter, and a test holds them to it. The Gurmukhi text utilities are shared with the Shabad identification work.
 *   **Chat history that can't lose a question** (`lib/chat/`): a conversation is a list of exchanges — one question and exactly one reply, whose state is `streaming`, `done`, `interrupted`, `stopped` or `error` (stored as a code and worded on screen) — so an unanswered question can't be represented. Everything read from storage goes through one `normalizeTranscript`, which validates it and repairs what the old single-chat format could hold (the same failed question stored twice becomes one question you can retry). Replies stream in a runtime outside React, keyed by attempt, so a late write from a replaced attempt can't overwrite the new one (a new attempt always starts after the one it replaces, whatever a device's clock says, and the account's rules refuse an older attempt too); it checkpoints a reply while it streams (every second in the browser, every five to Firestore), and a browser chat is flushed on `pagehide` too, so a reload mid-answer keeps what arrived (an account chat keeps what reached its last checkpoint). The chat screen lives in `app/chat/layout.tsx` and follows the URL (`/chat`, `/chat/{id}`) through `pushState`/`replaceState`: a layout is never remounted, so neither switching chats nor a language switch's `router.refresh()` can reset a conversation mid-reply. Two stores keep one contract — `localStorage` (one key per chat, least-recently-used eviction when full, never pinned or open chats) and Firestore (`users/{uid}/chats/{chatId}` plus one document per exchange; writes apply locally at once and sync in the background). Their pure parts — send and retry plans, the reply state machine, Firestore write plans, share snapshots — are unit-tested.
 *   **Server-only prompts + nonce fencing**: Both the chat and translate system prompts live in server-only modules, so prompt text never ships to the browser. Untrusted user text is wrapped in a per-request UUID-nonce fence, so crafted input can't forge the closing delimiter and break out into instructions.
 *   **Theming without flash**: An inline pre-paint script applies the stored choice before first paint. `<html class="dark">` drives the CSS, while `<html data-theme>` records which of Light / Dark / System the user picked — the class alone can't distinguish light-because-chosen from light-because-the-OS-says-so. Semantic `@theme inline` tokens drive both modes, and the picker reads the attribute back through a `MutationObserver`, so it stays correct no matter what changes it. The same script writes the page's one `<meta name="theme-color">`, which only `lib/theme.ts` manages: Next's `viewport` export deliberately emits none, because React hydrates a `<meta>` by claiming any existing one with the same name and content, and a second writer gets mistaken for it. Once hydrated, `watchTheme()` re-applies the stored choice (it may have changed in another tab while the page loaded, or a failed hydration may have wiped `<html>`'s attributes), then follows the OS under System and other tabs through the `storage` event. The picker's own icon and accessible name are chosen in CSS from `data-theme` with Tailwind's `in-data-[theme=…]:` variant, so they are right before hydration too.
 *   **Cookie-backed i18n, no library**: A site-wide language (English / Gurmukhi / romanized Punjabi) lives in a `sikhai.lang` cookie, so server components and metadata render already-translated on the first byte — no flash of English. UI copy is typed dictionaries in `lib/i18n/dictionaries/` (`Dictionary = typeof en`, so missing keys are compile errors), read via `useT()` in client components and `getServerT()` on the server.
-*   **Multilingual typography**: Geist / Geist Mono for Latin text and Noto Sans Gurmukhi for Gurmukhi script, wired through Tailwind v4 font tokens; an `html[lang='pa']` rule swaps the body stack to Gurmukhi automatically when that language is active.
+*   **Multilingual typography**: Geist / Geist Mono for Latin text and Noto Sans Gurmukhi for Gurmukhi script, wired through Tailwind v4 font tokens (`app/fonts.ts`); an `html[lang='pa']` rule swaps the body stack to Gurmukhi automatically when that language is active. Geist Mono is not preloaded, because the only monospace text is code in chat replies, so a page downloads it only when it shows some.
+*   **Light pages, clear previews**:
+    *   The navbar, footer and home page links prefetch only on hover, focus or touch (`app/components/IntentLink.tsx`). Every page is rendered per request, so prefetching each link in view would cost a server render for a click that might never come.
+    *   Every route sends the standard security headers (`next.config.ts`), and none sends `X-Powered-By`.
+    *   The chat and translator refuse request bodies larger than a real client can send.
+    *   Each page builds its own link preview and canonical URL (`lib/metadata.ts`), because Next replaces a parent's `openGraph` rather than merging it.
+    *   Crawlers get `robots.txt` and `sitemap.xml`.
+    *   A failure in the root layout itself gets a translated, themed page (`app/global-error.tsx`) rather than Next's bare default.
 
 ## 🚀 Getting Started
 
@@ -72,7 +79,7 @@ Follow these steps to set up the project locally.
 
 ### Prerequisites
 
-*   Node.js 20.9+ (required by Next.js 16 and `@google/genai`)
+*   Node.js 24, the version in `.nvmrc` and in `package.json`'s `engines`, which CI and Vercel both use. Newer versions work but make npm print an `EBADENGINE` warning; 20 is too old for the test script's quoted glob.
 *   npm or yarn
 *   A Firebase project (Auth + Firestore)
 *   A Google Gemini API key ([Google AI Studio](https://aistudio.google.com/))
@@ -138,6 +145,12 @@ Follow these steps to set up the project locally.
     ```
     Node's built-in test runner via `tsx`; no extra dependencies. The route tests call the real `POST` handlers against a local mock of the Gemini API (`scripts/mock-gemini.ts`), so they need no key and cost nothing. The same mock lets you drive the app by hand without spending anything: run `npm run mock:gemini`, then start the app with `GOOGLE_GEMINI_BASE_URL=http://127.0.0.1:8787 GEMINI_API_KEY=mock TRANSLATE_FALLBACK=off npm run dev`, and put a trigger word such as `MOCK_429` or `MOCK_BLOCKED` in a message (the full list is at the top of the script).
 
+6.  **Run what CI runs**
+    ```bash
+    npm run typecheck && npm run lint && npm test
+    ```
+    On every pull request and every push to `main`, [CI](.github/workflows/ci.yml) runs these three, then the i18n audit's dry run (whose committed report must not change), then a build. It runs with placeholder keys, so it needs no secrets and costs nothing.
+
 ### Running in production
 
 Four settings outside the code keep a public deployment affordable and safe, and a fifth turns on saved chats and share links:
@@ -154,18 +167,21 @@ Four settings outside the code keep a public deployment affordable and safe, and
 ## 💻 Usage Examples
 
 ### 1. The Hukamnama Fetcher (Server-Side)
-A server component fetches the daily decree fresh on each request.
+A server component renders the daily decree through the same GurbaniNow client that checks the chat's quotes. The Hukamnama is kept for ten minutes, so repeat visits don't wait on the source. `app/hukamnama/loading.tsx` draws the page's shape meanwhile, and a source that is slow or down becomes a readable message rather than a hanging page.
 
 ```typescript
-// app/hukamnama/page.tsx
-async function getHukamnama() {
-  const res = await fetch('https://api.gurbaninow.com/v2/hukamnama/today', {
-    cache: 'no-store', // always the current day's Hukamnama
-  });
-
-  if (!res.ok) throw new Error('Failed to fetch');
-  return res.json();
+// lib/gurbani/gurbaninow.ts
+export async function fetchHukamnamaPayload(): Promise<unknown | null> {
+  const data = await request(`${BASE}/hukamnama/today`, HUKAMNAMA_REVALIDATE_SECONDS); // 10 minutes
+  const lines = obj(data).hukamnama;
+  return Array.isArray(lines) && lines.length > 0 ? data : null; // null: no usable answer
 }
+
+// Inside request(): a 3.5 s limit and the host's data cache. It never throws.
+const res = await fetch(url, {
+  signal: AbortSignal.timeout(TIMEOUT_MS),
+  next: { revalidate, tags: ['gurbaninow'] },
+});
 ```
 
 ### 2. The Streaming Chat Route
@@ -302,9 +318,10 @@ Contributions are welcome. Any contributions you make are **greatly appreciated*
 
 1.  Fork the Project
 2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
+3.  Run what CI runs: `npm run typecheck && npm run lint && npm test` (Getting Started, step 6)
+4.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+5.  Push to the Branch (`git push origin feature/AmazingFeature`)
+6.  Open a Pull Request. CI checks it, and Dependabot's weekly update PRs go through the same checks.
 
 ## 📄 License
 

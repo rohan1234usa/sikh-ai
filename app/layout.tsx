@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Noto_Sans_Gurmukhi } from "next/font/google";
 import "./globals.css";
+import { FONT_VARIABLES } from "./fonts";
 import { AuthProvider } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import { GoogleAnalytics } from "@next/third-parties/google";
@@ -8,25 +8,8 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { LANG_META } from "@/lib/i18n/config";
 import { getLang, getServerT } from "@/lib/i18n/server";
+import { SITE_URL, openGraph } from "@/lib/metadata";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const notoGurmukhi = Noto_Sans_Gurmukhi({
-  // Distinct from the --font-gurmukhi @theme token to avoid a self-referential
-  // CSS variable (see the Geist --font-geist-sans -> --font-sans pattern)
-  variable: "--font-noto-gurmukhi",
-  subsets: ["gurmukhi"],
-  weight: ["400", "700"],
-});
 
 export async function generateMetadata(): Promise<Metadata> {
   const { lang, t } = await getServerT();
@@ -36,23 +19,12 @@ export async function generateMetadata(): Promise<Metadata> {
       template: t.meta.titleTemplate,
     },
     description: t.meta.description,
-    metadataBase: new URL("https://sikhai.vercel.app/"),
-    openGraph: {
-      title: t.meta.title,
-      description: t.meta.description,
-      url: "https://sikhai.vercel.app/",
-      siteName: "SikhAI",
-      images: [
-        {
-          url: "/logo.png",
-          width: 1200,
-          height: 630,
-          alt: t.meta.ogImageAlt,
-        },
-      ],
-      locale: LANG_META[lang].ogLocale,
-      type: "website",
-    },
+    metadataBase: new URL(SITE_URL),
+    // The preview for pages that don't build their own (share links, 404s):
+    // the site's title and image, with no URL. Each page's own preview and
+    // canonical URL come from pageMetadata() in lib/metadata.ts.
+    openGraph: openGraph(lang, t, t.meta.title),
+    twitter: { card: "summary_large_image" },
   };
 }
 
@@ -77,7 +49,7 @@ export default async function RootLayout({
     <html
       lang={LANG_META[lang].htmlLang}
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${notoGurmukhi.variable}`}
+      className={FONT_VARIABLES}
     >
       <head>
         {/* Apply the stored choice before first paint to avoid a flash */}

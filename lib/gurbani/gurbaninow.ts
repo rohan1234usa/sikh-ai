@@ -1,5 +1,7 @@
-// SERVER-ONLY: GurbaniNow client for checking quoted lines. Same posture as
-// lib/translate/cloud.ts: never throws, times out fast, meters itself.
+// SERVER-ONLY: GurbaniNow client for checking quoted lines, and the fetches
+// behind the Hukamnama page and the Ang reader. Same posture as
+// lib/translate/cloud.ts: never throws, and times out fast. The quote checker
+// also meters itself.
 //
 // The difference between null and [] is load-bearing. [] means the source
 // answered and nothing matched — evidence a line is not in Gurbani. null
@@ -14,6 +16,9 @@ import { MAX_ANG } from './citations';
 const BASE = 'https://api.gurbaninow.com/v2';
 const TIMEOUT_MS = 3500;
 const REVALIDATE_SECONDS = 30 * 24 * 60 * 60;
+// Today's Hukamnama changes once a day; ten minutes keeps a new one late by
+// at most that.
+const HUKAMNAMA_REVALIDATE_SECONDS = 10 * 60;
 // Best-effort ceiling per warm instance, charged before the request, so a
 // loop on a failing source cannot hammer a free public API.
 const DAILY_CALL_CEILING = 3000;
@@ -114,14 +119,16 @@ function overBudget(): boolean {
     return false;
 }
 
-async function getJson(url: string, signal?: AbortSignal): Promise<unknown | null> {
-    if (overBudget()) return null;
+// One GET, kept in the host's data cache for `revalidate` seconds. That cache
+// stores only 200 responses, so an HTTP error or a timeout is never kept. A
+// 200 whose body is unusable is kept, like any other 200.
+async function request(url: string, revalidate: number, signal?: AbortSignal): Promise<unknown | null> {
     try {
         const timeout = AbortSignal.timeout(TIMEOUT_MS);
         const res = await fetch(url, {
             headers: { Accept: 'application/json' },
             signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
-            next: { revalidate: REVALIDATE_SECONDS, tags: ['gurbaninow'] },
+            next: { revalidate, tags: ['gurbaninow'] },
         });
         if (!res.ok) {
             console.error(`GurbaniNow: HTTP ${res.status}`);
@@ -131,6 +138,11 @@ async function getJson(url: string, signal?: AbortSignal): Promise<unknown | nul
     } catch {
         return null; // timed out, aborted, or unreachable
     }
+}
+
+async function getJson(url: string, signal?: AbortSignal): Promise<unknown | null> {
+    if (overBudget()) return null;
+    return request(url, REVALIDATE_SECONDS, signal);
 }
 
 export const gurbaniNow: GurbaniClient = {
@@ -148,3 +160,23 @@ export const gurbaniNow: GurbaniClient = {
         return data === null ? null : parseSearchPayload(data);
     },
 };
+
+// The raw payloads the site's pages already parse: /api/shabad's (the Ang
+// reader and the chat's links to an Ang), /api/hukamnama's and the Hukamnama
+// page's. They skip the quote checker's daily meter. Each view makes at most
+// one call and the data cache answers repeats, so there is no loop to guard
+// against. The meter is charged before the cache is consulted, so it would
+// count those cache hits too, and a busy day of page views could switch off
+// quote checking. null means no usable answer.
+
+export async function fetchAngPayload(ang: number): Promise<unknown | null> {
+    if (!Number.isInteger(ang) || ang < 1 || ang > MAX_ANG) return null;
+    const data = await request(`${BASE}/ang/${ang}`, REVALIDATE_SECONDS);
+    return data !== null && parseAngPayload(data) ? data : null;
+}
+
+export async function fetchHukamnamaPayload(): Promise<unknown | null> {
+    const data = await request(`${BASE}/hukamnama/today`, HUKAMNAMA_REVALIDATE_SECONDS);
+    const lines = obj(data).hukamnama;
+    return Array.isArray(lines) && lines.length > 0 ? data : null;
+}

@@ -4,7 +4,16 @@
 // the caller — see withTransport() in lib/gemini/fallback.ts.
 
 import { ThinkingLevel, type Content, type GenerateContentParameters } from '@google/genai';
-import { MAX_MESSAGE_CHARS, type ChatContext, type LanguageId, type LensId, type ModeId, type Script } from './config';
+import {
+    MAX_CONTEXT_TEXT_CHARS,
+    MAX_CONTEXT_TITLE_CHARS,
+    MAX_MESSAGE_CHARS,
+    type ChatContext,
+    type LanguageId,
+    type LensId,
+    type ModeId,
+    type Script,
+} from './config';
 import { composeSystemInstruction } from './prompts';
 
 // Replies on 3.8 Flash run ~270-1,000 output tokens; explaining a whole Ang
@@ -18,6 +27,12 @@ export const CHAT_MAX_OUTPUT_TOKENS = 4096;
 
 // How many past messages ride along (5 exchanges keeps context lean).
 const MAX_HISTORY_TURNS = 10;
+
+// The largest body a real client can send: the message, a full history and a
+// passage, each at its cap, all doubled for worst-case JSON escaping, plus room
+// for the IDs. Anything larger is refused before it is parsed.
+export const MAX_CHAT_BODY_CHARS =
+    2 * (MAX_MESSAGE_CHARS * (1 + MAX_HISTORY_TURNS) + MAX_CONTEXT_TITLE_CHARS + MAX_CONTEXT_TEXT_CHARS) + 1000;
 
 export type ChatInput = {
     message: string;

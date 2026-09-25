@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import { fetchHukamnamaPayload } from '@/lib/gurbani/gurbaninow';
 import { getServerT } from '@/lib/i18n/server';
+import { pageMetadata } from '@/lib/metadata';
 import { fmt } from '@/lib/i18n/fmt';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { t } = await getServerT();
-  return { title: t.meta.hukamnamaTitle };
+  const { lang, t } = await getServerT();
+  return pageMetadata(lang, t, '/hukamnama', t.meta.hukamnamaTitle);
 }
 
 // Fields are typed optional because GurbaniNow can return HTTP 200 with a
@@ -34,27 +36,14 @@ type HukamnamaResponse = {
   hukamnama?: HukamnamaLine[];
 };
 
-async function getHukamnama() {
-  const res = await fetch('https://api.gurbaninow.com/v2/hukamnama/today', {
-    cache: 'no-store'
-  });
-
-  if (!res.ok) throw new Error('Failed to fetch');
-
-  return res.json() as Promise<HukamnamaResponse>;
-}
-
 export default async function HukamnamaPage() {
   const { lang, t } = await getServerT();
 
-  let data: HukamnamaResponse | null = null;
-  let error = false;
-
-  try {
-    data = await getHukamnama();
-  } catch {
-    error = true;
-  }
+  // Cached for ten minutes and cut off after a few seconds (see
+  // lib/gurbani/gurbaninow.ts); loading.tsx shows meanwhile. null, when
+  // GurbaniNow is slow or down, becomes the message below.
+  const data = (await fetchHukamnamaPayload()) as HukamnamaResponse | null;
+  const error = data === null;
 
   const dateInfo = data?.date?.nanakshahi?.english;
   // Gurmukhi UI prefers the API's Gurmukhi month name; digits stay Western

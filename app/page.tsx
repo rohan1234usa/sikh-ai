@@ -1,4 +1,5 @@
-import Link from 'next/link';
+import type { Metadata } from 'next';
+import IntentLink from './components/IntentLink';
 import {
   ChatBubbleLeftRightIcon,
   SunIcon,
@@ -8,6 +9,7 @@ import {
   ArrowRightIcon,
 } from '@heroicons/react/24/outline';
 import { getServerT } from '@/lib/i18n/server';
+import { pageMetadata } from '@/lib/metadata';
 
 // Icons and routes live in code; titles/descriptions/CTAs come from the
 // dictionary keyed by the same names.
@@ -18,6 +20,11 @@ const FEATURE_LINKS = [
   { key: 'shabad', href: '/shabad', Icon: MagnifyingGlassIcon },
   { key: 'seva', href: '/seva', Icon: UserGroupIcon },
 ] as const;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { lang, t } = await getServerT();
+  return pageMetadata(lang, t, '/');
+}
 
 export default async function Home() {
   const { t } = await getServerT();
@@ -44,19 +51,19 @@ export default async function Home() {
             </p>
 
             <div className="flex flex-wrap gap-4 pt-4 animate-fade-up [animation-delay:240ms]">
-              <Link
+              <IntentLink
                 href="/chat"
                 className="bg-kesri text-navy font-bold px-8 py-3 rounded-xl shadow-lg shadow-kesri/20 motion-safe:hover:scale-105 transition-transform flex items-center gap-2"
               >
                 {t.home.ctaChat}
                 <ArrowRightIcon className="w-5 h-5" aria-hidden="true" />
-              </Link>
-              <Link
+              </IntentLink>
+              <IntentLink
                 href="/hukamnama"
                 className="border border-slate-600 hover:border-gold hover:text-gold text-slate-300 font-semibold px-8 py-3 rounded-xl transition-colors"
               >
                 {t.home.ctaHukamnama}
-              </Link>
+              </IntentLink>
             </div>
           </div>
 
@@ -104,7 +111,7 @@ export default async function Home() {
             {FEATURE_LINKS.map(({ key, href, Icon }) => {
               const feature = t.home.features[key];
               return (
-                <Link
+                <IntentLink
                   key={href}
                   href={href}
                   className="group flex flex-col gap-3 bg-surface-raised border border-edge rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-accent-text/40 motion-safe:hover:-translate-y-1 transition-all"
@@ -121,7 +128,7 @@ export default async function Home() {
                       aria-hidden="true"
                     />
                   </span>
-                </Link>
+                </IntentLink>
               );
             })}
           </div>

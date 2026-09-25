@@ -1,7 +1,7 @@
 import { FinishReason, GoogleGenAI, type GenerateContentResponse } from "@google/genai";
 import { NextResponse } from "next/server";
 import { DEFAULT_PREFS, MAX_MESSAGE_CHARS, isLensId, isModeId, isLanguageId, isScript, type ChatContext } from "@/lib/chat/config";
-import { buildChatRequest, toChatHistory, type ChatInput } from "@/lib/chat/request";
+import { MAX_CHAT_BODY_CHARS, buildChatRequest, toChatHistory, type ChatInput } from "@/lib/chat/request";
 import { CHAT_BUDGET_MS, CHAT_FIRST_TEXT_MS } from "@/lib/gemini/budgets";
 import { isAbortError, isCapacityError, statusOf, withModelFallback, withTransport } from "@/lib/gemini/fallback";
 import { errorFields, logGeminiCall, usageFields, type GeminiOutcome } from "@/lib/gemini/log";
@@ -101,10 +101,14 @@ async function openStream(
 
 export async function POST(req: Request) {
   try {
-    const { message, history, lensId, modeId, languageId, script, context } = await req.json();
-
     // The `code` field lets clients render a translated message; the English
     // `error` string stays for logs and older clients.
+    const raw = await req.text();
+    if (raw.length > MAX_CHAT_BODY_CHARS) {
+      return NextResponse.json({ error: "That message is too long. Please shorten it and try again.", code: "chat_too_long" }, { status: 413 });
+    }
+    const { message, history, lensId, modeId, languageId, script, context } = JSON.parse(raw);
+
     if (typeof message !== 'string' || message.trim() === '') {
       return NextResponse.json({ error: "Please enter a message.", code: "chat_empty" }, { status: 400 });
     }

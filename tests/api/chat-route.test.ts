@@ -1,6 +1,8 @@
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { MockGemini } from '../../scripts/mock-gemini';
+import { MAX_CONTEXT_TEXT_CHARS, MAX_CONTEXT_TITLE_CHARS, MAX_MESSAGE_CHARS } from '@/lib/chat/config';
+import { MAX_CHAT_BODY_CHARS } from '@/lib/chat/request';
 import { captured, postJson, readStream, startRouteMock } from '../helpers/routes';
 
 let mock: MockGemini;
@@ -105,4 +107,26 @@ test('input validation happens before any model call', async () => {
     assert.equal(res.status, 400);
     assert.equal((await res.json()).code, 'chat_empty');
     assert.equal(requests.length, 0);
+});
+
+test('an oversized body is refused before it is parsed or sent anywhere', async () => {
+    const huge = new Request('http://local/api/chat', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ message: 'hi', history: [{ role: 'user', text: 'x'.repeat(MAX_CHAT_BODY_CHARS) }] }),
+    });
+    const { result: res, requests } = await captured(mock, () => POST(huge));
+    assert.equal(res.status, 413);
+    assert.equal((await res.json()).code, 'chat_too_long');
+    assert.equal(requests.length, 0);
+});
+
+test('the largest body a real client sends still gets an answer', async () => {
+    // Every field at its cap, in characters JSON has to escape.
+    const full = '"\n'.repeat(MAX_MESSAGE_CHARS / 2);
+    const history = Array.from({ length: 10 }, (_, i) => ({ role: i % 2 ? 'ai' : 'user', text: full }));
+    const context = { type: 'shabad', title: '"'.repeat(MAX_CONTEXT_TITLE_CHARS), text: '"'.repeat(MAX_CONTEXT_TEXT_CHARS) };
+    const res = await chat(full, { history, context, lensId: 'guru-tegh-bahadur', modeId: 'gurbani-first', languageId: 'bilingual' });
+    assert.equal(res.status, 200);
+    await readStream(res);
 });

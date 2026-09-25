@@ -25,6 +25,10 @@ export type GeminiCallLog = {
     ttftMs?: number;
     modelVersion?: string;  // what the API says served it
     promptTokens?: number;
+    // The part of promptTokens that Gemini's implicit cache served at a
+    // discount. Nothing else shows whether a repeated prompt opening is
+    // actually getting cheaper.
+    cachedTokens?: number;
     outputTokens?: number;
     thoughtTokens?: number;
     finishReason?: string;
@@ -52,6 +56,7 @@ export function logGeminiCall(entry: GeminiCallLog): void {
 export function usageFields(usage?: GenerateContentResponseUsageMetadata) {
     return {
         promptTokens: usage?.promptTokenCount,
+        cachedTokens: usage?.cachedContentTokenCount,
         outputTokens: usage?.candidatesTokenCount,
         thoughtTokens: usage?.thoughtsTokenCount,
     };

@@ -26,6 +26,9 @@ const ATTEMPT_TIMEOUT_MS = TRANSLATE_ATTEMPT_MS;
 
 const FRIENDLY_ERROR = "Sorry, the translation failed. Please try again.";
 const TOO_LONG_ERROR = "That text is too long. Please try up to 1,000 characters.";
+// Room for the text plus JSON escaping (at worst twice its length) and the
+// wrapper. Anything larger is refused before it is parsed.
+const MAX_BODY_CHARS = 2 * MAX_TRANSLATE_CHARS + 1000;
 const BUSY_ERROR = "The translator is busy right now. Please wait a moment and try again.";
 
 // Gemini is the only source of the learning aids, so when it fails we fall
@@ -96,12 +99,16 @@ export async function POST(req: Request) {
   let detectedScript: 'gurmukhi' | 'latin' = 'latin';
 
   try {
-    const body = await req.json();
+    // The `code` field lets clients render a translated message; the English
+    // `error` string stays for logs and older clients.
+    const raw = await req.text();
+    if (raw.length > MAX_BODY_CHARS) {
+      return NextResponse.json({ error: TOO_LONG_ERROR, code: "translate_too_long" }, { status: 413 });
+    }
+    const body = JSON.parse(raw);
     const sourceHint = body?.sourceHint;
     const rawText = body?.text;
 
-    // The `code` field lets clients render a translated message; the English
-    // `error` string stays for logs and older clients.
     if (typeof rawText !== 'string' || rawText.trim() === '') {
       return NextResponse.json({ error: "Please enter some text to translate.", code: "translate_empty" }, { status: 400 });
     }
