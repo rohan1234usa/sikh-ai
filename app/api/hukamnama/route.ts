@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
+import { fetchHukamnamaPayload } from '@/lib/gurbani/gurbaninow';
 
 // Normalizes today's Hukamnama into { title, text } for the chat deep-link.
 // The upstream API is loosely shaped, so every field access is defensive.
+// A good answer is shared at the CDN for ten minutes, the same as the data
+// cache behind it; errors are never cached.
+const HUKAMNAMA_CACHE = 'public, max-age=0, s-maxage=600, stale-while-revalidate=600';
+const NO_STORE = { 'Cache-Control': 'no-store' };
 
 type LooseLine = {
   line?: {
@@ -12,9 +17,8 @@ type LooseLine = {
 
 export async function GET() {
   try {
-    const res = await fetch('https://api.gurbaninow.com/v2/hukamnama/today', { cache: 'no-store' });
-    if (!res.ok) throw new Error(`Hukamnama API returned ${res.status}`);
-    const data = await res.json();
+    const data = (await fetchHukamnamaPayload()) as { hukamnama?: unknown; hukamnamainfo?: { pageno?: unknown } } | null;
+    if (data === null) throw new Error('GurbaniNow gave no Hukamnama');
 
     const lines: LooseLine[] = Array.isArray(data?.hukamnama) ? data.hukamnama : [];
     const text = lines
@@ -36,10 +40,10 @@ export async function GET() {
 
     // `ang` lets the client compose a translated title; `title` stays for
     // older clients.
-    return NextResponse.json({ title, text, ang: typeof ang === 'number' ? ang : null });
+    return NextResponse.json({ title, text, ang: typeof ang === 'number' ? ang : null }, { headers: { 'Cache-Control': HUKAMNAMA_CACHE } });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('[Hukamnama Proxy] Error:', message);
-    return NextResponse.json({ error: 'Unable to load the Hukamnama right now.', code: 'hukamnama_unavailable' }, { status: 500 });
+    return NextResponse.json({ error: 'Unable to load the Hukamnama right now.', code: 'hukamnama_unavailable' }, { status: 502, headers: NO_STORE });
   }
 }
