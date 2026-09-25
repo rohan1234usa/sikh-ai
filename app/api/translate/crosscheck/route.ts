@@ -17,6 +17,9 @@ const DIRECTIONS: Record<CrosscheckDirection, { source: CloudLang; target: Cloud
 // model output against the input cap would reject results the user legitimately
 // produced, so this cap is its own, larger number.
 const MAX_CROSSCHECK_CHARS = MAX_TRANSLATE_CHARS * 2;
+// Room for that plus JSON escaping (at worst twice its length) and the
+// wrapper. Anything larger is refused before it is parsed.
+const MAX_BODY_CHARS = 2 * MAX_CROSSCHECK_CHARS + 1000;
 
 // Identical renditions get compared repeatedly — the same phrase from history,
 // a re-submitted input, a second user asking about the same thing. Cloud has no
@@ -37,7 +40,11 @@ function remember(key: string, value: string): void {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const raw = await req.text();
+    if (raw.length > MAX_BODY_CHARS) {
+      return NextResponse.json({ error: "That text is too long to compare.", code: "translate_too_long" }, { status: 413 });
+    }
+    const body = JSON.parse(raw);
     const { text, direction } = body ?? {};
 
     if (typeof text !== 'string' || text.trim() === '') {

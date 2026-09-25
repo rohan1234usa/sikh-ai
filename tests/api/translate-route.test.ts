@@ -1,6 +1,7 @@
 import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { MockGemini } from '../../scripts/mock-gemini';
+import { MAX_TRANSLATE_CHARS } from '@/lib/translate/config';
 import { captured, postJson, startRouteMock } from '../helpers/routes';
 
 let mock: MockGemini;
@@ -94,4 +95,25 @@ test('a rejected request is not retried on the fallback', async () => {
     assert.equal(res.status, 500);
     assert.equal((await res.json()).code, 'translate_failed');
     assert.equal(requests.length, 1);
+});
+
+test('an oversized body is refused before it is parsed or sent anywhere', async () => {
+    const { result: res, requests } = await captured(mock, () => translate('x'.repeat(5000)));
+    assert.equal(res.status, 413);
+    assert.equal((await res.json()).code, 'translate_too_long');
+    assert.equal(requests.length, 0);
+    assert.equal(cloudCalls, 0);
+});
+
+test('the longest text a client sends, in characters JSON escapes, is still translated', async () => {
+    const res = await translate('"'.repeat(MAX_TRANSLATE_CHARS), 'english');
+    assert.notEqual(res.status, 413);
+});
+
+test('the cross-check refuses an oversized body too', async () => {
+    const { POST: crosscheck } = await import('@/app/api/translate/crosscheck/route');
+    const res = await crosscheck(postJson('http://local/api/translate/crosscheck', { text: 'x'.repeat(10_000), direction: 'en-pa' }));
+    assert.equal(res.status, 413);
+    assert.equal((await res.json()).code, 'translate_too_long');
+    assert.equal(cloudCalls, 0);
 });
