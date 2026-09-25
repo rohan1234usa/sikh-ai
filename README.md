@@ -138,6 +138,12 @@ Follow these steps to set up the project locally.
     ```
     Node's built-in test runner via `tsx`; no extra dependencies. The route tests call the real `POST` handlers against a local mock of the Gemini API (`scripts/mock-gemini.ts`), so they need no key and cost nothing. The same mock lets you drive the app by hand without spending anything: run `npm run mock:gemini`, then start the app with `GOOGLE_GEMINI_BASE_URL=http://127.0.0.1:8787 GEMINI_API_KEY=mock TRANSLATE_FALLBACK=off npm run dev`, and put a trigger word such as `MOCK_429` or `MOCK_BLOCKED` in a message (the full list is at the top of the script).
 
+6.  **Run what CI runs**
+    ```bash
+    npm run typecheck && npm run lint && npm test
+    ```
+    On every pull request and every push to `main`, [CI](.github/workflows/ci.yml) runs these three, then the i18n audit's dry run (whose committed report must not change), then a build. It runs with placeholder keys, so it needs no secrets and costs nothing.
+
 ### Running in production
 
 Four settings outside the code keep a public deployment affordable and safe, and a fifth turns on saved chats and share links:
