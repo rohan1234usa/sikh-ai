@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import IntentLink from './components/IntentLink';
 import {
   ChatBubbleLeftRightIcon,
@@ -8,6 +9,7 @@ import {
   ArrowRightIcon,
 } from '@heroicons/react/24/outline';
 import { getServerT } from '@/lib/i18n/server';
+import { pageMetadata } from '@/lib/metadata';
 
 // Icons and routes live in code; titles/descriptions/CTAs come from the
 // dictionary keyed by the same names.
@@ -18,6 +20,11 @@ const FEATURE_LINKS = [
   { key: 'shabad', href: '/shabad', Icon: MagnifyingGlassIcon },
   { key: 'seva', href: '/seva', Icon: UserGroupIcon },
 ] as const;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { lang, t } = await getServerT();
+  return pageMetadata(lang, t, '/');
+}
 
 export default async function Home() {
   const { t } = await getServerT();

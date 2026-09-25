@@ -3,11 +3,12 @@ import Link from 'next/link';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { fetchHukamnamaPayload } from '@/lib/gurbani/gurbaninow';
 import { getServerT } from '@/lib/i18n/server';
+import { pageMetadata } from '@/lib/metadata';
 import { fmt } from '@/lib/i18n/fmt';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { t } = await getServerT();
-  return { title: t.meta.hukamnamaTitle };
+  const { lang, t } = await getServerT();
+  return pageMetadata(lang, t, '/hukamnama', t.meta.hukamnamaTitle);
 }
 
 // Fields are typed optional because GurbaniNow can return HTTP 200 with a

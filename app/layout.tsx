@@ -8,6 +8,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { LANG_META } from "@/lib/i18n/config";
 import { getLang, getServerT } from "@/lib/i18n/server";
+import { SITE_URL, openGraph } from "@/lib/metadata";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -18,23 +19,12 @@ export async function generateMetadata(): Promise<Metadata> {
       template: t.meta.titleTemplate,
     },
     description: t.meta.description,
-    metadataBase: new URL("https://sikhai.vercel.app/"),
-    openGraph: {
-      title: t.meta.title,
-      description: t.meta.description,
-      url: "https://sikhai.vercel.app/",
-      siteName: "SikhAI",
-      images: [
-        {
-          url: "/logo.png",
-          width: 1200,
-          height: 630,
-          alt: t.meta.ogImageAlt,
-        },
-      ],
-      locale: LANG_META[lang].ogLocale,
-      type: "website",
-    },
+    metadataBase: new URL(SITE_URL),
+    // The preview for pages that don't build their own (share links, 404s):
+    // the site's title and image, with no URL. Each page's own preview and
+    // canonical URL come from pageMetadata() in lib/metadata.ts.
+    openGraph: openGraph(lang, t, t.meta.title),
+    twitter: { card: "summary_large_image" },
   };
 }
 
