@@ -72,7 +72,7 @@ Follow these steps to set up the project locally.
 
 ### Prerequisites
 
-*   Node.js 20.9+ (required by Next.js 16 and `@google/genai`)
+*   Node.js 24, the version in `.nvmrc` and in `package.json`'s `engines`, which CI and Vercel both use. Newer versions work but make npm print an `EBADENGINE` warning; 20 is too old for the test script's quoted glob.
 *   npm or yarn
 *   A Firebase project (Auth + Firestore)
 *   A Google Gemini API key ([Google AI Studio](https://aistudio.google.com/))
