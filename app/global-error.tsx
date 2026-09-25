@@ -16,8 +16,15 @@ import { watchTheme } from '@/lib/theme';
 // this page renders afresh. A failure in any single page is app/error.tsx's
 // job, inside the layout.
 
-const readLangCookie = () =>
-    parseLang(document.cookie.split('; ').find((c) => c.startsWith(`${LANG_COOKIE}=`))?.slice(LANG_COOKIE.length + 1));
+// This page must not fail in turn, so a cookie jar the browser won't open
+// (a sandboxed frame, a privacy mode) just means English.
+function readLangCookie() {
+    try {
+        return parseLang(document.cookie.split('; ').find((c) => c.startsWith(`${LANG_COOKIE}=`))?.slice(LANG_COOKIE.length + 1));
+    } catch {
+        return DEFAULT_LANG;
+    }
+}
 const neverChanges = () => () => {};
 
 export default function GlobalError({ error, retry }: {

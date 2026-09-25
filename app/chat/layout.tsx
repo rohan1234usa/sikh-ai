@@ -5,7 +5,7 @@ import ChatScreen from '../components/chat/ChatScreen';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { lang, t } = await getServerT();
-  // /chat/{id} pages inherit this canonical URL; they are noindex themselves.
+  // /chat/{id} pages keep this preview but drop the canonical URL (see there).
   return pageMetadata(lang, t, '/chat', t.meta.chatTitle);
 }
 
