@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Noto_Sans_Gurmukhi } from "next/font/google";
 import "./globals.css";
+import { FONT_VARIABLES } from "./fonts";
 import { AuthProvider } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import { GoogleAnalytics } from "@next/third-parties/google";
@@ -9,31 +9,6 @@ import Footer from "./components/Footer";
 import { LANG_META } from "@/lib/i18n/config";
 import { getLang, getServerT } from "@/lib/i18n/server";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-// The only monospace text is inline code in chat replies, so the font is not
-// preloaded: a browser downloads it the first time a page shows code. The
-// variable stays on <html> on purpose. --font-mono is resolved at :root
-// (globals.css), so defining this variable any lower would leave
-// --font-mono without a value, and code would lose even the system
-// monospace fallback.
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  preload: false,
-});
-
-const notoGurmukhi = Noto_Sans_Gurmukhi({
-  // Distinct from the --font-gurmukhi @theme token to avoid a self-referential
-  // CSS variable (see the Geist --font-geist-sans -> --font-sans pattern)
-  variable: "--font-noto-gurmukhi",
-  subsets: ["gurmukhi"],
-  weight: ["400", "700"],
-});
 
 export async function generateMetadata(): Promise<Metadata> {
   const { lang, t } = await getServerT();
@@ -84,7 +59,7 @@ export default async function RootLayout({
     <html
       lang={LANG_META[lang].htmlLang}
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${notoGurmukhi.variable}`}
+      className={FONT_VARIABLES}
     >
       <head>
         {/* Apply the stored choice before first paint to avoid a flash */}
