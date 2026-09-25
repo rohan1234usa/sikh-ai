@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import IntentLink from './components/IntentLink';
 import {
   ChatBubbleLeftRightIcon,
   SunIcon,
@@ -44,19 +44,19 @@ export default async function Home() {
             </p>
 
             <div className="flex flex-wrap gap-4 pt-4 animate-fade-up [animation-delay:240ms]">
-              <Link
+              <IntentLink
                 href="/chat"
                 className="bg-kesri text-navy font-bold px-8 py-3 rounded-xl shadow-lg shadow-kesri/20 motion-safe:hover:scale-105 transition-transform flex items-center gap-2"
               >
                 {t.home.ctaChat}
                 <ArrowRightIcon className="w-5 h-5" aria-hidden="true" />
-              </Link>
-              <Link
+              </IntentLink>
+              <IntentLink
                 href="/hukamnama"
                 className="border border-slate-600 hover:border-gold hover:text-gold text-slate-300 font-semibold px-8 py-3 rounded-xl transition-colors"
               >
                 {t.home.ctaHukamnama}
-              </Link>
+              </IntentLink>
             </div>
           </div>
 
@@ -104,7 +104,7 @@ export default async function Home() {
             {FEATURE_LINKS.map(({ key, href, Icon }) => {
               const feature = t.home.features[key];
               return (
-                <Link
+                <IntentLink
                   key={href}
                   href={href}
                   className="group flex flex-col gap-3 bg-surface-raised border border-edge rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-accent-text/40 motion-safe:hover:-translate-y-1 transition-all"
@@ -121,7 +121,7 @@ export default async function Home() {
                       aria-hidden="true"
                     />
                   </span>
-                </Link>
+                </IntentLink>
               );
             })}
           </div>
