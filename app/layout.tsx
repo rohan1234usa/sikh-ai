@@ -15,9 +15,16 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
+// The only monospace text is inline code in chat replies, so the font is not
+// preloaded: a browser downloads it the first time a page shows code. The
+// variable stays on <html> on purpose. --font-mono is resolved at :root
+// (globals.css), so defining this variable any lower would leave
+// --font-mono without a value, and code would lose even the system
+// monospace fallback.
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  preload: false,
 });
 
 const notoGurmukhi = Noto_Sans_Gurmukhi({
