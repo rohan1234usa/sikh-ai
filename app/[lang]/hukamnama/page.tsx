@@ -9,7 +9,7 @@ import { fmt } from '@/lib/i18n/fmt';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { lang, t } = await getServerT();
-  return pageMetadata(lang, t, '/hukamnama', t.meta.hukamnamaTitle);
+  return pageMetadata(lang, t, '/hukamnama', t.meta.hukamnamaTitle, t.meta.descriptions.hukamnama);
 }
 
 // Fields are typed optional because GurbaniNow can return HTTP 200 with a

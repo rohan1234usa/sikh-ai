@@ -4,7 +4,7 @@ import { pageMetadata } from '@/lib/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { lang, t } = await getServerT();
-  return pageMetadata(lang, t, '/shabad', t.meta.shabadTitle);
+  return pageMetadata(lang, t, '/shabad', t.meta.shabadTitle, t.meta.descriptions.shabad);
 }
 
 export default function ShabadLayout({ children }: { children: React.ReactNode }) {

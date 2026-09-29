@@ -646,7 +646,7 @@ const paLatn: Dictionary = {
     meta: {
         title: 'SikhAI - Guruan da Gyan, AI di Roshni vich',
         titleTemplate: '%s | SikhAI',
-        description: 'Puratan virasat ate Generative AI vichkar ik adhunik pul.',
+        description: 'Sikhi ate Gurbani baare puchho, ajj da Hukamnama ate Sri Guru Granth Sahib Ji da koi vi Ang parho, Punjabi ate English vichkar anuvad karo, ate seva samagman vich shamil hovo.',
         ogImageAlt: 'SikhAI logo',
         aboutTitle: 'Saade Baare',
         chatTitle: 'SikhAI nu Puchho',
@@ -657,6 +657,17 @@ const paLatn: Dictionary = {
         hukamnamaTitle: 'Ajj da Hukamnama',
         translateTitle: 'Punjabi Anuvadak',
         notFoundTitle: 'Panna nahi milia',
+        // What each page is for, in search results and link previews.
+        descriptions: {
+            about: 'SikhAI kyon baneya, eh Gurbani naal jawab kiven dinda hai, ate isnu kaun banaunda hai.',
+            hukamnama: 'Sri Darbar Sahib ton ajj da Hukamnama, Gurmukhi vich English anuvad samet, ate is baare puchhan da raah.',
+            chat: 'Sikhi, Gurbani ate Sikh itihas baare SikhAI nu puchho. Jawaban vich Gurbani de hawale hunde han, ate har hawala asal sarot naal mila ke jaanchiya janda hai.',
+            translate: 'English, Gurmukhi ate Roman Punjabi vichkar anuvad karo, shabad-dar-shabad arth, aukhiyan gallan di vyakhya ate uchaaran de sujhavan samet.',
+            shabad: 'Sri Guru Granth Sahib Ji da koi vi Ang, 1 ton 1430 tak, Gurmukhi vich English anuvad samet parho.',
+            seva: 'Langar ton lai ke sikhya tak, apne nede de seva samagam labbho ate unhan vich shamil hovo, ja apna samagam pao.',
+        },
+        // An Ang's page: {line} is its opening line, {n} its number.
+        angDescription: '{line} — Sri Guru Granth Sahib Ji da Ang {n}, Gurmukhi vich English anuvad samet.',
     },
 
     errors: {

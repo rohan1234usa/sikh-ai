@@ -15,10 +15,10 @@ export const SITE_URL = 'https://sikhai.vercel.app';
 // public/og.jpg: the logo at 1200×630, about 57 KB.
 const OG_IMAGE = { url: '/og.jpg', width: 1200, height: 630 } as const;
 
-export function openGraph(lang: Lang, t: Dictionary, title: string, url?: string): NonNullable<Metadata['openGraph']> {
+export function openGraph(lang: Lang, t: Dictionary, title: string, url?: string, description = t.meta.description): NonNullable<Metadata['openGraph']> {
     return {
         title,
-        description: t.meta.description,
+        description,
         ...(url ? { url } : {}),
         siteName: 'SikhAI',
         images: [{ ...OG_IMAGE, alt: t.meta.ogImageAlt }],
@@ -38,17 +38,18 @@ export function languageAlternates(path: string): Record<string, string> {
 }
 
 /**
- * A page's title, canonical URL, language alternates and link preview.
- * `path` is the page's address without a language prefix ('/hukamnama');
- * the canonical URL is this language's ('/pa/hukamnama'), made absolute
- * through the root's metadataBase. Leave `title` out for the home page,
- * which uses the site title.
+ * A page's title, description, canonical URL, language alternates and link
+ * preview. `path` is the page's address without a language prefix
+ * ('/hukamnama'); the canonical URL is this language's ('/pa/hukamnama'),
+ * made absolute through the root's metadataBase. Leave `title` out for the
+ * home page, which uses the site title, and `description` for the site's.
  */
-export function pageMetadata(lang: Lang, t: Dictionary, path: string, title?: string): Metadata {
+export function pageMetadata(lang: Lang, t: Dictionary, path: string, title?: string, description?: string): Metadata {
     const url = localePath(lang, path);
     return {
         ...(title ? { title } : {}),
+        ...(description ? { description } : {}),
         alternates: { canonical: url, languages: languageAlternates(path) },
-        openGraph: openGraph(lang, t, title ? t.meta.titleTemplate.replace('%s', title) : t.meta.title, url),
+        openGraph: openGraph(lang, t, title ? t.meta.titleTemplate.replace('%s', title) : t.meta.title, url, description),
     };
 }

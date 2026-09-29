@@ -4,7 +4,7 @@ import { pageMetadata } from '@/lib/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { lang, t } = await getServerT();
-  return pageMetadata(lang, t, '/about', t.meta.aboutTitle);
+  return pageMetadata(lang, t, '/about', t.meta.aboutTitle, t.meta.descriptions.about);
 }
 
 export default function AboutLayout({ children }: { children: React.ReactNode }) {

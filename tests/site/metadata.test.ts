@@ -41,3 +41,13 @@ test("a Punjabi page's canonical URL and preview are its own address", () => {
     assert.equal((meta.openGraph as Record<string, unknown>).url, '/pa-latn/translate');
     assert.equal((pageMetadata('pa', getDictionary('pa'), '/').alternates as { canonical: string }).canonical, '/pa');
 });
+
+test('a page can describe itself; otherwise it gets the site description', () => {
+    const t = getDictionary('en');
+    const own = pageMetadata('en', t, '/translate', t.meta.translateTitle, t.meta.descriptions.translate);
+    assert.equal(own.description, t.meta.descriptions.translate);
+    assert.equal((own.openGraph as Record<string, unknown>).description, t.meta.descriptions.translate);
+    const home = pageMetadata('en', t, '/');
+    assert.equal('description' in home, false, 'the root layout supplies it');
+    assert.equal((home.openGraph as Record<string, unknown>).description, t.meta.description);
+});

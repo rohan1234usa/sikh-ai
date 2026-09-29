@@ -656,7 +656,7 @@ const en = {
     meta: {
         title: 'SikhAI - Wisdom of the Gurus, Illuminated by AI',
         titleTemplate: '%s | SikhAI',
-        description: 'Architecting a Modern Bridge Between Ancient Heritage and Generative AI.',
+        description: 'Ask about Sikhi and Gurbani, read today\'s Hukamnama and any Ang of Sri Guru Granth Sahib Ji, translate between Punjabi and English, and join seva events.',
         ogImageAlt: 'SikhAI Logo',
         aboutTitle: 'About',
         chatTitle: 'Ask SikhAI',
@@ -667,6 +667,17 @@ const en = {
         hukamnamaTitle: "Today's Hukamnama",
         translateTitle: 'Punjabi Translator',
         notFoundTitle: 'Page not found',
+        // What each page is for, in search results and link previews.
+        descriptions: {
+            about: 'Why SikhAI exists, how it answers with Gurbani, and who builds it.',
+            hukamnama: 'Today\'s Hukamnama from Sri Darbar Sahib, in Gurmukhi with an English translation, and a way to ask about it.',
+            chat: 'Ask SikhAI about Sikhi, Gurbani and Sikh history. Answers quote Gurbani, and every quote is checked against the source.',
+            translate: 'Translate between English, Gurmukhi and romanized Punjabi, with a word-by-word breakdown, tricky parts explained, and pronunciation tips.',
+            shabad: 'Read any Ang of Sri Guru Granth Sahib Ji, 1 to 1430, in Gurmukhi with an English translation.',
+            seva: 'Find and join seva events near you, from langar to education, or post your own.',
+        },
+        // An Ang's page: {line} is its opening line, {n} its number.
+        angDescription: '{line} — Ang {n} of Sri Guru Granth Sahib Ji, in Gurmukhi with an English translation.',
     },
 
     // Keys matching the `code` field on API error responses, plus client-local
