@@ -7,7 +7,8 @@
 export const AUTH_HINT_KEY = 'sikhai.auth';
 
 // '1' signed in, '0' signed out, null: never recorded (a first visit, or a
-// browser from before the hint existed).
+// browser from before the hint existed). A first visit records '0' as soon
+// as it's clear there's no session (AuthContext).
 export type AuthHint = '1' | '0' | null;
 
 export function readAuthHint(): AuthHint {

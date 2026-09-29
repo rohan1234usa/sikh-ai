@@ -73,7 +73,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const hint = readAuthHint();
     void (async () => {
       const plan = planAuthStart(hint, hint === null ? await hasFirebaseAuthDb() : null);
-      if (cancelled || plan === 'wait') return;
+      if (cancelled) return;
+      if (plan === 'wait') {
+        // A first visit: no session, so note that, and the next page can skip
+        // the database check. Unless another tab has signed in meanwhile.
+        if (hint === null && readAuthHint() === null) writeAuthHint(false);
+        return;
+      }
       if (plan === 'restore') setLoading(true);
       load();
     })();
