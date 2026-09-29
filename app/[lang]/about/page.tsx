@@ -1,10 +1,15 @@
-'use client';
-
+import type { Metadata } from 'next';
 import Image from 'next/image';
-import { useT } from '@/app/context/LanguageContext';
+import { getServerT } from '@/lib/i18n/server';
+import { pageMetadata } from '@/lib/metadata';
 
-export default function AboutPage() {
-    const t = useT();
+export async function generateMetadata(): Promise<Metadata> {
+    const { lang, t } = await getServerT();
+    return pageMetadata(lang, t, '/about', t.meta.aboutTitle, t.meta.descriptions.about);
+}
+
+export default async function AboutPage() {
+    const { t } = await getServerT();
 
     return (
         <main className="flex-1 flex flex-col">
@@ -17,10 +22,6 @@ export default function AboutPage() {
                             <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden border-[6px] border-edge shadow-inner">
                                 <Image
                                     src="/rohan-profile.png"
-                                    onError={(e) => {
-                                        // Fallback if image not found (just for dev preview comfort)
-                                        e.currentTarget.srcset = "https://ui-avatars.com/api/?name=Rohan+Singh&size=400&background=0F172A&color=F59E0B"
-                                    }}
                                     alt="Rohan Singh"
                                     width={400}
                                     height={400}

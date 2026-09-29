@@ -1,14 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { contentSecurityPolicy } from '@/lib/csp';
-
-const parse = (policy: string) => new Map(policy.split('; ').map((d) => {
-    const [name, ...sources] = d.split(' ');
-    return [name, sources] as const;
-}));
+import { parsePolicy } from '../helpers/csp';
 
 test('the production policy locks down framing, plugins, base and form targets, and reports', () => {
-    const p = parse(contentSecurityPolicy({ dev: false, preview: false, firebaseAuthDomain: 'sikhai.firebaseapp.com' }));
+    const p = parsePolicy(contentSecurityPolicy({ dev: false, preview: false, firebaseAuthDomain: 'sikhai.firebaseapp.com' }));
     assert.deepEqual(p.get('frame-ancestors'), ["'none'"]);
     assert.deepEqual(p.get('object-src'), ["'none'"]);
     assert.deepEqual(p.get('base-uri'), ["'self'"]);
@@ -26,11 +22,11 @@ test('the production policy locks down framing, plugins, base and form targets, 
 });
 
 test('next dev and previews get only what they need on top', () => {
-    const dev = parse(contentSecurityPolicy({ dev: true, preview: false }));
+    const dev = parsePolicy(contentSecurityPolicy({ dev: true, preview: false }));
     assert.ok(dev.get('script-src')!.includes("'unsafe-eval'"));
     assert.ok(dev.get('connect-src')!.includes('ws:'));
     assert.deepEqual(dev.get('frame-src'), ["'none'"], 'no auth domain configured: nothing may be framed');
-    const preview = parse(contentSecurityPolicy({ dev: false, preview: true }));
+    const preview = parsePolicy(contentSecurityPolicy({ dev: false, preview: true }));
     assert.ok(preview.get('script-src')!.includes('https://vercel.live'));
     assert.ok(preview.get('frame-src')!.includes('https://vercel.live'));
     assert.ok(!preview.get('script-src')!.includes("'unsafe-eval'"));
