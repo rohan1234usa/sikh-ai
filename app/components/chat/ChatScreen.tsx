@@ -4,6 +4,7 @@ import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { usePathname } from 'next/navigation';
 import { chatIdFromPath } from '@/lib/chat/chatMeta';
+import { localePath, splitLocale } from '@/lib/i18n/paths';
 import { siteDefaultLanguageId, siteScript } from '@/lib/chat/config';
 import type { ReplySettings } from '@/lib/chat/transcript';
 import { useLanguage } from '../../context/LanguageContext';
@@ -16,14 +17,15 @@ import { useChatHomes } from './useChatHomes';
 import { useChatList, type ChatListItem } from './useChatList';
 import { useChatPrefs } from './useChatPrefs';
 
-// The whole chat screen, rendered by app/chat/layout.tsx rather than a page:
-// a layout on the static /chat segment is never remounted, so neither moving
-// between chats nor the router.refresh() of a language switch can reset it.
-// The open chat comes from the URL — /chat is a new chat, /chat/{id} a saved
-// one — and moves with pushState/replaceState, which Next's router follows.
+// The whole chat screen, rendered by app/[lang]/chat/layout.tsx rather than a
+// page: a layout on the static /chat segment is never remounted, so moving
+// between chats can't reset it. The open chat comes from the URL — /chat is a
+// new chat, /chat/{id} a saved one, under the language's prefix (/pa/chat) —
+// and moves with pushState/replaceState, which Next's router follows. Paths
+// inside the chat have no prefix; it's added where the URL is written.
 export default function ChatScreen() {
     const pathname = usePathname();
-    const routeId = chatIdFromPath(pathname);
+    const routeId = chatIdFromPath(splitLocale(pathname).path);
     const activeId = routeId === 'invalid' ? null : routeId;
     const { lang, t } = useLanguage();
     const { prefs, update: updatePrefs, hydrated: prefsHydrated } = useChatPrefs();
@@ -55,13 +57,14 @@ export default function ChatScreen() {
     // Set before the URL changes, so the new key is in place when it does.
     const onCreated = useCallback((chatId: string) => {
         flushSync(() => setPromotedId(chatId));
-        window.history.replaceState(null, '', `/chat/${chatId}`);
-    }, []);
+        window.history.replaceState(null, '', localePath(lang, `/chat/${chatId}`));
+    }, [lang]);
 
-    const navigate = useCallback((href: string) => {
+    const navigate = useCallback((path: string) => {
         setDrawerOpen(false);
+        const href = localePath(lang, path);
         if (window.location.pathname + window.location.search !== href) window.history.pushState(null, '', href);
-    }, []);
+    }, [lang]);
 
     // Leaving a chat for /chat starts a new one by itself (the URL change,
     // above), so only a new chat asked for from /chat itself needs the nudge.

@@ -4,12 +4,13 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { MagnifyingGlassIcon, BookOpenIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { normalizeVerse, type AngItem } from '@/lib/gurbani/verse';
-import { useT } from '@/app/context/LanguageContext';
+import { useLocalePath, useT } from '@/app/context/LanguageContext';
 import type { Dictionary } from '@/lib/i18n';
 import { fmt } from '@/lib/i18n/fmt';
 
 export default function ShabadSearchPage() {
   const t = useT();
+  const to = useLocalePath();
   const [query, setQuery] = useState('');
   const [currentAng, setCurrentAng] = useState(''); // New state for displayed Ang
   const [loading, setLoading] = useState(false);
@@ -146,7 +147,7 @@ export default function ShabadSearchPage() {
                 {fmt(t.shabad.angLabel, { n: currentAng })}
               </span>
               <Link
-                href={`/chat?context=shabad&ang=${currentAng}`}
+                href={to(`/chat?context=shabad&ang=${currentAng}`)}
                 className="ml-auto inline-flex items-center gap-1.5 text-sm font-semibold text-accent-text hover:underline"
               >
                 <ChatBubbleLeftRightIcon className="w-4 h-4" aria-hidden="true" />

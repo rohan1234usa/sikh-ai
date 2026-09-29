@@ -25,10 +25,10 @@ const isSggsAng = (line: CitationLine) =>
     line.source.id === SGGS_SOURCE_ID && line.ang !== null && line.ang >= 1 && line.ang <= MAX_ANG;
 
 function AngLink({ ang }: { ang: number }) {
-    const { t } = useLanguage();
+    const { t, href } = useLanguage();
     return (
         <Link
-            href={`/shabad?ang=${ang}`}
+            href={href(`/shabad?ang=${ang}`)}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-xs font-semibold text-accent-text hover:underline"

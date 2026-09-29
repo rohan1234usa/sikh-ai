@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
-import { useT } from '../context/LanguageContext';
+import { useLocalePath, useT } from '../context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
@@ -13,17 +13,18 @@ import LanguageToggle from './LanguageToggle';
 export default function Navbar() {
     const { user, signIn, logOut, signInIntent } = useAuth();
     const t = useT();
+    const to = useLocalePath();
     const pathname = usePathname();
     const [open, setOpen] = useState(false);
     const closeMenu = () => setOpen(false);
 
     const links = [
-        { href: '/about', label: t.nav.about },
-        { href: '/hukamnama', label: t.nav.hukamnama },
-        { href: '/chat', label: t.nav.chat },
-        { href: '/seva', label: t.nav.seva },
-        { href: '/shabad', label: t.nav.shabad },
-        { href: '/translate', label: t.nav.translate },
+        { href: to('/about'), label: t.nav.about },
+        { href: to('/hukamnama'), label: t.nav.hukamnama },
+        { href: to('/chat'), label: t.nav.chat },
+        { href: to('/seva'), label: t.nav.seva },
+        { href: to('/shabad'), label: t.nav.shabad },
+        { href: to('/translate'), label: t.nav.translate },
     ];
 
     const isActive = (href: string) =>
@@ -32,7 +33,7 @@ export default function Navbar() {
     return (
         <header className="sticky top-0 z-50 bg-navy text-white shadow-md dark:border-b dark:border-white/10">
             <nav aria-label={t.nav.mainNavAria} className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-                <IntentLink href="/" onClick={closeMenu} className="flex items-center gap-2 text-xl font-bold tracking-wide">
+                <IntentLink href={to('/')} onClick={closeMenu} className="flex items-center gap-2 text-xl font-bold tracking-wide">
                     <span className="font-gurmukhi text-kesri" aria-hidden="true">ੴ</span> SikhAI
                 </IntentLink>
 

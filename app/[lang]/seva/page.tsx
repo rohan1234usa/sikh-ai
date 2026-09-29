@@ -6,7 +6,7 @@ import { MapPinIcon, CalendarIcon, UserGroupIcon, XMarkIcon } from '@heroicons/r
 import { db } from '@/lib/firebase/firestore';
 import { collection, getDocs, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useAuth } from '@/app/context/AuthContext';
-import { useT } from '@/app/context/LanguageContext';
+import { useLocalePath, useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 
 interface SevaEvent {
@@ -36,6 +36,7 @@ export default function SevaPage() {
   const [notice, setNotice] = useState<Notice | null>(null);
   const { user, signIn, signInIntent } = useAuth();
   const t = useT();
+  const to = useLocalePath();
 
   // The stored category value is the data/style key; only the chip label is
   // display-mapped through the dictionary.
@@ -117,7 +118,7 @@ export default function SevaPage() {
         </p>
         {user && (
           <Link
-            href="/seva/create"
+            href={to('/seva/create')}
             className="inline-block mt-6 bg-kesri text-navy text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-kesri-hover transition-colors shadow-md shadow-kesri/20"
           >
             {t.seva.postEvent}

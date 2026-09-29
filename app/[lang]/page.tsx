@@ -8,6 +8,7 @@ import {
   LanguageIcon,
   ArrowRightIcon,
 } from '@heroicons/react/24/outline';
+import { localePath } from '@/lib/i18n/paths';
 import { getServerT } from '@/lib/i18n/server';
 import { pageMetadata } from '@/lib/metadata';
 
@@ -27,7 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const { t } = await getServerT();
+  const { lang, t } = await getServerT();
 
   return (
     <main className="flex-1 flex flex-col">
@@ -52,14 +53,14 @@ export default async function Home() {
 
             <div className="flex flex-wrap gap-4 pt-4 animate-fade-up [animation-delay:240ms]">
               <IntentLink
-                href="/chat"
+                href={localePath(lang, '/chat')}
                 className="bg-kesri text-navy font-bold px-8 py-3 rounded-xl shadow-lg shadow-kesri/20 motion-safe:hover:scale-105 transition-transform flex items-center gap-2"
               >
                 {t.home.ctaChat}
                 <ArrowRightIcon className="w-5 h-5" aria-hidden="true" />
               </IntentLink>
               <IntentLink
-                href="/hukamnama"
+                href={localePath(lang, '/hukamnama')}
                 className="border border-slate-600 hover:border-gold hover:text-gold text-slate-300 font-semibold px-8 py-3 rounded-xl transition-colors"
               >
                 {t.home.ctaHukamnama}
@@ -113,7 +114,7 @@ export default async function Home() {
               return (
                 <IntentLink
                   key={href}
-                  href={href}
+                  href={localePath(lang, href)}
                   className="group flex flex-col gap-3 bg-surface-raised border border-edge rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-accent-text/40 motion-safe:hover:-translate-y-1 transition-all"
                 >
                   <span className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-accent-text/10 text-accent-text">

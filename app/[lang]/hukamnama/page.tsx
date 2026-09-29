@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { fetchHukamnamaPayload } from '@/lib/gurbani/gurbaninow';
+import { localePath } from '@/lib/i18n/paths';
 import { getServerT } from '@/lib/i18n/server';
 import { pageMetadata } from '@/lib/metadata';
 import { fmt } from '@/lib/i18n/fmt';
@@ -112,7 +113,7 @@ export default async function HukamnamaPage() {
 
             <div className="p-6 md:px-12 md:pb-10 pt-0 flex justify-center border-t border-edge bg-surface">
               <Link
-                href="/chat?context=hukamnama"
+                href={localePath(lang, '/chat?context=hukamnama')}
                 className="inline-flex items-center gap-2 bg-kesri text-navy font-bold px-6 py-3 mt-6 rounded-xl hover:opacity-90 transition-opacity"
               >
                 <ChatBubbleLeftRightIcon className="w-5 h-5" aria-hidden="true" />

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect } from 'react';
-import { useT } from '@/app/context/LanguageContext';
+import { useLanguage } from '@/app/context/LanguageContext';
 import { PRIMARY_BUTTON, StatusPage } from '@/app/components/StatusPage';
 
 // Catches a render error in any page and shows it inside the root layout, so
@@ -13,7 +13,7 @@ export default function ErrorPage({ error, retry }: {
   error: Error & { digest?: string };
   retry: () => void;
 }) {
-  const t = useT();
+  const { t, href } = useLanguage();
 
   useEffect(() => {
     console.error(error);
@@ -27,7 +27,7 @@ export default function ErrorPage({ error, retry }: {
       <button type="button" onClick={() => retry()} className={PRIMARY_BUTTON}>
         {t.errorPage.retry}
       </button>
-      <Link href="/" className="text-sm font-semibold text-accent-text hover:underline">
+      <Link href={href('/')} className="text-sm font-semibold text-accent-text hover:underline">
         {t.notFound.home}
       </Link>
     </StatusPage>

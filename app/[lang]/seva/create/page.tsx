@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/firebase/firestore';
 import { collection, addDoc } from 'firebase/firestore';
-import { useT } from '@/app/context/LanguageContext';
+import { useLocalePath, useT } from '@/app/context/LanguageContext';
 
 // Stored category values stay English (they are data/style keys); only the
 // visible <option> labels are translated.
@@ -14,6 +14,7 @@ const CATEGORY_VALUES = ['Langar', 'Service', 'Education', 'Other'] as const;
 export default function CreateSevaPage() {
   const router = useRouter();
   const t = useT();
+  const to = useLocalePath();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -48,7 +49,7 @@ export default function CreateSevaPage() {
         createdAt: new Date()
       });
 
-      router.push('/seva');
+      router.push(to('/seva'));
 
     } catch (err) {
       console.error("Error adding document: ", err);
@@ -64,7 +65,7 @@ export default function CreateSevaPage() {
         {/* Header */}
         <div className="bg-navy dark:bg-navy-light p-6 text-white flex justify-between items-center">
           <h1 className="text-xl font-bold">{t.sevaCreate.title}</h1>
-          <Link href="/seva" className="text-sm text-slate-300 hover:text-white hover:underline transition">
+          <Link href={to('/seva')} className="text-sm text-slate-300 hover:text-white hover:underline transition">
             {t.sevaCreate.cancel}
           </Link>
         </div>

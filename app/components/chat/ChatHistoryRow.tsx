@@ -4,7 +4,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { BookmarkIcon, BookmarkSlashIcon, LinkIcon, PencilIcon, ShareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { MAX_CHAT_TITLE_CHARS, type ChatMeta } from '@/lib/chat/chatMeta';
-import { useT } from '../../context/LanguageContext';
+import { useLocalePath, useT } from '../../context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import ChatActionsMenu from './ChatActionsMenu';
 
@@ -28,6 +28,7 @@ type Mode = 'view' | 'rename' | 'delete';
 // in place or asks before deleting it.
 export default function ChatHistoryRow({ chat, active, replying, initialFocus, onOpen, onTogglePin, onRename, onDelete, onShare }: Props) {
     const t = useT();
+    const to = useLocalePath();
     const h = t.chat.history;
     const [mode, setMode] = useState<Mode>('view');
     const rowRef = useRef<HTMLDivElement>(null);
@@ -107,7 +108,7 @@ export default function ChatHistoryRow({ chat, active, replying, initialFocus, o
                 ) : (
                     <>
                         <Link
-                            href={`/chat/${chat.id}`}
+                            href={to(`/chat/${chat.id}`)}
                             prefetch={false}
                             onClick={onOpen}
                             aria-current={active ? 'page' : undefined}
