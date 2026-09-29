@@ -79,7 +79,7 @@ The chat client sends only whitelisted IDs (`lensId` / `modeId` / `languageId`, 
     *   Crawlers get `robots.txt` and `sitemap.xml`.
     *   A failure in the root layout itself gets a translated, themed page (`app/global-error.tsx`) rather than Next's bare default.
     *   The site installs as an app on a phone: `app/manifest.ts`, and icons that are the navbar's ੴ in the site's own Gurmukhi font (`public/icon-*.png`, `app/apple-icon.png`).
-    *   `/privacy` says, in all three languages, what the site keeps, where, for how long, what it sends to which service, and how to remove it. Google Analytics loads only on the production deployment, so previews and local builds send it nothing.
+    *   `/privacy` says, in all three languages, what the site keeps, where, for how long, what it sends to which service, and how to remove it. Visits are counted by Vercel Web Analytics, on the production deployment only, and page speed by Speed Insights: both are Vercel's own, set no cookies and load from this site. Neither counts a visitor who switches counting off on `/privacy` or whose browser sends Global Privacy Control, and every address they record has a share link's or chat's ID, query and fragment taken out (`lib/analytics.ts`).
 
 ## 🚀 Getting Started
 
@@ -177,8 +177,9 @@ Four settings outside the code keep a public deployment affordable and safe, and
 
 **The Firestore rules** live in [`firestore.rules`](firestore.rules): the whole file, reviewed in pull requests and tested on the emulator (`npm run test:rules`, which needs Java 21; CI runs it). `firebase deploy --only firestore:rules` replaces every rule in the console, so before the first deploy, export the console's rules and compare them with the file: anything they allow that the file doesn't would stop working. After that, deploy only from the file.
 
-Two more, for seeing how the site does:
-*   **Speed Insights** (Vercel → Speed Insights → Enable): real visitors' Core Web Vitals. The page already includes it on Vercel. It sets no cookies and loads nothing from a third party.
+Three more, for seeing how the site does:
+*   **Web Analytics** (Vercel → Analytics → Enable), before deploying the code that uses it: Vercel adds its routes at the next deploy, and until then the script isn't found. It counts visits on the production deployment, without cookies. The Hobby plan counts 50,000 events a month and keeps a month of reports; when a month's events run out, counting pauses (after three days' grace) rather than costing anything. To check it, open the site in an ordinary browser (automated ones aren't counted): each page sends a POST to `/<random>/view`, and on a share link its `o` ends in `/share/:id`.
+*   **Speed Insights** (Vercel → Speed Insights → Enable): real visitors' Core Web Vitals. The page already includes it on Vercel. It sets no cookies and loads nothing from a third party. The free tier counts 10,000 events in 30 days (a page load sends a few), then pauses for at least 14 days; a `sampleRate` on `<SpeedInsights>` (`app/components/SiteAnalytics.tsx`) would measure a share of visits instead.
 *   **The Content-Security-Policy** is enforced. After a deploy that changes what the pages load, open Logs in Live mode, search for `csp_violation`, and go through the site, including a sign-in. The Hobby plan keeps runtime logs for an hour, so lines from earlier are gone. A line means something was blocked. Add its host to `lib/csp.ts` only if the site itself means to load from it, such as a Google, Firebase or Vercel service it uses. Leave everything else blocked: a browser extension's own code, another site trying to frame this one, or anything that shouldn't be on the page. To stop blocking while you look into one, roll back the deploy, or rename the header in `next.config.ts` to `Content-Security-Policy-Report-Only`.
 
 ## 💻 Usage Examples
