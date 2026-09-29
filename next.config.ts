@@ -17,6 +17,10 @@ const SECURITY_HEADERS = [
   // no-referrer through its own meta tag.
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Frame-Options", value: "DENY" },
+  // A window another site opens onto this one gets no handle on it. Not
+  // same-origin: that would also cut off the popups this site opens, and
+  // Google sign-in runs in one.
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
   // Nothing on the site uses these. A voice feature would need microphone=(self).
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
   { key: "Content-Security-Policy-Report-Only", value: CSP },
