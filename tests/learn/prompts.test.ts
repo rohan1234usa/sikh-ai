@@ -21,6 +21,16 @@ test('the tutor’s instruction has every fixed section, the house romanization,
     assert.match(instruction, /^You are the SikhAI Punjabi tutor/);
 });
 
+test('the tutor stays off Gurbani and never corrects how a learner romanizes', () => {
+    // Both came up in a real-key test: a Mool Mantar question drew the whole
+    // text (the tutor has no citation check, unlike the chat), and a learner's
+    // correct "daal" was "corrected".
+    const instruction = composeTutorInstruction({});
+    assert.match(instruction, /Never quote, translate or explain Gurbani/);
+    assert.match(instruction, /suggest Ask SikhAI/);
+    assert.match(instruction, /Never correct how a learner romanizes a word/);
+});
+
 test('a lesson comes last, fenced, so every call shares the same opening', () => {
     const plain = composeTutorInstruction({});
     const withLesson = composeTutorInstruction({ lesson: LESSON, nonce: 'abc12345' });
