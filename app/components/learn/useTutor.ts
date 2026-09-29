@@ -138,9 +138,13 @@ export function useTutor() {
 
     const stop = useCallback(() => controllerRef.current?.abort(), []);
 
-    // A new conversation, about the same lesson if there is one.
+    // A new conversation, about the same lesson if there is one. A reply
+    // still streaming is cut off and let go at once, so the input is ready
+    // before the old request has finished unwinding.
     const reset = useCallback(() => {
         controllerRef.current?.abort();
+        controllerRef.current = null;
+        setBusy(false);
         setSession((s) => ({ lesson: s.lesson, exchanges: [] }));
     }, []);
 

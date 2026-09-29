@@ -45,6 +45,22 @@ export default function TutorInput({ value, onChange, onSend, onStop, isStreamin
         if (el) fitHeight(el);
     }, [value]);
 
+    // A change of width (the window, a phone turned) re-wraps the text, so
+    // the height is fitted again. Only width: fitting changes the height,
+    // which would otherwise call this straight back.
+    useEffect(() => {
+        const el = textareaRef.current;
+        if (!el) return;
+        let width = el.clientWidth;
+        const observer = new ResizeObserver(() => {
+            if (el.clientWidth === width) return;
+            width = el.clientWidth;
+            fitHeight(el);
+        });
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
+
     const submit = () => {
         if (!isStreaming && canSubmit) onSend();
     };
