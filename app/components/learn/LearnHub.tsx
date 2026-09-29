@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import {
     ArrowRightIcon,
     ChatBubbleLeftRightIcon,
@@ -39,6 +39,16 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
     const t = useT();
     const { progress, hydrated, now, reset } = useLearnProgress();
     const [confirming, setConfirming] = useState(false);
+    // Asking and answering swap the buttons, so focus moves with them: to
+    // Cancel when the question appears (the group's label reads it out),
+    // then back to Reset progress. Not on arrival.
+    const promptId = useId();
+    const resetRef = useRef<HTMLButtonElement>(null);
+    const asked = useRef(false);
+    useEffect(() => {
+        if (confirming) asked.current = true;
+        else if (asked.current) resetRef.current?.focus();
+    }, [confirming]);
 
     const slugs = lessons.map((lesson) => lesson.slug);
     const next = hydrated ? nextLesson(progress, slugs) : undefined;
@@ -123,8 +133,8 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
                 {hydrated && (
                     <div className="flex items-center gap-2">
                         {confirming ? (
-                            <>
-                                <span className="text-ink-muted">{t.learn.hub.resetPrompt}</span>
+                            <div role="group" aria-labelledby={promptId} className="flex items-center gap-2">
+                                <span id={promptId} className="text-ink-muted">{t.learn.hub.resetPrompt}</span>
                                 <button
                                     type="button"
                                     onClick={() => { reset(); setConfirming(false); }}
@@ -132,12 +142,13 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
                                 >
                                     {t.learn.hub.resetConfirm}
                                 </button>
-                                <button type="button" onClick={() => setConfirming(false)} className="text-ink-muted hover:text-ink hover:underline">
+                                {/* autoFocus: it takes the place of the button just pressed. */}
+                                <button type="button" autoFocus onClick={() => setConfirming(false)} className="text-ink-muted hover:text-ink hover:underline">
                                     {t.learn.hub.cancel}
                                 </button>
-                            </>
+                            </div>
                         ) : (
-                            <button type="button" onClick={() => setConfirming(true)} className="text-ink-muted hover:text-ink hover:underline">
+                            <button ref={resetRef} type="button" onClick={() => setConfirming(true)} className="text-ink-muted hover:text-ink hover:underline">
                                 {t.learn.hub.reset}
                             </button>
                         )}
