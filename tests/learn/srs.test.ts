@@ -25,12 +25,23 @@ test('knowing a new card sends it to tomorrow, a few hours early', () => {
 
 test('each right answer climbs one box and waits that box\'s interval', () => {
     let state: CardState | undefined;
+    let now = NOW;
     for (let box = 1; box <= MAX_BOX; box++) {
-        state = review(state, true, NOW);
+        state = review(state, true, now);
         assert.equal(state.box, box);
-        assert.equal(state.due, NOW + BOX_INTERVALS_DAYS[box] * DAY_MS - EARLY_MS);
+        assert.equal(state.due, now + BOX_INTERVALS_DAYS[box] * DAY_MS - EARLY_MS);
+        now = state.due; // the next review comes when the card is due
     }
     assert.equal(state!.reviews, MAX_BOX);
+});
+
+test('knowing a card before it is due keeps its box and its date; missing it still drops it', () => {
+    const waiting = card(2, NOW + 3 * DAY_MS, { reviews: 4 });
+    const practiced = review(waiting, true, NOW);
+    assert.deepEqual(practiced, { ...waiting, reviews: 5, lastAt: NOW });
+    const missed = review(waiting, false, NOW);
+    assert.equal(missed.box, 0);
+    assert.equal(missed.due, NOW);
 });
 
 test('the top box keeps a card there', () => {

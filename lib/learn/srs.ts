@@ -34,7 +34,11 @@ export function cardOf(cards: Readonly<Record<string, CardState>>, id: string): 
 }
 
 // A new card starts in box 0, so knowing it straight away earns tomorrow.
+// Knowing a card before it is due (in a practice round) doesn't move it: it
+// climbs only when its time has come, so an afternoon of practice can't send
+// a card a month away. A miss counts whenever it happens.
 export function review(state: CardState | undefined, correct: boolean, now: number): CardState {
+    if (correct && state && state.due > now) return { ...state, reviews: state.reviews + 1, lastAt: now };
     const box = correct ? Math.min((state?.box ?? 0) + 1, MAX_BOX) : 0;
     const days = BOX_INTERVALS_DAYS[box];
     return {
