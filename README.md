@@ -73,6 +73,8 @@ The chat client sends only whitelisted IDs (`lensId` / `modeId` / `languageId`, 
     *   Each page builds its own link preview and canonical URL (`lib/metadata.ts`), because Next replaces a parent's `openGraph` rather than merging it.
     *   Crawlers get `robots.txt` and `sitemap.xml`.
     *   A failure in the root layout itself gets a translated, themed page (`app/global-error.tsx`) rather than Next's bare default.
+    *   The site installs as an app on a phone: `app/manifest.ts`, and icons that are the navbar's ੴ in the site's own Gurmukhi font (`public/icon-*.png`, `app/apple-icon.png`).
+    *   `/privacy` says, in all three languages, what the site keeps, where, for how long, what it sends to which service, and how to remove it. Google Analytics loads only on the production deployment, so previews and local builds send it nothing.
 
 ## 🚀 Getting Started
 
