@@ -1,12 +1,15 @@
 import type { MetadataRoute } from 'next';
+import { MAX_ANG } from '@/lib/gurbani/citations';
 import { LANGS } from '@/lib/i18n/config';
 import { localePath } from '@/lib/i18n/paths';
 import { SITE_URL, languageAlternates } from '@/lib/metadata';
 
 // The pages worth finding from a search, in each language, each listing its
 // twins in the others (hreflang), so the Gurmukhi and romanized Punjabi pages
-// get found too. Saved chats (/chat/{id}), share links (/share/{id}) and the
-// event form (/seva/create) are left out; they are noindex.
+// get found too: the site's pages, then every Ang (/shabad/1 … /shabad/1430),
+// whose text never changes. Saved chats (/chat/{id}), share links
+// (/share/{id}) and the event form (/seva/create) are left out; they are
+// noindex.
 const PAGES: { path: string; changeFrequency?: MetadataRoute.Sitemap[number]['changeFrequency'] }[] = [
   { path: '/' },
   { path: '/hukamnama', changeFrequency: 'daily' },
@@ -15,6 +18,7 @@ const PAGES: { path: string; changeFrequency?: MetadataRoute.Sitemap[number]['ch
   { path: '/shabad' },
   { path: '/seva', changeFrequency: 'daily' },
   { path: '/about' },
+  ...Array.from({ length: MAX_ANG }, (_, i) => ({ path: `/shabad/${i + 1}`, changeFrequency: 'yearly' as const })),
 ];
 
 const absolute = (path: string) => `${SITE_URL}${path === '/' ? '' : path}`;

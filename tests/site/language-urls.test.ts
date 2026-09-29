@@ -65,9 +65,9 @@ test('/en is never a public address', () => {
     assert.ok(redirects.some((r) => r.source === '/en/:rest*' && r.destination === '/:rest*' && !r.has));
 });
 
-test('the sitemap lists every page in every language, each with its twins', () => {
+test('the sitemap lists every page and every Ang in every language, each with its twins', () => {
     const entries = sitemap();
-    assert.equal(entries.length, 7 * 3);
+    assert.equal(entries.length, (7 + 1430) * 3);
     const hukamnama = entries.find((e) => e.url === 'https://sikhai.vercel.app/pa/hukamnama')!;
     assert.deepEqual(hukamnama.alternates?.languages, {
         en: 'https://sikhai.vercel.app/hukamnama',
@@ -77,4 +77,7 @@ test('the sitemap lists every page in every language, each with its twins', () =
     });
     assert.ok(entries.some((e) => e.url === 'https://sikhai.vercel.app'));
     assert.ok(entries.some((e) => e.url === 'https://sikhai.vercel.app/pa'));
+    for (const url of ['https://sikhai.vercel.app/shabad/1', 'https://sikhai.vercel.app/pa-latn/shabad/1430'])
+        assert.ok(entries.some((e) => e.url === url), url);
+    assert.ok(!entries.some((e) => e.url.endsWith('/shabad/1431')));
 });

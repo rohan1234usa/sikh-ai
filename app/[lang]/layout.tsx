@@ -39,11 +39,13 @@ export const viewport: Viewport = {
 
 // Every page is built once per language, ahead of time, and served from the
 // CDN. The language comes from the URL (lib/i18n/paths.ts): English at the
-// root, Punjabi under /pa and /pa-latn. No other value is a page.
+// root, Punjabi under /pa and /pa-latn. The routing rules (lib/i18n/routing.ts)
+// let no other value reach this segment. There's no dynamicParams = false
+// here: it would also refuse the Angs (shabad/[ang]), which are built as
+// they're first visited.
 export function generateStaticParams() {
   return LANGS.map((lang) => ({ lang }));
 }
-export const dynamicParams = false;
 
 export default async function RootLayout({ children, params }: LayoutProps<"/[lang]">) {
   // From the URL, so <html lang> and every word are right in the built HTML,

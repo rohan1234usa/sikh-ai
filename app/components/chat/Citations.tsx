@@ -28,7 +28,7 @@ function AngLink({ ang }: { ang: number }) {
     const { t, href } = useLanguage();
     return (
         <Link
-            href={href(`/shabad?ang=${ang}`)}
+            href={href(`/shabad/${ang}`)}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-xs font-semibold text-accent-text hover:underline"
