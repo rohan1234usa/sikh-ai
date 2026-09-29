@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { cache } from 'react';
 import { redirect } from 'next/navigation';
 import { BookOpenIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import ShabadHeader from '@/app/components/shabad/ShabadHeader';
@@ -26,12 +27,13 @@ export const dynamicParams = true;
 
 type Line = { gurmukhi: string; translation: string };
 
-// The Ang's lines, or null when the source gave no usable answer.
-async function angLines(ang: number): Promise<Line[] | null> {
+// The Ang's lines, or null when the source gave no usable answer. Wrapped in
+// cache() so generateMetadata and the page share one request per render.
+const angLines = cache(async (ang: number): Promise<Line[] | null> => {
   const data = (await fetchAngPayload(ang)) as { page?: unknown } | null;
   if (!Array.isArray(data?.page) || data.page.length === 0) return null;
   return (data.page as AngItem[]).map(normalizeVerse);
-}
+});
 
 const angTitle = (t: Dictionary, ang: number) => `${fmt(t.shabad.angLabel, { n: ang })} · ${t.shabad.granth}`;
 
@@ -47,7 +49,7 @@ export async function generateMetadata({ params }: PageProps<'/[lang]/shabad/[an
   const ang = parseAngParam((await params).ang);
   if (ang === null) return {};
   const { lang, t } = await getServerT();
-  const lines = await angLines(ang); // the same request as the page's, made once
+  const lines = await angLines(ang);
   const description = lines ? fmt(t.meta.angDescription, { line: opening(lines), n: ang }) : t.meta.descriptions.shabad;
   return pageMetadata(lang, t, `/shabad/${ang}`, angTitle(t, ang), description);
 }
