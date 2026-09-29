@@ -2,8 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
 import {
-    ANALYTICS_CHOICE_KEY, analyticsState, parseAnalyticsChoice, redactAnalyticsEvent, redactAnalyticsUrl,
-    resolveAnalyticsState, sendsGpc, subscribeAnalyticsChoice, touchesAnalyticsChoice, writeAnalyticsChoice,
+    ANALYTICS_CHOICE_KEY, analyticsState, isLegacyAnalyticsCookie, legacyAnalyticsCookieExpiries, parseAnalyticsChoice,
+    redactAnalyticsEvent, redactAnalyticsUrl, resolveAnalyticsState, sendsGpc, subscribeAnalyticsChoice,
+    touchesAnalyticsChoice, writeAnalyticsChoice,
 } from '@/lib/analytics';
 
 const SITE = 'https://sikhai.vercel.app';
@@ -101,6 +102,27 @@ test('counting is on by default, off when switched off, and Global Privacy Contr
     assert.equal(touchesAnalyticsChoice(ANALYTICS_CHOICE_KEY), true);
     assert.equal(touchesAnalyticsChoice(null), true, 'storage cleared');
     assert.equal(touchesAnalyticsChoice('theme'), false);
+});
+
+test("Google Analytics' leftover cookies are expired, on the host and on its domain, and nothing else is", () => {
+    for (const name of ['_ga', '_ga_9WWKK5Z5GD', '_gid', '_gat', '_gat_gtag_UA_1_1'])
+        assert.equal(isLegacyAnalyticsCookie(name), true, name);
+    for (const name of ['sikhai.lang', 'theme', 'ga', '__ga', '_gax', '_galaxy', '_gidx', '_ga-x', ''])
+        assert.equal(isLegacyAnalyticsCookie(name), false, name);
+
+    const cookies = 'sikhai.lang=pa; _ga=GA1.1.1.2; _ga_9WWKK5Z5GD=GS2.1.s1; _gid=GA1.1.3.4';
+    assert.deepEqual(legacyAnalyticsCookieExpiries(cookies, 'sikhai.vercel.app'), [
+        '_ga=; Max-Age=0; Path=/',
+        '_ga=; Max-Age=0; Path=/; Domain=sikhai.vercel.app',
+        '_ga_9WWKK5Z5GD=; Max-Age=0; Path=/',
+        '_ga_9WWKK5Z5GD=; Max-Age=0; Path=/; Domain=sikhai.vercel.app',
+        '_gid=; Max-Age=0; Path=/',
+        '_gid=; Max-Age=0; Path=/; Domain=sikhai.vercel.app',
+    ]);
+    assert.deepEqual(legacyAnalyticsCookieExpiries('', 'sikhai.vercel.app'), []);
+    assert.deepEqual(legacyAnalyticsCookieExpiries('sikhai.lang=pa', 'sikhai.vercel.app'), []);
+    // The same cookie twice (host-only and on the domain) is expired once each way.
+    assert.equal(legacyAnalyticsCookieExpiries('_ga=1; _ga=2', 'sikhai.vercel.app').length, 2);
 });
 
 // The browser-only store, on fakes: this file runs in its own process.

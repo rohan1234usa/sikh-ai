@@ -1,9 +1,9 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import { analyticsBeforeSend, analyticsState, subscribeAnalyticsChoice } from '@/lib/analytics';
+import { analyticsBeforeSend, analyticsState, legacyAnalyticsCookieExpiries, subscribeAnalyticsChoice } from '@/lib/analytics';
 
 const counted = () => analyticsState() === 'on';
 // The server, and the page while it hydrates, can't know the visitor's
@@ -19,6 +19,15 @@ const notYet = () => false;
 // share link's ID never leaves the page.
 export default function SiteAnalytics({ webAnalytics, speedInsights }: { webAnalytics: boolean; speedInsights: boolean }) {
     const on = useSyncExternalStore(subscribeAnalyticsChoice, counted, notYet);
+
+    // Whatever the choice: Google Analytics' leftover cookies go, so the one
+    // cookie /privacy speaks of is the only one.
+    useEffect(() => {
+        try {
+            for (const expiry of legacyAnalyticsCookieExpiries(document.cookie, location.hostname)) document.cookie = expiry;
+        } catch { /* cookies blocked: nothing of GA's can be there either */ }
+    }, []);
+
     if (!on) return null;
     return (
         <>

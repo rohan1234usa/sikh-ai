@@ -71,6 +71,23 @@ export function redactAnalyticsEvent<E extends { url: string }>(event: E, counte
 // storage (key null).
 export const touchesAnalyticsChoice = (key: string | null): boolean => key === null || key === ANALYTICS_CHOICE_KEY;
 
+// Google Analytics' own cookies, which it left in returning visitors'
+// browsers when the site stopped using it: _ga, _ga_<property>, _gid, and
+// _gat or _gat_<id>. They last two years from the visit that last refreshed
+// them, so this, and its caller in SiteAnalytics, can go after October 2028.
+export const isLegacyAnalyticsCookie = (name: string): boolean => /^_(ga|gid|gat)(_.+)?$/.test(name);
+
+// What to write to document.cookie to expire them: each both as a host-only
+// cookie and on this host's domain, where GA's automatic cookie domain put
+// it (vercel.app is a public suffix, so that's the site's own hostname).
+export function legacyAnalyticsCookieExpiries(cookies: string, hostname: string): string[] {
+    const names = new Set(cookies.split(';').map((c) => c.split('=')[0].trim()).filter(isLegacyAnalyticsCookie));
+    return [...names].flatMap((name) => [
+        `${name}=; Max-Age=0; Path=/`,
+        `${name}=; Max-Age=0; Path=/; Domain=${hostname}`,
+    ]);
+}
+
 // ── Browser-only ─────────────────────────────────────────────────────────
 
 // A choice that storage refused (blocked or full): it holds until the page
