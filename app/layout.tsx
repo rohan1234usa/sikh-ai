@@ -10,6 +10,7 @@ import { LANG_META } from "@/lib/i18n/config";
 import { getLang, getServerT } from "@/lib/i18n/server";
 import { SITE_URL, openGraph } from "@/lib/metadata";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
+import { AUTH_HINT_SCRIPT } from "@/lib/firebase/hint";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { lang, t } = await getServerT();
@@ -52,8 +53,10 @@ export default async function RootLayout({
       className={FONT_VARIABLES}
     >
       <head>
-        {/* Apply the stored choice before first paint to avoid a flash */}
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        {/* Before first paint, to avoid a flash: the stored theme, and whether
+            this browser was signed in (which hides "Sign in" while the
+            session is restored). */}
+        <script dangerouslySetInnerHTML={{ __html: `${THEME_INIT_SCRIPT};${AUTH_HINT_SCRIPT}` }} />
       </head>
       <body className="antialiased min-h-dvh flex flex-col">
         <AuthProvider>

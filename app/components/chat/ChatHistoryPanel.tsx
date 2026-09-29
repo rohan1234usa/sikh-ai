@@ -53,7 +53,7 @@ const plainLeftClick = (e: React.MouseEvent) =>
 export default function ChatHistoryPanel({ variant, headingId, activeId, onNavigate, onHide, onClose, onShare }: Props) {
     const t = useT();
     const h = t.chat.history;
-    const { signIn } = useAuth();
+    const { signIn, signInIntent } = useAuth();
     const { uid, cloud, accountOk } = useChatHomes();
     const list = useChatList();
     const evicted = useEvictions();
@@ -245,6 +245,7 @@ export default function ChatHistoryPanel({ variant, headingId, activeId, onNavig
                                 <button
                                     type="button"
                                     onClick={() => void signIn()}
+                                    {...signInIntent}
                                     className="rounded-lg bg-kesri px-3 py-1.5 font-bold text-navy transition-colors hover:bg-kesri-hover"
                                 >
                                     {t.nav.signIn}

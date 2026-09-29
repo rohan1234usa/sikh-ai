@@ -34,7 +34,7 @@ export default function SevaPage() {
   const [events, setEvents] = useState<SevaEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState<Notice | null>(null);
-  const { user, signIn } = useAuth();
+  const { user, signIn, signInIntent } = useAuth();
   const t = useT();
 
   // The stored category value is the data/style key; only the chip label is
@@ -139,6 +139,7 @@ export default function SevaPage() {
               {notice.kind === 'info' && !user && (
                 <button
                   onClick={async () => { await signIn(); }}
+                  {...signInIntent}
                   className="bg-kesri text-navy font-bold px-4 py-1.5 rounded-lg hover:bg-kesri-hover transition-colors"
                 >
                   {t.nav.signIn}

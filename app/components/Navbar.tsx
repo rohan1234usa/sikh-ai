@@ -11,7 +11,7 @@ import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
 
 export default function Navbar() {
-    const { user, signIn, logOut } = useAuth();
+    const { user, signIn, logOut, signInIntent } = useAuth();
     const t = useT();
     const pathname = usePathname();
     const [open, setOpen] = useState(false);
@@ -68,9 +68,12 @@ export default function Navbar() {
                             </button>
                         </div>
                     ) : (
+                        // Hidden, keeping its place, while a returning member's
+                        // session is restored (data-auth: lib/firebase/hint.ts).
                         <button
                             onClick={signIn}
-                            className="bg-kesri text-navy text-sm font-semibold px-3 py-1.5 rounded-lg hover:bg-kesri-hover transition-colors"
+                            {...signInIntent}
+                            className="bg-kesri text-navy text-sm font-semibold px-3 py-1.5 rounded-lg hover:bg-kesri-hover transition-colors in-data-[auth=1]:invisible"
                         >
                             {t.nav.signIn}
                         </button>
