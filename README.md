@@ -150,7 +150,7 @@ Follow these steps to set up the project locally.
     ```bash
     npm run typecheck && npm run lint && npm test
     ```
-    On every pull request and every push to `main`, [CI](.github/workflows/ci.yml) runs these three, then the i18n audit's dry run (whose committed report must not change), then a build. It runs with placeholder keys, so it needs no secrets and costs nothing. A pull request can merge into `main` only once CI passes.
+    On every pull request and every push to `main`, [CI](.github/workflows/ci.yml) runs these three, the Firestore rules tests on the emulator (`npm run test:rules`, which needs Java 21), the i18n audit's dry run (whose committed report must not change), and a build. It runs with placeholder keys, so it needs no secrets and costs nothing. A pull request can merge into `main` only once CI passes.
 
 ### Running in production
 
@@ -162,8 +162,10 @@ Four settings outside the code keep a public deployment affordable and safe, and
 4.  **Restrict the Gemini key** to the Generative Language API, but only after `GOOGLE_TRANSLATE_API_KEY` is set on its own. Until then Cloud Translation borrows the Gemini key, and restricting it would quietly break the translator's fallback.
 5.  **Saved chats in the account, and share links** (off until you do this; chats stay in the browser meanwhile):
     1.  In the Firebase console's Firestore rules, look for a catch-all (`match /{document=**}`), `allow read, write: if true`, or a test-mode `request.time < …` rule and narrow it to what it was for (`seva_events`). Rules are OR-ed, so any of those would expose every saved chat.
-    2.  Paste the block between the BEGIN and END lines of [`firestore.chat-history.rules`](firestore.chat-history.rules) inside the existing `match /databases/{database}/documents { … }` — don't `firebase deploy` a file, which would replace the console's rules. Check it in the Rules Playground: a user can read their own chats but not another's; anyone can `get` a `shared_chats` document but no one can `list` them.
+    2.  Make the chat section of [`firestore.rules`](firestore.rules) live: paste the lines between its BEGIN and END markers inside the console's existing `match /databases/{database}/documents { … }`, or deploy the whole file (below). Check it in the Rules Playground: a user can read their own chats but not another's; anyone can `get` a `shared_chats` document but no one can `list` them.
     3.  Set `NEXT_PUBLIC_CHAT_CLOUD=1` in Vercel (try a preview first, with its domain added to Firebase Auth's authorized domains) and redeploy. Add a Firestore budget alert: rules can't cap how much a signed-in user stores.
+
+**The Firestore rules** live in [`firestore.rules`](firestore.rules): the whole file, reviewed in pull requests and tested on the emulator (`npm run test:rules`, which needs Java 21; CI runs it). `firebase deploy --only firestore:rules` replaces every rule in the console, so before the first deploy, export the console's rules and compare them with the file: anything they allow that the file doesn't would stop working. After that, deploy only from the file.
 
 Two more, for seeing how the site does:
 *   **Speed Insights** (Vercel → Speed Insights → Enable): real visitors' Core Web Vitals. The page already includes it on Vercel. It sets no cookies and loads nothing from a third party.
