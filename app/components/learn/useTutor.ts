@@ -42,14 +42,14 @@ export function useTutor() {
             if (raw) stored = parseTutorSession(JSON.parse(raw));
         } catch { /* blocked or corrupt: start empty */ }
 
-        const url = new URL(window.location.href);
-        const requested = url.searchParams.get('lesson');
+        // The address keeps its ?lesson= until the session holding the lesson
+        // is saved (below), so running this twice, as development does,
+        // reads the same thing both times.
+        const requested = new URL(window.location.href).searchParams.get('lesson');
         let next = stored;
         if (requested !== null) {
             if (!isLessonSlug(requested)) setLessonNotFound(true);
             else if (requested !== stored.lesson) next = { lesson: requested, exchanges: [] };
-            url.searchParams.delete('lesson');
-            window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
         }
         setSession(next);
         setHydrated(true);
@@ -63,6 +63,13 @@ export function useTutor() {
         try {
             sessionStorage.setItem(TUTOR_SESSION_KEY, JSON.stringify(session));
         } catch { /* storage full or blocked: the conversation lasts for this page */ }
+        // Saved, so the lesson no longer needs the address: a reload now
+        // continues the conversation instead of starting it again.
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('lesson')) {
+            url.searchParams.delete('lesson');
+            window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+        }
     }, [session, hydrated]);
 
     const setReply = useCallback((id: string, reply: TutorReply) => {
