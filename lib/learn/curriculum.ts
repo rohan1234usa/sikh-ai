@@ -13,6 +13,18 @@ import vowelSigns2 from './content/script/06-vowel-signs-2-and-carriers';
 import bindiTippiAddak from './content/script/07-bindi-tippi-addak-subjoined';
 import tones from './content/script/08-tones';
 import readingDrills from './content/script/09-reading-drills';
+import sentenceOrder from './content/grammar/01-sentence-order-and-copulas';
+import genderNumber from './content/grammar/02-gender-number-and-agreement';
+import possession from './content/grammar/03-possession-da-di-de';
+import postpositions from './content/grammar/04-postpositions-and-oblique';
+import present from './content/grammar/05-present-habitual-and-continuous';
+import past from './content/grammar/06-past-and-the-ergative-ne';
+import future from './content/grammar/07-future';
+import commands from './content/grammar/08-commands-and-requests';
+import questions from './content/grammar/09-questions-and-negation';
+import honorifics from './content/grammar/10-honorifics-and-respect';
+import dativeSubjects from './content/grammar/11-dative-subjects';
+import compoundVerbs from './content/grammar/12-compound-verbs-and-modals';
 
 // Keyed by slug, so a lesson listed in LESSON_META without a body, or a body
 // under a slug that isn't listed, is a compile error.
@@ -26,6 +38,18 @@ const BODIES: Record<LessonSlug, LessonBody> = {
     'bindi-tippi-addak-subjoined': bindiTippiAddak,
     'tones': tones,
     'reading-drills': readingDrills,
+    'sentence-order-and-copulas': sentenceOrder,
+    'gender-number-and-agreement': genderNumber,
+    'possession-da-di-de': possession,
+    'postpositions-and-oblique': postpositions,
+    'present-habitual-and-continuous': present,
+    'past-and-the-ergative-ne': past,
+    'future': future,
+    'commands-and-requests': commands,
+    'questions-and-negation': questions,
+    'honorifics-and-respect': honorifics,
+    'dative-subjects': dativeSubjects,
+    'compound-verbs-and-modals': compoundVerbs,
 };
 
 export function getLesson(slug: LessonSlug): Lesson {

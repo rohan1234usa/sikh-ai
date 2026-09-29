@@ -175,6 +175,78 @@ export const LESSON_META = [
         title: 'Reading practice: words you already know',
         summary: 'Put it all together on words from the Gurdwara, the kitchen and the family, then on short sentences.',
     },
+    {
+        track: 'grammar',
+        slug: 'sentence-order-and-copulas',
+        title: 'Word order, pronouns and “to be”',
+        summary: 'Punjabi puts the verb last. The order of a sentence, the words for I, you and they, and haan, hai, ho and han.',
+    },
+    {
+        track: 'grammar',
+        slug: 'gender-number-and-agreement',
+        title: 'Gender, plurals and agreement',
+        summary: 'Every noun is masculine or feminine, and adjectives and verbs change to match: changa munda, changi kurhi.',
+    },
+    {
+        track: 'grammar',
+        slug: 'possession-da-di-de',
+        title: 'Whose is it? da, di, de',
+        summary: 'Possession with da, di and de, and my, your, our: mera, tuhada, saada. They agree with the thing owned.',
+    },
+    {
+        track: 'grammar',
+        slug: 'postpositions-and-oblique',
+        title: 'Little words after nouns: nu, ton, vich, naal',
+        summary: 'Punjabi puts its prepositions after the noun, and the noun changes shape before them: kamra, but kamre vich.',
+    },
+    {
+        track: 'grammar',
+        slug: 'present-habitual-and-continuous',
+        title: 'The present: I do, I am doing',
+        summary: 'Say what you usually do (main karda haan), what you are doing now (main kar riha haan), and that you don’t.',
+    },
+    {
+        track: 'grammar',
+        slug: 'past-and-the-ergative-ne',
+        title: 'The past, and why it’s kita and not kiti',
+        summary: 'Past verbs agree with the person when nothing is done to anything, and with the thing when something is.',
+    },
+    {
+        track: 'grammar',
+        slug: 'future',
+        title: 'The future: will, and let’s',
+        summary: 'Make the future with -ga: main javanga, fer milange. Plus the everyday ways to suggest a plan.',
+    },
+    {
+        track: 'grammar',
+        slug: 'commands-and-requests',
+        title: 'Asking and telling: kar, karo, karna ji',
+        summary: 'Commands at three levels of politeness, the helper verbs that soften them, and how to say don’t.',
+    },
+    {
+        track: 'grammar',
+        slug: 'questions-and-negation',
+        title: 'Questions, and saying no',
+        summary: 'Question words (ki, kaun, kithe, kadon, kiven, kyon) and the ways to say no: nahi, na and nahi si.',
+    },
+    {
+        track: 'grammar',
+        slug: 'honorifics-and-respect',
+        title: 'Respect: tusi, ji and the plural',
+        summary: 'How Punjabi shows respect: tusi for one person, ji after names, and plural verbs for an elder.',
+    },
+    {
+        track: 'grammar',
+        slug: 'dative-subjects',
+        title: 'Mainu: when things happen to you',
+        summary: 'Hunger, liking, knowing and needing happen to you in Punjabi: mainu bhukh lagi hai, mainu chaa pasand hai.',
+    },
+    {
+        track: 'grammar',
+        slug: 'compound-verbs-and-modals',
+        title: 'Helper verbs: can, already, should',
+        summary: 'Verb pairs like ho gaya and kha lavo, and the helpers for can, already, having done, and should.',
+    },
 ] as const satisfies readonly LessonMeta[];
 
 // One lesson's metadata, with its slug and track as literal types.

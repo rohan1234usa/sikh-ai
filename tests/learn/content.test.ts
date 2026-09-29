@@ -94,7 +94,7 @@ test('every lesson has a unique, URL-safe slug and a title and summary that fit'
         assert.ok(isLessonSlug(meta.slug));
     }
     assert.ok(!isLessonSlug('nope') && !isLessonSlug(undefined) && !isLessonSlug('constructor'));
-    assert.ok(lessonsFor('script').length > 0, 'the script track has lessons');
+    for (const track of LESSON_TRACK_IDS) assert.ok(lessonsFor(track).length > 0, `${track} has lessons`);
 });
 
 test('every lesson has sections with text and a quiz of four to ten questions', () => {
