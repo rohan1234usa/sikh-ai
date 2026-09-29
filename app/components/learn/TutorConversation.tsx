@@ -14,9 +14,10 @@ import TutorInput from './TutorInput';
 import TutorMessage from './TutorMessage';
 import { useTutor } from './useTutor';
 
-// Markdown read aloud as its words, not its asterisks.
+// Markdown read aloud as its words, not its asterisks or a table's rules.
 function plainText(markdown: string): string {
     return markdown
+        .replace(/^[ \t|:-]*-{3,}[ \t|:-]*$/gm, '')
         .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
         .replace(/^\s{0,3}(#{1,6}|>|[-+*]|\d+\.)\s+/gm, '')
         .replace(/[*_`~|]+/g, '')
@@ -122,9 +123,16 @@ export default function TutorConversation() {
                         </IntentLink>
                         <button
                             type="button"
-                            onClick={() => { tutor.reset(); setInput(''); refocus(); }}
-                            disabled={session.exchanges.length === 0}
-                            className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 font-semibold text-accent-text transition-colors hover:bg-kesri/10 disabled:opacity-40"
+                            onClick={() => {
+                                if (session.exchanges.length === 0) return;
+                                tutor.reset();
+                                setInput('');
+                                refocus();
+                            }}
+                            // aria-disabled, not disabled: pressing it empties the
+                            // conversation, and a disabled button would drop focus.
+                            aria-disabled={session.exchanges.length === 0 || undefined}
+                            className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 font-semibold text-accent-text transition-colors hover:bg-kesri/10 aria-disabled:cursor-default aria-disabled:opacity-40 aria-disabled:hover:bg-transparent"
                         >
                             <PlusIcon className="h-4 w-4" aria-hidden="true" />
                             {t.learn.tutor.newConversation}

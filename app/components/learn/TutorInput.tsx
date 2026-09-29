@@ -65,12 +65,21 @@ export default function TutorInput({ value, onChange, onSend, onStop, isStreamin
         if (!isStreaming && canSubmit) onSend();
     };
 
+    // A press on the box's own padding (data-pad) puts the caret in the
+    // question, as in the chat; on mousedown with preventDefault, so focus
+    // never detours through <body> and a phone's keyboard doesn't flicker.
+    const focusFromPadding = (e: React.MouseEvent) => {
+        if (!(e.target instanceof Element) || !e.target.hasAttribute('data-pad')) return;
+        e.preventDefault();
+        textareaRef.current?.focus();
+    };
+
     return (
         <div className="shrink-0 border-t border-edge bg-surface-raised px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4">
             <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="mx-auto max-w-3xl">
-                <div className="rounded-2xl border border-edge bg-surface-raised has-[textarea:focus]:outline-2 has-[textarea:focus]:outline-offset-2 has-[textarea:focus]:outline-kesri">
-                    {lessonChip && <div className="flex min-w-0 px-2.5 pt-2.5">{lessonChip}</div>}
-                    <div className="flex items-end gap-2 pr-2 pb-2">
+                <div data-pad onMouseDown={focusFromPadding} className="cursor-text rounded-2xl border border-edge bg-surface-raised has-[textarea:focus]:outline-2 has-[textarea:focus]:outline-offset-2 has-[textarea:focus]:outline-kesri">
+                    {lessonChip && <div data-pad className="flex min-w-0 px-2.5 pt-2.5">{lessonChip}</div>}
+                    <div data-pad className="flex items-end gap-2 pr-2 pb-2">
                         {/* text-base keeps it at 16px, below which iOS zooms in on focus. */}
                         <textarea
                             ref={textareaRef}
@@ -80,7 +89,9 @@ export default function TutorInput({ value, onChange, onSend, onStop, isStreamin
                             value={value}
                             onChange={(e) => onChange(e.target.value)}
                             onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                                // keyCode 229: the Enter that picks an input method's
+                                // candidate, which older Safari reports as not composing.
+                                if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) {
                                     e.preventDefault();
                                     submit();
                                 }
