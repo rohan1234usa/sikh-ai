@@ -51,6 +51,22 @@ jobs:
 
       - run: npm test
 
+      # The Firestore rules, on the Firestore emulator (tests/rules). It runs
+      # on Java, and firebase-tools downloads it once per version: keep the
+      # cache key in step with the version in package.json's test:rules.
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-15.32.0
+
+      - name: Firestore rules
+        run: npm run test:rules
+
       # Exits 1 on a placeholder mismatch between languages. It also rewrites
       # the committed report, so a string change without a report update
       # fails here.
