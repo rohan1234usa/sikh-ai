@@ -293,3 +293,38 @@ test('the list of replying chats changes when a reply starts and ends, not with 
     await settle();
     assert.equal(t.runtime.getReplying().size, 0);
 });
+
+test('streamed pieces reach the view once per frame; the end shows at once', async () => {
+    const frames: (() => void)[] = [];
+    const t = setup({ nextFrame: (cb) => { frames.push(cb); } });
+    let published = 0;
+    t.runtime.subscribe(() => { published++; });
+    await t.send(UUID(1), 'What is Naam?');
+    const afterStart = published;
+
+    const call = t.calls[0];
+    call.push('ਸਤਿ ');
+    await settle();
+    call.push('ਨਾਮੁ ');
+    await settle();
+    call.push('ਕਰਤਾ ');
+    await settle();
+    assert.equal(published, afterStart, 'nothing redraws between frames');
+    assert.equal(frames.length, 1, 'one frame asked for, for all three pieces');
+    assert.equal(t.runtime.getSnapshot().get(UUID(1))?.reply.text, '', 'the view still has what the last frame showed');
+
+    frames.shift()!();
+    assert.equal(published, afterStart + 1);
+    assert.equal(t.runtime.getSnapshot().get(UUID(1))?.reply.text, 'ਸਤਿ ਨਾਮੁ ਕਰਤਾ ');
+
+    // The last piece and the end arrive before the next frame: the finished
+    // reply is published straight away, and that frame then does nothing.
+    call.push('ਪੁਰਖੁ ॥');
+    call.end();
+    await settle();
+    const [ex] = exchangesIn(t.store.getChat(UUID(1)));
+    assert.deepEqual([ex.reply.status, ex.reply.text], ['done', 'ਸਤਿ ਨਾਮੁ ਕਰਤਾ ਪੁਰਖੁ ॥']);
+    const afterEnd = published;
+    for (const frame of frames.splice(0)) frame();
+    assert.equal(published, afterEnd, 'a frame left over from the stream publishes nothing');
+});

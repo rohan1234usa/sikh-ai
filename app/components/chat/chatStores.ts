@@ -72,6 +72,7 @@ export function getReplyRuntime(): ReplyRuntime {
             fetch: (input, init) => window.fetch(input, init),
             now: () => Date.now(),
             verify: verifyOverHttp,
+            nextFrame: (callback) => requestAnimationFrame(() => callback()),
         });
         // The page may be gone before the next checkpoint: save what every
         // reply has so far. Registered once, here, rather than in an effect.
