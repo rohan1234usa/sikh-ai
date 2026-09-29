@@ -4,7 +4,7 @@ import { randomBytes } from 'node:crypto';
 import {
     ANALYTICS_CHOICE_KEY, analyticsState, isLegacyAnalyticsCookie, legacyAnalyticsCookieExpiries, parseAnalyticsChoice,
     redactAnalyticsEvent, redactAnalyticsUrl, resolveAnalyticsState, sendsGpc, subscribeAnalyticsChoice,
-    touchesAnalyticsChoice, writeAnalyticsChoice,
+    writeAnalyticsChoice,
 } from '@/lib/analytics';
 
 const SITE = 'https://sikhai.vercel.app';
@@ -102,10 +102,6 @@ test('counting is on by default, off when switched off, and Global Privacy Contr
     assert.equal(parseAnalyticsChoice('on'), 'on');
     assert.equal(parseAnalyticsChoice('off'), 'off');
     for (const v of [null, '', 'OFF', 'false', 0, undefined]) assert.equal(parseAnalyticsChoice(v), null);
-
-    assert.equal(touchesAnalyticsChoice(ANALYTICS_CHOICE_KEY), true);
-    assert.equal(touchesAnalyticsChoice(null), true, 'storage cleared');
-    assert.equal(touchesAnalyticsChoice('theme'), false);
 });
 
 test("Google Analytics' leftover cookies are expired, on the host and on its domain, and nothing else is", () => {

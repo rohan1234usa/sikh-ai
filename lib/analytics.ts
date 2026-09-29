@@ -11,6 +11,7 @@
 
 import { DEFAULT_LANG, isLang, type Lang } from './i18n/config';
 import { localePath } from './i18n/paths';
+import { onStorageKey } from './storage';
 
 // localStorage: 'off' when the visitor switched counting off, 'on' when they
 // switched it back. Absent means on.
@@ -68,10 +69,6 @@ export function redactAnalyticsEvent<E extends { url: string }>(event: E, counte
     return url === null ? null : { ...event, url };
 }
 
-// A storage event that may have changed the choice: its key, or a cleared
-// storage (key null).
-export const touchesAnalyticsChoice = (key: string | null): boolean => key === null || key === ANALYTICS_CHOICE_KEY;
-
 // Google Analytics' own cookies, which it left in returning visitors'
 // browsers when the site stopped using it: _ga, _ga_<property>, _gid, and
 // _gat or _gat_<id>. They last two years from the visit that last refreshed
@@ -117,20 +114,16 @@ export function writeAnalyticsChoice(choice: AnalyticsChoice) {
 }
 
 // Calls onChange whenever the choice may have changed: a write in this tab, a
-// write or a clear in another (the storage event, as lib/theme.ts follows
-// the theme), and a page restored from the back-forward cache, which heard
-// nothing while it was frozen. Returns a function that stops it.
+// write or a clear in another (lib/storage.ts, as the theme follows its own),
+// and a page restored from the back-forward cache, which heard nothing while
+// it was frozen. Returns a function that stops it.
 export function subscribeAnalyticsChoice(onChange: () => void): () => void {
-    const onStorage = (e: StorageEvent) => {
-        try { if (e.storageArea !== localStorage) return; } catch { return; }
-        if (touchesAnalyticsChoice(e.key)) onChange();
-    };
     listeners.add(onChange);
-    window.addEventListener('storage', onStorage);
+    const stopFollowing = onStorageKey(ANALYTICS_CHOICE_KEY, onChange);
     window.addEventListener('pageshow', onChange);
     return () => {
         listeners.delete(onChange);
-        window.removeEventListener('storage', onStorage);
+        stopFollowing();
         window.removeEventListener('pageshow', onChange);
     };
 }
