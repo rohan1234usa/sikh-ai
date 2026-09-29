@@ -43,11 +43,16 @@ export function languageAlternates(path: string): Record<string, string> {
  * ('/hukamnama'); the canonical URL is this language's ('/pa/hukamnama'),
  * made absolute through the root's metadataBase. Leave `title` out for the
  * home page, which uses the site title, and `description` for the site's.
+ *
+ * The title carries the site's template along with it. A layout's plain
+ * string title would stop the root's template from reaching the pages below
+ * it (each Ang under /shabad, /seva/create), and a page reads `default`
+ * through its parent's template just as it would a string.
  */
 export function pageMetadata(lang: Lang, t: Dictionary, path: string, title?: string, description?: string): Metadata {
     const url = localePath(lang, path);
     return {
-        ...(title ? { title } : {}),
+        ...(title ? { title: { default: title, template: t.meta.titleTemplate } } : {}),
         ...(description ? { description } : {}),
         alternates: { canonical: url, languages: languageAlternates(path) },
         openGraph: openGraph(lang, t, title ? t.meta.titleTemplate.replace('%s', title) : t.meta.title, url, description),

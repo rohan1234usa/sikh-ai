@@ -4,12 +4,7 @@ import { pageMetadata } from '@/lib/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { lang, t } = await getServerT();
-  return {
-    ...pageMetadata(lang, t, '/seva', t.meta.sevaTitle, t.meta.descriptions.seva),
-    // Redeclares the template because a plain string title here would stop
-    // the root template from reaching /seva/create
-    title: { default: t.meta.sevaTitle, template: t.meta.titleTemplate },
-  };
+  return pageMetadata(lang, t, '/seva', t.meta.sevaTitle, t.meta.descriptions.seva);
 }
 
 export default function SevaLayout({ children }: { children: React.ReactNode }) {

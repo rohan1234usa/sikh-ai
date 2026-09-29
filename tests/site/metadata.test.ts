@@ -6,7 +6,7 @@ import { openGraph, pageMetadata } from '@/lib/metadata';
 test("a page's preview is its own title and URL, with every part a preview needs", () => {
     const t = getDictionary('en');
     const meta = pageMetadata('en', t, '/hukamnama', t.meta.hukamnamaTitle);
-    assert.equal(meta.title, t.meta.hukamnamaTitle);
+    assert.deepEqual(meta.title, { default: t.meta.hukamnamaTitle, template: t.meta.titleTemplate });
     assert.deepEqual(meta.alternates, {
         canonical: '/hukamnama',
         languages: { en: '/hukamnama', pa: '/pa/hukamnama', 'pa-Latn': '/pa-latn/hukamnama', 'x-default': '/hukamnama' },
