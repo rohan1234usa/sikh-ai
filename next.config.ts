@@ -29,14 +29,6 @@ const nextConfig: NextConfig = {
   // app/global-not-found.tsx: the 404 for every language (pages live under
   // app/[lang], whose layout can't serve one of its own).
   experimental: { globalNotFound: true },
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "ui-avatars.com",
-      },
-    ],
-  },
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
