@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { MAX_TRANSLATE_CHARS, isCrosscheckDirection, type CrosscheckDirection } from "@/lib/translate/config";
 import { cloudTranslate, type CloudLang } from "@/lib/translate/cloud";
-import { describeError, logEvent, withRequestLog } from "@/lib/log";
+import { logRouteError, withRequestLog } from "@/lib/log";
 
 // Deliberately separate from /api/translate: this shares none of the Gemini
 // machinery (no prompts, no schema, no hint resolution) and its request
@@ -90,7 +90,7 @@ async function handlePost(req: Request) {
     );
 
   } catch (error) {
-    logEvent("route_error", { error: describeError(error) }, "error");
+    logRouteError(error);
     return NextResponse.json(
       { error: "Google Translate comparison is unavailable right now.", code: "crosscheck_failed" },
       { status: 502 },

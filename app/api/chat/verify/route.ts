@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { MAX_VERIFY_CHARS, hasGurmukhiRun } from "@/lib/gurbani/citations";
 import { verifyReply } from "@/lib/gurbani/verify";
-import { describeError, logEvent, withRequestLog } from "@/lib/log";
+import { logRouteError, withRequestLog } from "@/lib/log";
 
 // Checks the Gurbani a finished chat reply quotes against GurbaniNow. No
 // Gemini call. The chat never waits on this or breaks because of it: the
@@ -42,7 +42,7 @@ async function handlePost(req: Request) {
     return NextResponse.json({ citations }, { headers: NO_STORE });
   } catch (error) {
     // Never the reply text — only what went wrong.
-    logEvent("route_error", { error: describeError(error) }, "error");
+    logRouteError(error);
     return NextResponse.json({ error: "Verification failed", code: "verify_failed" }, { status: 500, headers: NO_STORE });
   }
 }

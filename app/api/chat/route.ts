@@ -5,7 +5,7 @@ import { MAX_CHAT_BODY_CHARS, buildChatRequest, toChatHistory, type ChatInput } 
 import { CHAT_BUDGET_MS, CHAT_FIRST_TEXT_MS } from "@/lib/gemini/budgets";
 import { isAbortError, isCapacityError, statusOf, withModelFallback, withTransport } from "@/lib/gemini/fallback";
 import { errorFields, logGeminiCall, usageFields, type GeminiOutcome } from "@/lib/gemini/log";
-import { describeError, logEvent, withRequestLog } from "@/lib/log";
+import { logEvent, logRouteError, withRequestLog } from "@/lib/log";
 
 export const maxDuration = 30;
 
@@ -241,7 +241,7 @@ async function handlePost(req: Request) {
     });
 
   } catch (error) {
-    logEvent("route_error", { error: describeError(error) }, "error");
+    logRouteError(error);
     return NextResponse.json({ error: FRIENDLY_ERROR, code: "chat_failed" }, { status: 500, headers: NO_STORE });
   }
 }

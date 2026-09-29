@@ -42,3 +42,19 @@ export function describeError(error: unknown): string {
     if (error instanceof SyntaxError) return error.name;
     return `${error.name}: ${error.message}`.slice(0, 300);
 }
+
+// Where an error was thrown: the top of its stack, frames only. A frame names
+// a function and a file. The stack opens with the message, which may quote
+// user text and run over several lines, so frames are read from below it.
+function stackFrames(error: unknown, max = 6): string[] | undefined {
+    if (!(error instanceof Error) || typeof error.stack !== 'string') return undefined;
+    const at = error.message ? error.stack.indexOf(error.message) : -1;
+    const below = at === -1 ? error.stack : error.stack.slice(at + error.message.length);
+    const frames = below.split('\n').filter((line) => /^\s+at /.test(line));
+    return frames.length ? frames.slice(0, max).map((frame) => frame.trim().slice(0, 200)) : undefined;
+}
+
+// An API route's unexpected failure: what went wrong and where.
+export function logRouteError(error: unknown): void {
+    logEvent('route_error', { error: describeError(error), stack: stackFrames(error) }, 'error');
+}

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { describeError, logEvent, withRequestLog } from '@/lib/log';
+import { describeError, logEvent, logRouteError, withRequestLog } from '@/lib/log';
 
 // Collects the JSON lines logEvent writes, whatever the level.
 function capture(run: () => Promise<void>): Promise<Record<string, unknown>[]> {
@@ -49,4 +49,28 @@ test('an error is logged by name and message, except a parse error, which can qu
     assert.equal(describeError(parseError), 'SyntaxError');
     assert.equal(describeError('a string'), 'string');
     assert.equal(describeError(new Error('x'.repeat(1000))).length, 300);
+});
+
+test("a route's unexpected error is logged with where it was thrown, never its message's user text", async () => {
+    let parseError: unknown;
+    try { JSON.parse('{"message": "my private question'); } catch (e) { parseError = e; }
+    const multiline = new Error('upstream said:\n    at my private question');
+    const lines = await capture(async () => {
+        logRouteError(new TypeError('boom'));
+        logRouteError(parseError);
+        logRouteError(multiline);
+        logRouteError('not an error');
+    });
+    const [typeError, syntaxError, withText, other] = lines;
+    assert.equal(typeError.evt, 'route_error');
+    assert.equal(typeError.error, 'TypeError: boom');
+    const stack = typeError.stack as string[];
+    assert.ok(stack.length > 0 && stack.length <= 6);
+    assert.ok(stack.every((frame) => frame.startsWith('at ')));
+    assert.match(stack[0], /request-log\.test\.ts/);
+    assert.equal(syntaxError.error, 'SyntaxError');
+    for (const line of [syntaxError, withText]) {
+        assert.equal(JSON.stringify(line.stack).includes('private question'), false);
+    }
+    assert.equal('stack' in other, false);
 });
