@@ -1,0 +1,123 @@
+// Who is counted, and what a counted address may say (#19). Vercel Web
+// Analytics counts visits and Speed Insights measures page speed
+// (app/components/SiteAnalytics.tsx); both pass every event through
+// analyticsBeforeSend below, which drops it for a visitor who switched
+// counting off (on /privacy) or whose browser sends Global Privacy Control,
+// and otherwise strips the address down to the page.
+//
+// The rules are pure and safe anywhere; the store below them is browser-only.
+// Neither tool sets a cookie unless the site calls window.va('enableCookie'),
+// which it never does: /privacy says the site sets one cookie, the language.
+
+import { DEFAULT_LANG, isLang, type Lang } from './i18n/config';
+import { localePath } from './i18n/paths';
+
+// localStorage: 'off' when the visitor switched counting off, 'on' when they
+// switched it back. Absent means on.
+export const ANALYTICS_CHOICE_KEY = 'sikhai.analytics.v1';
+export type AnalyticsChoice = 'on' | 'off';
+// What applies: the visitor's choice, or 'gpc' when their browser asks every
+// site not to track them, which no choice here overrides.
+export type AnalyticsState = AnalyticsChoice | 'gpc';
+
+export const parseAnalyticsChoice = (v: unknown): AnalyticsChoice | null => (v === 'on' || v === 'off' ? v : null);
+
+// Global Privacy Control, as browsers expose it. Not in TypeScript's DOM
+// types yet, so it's read through unknown; only a literal true counts.
+export const sendsGpc = (nav: unknown): boolean =>
+    (nav as { globalPrivacyControl?: unknown } | null | undefined)?.globalPrivacyControl === true;
+
+export const resolveAnalyticsState = (choice: AnalyticsChoice | null, gpc: boolean): AnalyticsState =>
+    gpc ? 'gpc' : (choice ?? 'on');
+
+// A page segment followed by an ID. A share link's ID is the only key to a
+// shared chat, so it must never leave the site; a chat's ID isn't secret,
+// but without it the chats count as one page. A new page whose address
+// carries an ID or a secret belongs here.
+const ID_PAGES = new Set(['share', 'chat']);
+export const ID_PLACEHOLDER = ':id';
+
+// This site's address as analytics may record it: the language prefix kept
+// (the internal /en dropped), an ID and anything after it replaced, and no
+// query, fragment or credentials. The path is decoded before it's read, so
+// an escaped letter or slash can't hide an ID. null when the address can't
+// be read with certainty, which means: don't send.
+export function redactAnalyticsUrl(url: string): string | null {
+    try {
+        const { origin, pathname } = new URL(url);
+        const segments = decodeURIComponent(pathname).split('/').filter(Boolean);
+        const lang: Lang = isLang(segments[0]) ? (segments.shift() as Lang) : DEFAULT_LANG;
+        const page = segments[0]?.toLowerCase();
+        const kept = page !== undefined && ID_PAGES.has(page)
+            ? [page, ...(segments.length > 1 ? [ID_PLACEHOLDER] : [])]
+            : segments;
+        const out = new URL(origin); // throws for an opaque origin (about:, data:)
+        out.pathname = localePath(lang, `/${kept.join('/')}`);
+        return out.href;
+    } catch {
+        return null;
+    }
+}
+
+// An event as it may leave the page: dropped unless counting is on, and
+// otherwise with its address redacted. Everything else it carries is kept.
+export function redactAnalyticsEvent<E extends { url: string }>(event: E, counted: boolean): E | null {
+    if (!counted) return null;
+    const url = redactAnalyticsUrl(event.url);
+    return url === null ? null : { ...event, url };
+}
+
+// A storage event that may have changed the choice: its key, or a cleared
+// storage (key null).
+export const touchesAnalyticsChoice = (key: string | null): boolean => key === null || key === ANALYTICS_CHOICE_KEY;
+
+// ── Browser-only ─────────────────────────────────────────────────────────
+
+// A choice that storage refused (blocked or full): it holds until the page
+// is left, as the theme picker's does.
+let unsaved: AnalyticsChoice | null = null;
+// This tab's subscribers: a write here fires no storage event here.
+const listeners = new Set<() => void>();
+
+function readChoice(): AnalyticsChoice | null {
+    if (unsaved) return unsaved;
+    try { return parseAnalyticsChoice(localStorage.getItem(ANALYTICS_CHOICE_KEY)); } catch { return null; }
+}
+
+export function analyticsState(): AnalyticsState {
+    return resolveAnalyticsState(readChoice(), typeof navigator !== 'undefined' && sendsGpc(navigator));
+}
+
+export function writeAnalyticsChoice(choice: AnalyticsChoice) {
+    try {
+        localStorage.setItem(ANALYTICS_CHOICE_KEY, choice);
+        unsaved = null;
+    } catch {
+        unsaved = choice;
+    }
+    for (const notify of listeners) notify();
+}
+
+// Calls onChange whenever the choice may have changed: a write in this tab, a
+// write or a clear in another (the storage event, as lib/theme.ts follows
+// the theme), and a page restored from the back-forward cache, which heard
+// nothing while it was frozen. Returns a function that stops it.
+export function subscribeAnalyticsChoice(onChange: () => void): () => void {
+    const onStorage = (e: StorageEvent) => {
+        try { if (e.storageArea !== localStorage) return; } catch { return; }
+        if (touchesAnalyticsChoice(e.key)) onChange();
+    };
+    listeners.add(onChange);
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('pageshow', onChange);
+    return () => {
+        listeners.delete(onChange);
+        window.removeEventListener('storage', onStorage);
+        window.removeEventListener('pageshow', onChange);
+    };
+}
+
+// Both tools' beforeSend. It reads the choice for every event, so switching
+// counting off mid-visit holds from the next event on.
+export const analyticsBeforeSend = <E extends { url: string }>(event: E): E | null =>
+    redactAnalyticsEvent(event, analyticsState() === 'on');
