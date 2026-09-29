@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowDownIcon } from '@heroicons/react/24/outline';
 import { chatIdFromPath } from '@/lib/chat/chatMeta';
+import { splitLocale } from '@/lib/i18n/paths';
 import { DEFAULT_PREFS, type LanguageId, type LensId, type ModeId } from '@/lib/chat/config';
 import type { Exchange, Reply, ReplySettings, Transcript } from '@/lib/chat/transcript';
 import type { Dictionary } from '@/lib/i18n';
@@ -74,7 +75,7 @@ export default function ChatConversation({
     onCreated,
     onNewChat,
 }: Props) {
-    const { t } = useLanguage();
+    const { t, href } = useLanguage();
     const session = useChatSession({ routeId, settings, onCreated });
     const draftKey = session.chatId ?? 'new';
     const [input, setInputState] = useState(() => drafts.get(draftKey) ?? '');
@@ -206,7 +207,7 @@ export default function ChatConversation({
     const dismissContext = () => {
         void session.dismissContext();
         // A passage from a deep link: drop the params too, or a reload brings it back.
-        if (session.chatId === null && window.location.search) window.history.replaceState(null, '', '/chat');
+        if (session.chatId === null && window.location.search) window.history.replaceState(null, '', href('/chat'));
     };
 
     const firstExchange = session.transcript.find((e): e is Exchange => e.kind === 'exchange');
@@ -221,7 +222,7 @@ export default function ChatConversation({
     // Deleted while open here: the URL has already moved on to /chat and the
     // screen follows a moment later. Until then the chat is simply gone; "isn't
     // here" is for a chat the URL still names (deleted elsewhere, or Back).
-    const leaving = missing && session.chatId !== null && chatIdFromPath(window.location.pathname) !== session.chatId;
+    const leaving = missing && session.chatId !== null && chatIdFromPath(splitLocale(window.location.pathname).path) !== session.chatId;
 
     return (
         <>

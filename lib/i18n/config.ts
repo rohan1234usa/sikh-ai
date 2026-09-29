@@ -1,13 +1,15 @@
-// Client-safe i18n configuration: site language IDs, the persistence cookie
-// name, and per-language metadata. Dictionaries live in ./dictionaries; the
-// cookie is readable on both sides so SSR and the client always agree.
+// Client-safe i18n configuration: site language IDs, the cookie that remembers
+// a reader's choice, and per-language metadata. Dictionaries live in
+// ./dictionaries. A page's language is its URL's (lib/i18n/paths.ts).
 
 export const LANGS = ['en', 'pa', 'pa-latn'] as const;
 export type Lang = (typeof LANGS)[number];
 
 export const DEFAULT_LANG: Lang = 'en';
 
-// Written by the client on change, read by the server on every render.
+// Written by the language picker, read by the routing layer: a returning
+// Punjabi reader who opens an unprefixed link is sent to its twin
+// (lib/i18n/routing.ts). Pages themselves never read it, so they stay static.
 export const LANG_COOKIE = 'sikhai.lang';
 export const LANG_COOKIE_MAX_AGE = 31536000; // one year
 

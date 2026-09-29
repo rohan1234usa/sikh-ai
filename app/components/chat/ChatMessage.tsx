@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ClipboardIcon, CheckIcon, ArrowPathIcon, StopCircleIcon } from '@heroicons/react/24/outline';
+import { splitMarkdownBlocks } from '@/lib/chat/markdownBlocks';
 import type { Reply, ReplySettings } from '@/lib/chat/transcript';
 import type { Dictionary } from '@/lib/i18n';
 import { fmt } from '@/lib/i18n/fmt';
@@ -28,15 +29,31 @@ export function QuestionBubble({ text }: { text: string }) {
     );
 }
 
-export function GreetingBubble({ text }: { text: string }) {
+const REMARK_PLUGINS = [remarkGfm];
+
+function Markdown({ text }: { text: string }) {
+    return <ReactMarkdown remarkPlugins={REMARK_PLUGINS} components={markdownComponents}>{text}</ReactMarkdown>;
+}
+
+// A reply that is still streaming, a block at a time (lib/chat/markdownBlocks.ts):
+// finished blocks keep what they rendered, so each new piece re-parses only
+// the unfinished end, not the whole reply.
+const MarkdownBlock = memo(Markdown);
+function StreamingMarkdown({ text }: { text: string }) {
+    return splitMarkdownBlocks(text).map((block, i) => <MarkdownBlock key={i} text={block} />);
+}
+
+// Memoized, like the replies: the chat redraws with every streamed piece, and
+// none of that concerns the greeting.
+export const GreetingBubble = memo(function GreetingBubble({ text }: { text: string }) {
     return (
         <div className="flex flex-col items-start">
             <div className={`${SHAPE} ${BUBBLE.ai}`}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{text}</ReactMarkdown>
+                <Markdown text={text} />
             </div>
         </div>
     );
-}
+});
 
 // "Guru Nanak Dev Ji · Gurbani-first · English": what the reply was asked for,
 // in the current site language. Stored ids were checked on load.
@@ -70,7 +87,11 @@ type ReplyProps = {
     actions?: boolean;
 };
 
-export default function ReplyMessage({ reply, onRetry, onRegenerate, unsaved, actions = true }: ReplyProps) {
+// Memoized: while one reply streams, the replies above it are unchanged objects
+// and skip the redraw, instead of re-parsing their Markdown with every piece.
+export default memo(ReplyMessage);
+
+function ReplyMessage({ reply, onRetry, onRegenerate, unsaved, actions = true }: ReplyProps) {
     const t = useT();
     const [copied, setCopied] = useState(false);
 
@@ -118,10 +139,10 @@ export default function ReplyMessage({ reply, onRetry, onRegenerate, unsaved, ac
                         <span className="w-2 h-2 rounded-full bg-ink-faint animate-bounce [animation-delay:150ms]" />
                         <span className="w-2 h-2 rounded-full bg-ink-faint animate-bounce [animation-delay:300ms]" />
                     </span>
+                ) : reply.status === 'streaming' ? (
+                    <StreamingMarkdown text={reply.text} />
                 ) : (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-                        {reply.text}
-                    </ReactMarkdown>
+                    <Markdown text={reply.text} />
                 )}
             </div>
 

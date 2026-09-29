@@ -8,7 +8,7 @@ import { useChatHomes } from './useChatHomes';
 // or account, or a link that was never a chat.
 export default function ChatUnavailable({ onNewChat }: { onNewChat: () => void }) {
     const t = useT();
-    const { signIn } = useAuth();
+    const { signIn, signInIntent } = useAuth();
     const { cloud, uid } = useChatHomes();
     return (
         <div className="py-16 text-center space-y-3">
@@ -27,6 +27,7 @@ export default function ChatUnavailable({ onNewChat }: { onNewChat: () => void }
                     <button
                         type="button"
                         onClick={() => void signIn()}
+                        {...signInIntent}
                         className="inline-flex items-center rounded-lg border border-edge px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-edge/60"
                     >
                         {t.nav.signIn}

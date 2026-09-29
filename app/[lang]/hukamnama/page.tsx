@@ -1,0 +1,129 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import { fetchHukamnamaPayload } from '@/lib/gurbani/gurbaninow';
+import { localePath } from '@/lib/i18n/paths';
+import { getServerT } from '@/lib/i18n/server';
+import { pageMetadata } from '@/lib/metadata';
+import { fmt } from '@/lib/i18n/fmt';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { lang, t } = await getServerT();
+  return pageMetadata(lang, t, '/hukamnama', t.meta.hukamnamaTitle, t.meta.descriptions.hukamnama);
+}
+
+// Fields are typed optional because GurbaniNow can return HTTP 200 with a
+// drifted/partial shape; the render below tolerates missing pieces rather
+// than throwing past the try/catch into an error page.
+type HukamnamaLine = {
+  line?: {
+    id?: string;
+    gurmukhi?: { unicode?: string };
+    translation?: { english?: { default?: string } };
+  };
+};
+
+type HukamnamaResponse = {
+  date?: {
+    nanakshahi?: {
+      english?: { date?: number; month?: string; year?: number };
+      punjabi?: { date?: string; month?: string; year?: string };
+    };
+  };
+  hukamnamainfo?: {
+    raag?: { unicode?: string };
+    pageno?: number;
+  };
+  hukamnama?: HukamnamaLine[];
+};
+
+export default async function HukamnamaPage() {
+  const { lang, t } = await getServerT();
+
+  // Cached for ten minutes and cut off after a few seconds (see
+  // lib/gurbani/gurbaninow.ts); loading.tsx shows meanwhile. null, when
+  // GurbaniNow is slow or down, becomes the message below.
+  const data = (await fetchHukamnamaPayload()) as HukamnamaResponse | null;
+  const error = data === null;
+
+  const dateInfo = data?.date?.nanakshahi?.english;
+  // Gurmukhi UI prefers the API's Gurmukhi month name; digits stay Western
+  // (site convention), so date/year come from the english variant.
+  const month = (lang === 'pa' && data?.date?.nanakshahi?.punjabi?.month) || dateInfo?.month;
+  const dateString =
+    month && dateInfo?.date != null && dateInfo.year != null
+      ? fmt(t.hukamnama.dateFormat, { month, date: dateInfo.date, year: dateInfo.year })
+      : t.hukamnama.today;
+
+  // Only the lines that actually carry Gurmukhi; a drifted payload yields an
+  // empty list, which flips us to the friendly fallback below.
+  const lines = (data?.hukamnama ?? []).filter((item) => item?.line?.gurmukhi?.unicode);
+  const hasContent = !error && !!data && lines.length > 0;
+  const pageno = data?.hukamnamainfo?.pageno;
+
+  return (
+    <main className="flex-1 flex flex-col">
+      <div className="flex-grow max-w-4xl mx-auto w-full p-4 md:p-8">
+
+        <h1 className="sr-only">{t.hukamnama.title}</h1>
+
+        <div className="text-right mb-4">
+          <span className="block text-accent-text tracking-widest uppercase text-xs font-bold">
+            {dateString}
+          </span>
+          <span className="text-xs text-ink-faint">{t.hukamnama.liveFrom}</span>
+        </div>
+
+        {!hasContent ? (
+           <div className="text-center mt-20 p-8 bg-surface-raised rounded-xl border border-edge shadow-sm">
+             <p className="text-ink">{t.hukamnama.unable}</p>
+           </div>
+        ) : (
+          <div className="bg-surface-raised shadow-2xl rounded-2xl overflow-hidden border-t-8 border-kesri">
+
+            <div className="bg-surface p-8 text-center border-b border-edge">
+              <h2 lang="pa" className="text-3xl text-ink font-gurmukhi font-bold mb-2">
+                {data?.hukamnamainfo?.raag?.unicode}
+              </h2>
+              {pageno != null && (
+                <p className="text-ink-muted text-sm uppercase tracking-wider font-bold">
+                  {fmt(t.hukamnama.ang, { n: pageno })}
+                </p>
+              )}
+            </div>
+
+            <div className="p-6 md:p-12 space-y-10">
+              {lines.map((item, index) => (
+                <div key={item.line?.id ?? index} className="text-center space-y-4">
+
+                  {/* Main Shabad Lines */}
+                  <p lang="pa" className="text-2xl md:text-4xl text-ink font-bold leading-relaxed font-gurmukhi">
+                    {item.line?.gurmukhi?.unicode}
+                  </p>
+
+                  {/* Translation */}
+                  <p className="text-ink-muted text-lg md:text-xl italic font-medium">
+                    {item.line?.translation?.english?.default}
+                  </p>
+
+                  <div className="w-16 h-px bg-edge mx-auto mt-6"></div>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-6 md:px-12 md:pb-10 pt-0 flex justify-center border-t border-edge bg-surface">
+              <Link
+                href={localePath(lang, '/chat?context=hukamnama')}
+                className="inline-flex items-center gap-2 bg-kesri text-navy font-bold px-6 py-3 mt-6 rounded-xl hover:opacity-90 transition-opacity"
+              >
+                <ChatBubbleLeftRightIcon className="w-5 h-5" aria-hidden="true" />
+                {t.hukamnama.discussCta}
+              </Link>
+            </div>
+
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}

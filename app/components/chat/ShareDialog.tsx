@@ -55,7 +55,7 @@ export default function ShareDialog({ chat, onClose }: Props) {
 function ShareBody({ chat, onClose }: { chat: ChatListItem; onClose: () => void }) {
     const { lang, t } = useLanguage();
     const s = t.chat.shareDialog;
-    const { signIn } = useAuth();
+    const { signIn, signInIntent } = useAuth();
     const { uid, accountOk } = useChatHomes();
     // Where the chat is now: moving it to the account (to share it) changes this.
     const [home, setHome] = useState<ChatHome>(chat.home);
@@ -150,7 +150,7 @@ function ShareBody({ chat, onClose }: { chat: ChatListItem; onClose: () => void 
             {!uid ? (
                 <div className="space-y-3 text-sm">
                     <p className="text-ink-muted">{s.signedOut}</p>
-                    <button type="button" data-initial-focus onClick={() => void signIn()} className={PRIMARY}>
+                    <button type="button" data-initial-focus onClick={() => void signIn()} {...signInIntent} className={PRIMARY}>
                         {s.signIn}
                     </button>
                 </div>

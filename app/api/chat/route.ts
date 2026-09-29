@@ -5,6 +5,7 @@ import { MAX_CHAT_BODY_CHARS, buildChatRequest, toChatHistory, type ChatInput } 
 import { CHAT_BUDGET_MS, CHAT_FIRST_TEXT_MS } from "@/lib/gemini/budgets";
 import { isAbortError, isCapacityError, statusOf, withModelFallback, withTransport } from "@/lib/gemini/fallback";
 import { errorFields, logGeminiCall, usageFields, type GeminiOutcome } from "@/lib/gemini/log";
+import { logEvent, logRouteError, withRequestLog } from "@/lib/log";
 
 export const maxDuration = 30;
 
@@ -99,7 +100,7 @@ async function openStream(
   }
 }
 
-export async function POST(req: Request) {
+async function handlePost(req: Request) {
   try {
     // The `code` field lets clients render a translated message; the English
     // `error` string stays for logs and older clients.
@@ -118,7 +119,7 @@ export async function POST(req: Request) {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      console.error("Chat Error: GEMINI_API_KEY is missing");
+      logEvent("config_error", { missing: "GEMINI_API_KEY" }, "error");
       return NextResponse.json({ error: FRIENDLY_ERROR, code: "chat_failed" }, { status: 500 });
     }
 
@@ -240,7 +241,9 @@ export async function POST(req: Request) {
     });
 
   } catch (error) {
-    console.error("Chat Error:", error);
+    logRouteError(error);
     return NextResponse.json({ error: FRIENDLY_ERROR, code: "chat_failed" }, { status: 500, headers: NO_STORE });
   }
 }
+
+export const POST = withRequestLog("/api/chat", handlePost);

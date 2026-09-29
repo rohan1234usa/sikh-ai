@@ -44,6 +44,11 @@ export type RuntimeDeps = {
     // Called when a finished reply could not be saved (storage full, account
     // refused). The reply stays on screen for this visit.
     onSaveFailed?: (job: InflightReply, error: unknown) => void;
+    // Runs a callback before the next repaint (requestAnimationFrame in the
+    // browser). A streaming reply's pieces are published once per frame, so
+    // the view redraws at most once a frame however fast they arrive. Without
+    // it (tests), every piece is published at once.
+    nextFrame?: (callback: () => void) => void;
 };
 
 type Job = ReplyJob & {
@@ -80,7 +85,21 @@ export class ReplyRuntime {
         return [...this.jobs.values()].some((j) => j.chatId === chatId);
     }
 
+    // A streaming piece: published on the next frame, once for all the pieces
+    // that arrive before it. Anything else publishes at once, which also
+    // covers a frame that's still pending.
+    private framePending = false;
+    private publishSoon() {
+        if (!this.deps.nextFrame) return this.publish();
+        if (this.framePending) return;
+        this.framePending = true;
+        this.deps.nextFrame(() => {
+            if (this.framePending) this.publish();
+        });
+    }
+
     private publish() {
+        this.framePending = false;
         const next = new Map<string, InflightReply>(this.unsaved);
         for (const j of this.jobs.values()) next.set(j.chatId, { chatId: j.chatId, exchangeId: j.exchangeId, reply: j.reply });
         this.snapshot = next;
@@ -170,7 +189,7 @@ export class ReplyRuntime {
                     const chunk = decoder.decode(value, { stream: true });
                     if (!chunk) continue;
                     job.reply = { ...job.reply, text: (job.reply.text + chunk).slice(0, MAX_REPLY_CHARS) };
-                    this.publish();
+                    this.publishSoon();
                     // job.store, read each time: it can be retargeted mid-reply.
                     if (this.deps.now() - lastCheckpoint >= job.store.checkpointMs) {
                         lastCheckpoint = this.deps.now();

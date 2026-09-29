@@ -8,7 +8,7 @@ import { LinkIcon } from '@heroicons/react/24/outline';
 import { isChatId } from '@/lib/chat/chatMeta';
 import { toDisplayItems } from '@/lib/chat/exchange';
 import { parseShareDoc, shareToRecord, type SharedChat } from '@/lib/chat/share';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase/firestore';
 import { formatDate } from '@/lib/i18n/date';
 import { fmt } from '@/lib/i18n/fmt';
 import { useLanguage } from '../../context/LanguageContext';
@@ -29,7 +29,7 @@ const PRIMARY = 'rounded-lg bg-kesri px-4 py-2 text-sm font-bold text-navy trans
 // Read with the ordinary client (public reads are allowed on shared_chats),
 // and checked like anything else loaded before a word of it is shown.
 export default function SharedChatView({ shareId }: { shareId: string }) {
-    const { lang, t } = useLanguage();
+    const { lang, t, href } = useLanguage();
     const router = useRouter();
     const { uid, homeForNew } = useChatHomes();
     const valid = isChatId(shareId);
@@ -76,7 +76,7 @@ export default function SharedChatView({ shareId }: { shareId: string }) {
         const record = shareToRecord(chat, { now: Date.now(), newId: () => crypto.randomUUID() });
         try {
             await storeFor(homeForNew, uid).importChat(record);
-            router.push(`/chat/${record.meta.id}`);
+            router.push(href(`/chat/${record.meta.id}`));
         } catch {
             setFailed(true);
             setOpening(false);
@@ -100,7 +100,7 @@ export default function SharedChatView({ shareId }: { shareId: string }) {
                 <div className="mx-auto w-full max-w-3xl px-4 py-16 text-center space-y-3">
                     <h1 className="text-2xl font-bold text-ink">{t.share.unavailableHeading}</h1>
                     <p className="text-sm text-ink-muted">{t.share.unavailableBody}</p>
-                    <Link href="/chat" className={`inline-block ${PRIMARY}`}>{t.share.newChat}</Link>
+                    <Link href={href('/chat')} className={`inline-block ${PRIMARY}`}>{t.share.newChat}</Link>
                 </div>
             </main>
         );
@@ -156,7 +156,7 @@ export default function SharedChatView({ shareId }: { shareId: string }) {
                     <button type="button" onClick={() => void continueChat(chat)} disabled={opening} className={PRIMARY}>
                         {opening ? t.share.continuing : t.share.continue}
                     </button>
-                    <Link href="/chat" className="text-sm font-semibold text-accent-text hover:underline">
+                    <Link href={href('/chat')} className="text-sm font-semibold text-accent-text hover:underline">
                         {t.share.newChat}
                     </Link>
                     {failed && <p role="alert" className="w-full text-center text-xs text-red-600 dark:text-red-400">{t.share.continueError}</p>}

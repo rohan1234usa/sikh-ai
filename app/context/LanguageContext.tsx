@@ -1,38 +1,46 @@
 'use client';
 
-import { createContext, useCallback, useContext, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { LANG_COOKIE, LANG_COOKIE_MAX_AGE, LANG_META, type Lang } from '@/lib/i18n/config';
+import { createContext, useCallback, useContext, useMemo } from 'react';
+import { LANG_COOKIE, LANG_COOKIE_MAX_AGE, type Lang } from '@/lib/i18n/config';
+import { localePath, switchLocale } from '@/lib/i18n/paths';
 import { getDictionary, type Dictionary } from '@/lib/i18n';
 
 type LanguageContextType = {
     lang: Lang;
     setLang: (next: Lang) => void;
     t: Dictionary;
+    // A path ('/chat') as a URL in the current language ('/pa/chat').
+    href: (path: string) => string;
 };
 
 const LanguageContext = createContext<LanguageContextType | null>(null);
 
-export function LanguageProvider({ initialLang, children }: { initialLang: Lang; children: React.ReactNode }) {
-    // Seeded from the server-read cookie, so SSR HTML and the first client
-    // render always agree — no hydration mismatch, no flash of English.
-    const [lang, setLangState] = useState<Lang>(initialLang);
-    const router = useRouter();
-
+// The language is the URL's (app/[lang]), so the provider simply follows the
+// layout that renders it: the built HTML and the first client render agree.
+export function LanguageProvider({ lang, children }: { lang: Lang; children: React.ReactNode }) {
     const setLang = useCallback((next: Lang) => {
-        setLangState(next);                                       // client components: instant
-        document.documentElement.lang = LANG_META[next].htmlLang; // font/a11y: instant, like the dark class
+        if (next === lang) return;
+        // Remembered, so an unprefixed link opens in this language next time
+        // (lib/i18n/routing.ts).
         try {
             document.cookie = `${LANG_COOKIE}=${next}; path=/; max-age=${LANG_COOKIE_MAX_AGE}; samesite=lax`;
-        } catch { /* cookies blocked — the switch still applies for this session */ }
-        router.refresh(); // server-rendered text re-renders with the new cookie; client state survives
-    }, [router]);
+        } catch { /* cookies blocked: the switch still works, it just isn't remembered */ }
+        // The same page at its address in the other language. Each language
+        // has its own root layout, so this is a full page load either way. A
+        // reply still streaming is saved as far as it got (the runtime's
+        // pagehide flush) and shows as interrupted.
+        const { pathname, search, hash } = window.location;
+        window.location.assign(switchLocale(pathname, next) + search + hash);
+    }, [lang]);
 
-    return (
-        <LanguageContext.Provider value={{ lang, setLang, t: getDictionary(lang) }}>
-            {children}
-        </LanguageContext.Provider>
-    );
+    const value = useMemo<LanguageContextType>(() => ({
+        lang,
+        setLang,
+        t: getDictionary(lang),
+        href: (path: string) => localePath(lang, path),
+    }), [lang, setLang]);
+
+    return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 
 export const useLanguage = () => {
@@ -42,3 +50,6 @@ export const useLanguage = () => {
 };
 
 export const useT = () => useLanguage().t;
+
+// A path ('/chat') as a URL in the current language ('/pa/chat').
+export const useLocalePath = () => useLanguage().href;

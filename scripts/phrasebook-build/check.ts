@@ -35,7 +35,7 @@ export function readGenerated(): Generated {
     return JSON.parse(readFileSync(GENERATED_PATH, 'utf8')) as Generated;
 }
 
-// The request a phrase tap sends: app/translate/page.tsx posts the romanized
+// The request a phrase tap sends: app/[lang]/translate/page.tsx posts the romanized
 // phrase with the punjabi-latin hint, and the route builds exactly this.
 export function phraseRequest(model: string, phrase: Phrase) {
     return buildTranslateRequest(model, phrase.roman, {

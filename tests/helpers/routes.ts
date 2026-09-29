@@ -9,7 +9,7 @@ export async function startRouteMock(): Promise<MockGemini> {
     // these at construction, so setting them here is enough.
     process.env.GOOGLE_GEMINI_BASE_URL = mock.url;
     process.env.GEMINI_API_KEY = 'test-key';
-    process.env.GEMINI_LOG = 'off';
+    process.env.APP_LOG = 'off';
     return mock;
 }
 

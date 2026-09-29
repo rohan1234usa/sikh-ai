@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { fetchHukamnamaPayload } from '@/lib/gurbani/gurbaninow';
+import { describeError, logEvent, withRequestLog } from '@/lib/log';
 
 // Normalizes today's Hukamnama into { title, text } for the chat deep-link.
 // The upstream API is loosely shaped, so every field access is defensive.
@@ -15,7 +16,7 @@ type LooseLine = {
   };
 };
 
-export async function GET() {
+async function handleGet() {
   try {
     const data = (await fetchHukamnamaPayload()) as { hukamnama?: unknown; hukamnamainfo?: { pageno?: unknown } } | null;
     if (data === null) throw new Error('GurbaniNow gave no Hukamnama');
@@ -42,8 +43,9 @@ export async function GET() {
     // older clients.
     return NextResponse.json({ title, text, ang: typeof ang === 'number' ? ang : null }, { headers: { 'Cache-Control': HUKAMNAMA_CACHE } });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[Hukamnama Proxy] Error:', message);
+    logEvent('upstream_error', { upstream: 'gurbaninow', error: describeError(error) }, 'warn');
     return NextResponse.json({ error: 'Unable to load the Hukamnama right now.', code: 'hukamnama_unavailable' }, { status: 502, headers: NO_STORE });
   }
 }
+
+export const GET = withRequestLog('/api/hukamnama', handleGet);

@@ -2,23 +2,26 @@
 
 import IntentLink from './IntentLink';
 import { usePathname } from 'next/navigation';
-import { useT } from '../context/LanguageContext';
+import { splitLocale } from '@/lib/i18n/paths';
+import { useLocalePath, useT } from '../context/LanguageContext';
 
 export default function Footer() {
-    const pathname = usePathname();
+    const { path } = splitLocale(usePathname());
     const t = useT();
+    const to = useLocalePath();
 
     const links = [
-        { href: '/about', label: t.nav.about },
-        { href: '/hukamnama', label: t.nav.hukamnama },
-        { href: '/seva', label: t.nav.seva },
-        { href: '/shabad', label: t.nav.shabad },
-        { href: '/translate', label: t.nav.translate },
+        { href: to('/about'), label: t.nav.about },
+        { href: to('/hukamnama'), label: t.nav.hukamnama },
+        { href: to('/seva'), label: t.nav.seva },
+        { href: to('/shabad'), label: t.nav.shabad },
+        { href: to('/translate'), label: t.nav.translate },
+        { href: to('/privacy'), label: t.footer.privacy },
     ];
 
     // The chat screen (/chat and each saved chat) is a fixed-height app screen
     // with no room for a footer
-    if (pathname === '/chat' || pathname.startsWith('/chat/')) return null;
+    if (path === '/chat' || path.startsWith('/chat/')) return null;
 
     return (
         <footer className="border-t border-edge bg-surface-raised mt-auto">

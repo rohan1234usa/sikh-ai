@@ -12,6 +12,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "lint": "eslint",
     "test": "tsx --test \"tests/**/*.test.ts\"",
+    "test:rules": "npx --yes firebase-tools@15.32.0 emulators:exec --only firestore --project demo-sikhai \"tsx --test 'tests/rules/*.rules.ts'\"",
     "mock:gemini": "tsx scripts/mock-gemini.ts",
     "fixtures:gurbani": "tsx scripts/gurbani-fixtures/record.ts",
     "audit:i18n": "tsx scripts/i18n-audit/index.ts",
@@ -23,6 +24,7 @@
     "@google/genai": "^2.23.0",
     "@heroicons/react": "^2.2.0",
     "@next/third-parties": "^16.3.6",
+    "@vercel/speed-insights": "^2.0.0",
     "firebase": "^12.8.0",
     "next": "16.3.6",
     "react": "19.2.3",
@@ -31,6 +33,7 @@
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^24",
     "@types/react": "^19",

@@ -4,10 +4,8 @@
 // first use in the browser (never during server rendering), and never torn
 // down: a reply keeps going while the user is elsewhere on the site.
 
-import { onAuthStateChanged } from 'firebase/auth';
 import type { ChatHome } from '@/lib/chat/chatMeta';
-import { auth, db } from '@/lib/firebase';
-import { FirestoreChatStore, type WriteFailure } from '@/lib/chat/store/firestore';
+import type { FirestoreChatStore, WriteFailure } from '@/lib/chat/store/firestore';
 import { LocalChatStore, type StorageLike } from '@/lib/chat/store/local';
 import { ReplyRuntime, verifyOverHttp } from '@/lib/chat/runtime';
 
@@ -74,18 +72,11 @@ export function getReplyRuntime(): ReplyRuntime {
             fetch: (input, init) => window.fetch(input, init),
             now: () => Date.now(),
             verify: verifyOverHttp,
+            nextFrame: (callback) => requestAnimationFrame(() => callback()),
         });
         // The page may be gone before the next checkpoint: save what every
         // reply has so far. Registered once, here, rather than in an effect.
         window.addEventListener('pagehide', () => created.flush());
-        // Signing out (here or in another tab) ends the account's replies and
-        // drops its chats from memory, wherever on the site it happens.
-        onAuthStateChanged(auth, (user) => {
-            if (!account || account.uid === user?.uid) return;
-            created.stopFor(account);
-            account.dispose();
-            account = null;
-        });
         runtime = created;
     }
     return runtime;
@@ -102,12 +93,60 @@ function onAccountWriteFailed(failure: WriteFailure) {
         .catch(() => {});
 }
 
-// The signed-in account's chats; one store per user.
+// Account chats need Firestore and Auth, which accountChats.ts brings in
+// only when they're on and someone is signed in (useChatHomes asks for it).
+// Until it's here, no one has an account store.
+type AccountChats = typeof import('./accountChats');
+export type AccountChatsStatus = 'idle' | 'loading' | 'ready' | 'failed';
+let accountChats: AccountChats | null = null;
+let accountChatsLoad: Promise<AccountChats> | null = null;
+let accountChatsState: AccountChatsStatus = 'idle';
+const accountChatsListeners = new Set<() => void>();
+function setAccountChatsState(next: AccountChatsStatus) {
+    accountChatsState = next;
+    for (const cb of accountChatsListeners) cb();
+}
+
+export function loadAccountChats(): Promise<AccountChats> {
+    if (!accountChatsLoad) {
+        setAccountChatsState('loading');
+        accountChatsLoad = import('./accountChats').then((m) => {
+            accountChats = m;
+            // Signing out (here or in another tab) ends the account's replies
+            // and drops its chats from memory, wherever on the site it happens.
+            m.onAccountChange((uid) => {
+                if (!account || account.uid === uid) return;
+                getReplyRuntime().stopFor(account);
+                account.dispose();
+                account = null;
+            });
+            setAccountChatsState('ready');
+            return m;
+        });
+        accountChatsLoad.catch(() => {
+            // Offline: chats stay in this browser, and the next sign-in tries again.
+            accountChatsLoad = null;
+            setAccountChatsState('failed');
+        });
+    }
+    return accountChatsLoad;
+}
+
+export const accountChatsStatus = {
+    subscribe(onChange: () => void) {
+        accountChatsListeners.add(onChange);
+        return () => { accountChatsListeners.delete(onChange); };
+    },
+    get: (): AccountChatsStatus => accountChatsState,
+};
+
+// The signed-in account's chats; one store per user. Only once
+// loadAccountChats() has finished: useChatHomes hands out a uid no sooner.
 export function getAccountChatStore(uid: string): FirestoreChatStore {
-    getReplyRuntime(); // its sign-out handling must be in place first
+    if (!accountChats) throw new Error('Account chats are not loaded yet');
     if (!account || account.uid !== uid) {
         account?.dispose();
-        account = new FirestoreChatStore(db, uid, {
+        account = accountChats.createAccountStore(uid, {
             onWriteFailed: onAccountWriteFailed,
             inUse,
             onEvicted: (ids) => addEvicted('account', ids),

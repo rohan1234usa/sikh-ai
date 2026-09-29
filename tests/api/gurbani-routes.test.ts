@@ -18,7 +18,7 @@ const HUKAMNAMA_PAYLOAD = {
 };
 
 let shabad: (req: Request) => Promise<Response>;
-let hukamnama: () => Promise<Response>;
+let hukamnama: (req: Request) => Promise<Response>;
 
 before(async () => {
     globalThis.fetch = (async (input: RequestInfo | URL) => {
@@ -81,7 +81,7 @@ test('a source that never answers is cut off and reported, not waited on', async
 });
 
 test("today's Hukamnama is normalized for the chat and cached for ten minutes", async () => {
-    const res = await hukamnama();
+    const res = await hukamnama(new Request('http://local/api/hukamnama'));
     assert.equal(res.status, 200);
     const body = await res.json();
     assert.equal(body.ang, 666);
@@ -92,7 +92,7 @@ test("today's Hukamnama is normalized for the chat and cached for ten minutes", 
 
 test('a missing Hukamnama is a 502 hukamnama_unavailable, never cached', async () => {
     upstream = async () => new Response('Service Unavailable', { status: 503 });
-    const res = await hukamnama();
+    const res = await hukamnama(new Request('http://local/api/hukamnama'));
     assert.equal(res.status, 502);
     assert.equal((await res.json()).code, 'hukamnama_unavailable');
     assert.equal(res.headers.get('cache-control'), 'no-store');
