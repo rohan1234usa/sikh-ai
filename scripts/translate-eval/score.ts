@@ -36,8 +36,10 @@ function gurmukhiTokens(s: string): Set<string> {
 }
 
 // The prompt's romanization contract: no diacritics, no apostrophes, and the
-// community spellings the rest of the site uses.
-function romanIssues(label: string, value: string): string[] {
+// community spellings the rest of the site uses. Exported, with the two
+// checks below, for tests/learn/content.test.ts, which holds the Learn
+// Punjabi lessons to the same house style.
+export function romanIssues(label: string, value: string): string[] {
     const issues: string[] = [];
     const nonAscii = [...new Set(value.match(/[^\x00-\x7F]/g) ?? [])];
     if (nonAscii.length) issues.push(`${label}: non-ASCII ${nonAscii.join(' ')} in "${value}"`);
@@ -50,7 +52,7 @@ function romanIssues(label: string, value: string): string[] {
 // (Spelling variants are scanValue's job; this only checks case.)
 const PROPER_NOUNS = ['Waheguru', 'Gurdwara', 'Hukamnama', 'Khalsa', 'Punjabi', 'Sat Sri Akal'];
 
-function caseIssues(label: string, value: string): string[] {
+export function caseIssues(label: string, value: string): string[] {
     const issues: string[] = [];
     for (const noun of PROPER_NOUNS) {
         for (const match of value.matchAll(new RegExp(`\\b${noun.replace(/ /g, '\\s+')}\\b`, 'gi'))) {
@@ -63,7 +65,7 @@ function caseIssues(label: string, value: string): string[] {
 // Any letter or vowel sign from outside the Gurmukhi block — Latin, but also
 // the neighbouring Indic scripts (Bengali ঠ, Telugu ా, Devanagari ि) that a
 // model can slip into a Gurmukhi word, where a learner cannot spot them.
-function scriptIssues(label: string, value: string): string[] {
+export function scriptIssues(label: string, value: string): string[] {
     const foreign = [...new Set([...value].filter(ch => /[\p{L}\p{M}]/u.test(ch) && !/[਀-੿]/.test(ch)))];
     return foreign.length ? [`${label}: non-Gurmukhi ${foreign.join(' ')} in "${value}"`] : [];
 }

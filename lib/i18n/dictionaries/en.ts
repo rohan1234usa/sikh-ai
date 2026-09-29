@@ -10,6 +10,7 @@
 import type { ChatCopy } from '@/lib/chat/config';
 import type { ChatSectionId } from '@/lib/chat/historyGroups';
 import type { CitationStatus } from '@/lib/gurbani/citations';
+import type { Gender, PartOfSpeech, TrackId, VocabTopicId } from '@/lib/learn/config';
 import type { DetectedInput, NoteKind } from '@/lib/translate/config';
 import type { PhraseCategoryId } from '@/lib/translate/phrasebook';
 import type { Theme } from '@/lib/theme';
@@ -260,6 +261,7 @@ const en = {
         seva: 'Seva Events',
         shabad: 'Shabad Search',
         translate: 'Translator',
+        learn: 'Learn Punjabi',
         greeting: 'Sat Sri Akal, {name}',
         signIn: 'Sign In',
         signOut: 'Sign Out',
@@ -302,6 +304,11 @@ const en = {
                 title: 'Punjabi Translator',
                 desc: 'Translate between English and Punjabi — Gurmukhi, Roman, and meaning together.',
                 cta: 'Start translating',
+            },
+            learn: {
+                title: 'Learn Punjabi',
+                desc: 'Lessons for Punjabi Americans: read Gurmukhi, learn the grammar, practice words with flashcards, and ask a tutor.',
+                cta: 'Start learning',
             },
             shabad: {
                 title: 'Shabad Search',
@@ -590,6 +597,168 @@ const en = {
         cancel: 'Cancel',
     },
 
+    // /learn (app/[lang]/learn): the Learn Punjabi section's own words. The
+    // lessons and vocabulary are English in every UI language
+    // (lib/learn/content/); these strings are the pages around them.
+    learn: {
+        title: 'Learn {word}',
+        titleWord: 'Punjabi',
+        subtitle: 'For Punjabi Americans who grew up hearing it: read Gurmukhi, see how sentences work, and learn the words you use with family.',
+        caveat: 'Lessons are AI-drafted and waiting for review by fluent speakers.',
+        breadcrumbAria: 'Breadcrumb',
+        tracks: {
+            script: {
+                title: 'Gurmukhi script',
+                desc: 'The alphabet, the vowel signs and the tones, until you can read the words you already know.',
+            },
+            grammar: {
+                title: 'Grammar',
+                desc: 'How Punjabi sentences work, from word order to why it’s kita and not kiti.',
+            },
+            vocab: {
+                title: 'Vocabulary',
+                desc: 'Everyday words by topic, with flashcards that come back just before you’d forget them.',
+            },
+            tutor: {
+                title: 'Punjabi tutor',
+                desc: 'Ask about any sentence, find out how to say anything, or practice a conversation.',
+            },
+        } satisfies Record<TrackId, { title: string; desc: string }>,
+        topics: {
+            'family': 'Family',
+            'greetings': 'Greetings and manners',
+            'gurdwara': 'Gurdwara and seva',
+            'food': 'Food and the kitchen',
+            'home': 'Home and the daily routine',
+            'numbers-time': 'Numbers and time',
+            'body-health': 'Body and health',
+            'feelings': 'Feelings and small talk',
+            'describing': 'Colors and describing words',
+            'verbs': 'Everyday verbs',
+        } satisfies Record<VocabTopicId, string>,
+        partsOfSpeech: {
+            noun: 'noun',
+            verb: 'verb',
+            adjective: 'adjective',
+            adverb: 'adverb',
+            number: 'number',
+            phrase: 'phrase',
+        } satisfies Record<PartOfSpeech, string>,
+        genders: {
+            m: 'masculine',
+            f: 'feminine',
+        } satisfies Record<Gender, string>,
+        hub: {
+            continue: 'Continue where you left off',
+            start: 'Start here',
+            upNext: 'Up next',
+            allDone: 'You’ve finished every lesson',
+            allDoneBody: 'Keep your words fresh with flashcards.',
+            openLesson: 'Open lesson',
+            open: 'Open',
+            lessonsDone: 'Lessons done: {done} of {total}',
+            wordsLearned: 'Words learned: {n} of {total}',
+            cardsDue: 'Flashcards due: {n}',
+            savedHere: 'Your progress is saved in this browser only.',
+            reset: 'Reset progress',
+            resetPrompt: 'Clear every lesson, score and flashcard?',
+            resetConfirm: 'Reset',
+            cancel: 'Cancel',
+        },
+        lesson: {
+            lessonOf: 'Lesson {n} of {total}',
+            best: 'Best score {correct} of {total}',
+            done: 'Done',
+            previous: 'Previous',
+            next: 'Next',
+            allLessons: 'All lessons',
+            pagerAria: 'Previous and next lesson',
+            tip: 'Tip',
+            lettersAria: 'Letters',
+            examplesAria: 'Examples',
+            askTutor: 'Ask the tutor about this lesson',
+        },
+        quiz: {
+            heading: 'Check yourself',
+            questionN: 'Question {n}',
+            typedLabel: 'Your answer',
+            typedPlaceholder: 'Type it in English letters',
+            check: 'Check answers',
+            tryAgain: 'Try again',
+            newQuestions: 'New questions',
+            correct: 'Correct',
+            incorrect: 'Not quite',
+            unanswered: 'Not answered',
+            answer: 'Answer: {answer}',
+            score: 'You got {correct} of {total}.',
+            lessonDone: 'Lesson complete. Your best: {correct} of {total}.',
+            vocabMeaning: 'What does this mean?',
+            vocabSay: 'How do you say “{english}” in Punjabi?',
+        },
+        vocab: {
+            wordCount: '{n} words',
+            topicDescription: '{topic}: {n} Punjabi words in Gurmukhi, romanized Punjabi and English, with flashcards and a quiz.',
+            modesAria: 'How to practice',
+            modes: {
+                words: 'Words',
+                cards: 'Flashcards',
+                quiz: 'Quiz',
+            },
+            due: 'Due: {n}',
+            fresh: 'New: {n}',
+            learned: 'Learned: {n}',
+            example: 'Example',
+        },
+        cards: {
+            directionAria: 'Which side to show first',
+            punjabiFirst: 'Punjabi first',
+            englishFirst: 'English first',
+            show: 'Show answer',
+            knewIt: 'I knew it',
+            notYet: 'Not yet',
+            progress: 'Card {n} of {total}',
+            doneTitle: 'Session done',
+            doneBody: 'Known: {right}. To see again: {wrong}.',
+            again: 'Review again',
+            nothingDue: 'Nothing is due. Every card here is scheduled for later.',
+            practice: 'Practice anyway',
+            checkAgain: 'Check again',
+        },
+        // /learn/tutor: the Punjabi tutor, a conversation kept in the tab.
+        tutor: {
+            greeting: 'Sat Sri Akal! I’m your Punjabi tutor. Ask me about any sentence, ask how to say something, or practice a conversation with me. Every bit of Punjabi comes in Gurmukhi, in English letters, and in English.',
+            starters: [
+                'How do I say “I’m running late” in Punjabi?',
+                'Why is it kita and not kiti?',
+                'Quiz me on family words',
+                'Practice: ordering food at a dhaba',
+            ],
+            lessonStarters: [
+                'Explain this lesson another way',
+                'Quiz me on this lesson',
+                'Give me three more examples like these',
+            ],
+            aboutLesson: 'Lesson: {title}',
+            stopLessonAria: 'Stop using this lesson',
+            lessonNotFound: 'The lesson in that link wasn’t found, so the tutor starts without one.',
+            newConversation: 'New conversation',
+            inputPlaceholder: 'Ask about Punjabi, or write in Punjabi…',
+            messageAria: 'Message to the tutor',
+            sendAria: 'Send message',
+            stopAria: 'Stop the reply',
+            thinking: 'The tutor is thinking',
+            interrupted: 'Reply cut short',
+            stopped: 'Stopped before the tutor replied',
+            retry: 'Retry',
+            copyAria: 'Copy reply',
+            copiedAria: 'Copied',
+            latest: 'Latest',
+            charCount: '{n} / {max}',
+            charLimit: 'Character limit reached: {max}',
+            disclaimer: 'The tutor can make mistakes, so check with a fluent speaker. Each message goes to Google Gemini with your recent conversation, which is kept only in this tab.',
+        },
+    },
+
     seva: {
         heroTitle: 'Serve with {word}',
         heroWord: 'Humility',
@@ -655,7 +824,7 @@ const en = {
     // what it sends to other services, and how to remove it. Owner-reviewed text.
     privacy: {
         title: 'Privacy',
-        updated: 'Last updated 28 September 2026.',
+        updated: 'Last updated 29 September 2026.',
         intro: 'SikhAI is a small, independent site. This page says what it keeps about you, where, and for how long; what it sends to other services; and how to remove it.',
         sections: [
             {
@@ -663,6 +832,8 @@ const en = {
                 items: [
                     'Your chats: up to 50. When there is no room, the one used longest ago goes first, but never a pinned or open chat.',
                     'Your last 30 translations, and your chat settings: guide, style and reply language.',
+                    'Your Learn Punjabi progress: the lessons you finished, your best quiz scores, and when each flashcard comes back.',
+                    'Your conversation with the Punjabi tutor, until you close the tab.',
                     'Your theme and language. The language is a cookie, kept for a year, so a link opens in your language.',
                     'Whether you were signed in, so your session comes back quickly.',
                 ],
@@ -680,6 +851,7 @@ const en = {
                 heading: 'Sent to other services',
                 items: [
                     'Google Gemini writes the answers. Each message you send goes to it with up to 10 earlier messages from the chat, any passage you attached, and your settings. Text you translate goes to it too.',
+                    'Messages to the Punjabi tutor go to it too, with up to 8 earlier messages from the conversation and the lesson you opened the tutor from.',
                     'Google Cloud Translation stands in when Gemini is busy, and does the comparison with Google Translate.',
                     'GurbaniNow supplies the Hukamnama and the Angs. To check a reply\'s Gurbani quotes, the quoted lines are looked up there; your question is not sent.',
                     'Google Analytics counts visits: the pages you open, your device and browser, and your approximate location, using cookies.',
@@ -691,6 +863,7 @@ const en = {
                 heading: 'Removing it',
                 items: [
                     'Delete a chat from the chat list, or clear this site\'s data in your browser to remove everything kept there.',
+                    'Clear your Learn Punjabi progress with Reset progress on the Learn Punjabi page.',
                     'Stop sharing a chat from its share dialog: the link stops working at once.',
                     'Sign out from the navbar. To have your account\'s chats or a Seva sign-up removed, get in touch.',
                 ],
@@ -717,6 +890,7 @@ const en = {
         sevaCreateTitle: 'Post a Seva Event',
         hukamnamaTitle: "Today's Hukamnama",
         translateTitle: 'Punjabi Translator',
+        learnTitle: 'Learn Punjabi',
         notFoundTitle: 'Page not found',
         // What each page is for, in search results and link previews.
         descriptions: {
@@ -724,6 +898,7 @@ const en = {
             hukamnama: 'Today\'s Hukamnama from Sri Darbar Sahib, in Gurmukhi with an English translation, and a way to ask about it.',
             chat: 'Ask SikhAI about Sikhi, Gurbani and Sikh history. Answers quote Gurbani, and every quote is checked against the source.',
             translate: 'Translate between English, Gurmukhi and romanized Punjabi, with a word-by-word breakdown, tricky parts explained, and pronunciation tips.',
+            learn: 'Learn Punjabi as a Punjabi American: read Gurmukhi, understand the grammar, build everyday vocabulary with flashcards, and practice with a tutor.',
             shabad: 'Read any Ang of Sri Guru Granth Sahib Ji, 1 to 1430, in Gurmukhi with an English translation.',
             seva: 'Find and join seva events near you, from langar to education, or post your own.',
         },
@@ -749,6 +924,11 @@ const en = {
         translate_too_long: 'That text is too long. Please try up to 1,000 characters.',
         translate_failed: 'Sorry, the translation failed. Please try again.',
         translate_busy: 'The translator is busy right now. Please wait a moment and try again.',
+        learn_empty: 'Please enter a message.',
+        learn_too_long: 'That message is too long. Please keep it to 1,000 characters.',
+        learn_failed: 'Sorry, something went wrong on our end. Please try again.',
+        learn_busy: 'The tutor is very busy right now. Please wait a minute and try again.',
+        learn_blocked: "The tutor couldn't respond to that message. Please try rephrasing it.",
     },
 };
 

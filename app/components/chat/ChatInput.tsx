@@ -90,7 +90,9 @@ export default function ChatInput({
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+        // keyCode 229: the Enter that picks an input method's candidate,
+        // which older Safari reports as not composing.
+        if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) {
             e.preventDefault();
             submit();
         }

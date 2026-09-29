@@ -1,59 +1,13 @@
 'use client';
 
 import { memo, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { ClipboardIcon, CheckIcon, ArrowPathIcon, StopCircleIcon } from '@heroicons/react/24/outline';
-import { splitMarkdownBlocks } from '@/lib/chat/markdownBlocks';
 import type { Reply, ReplySettings } from '@/lib/chat/transcript';
 import type { Dictionary } from '@/lib/i18n';
 import { fmt } from '@/lib/i18n/fmt';
-import { markdownComponents } from './markdownComponents';
+import { BUBBLE, Markdown, SHAPE, StreamingMarkdown } from './Bubbles';
 import Citations from './Citations';
 import { useT } from '../../context/LanguageContext';
-
-const BUBBLE = {
-    user: 'bg-navy text-white rounded-br-none',
-    ai: 'bg-surface-raised border border-edge text-ink rounded-bl-none',
-    error: 'bg-red-50 border border-red-200 text-red-600 dark:bg-red-950/40 dark:border-red-900 dark:text-red-400 rounded-bl-none',
-};
-const SHAPE = 'max-w-[85%] md:max-w-[75%] p-4 rounded-2xl shadow-sm text-sm md:text-base leading-relaxed';
-
-export function QuestionBubble({ text }: { text: string }) {
-    return (
-        <div className="flex flex-col items-end">
-            <div className={`${SHAPE} ${BUBBLE.user}`}>
-                <p className="whitespace-pre-wrap">{text}</p>
-            </div>
-        </div>
-    );
-}
-
-const REMARK_PLUGINS = [remarkGfm];
-
-function Markdown({ text }: { text: string }) {
-    return <ReactMarkdown remarkPlugins={REMARK_PLUGINS} components={markdownComponents}>{text}</ReactMarkdown>;
-}
-
-// A reply that is still streaming, a block at a time (lib/chat/markdownBlocks.ts):
-// finished blocks keep what they rendered, so each new piece re-parses only
-// the unfinished end, not the whole reply.
-const MarkdownBlock = memo(Markdown);
-function StreamingMarkdown({ text }: { text: string }) {
-    return splitMarkdownBlocks(text).map((block, i) => <MarkdownBlock key={i} text={block} />);
-}
-
-// Memoized, like the replies: the chat redraws with every streamed piece, and
-// none of that concerns the greeting.
-export const GreetingBubble = memo(function GreetingBubble({ text }: { text: string }) {
-    return (
-        <div className="flex flex-col items-start">
-            <div className={`${SHAPE} ${BUBBLE.ai}`}>
-                <Markdown text={text} />
-            </div>
-        </div>
-    );
-});
 
 // "Guru Nanak Dev Ji · Gurbani-first · English": what the reply was asked for,
 // in the current site language. Stored ids were checked on load.

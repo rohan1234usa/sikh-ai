@@ -23,8 +23,8 @@
 // Before pointing the fallback at an unchecked model, run that eval, or set the
 // env var to "off": a "busy" message is better than a misquoted tuk.
 //
-// Both routes set `thinkingLevel`, a Gemini 3.x parameter — an override should
-// name a 3.x model.
+// Every route sets `thinkingLevel`, a Gemini 3.x parameter — an override
+// should name a 3.x model.
 
 const MODELS = {
     chat: {
@@ -34,6 +34,13 @@ const MODELS = {
     translate: {
         env: 'GEMINI_TRANSLATE_MODEL', pinned: 'gemini-3.8-flash',
         fallbackEnv: 'GEMINI_TRANSLATE_FALLBACK_MODEL', fallback: 'gemini-3.7-flash',
+    },
+    // The Punjabi tutor (/api/learn). Its own entry, so a preview can try
+    // another model on the tutor alone, and on the free tier an override
+    // gives it a daily quota of its own.
+    learn: {
+        env: 'GEMINI_LEARN_MODEL', pinned: 'gemini-3.8-flash',
+        fallbackEnv: 'GEMINI_LEARN_FALLBACK_MODEL', fallback: 'gemini-3.7-flash',
     },
 } as const;
 

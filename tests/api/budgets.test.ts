@@ -3,13 +3,18 @@ import assert from 'node:assert/strict';
 import {
     CHAT_BUDGET_MS,
     CHAT_FIRST_TEXT_MS,
+    LEARN_BUDGET_MS,
+    LEARN_FIRST_TEXT_MS,
     TRANSLATE_ATTEMPT_MS,
     TRANSLATE_BUDGET_MS,
 } from '@/lib/gemini/budgets';
 import { MIN_FALLBACK_MS } from '@/lib/gemini/fallback';
+import { maxDuration as chatMaxDuration } from '@/app/api/chat/route';
+import { maxDuration as learnMaxDuration } from '@/app/api/learn/route';
+import { maxDuration as translateMaxDuration } from '@/app/api/translate/route';
 
-// Both routes set maxDuration = 30 s; the translator keeps 8 s of that for
-// Cloud Translation after Gemini has had its turn.
+// Every Gemini route sets maxDuration = 30 s; the translator keeps 8 s of
+// that for Cloud Translation after Gemini has had its turn.
 const MAX_DURATION_MS = 30_000;
 const CLOUD_FALLBACK_MS = 8_000;
 
@@ -19,6 +24,7 @@ test('a hung primary still leaves the fallback model room to answer', () => {
     for (const [name, budget, attempt] of [
         ['translate', TRANSLATE_BUDGET_MS, TRANSLATE_ATTEMPT_MS],
         ['chat', CHAT_BUDGET_MS, CHAT_FIRST_TEXT_MS],
+        ['learn', LEARN_BUDGET_MS, LEARN_FIRST_TEXT_MS],
     ] as const) {
         assert.ok(
             budget - attempt >= MIN_FALLBACK_MS,
@@ -28,6 +34,10 @@ test('a hung primary still leaves the fallback model room to answer', () => {
 });
 
 test('the budgets fit inside the function limit', () => {
+    for (const seconds of [chatMaxDuration, learnMaxDuration, translateMaxDuration]) {
+        assert.equal(seconds * 1000, MAX_DURATION_MS, 'a route’s maxDuration changed: recheck its budget');
+    }
     assert.ok(TRANSLATE_BUDGET_MS + CLOUD_FALLBACK_MS <= MAX_DURATION_MS, 'Cloud Translation still gets its turn');
     assert.ok(CHAT_BUDGET_MS <= MAX_DURATION_MS);
+    assert.ok(LEARN_BUDGET_MS <= MAX_DURATION_MS);
 });
