@@ -24,8 +24,10 @@ const INLINE_LINK = 'text-accent-text underline hover:no-underline';
 function Item({ text, vars, links }: { text: string; vars: Record<string, string | number>; links: Record<string, PolicyLink> }) {
     return splitTemplate(text).map((part, i) => {
         if (typeof part === 'string') return part;
-        if (part.key in vars) return String(vars[part.key]);
-        const link = links[part.key];
+        // Own properties only: {constructor} or {toString} is unknown, not a
+        // function inherited from Object.
+        if (Object.hasOwn(vars, part.key)) return String(vars[part.key]);
+        const link = Object.hasOwn(links, part.key) ? links[part.key] : undefined;
         // An unknown placeholder shows as written; tests/site/policy.test.ts
         // fails on one before it can ship.
         if (!link) return `{${part.key}}`;
