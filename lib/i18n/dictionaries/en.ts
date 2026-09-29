@@ -669,6 +669,7 @@ const en = {
             tip: 'Tip',
             lettersAria: 'Letters',
             examplesAria: 'Examples',
+            askTutor: 'Ask the tutor about this lesson',
         },
         quiz: {
             heading: 'Check yourself',
@@ -714,6 +715,39 @@ const en = {
             again: 'Review again',
             nothingDue: 'Nothing is due. Every card here is scheduled for later.',
             practice: 'Practice anyway',
+        },
+        // /learn/tutor: the Punjabi tutor, a conversation kept in the tab.
+        tutor: {
+            greeting: 'Sat Sri Akal! I’m your Punjabi tutor. Ask me about any sentence, ask how to say something, or practice a conversation with me. Every bit of Punjabi comes in Gurmukhi, in English letters, and in English.',
+            starters: [
+                'How do I say “I’m running late” in Punjabi?',
+                'Why is it kita and not kiti?',
+                'Quiz me on family words',
+                'Practice: ordering food at a dhaba',
+            ],
+            lessonStarters: [
+                'Explain this lesson another way',
+                'Quiz me on this lesson',
+                'Give me three more examples like these',
+            ],
+            aboutLesson: 'Lesson: {title}',
+            stopLessonAria: 'Stop using this lesson',
+            lessonNotFound: 'The lesson in that link wasn’t found, so the tutor starts without one.',
+            newConversation: 'New conversation',
+            inputPlaceholder: 'Ask about Punjabi, or write in Punjabi…',
+            messageAria: 'Message to the tutor',
+            sendAria: 'Send message',
+            stopAria: 'Stop the reply',
+            thinking: 'The tutor is thinking',
+            interrupted: 'Reply cut short',
+            stopped: 'Stopped before the tutor replied',
+            retry: 'Retry',
+            copyAria: 'Copy reply',
+            copiedAria: 'Copied',
+            latest: 'Latest',
+            charCount: '{n} / {max}',
+            charLimit: 'Character limit reached: {max}',
+            disclaimer: 'The tutor can make mistakes, so check with a fluent speaker. Each message goes to Google Gemini with your recent conversation, which is kept only in this tab.',
         },
     },
 
@@ -782,7 +816,7 @@ const en = {
     // what it sends to other services, and how to remove it. Owner-reviewed text.
     privacy: {
         title: 'Privacy',
-        updated: 'Last updated 28 September 2026.',
+        updated: 'Last updated 29 September 2026.',
         intro: 'SikhAI is a small, independent site. This page says what it keeps about you, where, and for how long; what it sends to other services; and how to remove it.',
         sections: [
             {
@@ -790,6 +824,8 @@ const en = {
                 items: [
                     'Your chats: up to 50. When there is no room, the one used longest ago goes first, but never a pinned or open chat.',
                     'Your last 30 translations, and your chat settings: guide, style and reply language.',
+                    'Your Learn Punjabi progress: the lessons you finished, your best quiz scores, and when each flashcard comes back.',
+                    'Your conversation with the Punjabi tutor, until you close the tab.',
                     'Your theme and language. The language is a cookie, kept for a year, so a link opens in your language.',
                     'Whether you were signed in, so your session comes back quickly.',
                 ],
@@ -807,6 +843,7 @@ const en = {
                 heading: 'Sent to other services',
                 items: [
                     'Google Gemini writes the answers. Each message you send goes to it with up to 10 earlier messages from the chat, any passage you attached, and your settings. Text you translate goes to it too.',
+                    'Messages to the Punjabi tutor go to it too, with up to 8 earlier messages from the conversation and the lesson you opened the tutor from.',
                     'Google Cloud Translation stands in when Gemini is busy, and does the comparison with Google Translate.',
                     'GurbaniNow supplies the Hukamnama and the Angs. To check a reply\'s Gurbani quotes, the quoted lines are looked up there; your question is not sent.',
                     'Google Analytics counts visits: the pages you open, your device and browser, and your approximate location, using cookies.',
@@ -818,6 +855,7 @@ const en = {
                 heading: 'Removing it',
                 items: [
                     'Delete a chat from the chat list, or clear this site\'s data in your browser to remove everything kept there.',
+                    'Clear your Learn Punjabi progress with Reset progress on the Learn Punjabi page.',
                     'Stop sharing a chat from its share dialog: the link stops working at once.',
                     'Sign out from the navbar. To have your account\'s chats or a Seva sign-up removed, get in touch.',
                 ],
@@ -878,6 +916,11 @@ const en = {
         translate_too_long: 'That text is too long. Please try up to 1,000 characters.',
         translate_failed: 'Sorry, the translation failed. Please try again.',
         translate_busy: 'The translator is busy right now. Please wait a moment and try again.',
+        learn_empty: 'Please enter a message.',
+        learn_too_long: 'That message is too long. Please keep it to 1,000 characters.',
+        learn_failed: 'Sorry, something went wrong on our end. Please try again.',
+        learn_busy: 'The tutor is very busy right now. Please wait a minute and try again.',
+        learn_blocked: "The tutor couldn't respond to that message. Please try rephrasing it.",
     },
 };
 
