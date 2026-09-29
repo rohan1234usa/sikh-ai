@@ -23,7 +23,7 @@ const lesson: LessonBody = {
                 'Tu with an elder is one of the few mistakes that can land badly. When in doubt, tusi.',
             ],
             examples: [
-                { gurmukhi: 'ਤੁਸੀਂ ਕਿਵੇਂ ਹੋ?', roman: 'Tusi kiven ho?', english: 'How are you? (respectfully)' },
+                { gurmukhi: 'ਤੁਸੀਂ ਕਿਵੇਂ ਹੋ?', roman: 'Tusi kiven ho?', english: 'How are you? (respectfully)', note: 'Elders more often hear ਕੀ ਹਾਲ ਹੈ ਜੀ? (Ki haal hai ji?)' },
                 { gurmukhi: 'ਤੂੰ ਕਿਵੇਂ ਹੈਂ?', roman: 'Tu kiven hain?', english: 'How are you? (to a close friend)' },
             ],
         },
@@ -50,7 +50,7 @@ const lesson: LessonBody = {
                 { gurmukhi: 'ਮੇਰੇ ਦਾਦਾ ਜੀ ਅੰਮ੍ਰਿਤਸਰ ਤੋਂ ਹਨ', roman: 'Mere dada ji Amritsar ton han', english: 'My grandfather is from Amritsar' },
                 { gurmukhi: 'ਮੰਮੀ ਕਹਿੰਦੇ ਹਨ', roman: 'Mummy kehnde han', english: 'Mom says' },
                 { gurmukhi: 'ਉਹਨਾਂ ਦਾ ਨਾਮ ਕੀ ਹੈ?', roman: 'Unhan da naam ki hai?', english: 'What is his (or her) name?', note: 'Unhan, the plural, for an elder.' },
-                { gurmukhi: 'ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ ਨੇ ਕਿਹਾ', roman: 'Guru Nanak Dev Ji ne kiha', english: 'Guru Nanak Dev Ji said' },
+                { gurmukhi: 'ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ ਕਹਿੰਦੇ ਹਨ', roman: 'Guru Nanak Dev Ji kehnde han', english: 'Guru Nanak Dev Ji says' },
             ],
         },
         {

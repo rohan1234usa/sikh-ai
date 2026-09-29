@@ -19,7 +19,7 @@ const lesson: LessonBody = {
             heading: 'Every noun is masculine or feminine',
             body: [
                 'Punjabi sorts every noun into masculine or feminine, even things; there is no “it”. ਕਮਰਾ (kamra, room) is masculine, and ਰੋਟੀ (roti) is feminine.',
-                'The ending is the best clue. Nouns ending in -a (ਾ) are usually masculine, and nouns ending in -i (ੀ) are usually feminine. A noun ending in a consonant has to be learned with its gender: ਘਰ (ghar, home) is masculine, and ਕਿਤਾਬ (kitaab, book) is feminine.',
+                'The ending is the best clue. Nouns ending in -a (◌ਾ) are usually masculine, and nouns ending in -i (◌ੀ) are usually feminine. A noun ending in a consonant has to be learned with its gender: ਘਰ (ghar, home) is masculine, and ਕਿਤਾਬ (kitaab, book) is feminine.',
             ],
             examples: [
                 { gurmukhi: 'ਮੁੰਡਾ', roman: 'munda', english: 'boy', note: 'Masculine.' },
@@ -70,7 +70,7 @@ const lesson: LessonBody = {
                 { gurmukhi: 'ਉਹ ਥੱਕਿਆ ਹੋਇਆ ਹੈ', roman: 'Oh thakkia hoya hai', english: 'He is tired' },
                 { gurmukhi: 'ਉਹ ਥੱਕੀ ਹੋਈ ਹੈ', roman: 'Oh thakki hoyi hai', english: 'She is tired' },
             ],
-            tip: 'If you are a woman, practice your own forms out loud: main sakdi haan, main thakki hoyi haan. Many learners only ever heard the masculine ones.',
+            tip: 'If you are a woman, practice your own forms out loud: main kar sakdi haan, main thakki hoyi haan. Many learners have only ever heard the masculine ones.',
         },
     ],
     quiz: [
@@ -104,7 +104,7 @@ const lesson: LessonBody = {
         },
         {
             kind: 'choice',
-            prompt: 'A woman says “I can”: Main ___ haan',
+            prompt: 'A woman says “I can do it”: Main kar ___ haan',
             choices: ['sakdi', 'sakda', 'sakde'],
             choicesLang: 'pa-Latn',
             answer: 'sakdi',

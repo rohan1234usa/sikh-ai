@@ -2,7 +2,7 @@
 // alphabet. Types: lib/learn/config.ts.
 //
 // AI-drafted, pending review by a fluent speaker. Romanization follows the
-// house style (ROMANIZATION in lib/translate/prompts.ts), and
+// house style (lib/translate/romanization.ts), and
 // tests/learn/content.test.ts holds each word to one spelling across the
 // lessons, the vocabulary and the phrasebook. Letter names keep the
 // spellings Punjabi schools teach (oorha, eerhi, kakka) rather than the
@@ -23,6 +23,7 @@ const lesson: LessonBody = {
                 'Gurmukhi is the script Punjabi is written in, and the script of Sri Guru Granth Sahib Ji. Guru Angad Dev Ji shaped it and spread it so that everyone, not only scholars, could read. The name means “from the mouth of the Guru”.',
                 'It reads left to right, like English, and it has no capital letters. Most letters hang from a line along the top, and in a word those lines join into one bar.',
                 'Each letter is a consonant that already carries a short “a”: ਕ on its own says “ka”, not “k”. To write any other vowel, you add a small mark to the letter. Those marks come in lessons 5 and 6.',
+                'Until then, a few example words use letters and marks from later lessons. Read the letters you know, and let the romanized line do the rest.',
                 'At the end of a word the built-in “a” is usually silent: ਘਰ is “ghar”, not “ghara”.',
             ],
             examples: [
@@ -38,7 +39,7 @@ const lesson: LessonBody = {
             body: [
                 'The traditional alphabet is called the painti, “the thirty-five”. It is laid out in seven rows of five, and the rows follow the mouth, from the throat to the lips. Learn the pattern and you can guess how most letters sound from where they sit.',
                 'The first row holds the three vowel carriers and two letters, ਸ and ਹ. Rows two to six are the core: each row is one place in the mouth, and inside each one the same pattern repeats. A plain sound, the same sound with a puff of air, a voiced sound, a letter that makes a tone, and a nasal. The last row is the rest: y, r, l, v and ੜ.',
-                'Six more letters are made by putting a dot under a letter, for sounds Punjabi borrowed from Persian, Arabic and English. They come in lesson 4.',
+                'Six more letters are made by putting a dot under a letter: five for sounds Punjabi borrowed from Persian, Arabic and English, and ਲ਼ for a curled-back l that is Punjabi’s own. They come in lesson 4.',
             ],
             tip: 'Punjabi schools teach the letters by name, row by row: oorha, airha, eerhi, sassa, haha; kakka, khakha, gagga, ghagga, nganga.',
         },

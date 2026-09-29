@@ -1,4 +1,4 @@
-// Grammar track, lesson 12: verb pairs (ho gaya, kha lavo, dass deo) and the
+// Grammar track, lesson 12: verb pairs (ho gaya, chala gaya, dass deo) and the
 // helpers for can, already, having done and should. Types:
 // lib/learn/config.ts.
 //

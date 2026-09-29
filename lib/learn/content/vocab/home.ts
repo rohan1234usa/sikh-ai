@@ -35,7 +35,7 @@ const words: VocabWord[] = [
     },
     {
         id: 'home-nahauna', topic: 'home', gurmukhi: 'ਨਹਾਉਣਾ', roman: 'nahauna', english: 'to bathe; to shower', pos: 'verb',
-        example: { gurmukhi: 'ਪਹਿਲਾਂ ਨਹਾ ਲਵੋ', roman: 'Pehlan naha lavo', english: 'Have a shower first' },
+        example: { gurmukhi: 'ਪਹਿਲਾਂ ਨਹਾ ਲਵੋ', roman: 'Pehlan naha lavo', english: 'Take a shower first' },
     },
     {
         id: 'home-sauna', topic: 'home', gurmukhi: 'ਸੌਣਾ', roman: 'sauna', english: 'to sleep', pos: 'verb',

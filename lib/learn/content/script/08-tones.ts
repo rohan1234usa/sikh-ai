@@ -8,7 +8,7 @@
 // ਘ ਝ ਢ ਧ ਭ lose their voicing and breath (ਘ sounds like ਕ) and the vowel
 // after them is low; after a vowel, they and ਹ make that vowel high and
 // falling. The romanization keeps gh, jh, dh, bh and the h
-// (ROMANIZATION in lib/translate/prompts.ts), so a spelling still shows
+// (lib/translate/romanization.ts), so a spelling still shows
 // where a tone is.
 //
 // Open questions for that review:
@@ -46,6 +46,7 @@ const lesson: LessonBody = {
             body: [
                 'After a vowel, the same letters and ਹ make the vowel before them high: your voice rises and then falls on it. The letter itself is said plainly, as ਗ ਜ ਡ ਦ ਬ, or not at all in the case of ਹ.',
                 'That is why ਚਾਹ is “chaa”: the ਹ is silent, and the aa is high.',
+                'After a short a, ਹਿ sounds like e and ਹੁ like o, both high: ਸ਼ਹਿਰ is shehar, ਪਹਿਲਾਂ is pehlan, and ਬਹੁਤ, spelled bahut, sounds close to “boht”.',
             ],
             examples: [
                 { gurmukhi: 'ਚਾਹ', roman: 'chaa', english: 'tea', note: 'The ਹ is silent; the aa is high.' },
@@ -58,7 +59,7 @@ const lesson: LessonBody = {
         {
             heading: 'Why the spelling keeps the h',
             body: [
-                'The romanization keeps gh, jh, dh and bh, and the h of ਸ਼ਹਿਰ, because that h is how a spelling shows where the tone is. If you text ghar and dhol, keep doing it: just know that nobody says the h.',
+                'The romanization keeps gh, jh, dh and bh, and the h of ਸ਼ਹਿਰ, because that h is how a spelling shows where the tone is. If you text ghar and dhol, keep doing it: just know that nobody says the h. The one everyday exception is ਚਾਹ, which families write chaa.',
             ],
             examples: [
                 { gurmukhi: 'ਕੋੜਾ', roman: 'korha', english: 'whip', note: 'A level k.' },

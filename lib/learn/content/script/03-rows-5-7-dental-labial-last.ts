@@ -2,7 +2,7 @@
 // row, the lip row and the last row. Types: lib/learn/config.ts.
 //
 // AI-drafted, pending review by a fluent speaker. Romanization follows the
-// house style (ROMANIZATION in lib/translate/prompts.ts): ਫ is ph, ਵ is v and
+// house style (lib/translate/romanization.ts): ਫ is ph, ਵ is v and
 // ੜ is rh. Letter names keep the spellings Punjabi schools teach.
 //
 // Open questions for that review:
@@ -19,6 +19,7 @@ const lesson: LessonBody = {
             body: [
                 'Here is the other set. For ਤ ਥ ਦ ਧ ਨ, put the tip of your tongue against the back of your top teeth. The sound is lighter and sharper than an American t or d.',
                 'Pair each letter with its curled-back twin from row four: ਤ and ਟ, ਥ and ਠ, ਦ and ਡ, ਧ and ਢ, ਨ and ਣ. Same family of sound, a different place for the tongue.',
+                'In English letters their names look the same as row four’s: thattha, dadda, dhadda. Say these with the tongue on the teeth.',
             ],
             letters: [
                 { glyph: 'ਤ', name: 'tatta', roman: 't', sound: 't with the tongue on the teeth, no puff of air.' },

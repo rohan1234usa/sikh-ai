@@ -6,7 +6,7 @@
 // learners memorize, so it needs the most careful check: ਅ takes mukta,
 // kanna, dulavan and kanaura; ੲ takes sihari, bihari and lavan; ੳ takes
 // aunkar, dulainkar and hora. Romanization follows the house style
-// (ROMANIZATION in lib/translate/prompts.ts).
+// (lib/translate/romanization.ts).
 //
 // Open questions for that review:
 // - ਈਰਖਾ (irkha, jealousy) and ਊਠ (ooth, camel) are the anchor words for
@@ -20,13 +20,13 @@ const lesson: LessonBody = {
         {
             heading: 'Four more marks',
             body: [
-                'The second half of the muharni adds four vowels: two sit on top of the letter, and two use kanna with something on top.',
+                'The second half of the muharni adds four vowels, and all four marks sit on top of the letter: lavan and dulavan, hora and kanaura.',
             ],
             letters: [
                 { glyph: 'ਕੇ', name: 'lavan', roman: 'ke', sound: 'e as in the a of cake, without the glide at the end.' },
                 { glyph: 'ਕੈ', name: 'dulavan', roman: 'kai', sound: 'An open e, between bed and bad. ਹੈ (hai, is).' },
                 { glyph: 'ਕੋ', name: 'hora', roman: 'ko', sound: 'o as in go, without the glide at the end.' },
-                { glyph: 'ਕੌ', name: 'kanaura', roman: 'kau', sound: 'An open o, as in saw. ਕੌਣ (kaun, who).' },
+                { glyph: 'ਕੌ', name: 'kanaura', roman: 'kau', sound: 'An open o, like the o of more without the r. ਕੌਣ (kaun, who).' },
             ],
         },
         {
@@ -70,14 +70,14 @@ const lesson: LessonBody = {
         {
             heading: 'Between two vowels',
             body: [
-                'Carriers also stand between two vowels, where a second vowel follows the first with no consonant in between. The romanization writes that join with a y: ਗਿਆ is gaya, ਆਈ is aayi.',
+                'Carriers also stand between two vowels, where a second vowel follows the first with no consonant in between. The romanization often writes that join with a y (ਗਿਆ is gaya, ਆਈ is aayi), but not always: ਜਾਓ is jao.',
             ],
             examples: [
                 { gurmukhi: 'ਗਿਆ', roman: 'gaya', english: 'went (said of a man)' },
                 { gurmukhi: 'ਆਈ', roman: 'aayi', english: 'came (said of a woman)' },
                 { gurmukhi: 'ਜਾਓ', roman: 'jao', english: 'go (politely)' },
-                { gurmukhi: 'ਕੌਣ', roman: 'kaun', english: 'who' },
-                { gurmukhi: 'ਇਹ', roman: 'ih', english: 'this' },
+                { gurmukhi: 'ਆਇਆ', roman: 'aaya', english: 'came (said of a man)' },
+                { gurmukhi: 'ਲਈ', roman: 'layi', english: 'for' },
             ],
         },
     ],

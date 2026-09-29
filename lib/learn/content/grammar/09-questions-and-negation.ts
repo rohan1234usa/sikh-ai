@@ -59,7 +59,7 @@ const lesson: LessonBody = {
         {
             heading: 'Saying no',
             body: [
-                'ਨਹੀਂ (nahi) is the everyday no and not, and ਨਹੀਂ ਸੀ (nahi si) is wasn’t. ਨਾ (na) is for commands (lesson 8) and for “or not”. To an elder, soften it: ਨਹੀਂ ਜੀ. And the safe yes is ਹਾਂਜੀ (haanji).',
+                'ਨਹੀਂ (nahi) is the everyday no and not, and ਨਹੀਂ ਸੀ (nahi si) is wasn’t. ਨਾ (na) is the don’t of commands, as in ਫ਼ਿਕਰ ਨਾ ਕਰੋ (fikar na karo), don’t worry (lesson 8). For “or not” at the end of a question, add ਕਿ ਨਹੀਂ (ki nahi). To an elder, soften it: ਨਹੀਂ ਜੀ. And the safe yes is ਹਾਂਜੀ (haanji).',
             ],
             examples: [
                 { gurmukhi: 'ਨਹੀਂ ਜੀ', roman: 'Nahi ji', english: 'No (respectfully)' },

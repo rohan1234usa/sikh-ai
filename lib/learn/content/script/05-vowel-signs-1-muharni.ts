@@ -4,10 +4,11 @@
 //
 // AI-drafted, pending review by a fluent speaker. The sign cards show each
 // vowel's sound (kaa, kee, koo), the way the muharni is chanted; the words
-// show the house spelling (ROMANIZATION in lib/translate/prompts.ts), which
+// show the house spelling (lib/translate/romanization.ts), which
 // writes a vowel at the end of a word with one letter (ki, ji, pani) and
-// doubles a long vowel only in a word's last syllable (kitaab, door). The
-// lesson explains the difference.
+// doubles a long vowel only in a word's last syllable (kitaab, door), apart
+// from the customary spellings the other lessons keep (aao, aaya, saada,
+// saanu, baare). The lesson explains the difference.
 //
 // Open questions for that review:
 // - Sound descriptions use American English anchors (father, bit, see, put,
@@ -21,7 +22,7 @@ const lesson: LessonBody = {
             heading: 'Vowels are marks on letters',
             body: [
                 'A letter on its own says a short “a”; that bare vowel is called mukta. For any other vowel, Gurmukhi adds a mark to the letter. There are nine marks, and with mukta they make ten vowels.',
-                'Every Punjabi school child chants them on ਕ, top to bottom: ka kaa ki kee ku koo ke kai ko kau. That chant is the muharni. This lesson covers its first half: short and long a, i and u.',
+                'Every Punjabi school child chants them on ਕ, in order: ka kaa ki kee ku koo ke kai ko kau. That chant is the muharni. This lesson covers its first half: short and long a, i and u.',
             ],
         },
         {
@@ -61,6 +62,7 @@ const lesson: LessonBody = {
                 'A vowel at the end of a word is one letter: ਪਾਣੀ is pani, ਗੁਰੂ is Guru, ਕੀ is ki.',
                 'A long vowel in a word’s last syllable, or in a one-syllable word, is doubled so you hear its length: ਕਿਤਾਬ kitaab, ਦੂਰ door, ਠੀਕ theek.',
                 'Anywhere else a long vowel is written once: ਪਾਣੀ is pani, not paani, and ਚਾਚਾ is chacha. When the spelling leaves you unsure, the Gurmukhi never does.',
+                'A few everyday words keep the doubled spelling families already use. ਆ at the start of a word is aa, so ਆਓ is aao and ਆਇਆ is aaya, and ਸਾਡਾ, ਸਾਨੂੰ and ਬਾਰੇ are saada, saanu and baare.',
             ],
         },
     ],

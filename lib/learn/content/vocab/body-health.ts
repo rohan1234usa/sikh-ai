@@ -32,7 +32,7 @@ const words: VocabWord[] = [
     { id: 'body-health-davai', topic: 'body-health', gurmukhi: 'ਦਵਾਈ', roman: 'davai', english: 'medicine', pos: 'noun', gender: 'f', accept: ['dawai'] },
     { id: 'body-health-bimaar', topic: 'body-health', gurmukhi: 'ਬਿਮਾਰ', roman: 'bimaar', english: 'sick, unwell', pos: 'adjective' },
     { id: 'body-health-theek', topic: 'body-health', gurmukhi: 'ਠੀਕ', roman: 'theek', english: 'fine; well; right', pos: 'adjective' },
-    { id: 'body-health-araam', topic: 'body-health', gurmukhi: 'ਆਰਾਮ', roman: 'araam', english: 'rest', pos: 'noun', gender: 'm', note: 'Araam karo: take some rest.' },
+    { id: 'body-health-araam', topic: 'body-health', gurmukhi: 'ਆਰਾਮ', roman: 'araam', english: 'rest', pos: 'noun', gender: 'm', note: 'Araam karo: get some rest.' },
 ];
 
 export default words;

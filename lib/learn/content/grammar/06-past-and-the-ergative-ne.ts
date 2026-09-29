@@ -57,7 +57,7 @@ const lesson: LessonBody = {
                 { gurmukhi: 'ਉਸ ਨੇ ਕਿਤਾਬ ਪੜ੍ਹੀ', roman: 'Us ne kitaab parhi', english: 'He (or she) read the book' },
                 { gurmukhi: 'ਉਹਨਾਂ ਨੇ ਕੀ ਕਿਹਾ?', roman: 'Unhan ne ki kiha?', english: 'What did they say?' },
             ],
-            tip: 'Whenever you hear ne, the verb after it matches the thing, not the person.',
+            tip: 'Whenever you hear ne, the verb after it matches the thing, not the person. If the thing has ਨੂੰ after it, the verb stays -a: ਉਸ ਨੇ ਕੁੜੀ ਨੂੰ ਦੇਖਿਆ (us ne kurhi nu dekhia), he or she saw the girl.',
         },
         {
             heading: 'The everyday irregular pasts, and si',

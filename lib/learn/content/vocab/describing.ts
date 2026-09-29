@@ -22,7 +22,7 @@ const words: VocabWord[] = [
     { id: 'describing-gulabi', topic: 'describing', gurmukhi: 'ਗੁਲਾਬੀ', roman: 'gulabi', english: 'pink', pos: 'adjective' },
     { id: 'describing-vadda', topic: 'describing', gurmukhi: 'ਵੱਡਾ', roman: 'vadda', english: 'big; older', pos: 'adjective' },
     { id: 'describing-chhota', topic: 'describing', gurmukhi: 'ਛੋਟਾ', roman: 'chhota', english: 'small; younger', pos: 'adjective', note: 'Chhota bhra: your younger brother.' },
-    { id: 'describing-lamba', topic: 'describing', gurmukhi: 'ਲੰਬਾ', roman: 'lamba', english: 'tall; long', pos: 'adjective' },
+    { id: 'describing-lamma', topic: 'describing', gurmukhi: 'ਲੰਮਾ', roman: 'lamma', english: 'tall; long', pos: 'adjective', note: 'Also said ਲੰਬਾ (lamba).' },
     { id: 'describing-mota', topic: 'describing', gurmukhi: 'ਮੋਟਾ', roman: 'mota', english: 'fat; thick', pos: 'adjective' },
     { id: 'describing-patla', topic: 'describing', gurmukhi: 'ਪਤਲਾ', roman: 'patla', english: 'thin', pos: 'adjective' },
     { id: 'describing-navan', topic: 'describing', gurmukhi: 'ਨਵਾਂ', roman: 'navan', english: 'new', pos: 'adjective', accept: ['nava', 'naya'] },
@@ -30,7 +30,7 @@ const words: VocabWord[] = [
     { id: 'describing-garam', topic: 'describing', gurmukhi: 'ਗਰਮ', roman: 'garam', english: 'hot; warm', pos: 'adjective' },
     { id: 'describing-thandha', topic: 'describing', gurmukhi: 'ਠੰਢਾ', roman: 'thandha', english: 'cold; cool', pos: 'adjective', accept: ['thanda'] },
     { id: 'describing-changa', topic: 'describing', gurmukhi: 'ਚੰਗਾ', roman: 'changa', english: 'good', pos: 'adjective' },
-    { id: 'describing-bura', topic: 'describing', gurmukhi: 'ਬੁਰਾ', roman: 'bura', english: 'bad', pos: 'adjective' },
+    { id: 'describing-marha', topic: 'describing', gurmukhi: 'ਮਾੜਾ', roman: 'marha', english: 'bad', pos: 'adjective', accept: ['mada', 'mara'], note: 'The everyday word. ਬੁਰਾ (bura) is heard too, as in bura na manna, don’t take it badly.' },
     { id: 'describing-saaf', topic: 'describing', gurmukhi: 'ਸਾਫ਼', roman: 'saaf', english: 'clean', pos: 'adjective' },
     { id: 'describing-ganda', topic: 'describing', gurmukhi: 'ਗੰਦਾ', roman: 'ganda', english: 'dirty', pos: 'adjective' },
 ];

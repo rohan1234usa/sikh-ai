@@ -24,7 +24,7 @@ const words: VocabWord[] = [
     { id: 'gurdwara-ardaas', topic: 'gurdwara', gurmukhi: 'ਅਰਦਾਸ', roman: 'Ardaas', english: 'the congregational prayer', pos: 'noun', gender: 'f' },
     { id: 'gurdwara-kirtan', topic: 'gurdwara', gurmukhi: 'ਕੀਰਤਨ', roman: 'Kirtan', english: 'the singing of Gurbani', pos: 'noun', gender: 'm' },
     { id: 'gurdwara-paath', topic: 'gurdwara', gurmukhi: 'ਪਾਠ', roman: 'paath', english: 'a reading of Gurbani', pos: 'noun', gender: 'm' },
-    { id: 'gurdwara-hukamnama', topic: 'gurdwara', gurmukhi: 'ਹੁਕਮਨਾਮਾ', roman: 'Hukamnama', english: 'the Guru’s command of the day', pos: 'noun', gender: 'm', note: 'Read from Sri Guru Granth Sahib Ji, opened at random.' },
+    { id: 'gurdwara-hukamnama', topic: 'gurdwara', gurmukhi: 'ਹੁਕਮਨਾਮਾ', roman: 'Hukamnama', english: 'the Guru’s command of the day', pos: 'noun', gender: 'm', note: 'Read each day from the page where Sri Guru Granth Sahib Ji opens.' },
     { id: 'gurdwara-granthi', topic: 'gurdwara', gurmukhi: 'ਗ੍ਰੰਥੀ', roman: 'granthi', english: 'the reader who cares for Sri Guru Granth Sahib Ji', pos: 'noun', gender: 'm' },
     { id: 'gurdwara-nishan-sahib', topic: 'gurdwara', gurmukhi: 'ਨਿਸ਼ਾਨ ਸਾਹਿਬ', roman: 'Nishan Sahib', english: 'the Sikh flag flown at every Gurdwara', pos: 'noun', gender: 'm' },
     { id: 'gurdwara-jorha-ghar', topic: 'gurdwara', gurmukhi: 'ਜੋੜਾ ਘਰ', roman: 'jorha ghar', english: 'the shoe room', pos: 'noun', gender: 'm', accept: ['jora ghar', 'joda ghar'] },

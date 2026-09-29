@@ -6,7 +6,7 @@
 // sentences also appear in the translator's phrasebook
 // (lib/translate/phrasebook.ts) and are spelled the same way, which
 // tests/learn/content.test.ts checks. Romanization follows the house style
-// (ROMANIZATION in lib/translate/prompts.ts).
+// (lib/translate/romanization.ts).
 //
 // Open questions for that review:
 // - Typed answers accept a few common alternatives (gurudwara, jora ghar).
@@ -48,7 +48,7 @@ const lesson: LessonBody = {
         {
             heading: 'Short sentences',
             body: [
-                'Now whole sentences. Punjabi puts the verb last, so read to the end before you guess the meaning. Lesson 1 of the grammar track explains why.',
+                'Now whole sentences. Punjabi puts the verb last, so read to the end before you guess the meaning. Lesson 1 of the grammar track explains the word order.',
             ],
             examples: [
                 { gurmukhi: 'ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ ਜੀ', roman: 'Sat Sri Akal ji', english: 'Hello (respectfully)' },

@@ -4,7 +4,7 @@
 // that imports this file never pulls lesson text into its bundle.
 //
 // Every Punjabi example is parallel text: Gurmukhi, the house romanization
-// (ROMANIZATION in lib/translate/prompts.ts) and English together.
+// (lib/translate/romanization.ts) and English together.
 // Explanations are English in every UI language, since the audience reads
 // English; the section's own chrome is translated in the dictionaries, keyed
 // by the ids below.
@@ -160,7 +160,7 @@ export const LESSON_META = [
     {
         track: 'script',
         slug: 'bindi-tippi-addak-subjoined',
-        title: 'Nasal dots, doubled letters, letters underneath',
+        title: 'Nasal marks, doubled letters, letters underneath',
         summary: 'Bindi and tippi for nasal vowels, addak for doubled consonants, and the half letters tucked under another letter.',
     },
     {
@@ -245,7 +245,7 @@ export const LESSON_META = [
         track: 'grammar',
         slug: 'compound-verbs-and-modals',
         title: 'Helper verbs: can, already, should',
-        summary: 'Verb pairs like ho gaya and kha lavo, and the helpers for can, already, having done, and should.',
+        summary: 'Verb pairs like ho gaya and dass deo, and the helpers for can, already, having done, and should.',
     },
 ] as const satisfies readonly LessonMeta[];
 

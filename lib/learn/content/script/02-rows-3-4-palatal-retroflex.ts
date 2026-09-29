@@ -2,7 +2,7 @@
 // and the retroflex row. Types: lib/learn/config.ts.
 //
 // AI-drafted, pending review by a fluent speaker. Romanization follows the
-// house style (ROMANIZATION in lib/translate/prompts.ts), which writes the
+// house style (lib/translate/romanization.ts), which writes the
 // retroflex and dental sets alike (t, th, d, dh, n), as families text them;
 // this lesson says so, and leans on the Gurmukhi to tell them apart. Letter
 // names keep the spellings Punjabi schools teach.
@@ -54,7 +54,7 @@ const lesson: LessonBody = {
                 { gurmukhi: 'ਡਰ', roman: 'dar', english: 'fear' },
                 { gurmukhi: 'ਮਟਰ', roman: 'matar', english: 'peas' },
                 { gurmukhi: 'ਡਾਕਟਰ', roman: 'doctor', english: 'doctor', note: 'An English word keeps its English spelling in the romanization.' },
-                { gurmukhi: 'ਪਾਣੀ', roman: 'pani', english: 'water', note: 'ਣ in the middle of a word, where it always is.' },
+                { gurmukhi: 'ਪਾਣੀ', roman: 'pani', english: 'water', note: 'ਣ in the middle of a word. It can end one too (ਭੈਣ, ਕੌਣ), but never starts one.' },
             ],
             tip: 'Can’t hear it yet? Say “doctor” the way your parents do. That first sound is ਡ.',
         },

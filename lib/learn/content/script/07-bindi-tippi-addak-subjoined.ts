@@ -2,11 +2,12 @@
 // subjoined letters ੍ਹ ੍ਰ ੍ਵ. Types: lib/learn/config.ts.
 //
 // AI-drafted, pending review by a fluent speaker. The tippi and bindi rule
-// needs a careful check: tippi with mukta, sihari, aunkar and dulainkar;
-// bindi with every other mark, and with the vowel letters ਈ and ਊ.
-// Romanization follows the house style (ROMANIZATION in
-// lib/translate/prompts.ts): addak doubles a letter in the roman too, except
-// ch, chh, kh and th, and a nasal after a final ੀ or ੂ isn't written.
+// needs a careful check: on a consonant, tippi with mukta, sihari, aunkar
+// and dulainkar, bindi with every other mark; on the vowel letters ਉ and ਊ,
+// bindi (ਆਉਂਦਾ, ਕਿਉਂ).
+// Romanization follows the house style (lib/translate/romanization.ts):
+// addak doubles a letter in the roman too, except ch, chh, kh and th, and a
+// nasal after a final ੀ or ੂ isn't written.
 //
 // Open questions for that review:
 // - Subjoined ਵ gets no example word. Is there a common one?
@@ -20,7 +21,7 @@ const lesson: LessonBody = {
             heading: 'Bindi and tippi: a vowel through the nose',
             body: [
                 'Two marks make a vowel nasal: bindi (◌ਂ), a dot on top, and tippi (◌ੰ), a small curve on top. They do the same job; which one a word uses depends on its vowel mark.',
-                'Tippi goes with the bare letter, sihari, aunkar and dulainkar: ਪੰਜ, ਸਿੰਘ, ਮੁੰਡਾ, ਮੈਨੂੰ. Bindi goes with the other marks: ਮੈਂ, ਹਾਂ, ਨਹੀਂ. The vowel letters ਈ and ਊ take bindi too.',
+                'On a consonant, tippi goes with the bare letter, sihari, aunkar and dulainkar: ਪੰਜ, ਸਿੰਘ, ਮੁੰਡਾ, ਮੈਨੂੰ. Bindi goes with the other marks: ਮੈਂ, ਹਾਂ, ਨਹੀਂ. One exception: the vowel letters ਉ and ਊ take bindi, as in ਆਉਂਦਾ and ਕਿਉਂ.',
                 'Before a consonant, the nasal often sounds as an n or m that belongs to the next letter: ਪੰਜ is panj. The romanization writes it as n or m, the way it is heard, and not at all after a final ee or oo sound: ਨਹੀਂ is nahi, ਮੈਨੂੰ is mainu.',
             ],
             examples: [
@@ -68,7 +69,7 @@ const lesson: LessonBody = {
             choices: ['bindi', 'tippi'],
             choicesLang: 'pa-Latn',
             answer: 'bindi',
-            explanation: 'Tippi goes only with the bare letter, sihari, aunkar and dulainkar: ਹਾਂ takes bindi.',
+            explanation: 'On a consonant, tippi goes only with the bare letter, sihari, aunkar and dulainkar: ਹਾਂ takes bindi.',
         },
         {
             kind: 'choice',

@@ -2,7 +2,7 @@
 // and Gurmukhi digits. Types: lib/learn/config.ts.
 //
 // AI-drafted, pending review by a fluent speaker. Romanization follows the
-// house style (ROMANIZATION in lib/translate/prompts.ts). The digit cards put
+// house style (lib/translate/romanization.ts). The digit cards put
 // the Punjabi number word in `name` and the digit itself in `roman`.
 //
 // Open questions for that review:
@@ -18,16 +18,16 @@ const lesson: LessonBody = {
         {
             heading: 'A dot for borrowed sounds',
             body: [
-                'Persian, Arabic and English brought Punjabi sounds its alphabet had no letter for: z, f, sh, and a throaty kh and gh. Gurmukhi writes them by putting a dot, the pair bindi (“foot dot”), under the nearest letter.',
+                'Persian, Arabic and English brought Punjabi sounds its alphabet had no letter for: z, f, sh, and a throaty kh and gh. Gurmukhi writes them by putting a dot, the pair bindi (“foot dot”), under the nearest letter. The sixth dotted letter, ਲ਼, is different: its sound is Punjabi’s own.',
                 'Writers aren’t consistent about it. The same word may appear as ਜ਼ਿੰਦਗੀ or ਜਿੰਦਗੀ, and many people say z as j anyway. When you see the dot, say the borrowed sound; when you don’t, it is still the same word.',
             ],
             letters: [
-                { glyph: 'ਸ਼', name: 'sassa pair bindi', roman: 'sh', sound: 'sh as in shoe.' },
-                { glyph: 'ਖ਼', name: 'khakha pair bindi', roman: 'kh', sound: 'A throaty kh, like the ch in the Scottish “loch”.' },
-                { glyph: 'ਗ਼', name: 'gagga pair bindi', roman: 'gh', sound: 'A gargled g, from the back of the throat.' },
-                { glyph: 'ਜ਼', name: 'jajja pair bindi', roman: 'z', sound: 'z as in zoo.' },
-                { glyph: 'ਫ਼', name: 'phaffa pair bindi', roman: 'f', sound: 'f as in fun.' },
-                { glyph: 'ਲ਼', name: 'lalla pair bindi', roman: 'l', sound: 'An l with the tongue curled back. Many writers leave its dot off.' },
+                { glyph: 'ਸ਼', name: 'sasse pair bindi', roman: 'sh', sound: 'sh as in shoe.' },
+                { glyph: 'ਖ਼', name: 'khakhe pair bindi', roman: 'kh', sound: 'A throaty kh, like the ch in the Scottish “loch”.' },
+                { glyph: 'ਗ਼', name: 'gagge pair bindi', roman: 'gh', sound: 'A gargled g, from the back of the throat.' },
+                { glyph: 'ਜ਼', name: 'jajje pair bindi', roman: 'z', sound: 'z as in zoo.' },
+                { glyph: 'ਫ਼', name: 'phaffe pair bindi', roman: 'f', sound: 'f as in fun.' },
+                { glyph: 'ਲ਼', name: 'lalle pair bindi', roman: 'l', sound: 'An l with the tongue curled back: a native Punjabi sound, not a borrowed one. Many writers leave its dot off.' },
             ],
             examples: [
                 { gurmukhi: 'ਸ਼ਬਦ', roman: 'shabad', english: 'word; a hymn of Gurbani' },

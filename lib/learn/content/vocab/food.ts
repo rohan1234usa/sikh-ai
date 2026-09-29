@@ -11,7 +11,7 @@
 import type { VocabWord } from '../../config';
 
 const words: VocabWord[] = [
-    { id: 'food-roti', topic: 'food', gurmukhi: 'ਰੋਟੀ', roman: 'roti', english: 'roti, flatbread; a meal', pos: 'noun', gender: 'f' },
+    { id: 'food-roti', topic: 'food', gurmukhi: 'ਰੋਟੀ', roman: 'roti', english: 'roti, flatbread', pos: 'noun', gender: 'f', note: 'Also a meal in general: Roti kha layi? Have you eaten?' },
     { id: 'food-parauntha', topic: 'food', gurmukhi: 'ਪਰੌਂਠਾ', roman: 'parauntha', english: 'paratha, a flaky or stuffed flatbread', pos: 'noun', gender: 'm', accept: ['paratha', 'parontha'] },
     { id: 'food-daal', topic: 'food', gurmukhi: 'ਦਾਲ', roman: 'daal', english: 'lentils; daal', pos: 'noun', gender: 'f' },
     { id: 'food-sabzi', topic: 'food', gurmukhi: 'ਸਬਜ਼ੀ', roman: 'sabzi', english: 'vegetables; a vegetable dish', pos: 'noun', gender: 'f', accept: ['sabji'] },
@@ -31,7 +31,7 @@ const words: VocabWord[] = [
     { id: 'food-tarhka', topic: 'food', gurmukhi: 'ਤੜਕਾ', roman: 'tarhka', english: 'the sizzling spice base of a dish', pos: 'noun', gender: 'm', accept: ['tadka', 'tarka'] },
     { id: 'food-khana', topic: 'food', gurmukhi: 'ਖਾਣਾ', roman: 'khana', english: 'food; a meal', pos: 'noun', gender: 'm' },
     { id: 'food-bhukh', topic: 'food', gurmukhi: 'ਭੁੱਖ', roman: 'bhukh', english: 'hunger', pos: 'noun', gender: 'f', note: 'Mainu bhukh lagi hai: I am hungry.' },
-    { id: 'food-suaad', topic: 'food', gurmukhi: 'ਸੁਆਦ', roman: 'suaad', english: 'taste; tasty', pos: 'noun', gender: 'm', note: 'Bahut suaad hai: it is delicious.' },
+    { id: 'food-suaad', topic: 'food', gurmukhi: 'ਸੁਆਦ', roman: 'suaad', english: 'taste, flavor', pos: 'noun', gender: 'm', note: 'Bahut suaad hai: it is delicious.' },
     { id: 'food-mitha', topic: 'food', gurmukhi: 'ਮਿੱਠਾ', roman: 'mitha', english: 'sweet', pos: 'adjective' },
 ];
 

@@ -5,7 +5,7 @@
 // the translator's phrasebook where it has the word (the content test
 // enforces it), the romanized interface (lib/i18n/dictionaries/pa-latn.ts)
 // for words it uses often (oh, baare, saade, saanu, unhan, kamm), and
-// otherwise the house rules (ROMANIZATION in lib/translate/prompts.ts).
+// otherwise the house rules (lib/translate/romanization.ts).
 //
 // Open questions for that review:
 // - ਉਹ is written "oh", as the interface writes it; the house rules have no
@@ -20,7 +20,7 @@ const lesson: LessonBody = {
         {
             heading: 'The verb comes last',
             body: [
-                'English says “I am eating roti”. Punjabi says “I roti eating am”: the subject, then the object, then the verb, with the helper verb at the very end.',
+                'English says “I eat roti”. Punjabi says “I roti eating am”: the subject, then the object, then the verb, with the helper verb at the very end.',
                 'So a Punjabi sentence often only makes sense at its last word, and a question can look exactly like a statement until the voice rises.',
             ],
             examples: [

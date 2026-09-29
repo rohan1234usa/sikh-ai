@@ -52,7 +52,7 @@ const lesson: LessonBody = {
             examples: [
                 { gurmukhi: 'ਫ਼ਿਕਰ ਨਾ ਕਰੋ', roman: 'Fikar na karo', english: 'Don’t worry' },
                 { gurmukhi: 'ਰੌਲਾ ਨਾ ਪਾਓ', roman: 'Raula na pao', english: 'Don’t make noise' },
-                { gurmukhi: 'ਇਹ ਨਾ ਖਾ', roman: 'Ih na kha', english: 'Don’t eat that (to a child)' },
+                { gurmukhi: 'ਇਹ ਨਾ ਖਾ', roman: 'Ih na kha', english: 'Don’t eat this (to a child)' },
             ],
             tip: 'When unsure, go up a level. Nobody minds being asked too politely.',
         },
