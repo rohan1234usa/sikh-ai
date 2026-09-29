@@ -12,12 +12,14 @@ import { markdownComponents } from './markdownComponents';
 import Citations from './Citations';
 import { useT } from '../../context/LanguageContext';
 
-const BUBBLE = {
+// The bubbles and Markdown rendering are shared with the Punjabi tutor
+// (app/components/learn/TutorMessage.tsx), so its replies look like these.
+export const BUBBLE = {
     user: 'bg-navy text-white rounded-br-none',
     ai: 'bg-surface-raised border border-edge text-ink rounded-bl-none',
     error: 'bg-red-50 border border-red-200 text-red-600 dark:bg-red-950/40 dark:border-red-900 dark:text-red-400 rounded-bl-none',
 };
-const SHAPE = 'max-w-[85%] md:max-w-[75%] p-4 rounded-2xl shadow-sm text-sm md:text-base leading-relaxed';
+export const SHAPE = 'max-w-[85%] md:max-w-[75%] p-4 rounded-2xl shadow-sm text-sm md:text-base leading-relaxed';
 
 export function QuestionBubble({ text }: { text: string }) {
     return (
@@ -31,7 +33,7 @@ export function QuestionBubble({ text }: { text: string }) {
 
 const REMARK_PLUGINS = [remarkGfm];
 
-function Markdown({ text }: { text: string }) {
+export function Markdown({ text }: { text: string }) {
     return <ReactMarkdown remarkPlugins={REMARK_PLUGINS} components={markdownComponents}>{text}</ReactMarkdown>;
 }
 
@@ -39,7 +41,7 @@ function Markdown({ text }: { text: string }) {
 // finished blocks keep what they rendered, so each new piece re-parses only
 // the unfinished end, not the whole reply.
 const MarkdownBlock = memo(Markdown);
-function StreamingMarkdown({ text }: { text: string }) {
+export function StreamingMarkdown({ text }: { text: string }) {
     return splitMarkdownBlocks(text).map((block, i) => <MarkdownBlock key={i} text={block} />);
 }
 

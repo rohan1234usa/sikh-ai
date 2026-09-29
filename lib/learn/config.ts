@@ -276,5 +276,6 @@ export function learnPaths(): string[] {
         ...LESSON_META.map(lessonPath),
         '/learn/vocab',
         ...VOCAB_TOPIC_IDS.map(topicPath),
+        '/learn/tutor',
     ];
 }

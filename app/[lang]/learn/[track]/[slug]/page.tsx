@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import IntentLink from '@/app/components/IntentLink';
 import LearnPageHeader from '@/app/components/learn/LearnPageHeader';
 import LessonQuiz from '@/app/components/learn/LessonQuiz';
 import LessonSections from '@/app/components/learn/LessonSections';
@@ -63,6 +65,14 @@ export default async function LessonPage({ params }: PageProps<'/[lang]/learn/[t
         />
 
         <LessonSections t={t} sections={lesson.sections} />
+
+        <IntentLink
+          href={`${to('/learn/tutor')}?lesson=${lesson.slug}`}
+          className="inline-flex items-center gap-2 rounded-xl border border-kesri/40 bg-kesri/10 px-4 py-2.5 text-sm font-semibold text-accent-text transition-colors hover:bg-kesri/20"
+        >
+          <ChatBubbleLeftRightIcon className="h-5 w-5" aria-hidden="true" />
+          {t.learn.lesson.askTutor}
+        </IntentLink>
 
         <LessonQuiz slug={lesson.slug} questions={lesson.quiz} />
 

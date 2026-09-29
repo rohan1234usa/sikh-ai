@@ -19,9 +19,9 @@ export default function Footer() {
         { href: to('/privacy'), label: t.footer.privacy },
     ];
 
-    // The chat screen (/chat and each saved chat) is a fixed-height app screen
-    // with no room for a footer
-    if (path === '/chat' || path.startsWith('/chat/')) return null;
+    // The chat screen (/chat and each saved chat) and the Punjabi tutor are
+    // fixed-height app screens with no room for a footer
+    if (path === '/chat' || path.startsWith('/chat/') || path === '/learn/tutor') return null;
 
     return (
         <footer className="border-t border-edge bg-surface-raised mt-auto">

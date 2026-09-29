@@ -28,6 +28,7 @@ export default async function LearnPage() {
           tracks={[
             ...LESSON_TRACK_IDS.map((id) => ({ id, href: to(`/learn/${id}`) })),
             { id: 'vocab' as const, href: to('/learn/vocab') },
+            { id: 'tutor' as const, href: to('/learn/tutor') },
           ]}
         />
       </div>
