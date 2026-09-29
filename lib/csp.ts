@@ -1,9 +1,9 @@
 // The site's Content-Security-Policy (#7). next.config.ts sends it on every
-// response as Content-Security-Policy-Report-Only: browsers block nothing and
-// report what the policy would have blocked to /api/csp-report, which logs
-// a csp_violation line. Once those are quiet in normal use (home, chat,
-// translate, Hukamnama, Shabad, Seva, sign-in), the header's name changes
-// and the policy is enforced.
+// response, enforced, under next dev as well: browsers block whatever it
+// doesn't allow and report each block to /api/csp-report, which logs a
+// csp_violation line. A feature that loads something from a new host (a
+// script, an image, a connection, a frame, audio) needs the host added here,
+// or that part of it stops working.
 //
 // Scripts keep 'unsafe-inline'. Next sends each page's data in inline
 // <script> tags, and a per-request nonce would make every page dynamic again

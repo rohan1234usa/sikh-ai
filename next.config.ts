@@ -2,8 +2,9 @@ import type { NextConfig } from "next";
 import { CSP_REPORT_GROUP, CSP_REPORT_PATH, contentSecurityPolicy } from "./lib/csp";
 import { languageRedirects, languageRewrites } from "./lib/i18n/routing";
 
-// Report-only for now: see lib/csp.ts for what it allows, and why scripts
-// keep 'unsafe-inline'.
+// Enforced: see lib/csp.ts for what it allows, and why scripts keep
+// 'unsafe-inline'. To stop blocking while a problem is looked into, rename the
+// header below to Content-Security-Policy-Report-Only.
 const CSP = contentSecurityPolicy({
   dev: process.env.NODE_ENV === "development",
   preview: process.env.VERCEL_ENV === "preview",
@@ -23,7 +24,7 @@ const SECURITY_HEADERS = [
   { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
   // Nothing on the site uses these. A voice feature would need microphone=(self).
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-  { key: "Content-Security-Policy-Report-Only", value: CSP },
+  { key: "Content-Security-Policy", value: CSP },
   { key: "Reporting-Endpoints", value: `${CSP_REPORT_GROUP}="${CSP_REPORT_PATH}"` },
 ];
 

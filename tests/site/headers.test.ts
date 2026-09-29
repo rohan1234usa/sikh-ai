@@ -20,8 +20,9 @@ test('every response carries the standard security headers, and no X-Powered-By'
     assert.equal(nextConfig.poweredByHeader, false);
 });
 
-test('the Content-Security-Policy is sent, and reports go to the endpoint', async () => {
+test('the Content-Security-Policy is enforced, and still reports what it blocks', async () => {
     const headers = await sentHeaders();
-    assert.match(headers.get('content-security-policy-report-only') ?? '', /frame-ancestors 'none'/);
+    assert.match(headers.get('content-security-policy') ?? '', /frame-ancestors 'none'/);
+    assert.ok(!headers.has('content-security-policy-report-only'));
     assert.equal(headers.get('reporting-endpoints'), 'csp="/api/csp-report"');
 });
