@@ -30,12 +30,16 @@ test('no spelling of a share link lets its ID through', () => {
     ]) {
         assert.equal(redactAnalyticsUrl(`${SITE}${path}`), `${SITE}/share/:id`, path);
     }
+    // A mistyped or unknown address never reaches the site's analytics (it's
+    // a 404, a page of its own), but an ID in it still wouldn't get out.
+    assert.equal(redactAnalyticsUrl(`${SITE}/PA/share/${ID}`), `${SITE}/PA/share/:id`);
+    assert.equal(redactAnalyticsUrl(`${SITE}/pa/x/Share/${ID}/y`), `${SITE}/pa/x/share/:id`);
 });
 
 test('no random share ID survives, whatever surrounds it', () => {
     for (let i = 0; i < 200; i++) {
         const id = randomBytes(15).toString('base64url');
-        for (const prefix of ['', '/pa', '/pa-latn', '/en']) {
+        for (const prefix of ['', '/pa', '/pa-latn', '/en', '/PA', '/x']) {
             for (const tail of ['', '/', '?x=1', '#y', '/z']) {
                 const out = redactAnalyticsUrl(`${SITE}${prefix}/share/${id}${tail}`);
                 assert.ok(out && !out.includes(id), `${prefix}/share/${id}${tail} → ${out}`);

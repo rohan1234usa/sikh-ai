@@ -15,7 +15,8 @@ const notYet = (): AnalyticsState | 'pending' => 'pending';
 export default function AnalyticsSwitch() {
     const t = useT().analyticsSwitch;
     const state = useSyncExternalStore(subscribeAnalyticsChoice, analyticsState, notYet);
-    const stateId = `${useId()}-state`;
+    const id = useId();
+    const stateId = `${id}-state`;
 
     return (
         <div className="rounded-xl border border-edge bg-surface-raised p-4 space-y-2">

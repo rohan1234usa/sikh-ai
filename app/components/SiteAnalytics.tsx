@@ -10,14 +10,15 @@ const counted = () => analyticsState() === 'on';
 // choice: nothing loads until it's been read, just after.
 const notYet = () => false;
 
-// Vercel Web Analytics (visits) and Speed Insights (page speed), both Vercel's
-// own, without cookies, and served from this site's address. Neither loads for
-// a visitor who switched counting off on /privacy or whose browser sends
-// Global Privacy Control; switched off mid-visit, the page views stop with the
-// component and Speed Insights' beforeSend drops what its script still
-// measures. Every event's address goes through lib/analytics.ts first, so a
-// share link's ID never leaves the page.
-export default function SiteAnalytics({ webAnalytics, speedInsights }: { webAnalytics: boolean; speedInsights: boolean }) {
+// Vercel Web Analytics (visits, production only) and Speed Insights (page
+// speed), both Vercel's own, without cookies, and served from this site's
+// address, so they exist only on Vercel (app/[lang]/layout.tsx). Neither
+// loads for a visitor who switched counting off on /privacy or whose browser
+// sends Global Privacy Control; switched off mid-visit, the page views stop
+// with the component and Speed Insights' beforeSend drops what its script
+// still measures. Every event's address goes through lib/analytics.ts first,
+// so a share link's ID never leaves the page.
+export default function SiteAnalytics({ webAnalytics }: { webAnalytics: boolean }) {
     const on = useSyncExternalStore(subscribeAnalyticsChoice, counted, notYet);
 
     // Whatever the choice: Google Analytics' leftover cookies go, so the one
@@ -32,7 +33,7 @@ export default function SiteAnalytics({ webAnalytics, speedInsights }: { webAnal
     return (
         <>
             {webAnalytics && <Analytics beforeSend={analyticsBeforeSend} />}
-            {speedInsights && <SpeedInsights beforeSend={analyticsBeforeSend} />}
+            <SpeedInsights beforeSend={analyticsBeforeSend} />
         </>
     );
 }

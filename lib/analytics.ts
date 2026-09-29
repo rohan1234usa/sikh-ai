@@ -33,7 +33,8 @@ export const resolveAnalyticsState = (choice: AnalyticsChoice | null, gpc: boole
 // A page segment followed by an ID. A share link's ID is the only key to a
 // shared chat, so it must never leave the site; a chat's ID isn't secret,
 // but without it the chats count as one page. A new page whose address
-// carries an ID or a secret belongs here.
+// carries an ID or a secret belongs here. Matched anywhere in the path and
+// in any case, so a mistyped address can't carry an ID out either.
 const ID_PAGES = new Set(['share', 'chat']);
 export const ID_PLACEHOLDER = ':id';
 
@@ -47,10 +48,10 @@ export function redactAnalyticsUrl(url: string): string | null {
         const { origin, pathname } = new URL(url);
         const segments = decodeURIComponent(pathname).split('/').filter(Boolean);
         const lang: Lang = isLang(segments[0]) ? (segments.shift() as Lang) : DEFAULT_LANG;
-        const page = segments[0]?.toLowerCase();
-        const kept = page !== undefined && ID_PAGES.has(page)
-            ? [page, ...(segments.length > 1 ? [ID_PLACEHOLDER] : [])]
-            : segments;
+        const at = segments.findIndex((s) => ID_PAGES.has(s.toLowerCase()));
+        const kept = at < 0
+            ? segments
+            : [...segments.slice(0, at), segments[at].toLowerCase(), ...(at + 1 < segments.length ? [ID_PLACEHOLDER] : [])];
         const out = new URL(origin); // throws for an opaque origin (about:, data:)
         out.pathname = localePath(lang, `/${kept.join('/')}`);
         return out.href;

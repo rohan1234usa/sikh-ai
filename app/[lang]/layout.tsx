@@ -71,18 +71,13 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
             <Footer />
           </LanguageProvider>
         </AuthProvider>
-        {/* Vercel's own visit counts (production only, so previews and local
-            builds count nothing) and Core Web Vitals (any Vercel deployment),
-            on its dashboard once each is switched on there. No cookies; Vercel
-            serves both scripts from this site, so they only exist on Vercel.
+        {/* Vercel's own visit counts (production only, so previews count
+            nothing) and Core Web Vitals (any Vercel deployment), on its
+            dashboard once each is switched on there. No cookies; Vercel serves
+            both scripts from this site, so they only exist on Vercel.
             SiteAnalytics honours the visitor's choice and strips IDs from
             every address (lib/analytics.ts). */}
-        {(process.env.VERCEL_ENV === "production" || process.env.VERCEL === "1") && (
-          <SiteAnalytics
-            webAnalytics={process.env.VERCEL_ENV === "production"}
-            speedInsights={process.env.VERCEL === "1"}
-          />
-        )}
+        {process.env.VERCEL === "1" && <SiteAnalytics webAnalytics={process.env.VERCEL_ENV === "production"} />}
       </body>
     </html>
   );
