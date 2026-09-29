@@ -2,8 +2,9 @@ import type { NextConfig } from "next";
 import { CSP_REPORT_GROUP, CSP_REPORT_PATH, contentSecurityPolicy } from "./lib/csp";
 import { languageRedirects, languageRewrites } from "./lib/i18n/routing";
 
-// Report-only for now: see lib/csp.ts for what it allows, and why scripts
-// keep 'unsafe-inline'.
+// Enforced: see lib/csp.ts for what it allows, and why scripts keep
+// 'unsafe-inline'. To stop blocking while a problem is looked into, rename the
+// header below to Content-Security-Policy-Report-Only.
 const CSP = contentSecurityPolicy({
   dev: process.env.NODE_ENV === "development",
   preview: process.env.VERCEL_ENV === "preview",
@@ -17,26 +18,21 @@ const SECURITY_HEADERS = [
   // no-referrer through its own meta tag.
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Frame-Options", value: "DENY" },
+  // Another site that opens this one in a window gets no handle on it. Not
+  // same-origin, which would also cut off the popups this site opens, Google
+  // sign-in's among them.
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
   // Nothing on the site uses these. A voice feature would need microphone=(self).
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-  { key: "Content-Security-Policy-Report-Only", value: CSP },
+  { key: "Content-Security-Policy", value: CSP },
   { key: "Reporting-Endpoints", value: `${CSP_REPORT_GROUP}="${CSP_REPORT_PATH}"` },
 ];
 
 const nextConfig: NextConfig = {
-  /* config options here */
   poweredByHeader: false,
   // app/global-not-found.tsx: the 404 for every language (pages live under
   // app/[lang], whose layout can't serve one of its own).
   experimental: { globalNotFound: true },
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "ui-avatars.com",
-      },
-    ],
-  },
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
@@ -49,8 +45,6 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return { beforeFiles: [], afterFiles: languageRewrites(), fallback: [] };
   },
-  // If the error persists, uncomment the line below to bypass type checking temporarily
-  // typescript: { ignoreBuildErrors: true },
 };
 
 export default nextConfig;

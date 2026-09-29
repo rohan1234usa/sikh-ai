@@ -45,6 +45,8 @@ export type MockOptions = {
 // misquotes Gurbani, to watch the citation check at work.
 export const CANNED: Record<string, string> = {
     plain: 'Seva is selfless service, offered without any expectation of reward.',
+    // A reply with an image from another site, which the chat shows as a link.
+    image: 'Harmandir Sahib at dawn: ![Harmandir Sahib](https://example.org/harmandir-sahib.jpg)',
 };
 
 function fixtureReplies(): { id: string; text: string }[] {

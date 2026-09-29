@@ -1,10 +1,12 @@
 import { summarizeCspReports } from '@/lib/cspReport';
 import { logEvent, withRequestLog } from '@/lib/log';
 
-// Browsers post what the Content-Security-Policy (lib/csp.ts) would have
-// blocked here. Each violation becomes one csp_violation log line: the
-// directive, the blocked origin and the page's path, nothing more.
-// Report-only for now, so nothing is blocked while these are read.
+// Browsers post what the Content-Security-Policy (lib/csp.ts) blocked here.
+// Each violation becomes one csp_violation log line: the directive, the
+// blocked origin and the page's path, nothing more. Only a host the site
+// means to load from belongs in the policy. A browser extension's code,
+// another site framing this one, or anything injected is what it's there to
+// stop.
 
 // A page's worth of reports; anything bigger isn't a browser reporting.
 const MAX_BODY_CHARS = 64_000;

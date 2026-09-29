@@ -1,9 +1,11 @@
 // The site's Content-Security-Policy (#7). next.config.ts sends it on every
-// response as Content-Security-Policy-Report-Only: browsers block nothing and
-// report what the policy would have blocked to /api/csp-report, which logs
-// a csp_violation line. Once those are quiet in normal use (home, chat,
-// translate, Hukamnama, Shabad, Seva, sign-in), the header's name changes
-// and the policy is enforced.
+// response, enforced, under next dev as well: browsers block whatever it
+// doesn't allow and report each block to /api/csp-report, which logs a
+// csp_violation line. A feature that loads something from a new host (a
+// script, an image, a connection, a frame) needs the host added here, or that
+// part of it stops working. Audio and video fall back to default-src 'self':
+// playing one from another host, or from a blob: or data: URL, needs a
+// media-src directive first.
 //
 // Scripts keep 'unsafe-inline'. Next sends each page's data in inline
 // <script> tags, and a per-request nonce would make every page dynamic again
@@ -20,7 +22,11 @@ export type CspOptions = {
     firebaseAuthDomain?: string; // where Google sign-in's helper iframe lives
 };
 
-// Google Analytics (gtag), per Google's guide to the tag and CSP.
+// Google Analytics (gtag), per Google's guide to the tag and CSP, for GA4
+// without Google Signals. With Signals on in Analytics, gtag also calls
+// *.g.doubleclick.net and www.google.com. Those stay blocked (page views still
+// count) until someone decides to allow them, a question for the consent
+// decision in #19.
 const ANALYTICS = {
     script: ['https://*.googletagmanager.com'],
     img: ['https://*.google-analytics.com', 'https://*.googletagmanager.com'],

@@ -2,6 +2,8 @@ import type { Components } from 'react-markdown';
 
 // Shared renderer map for AI messages. Styled with semantic tokens so
 // dark mode works without per-usage overrides.
+const LINK = 'text-accent-text underline underline-offset-2 hover:opacity-80 break-words';
+
 export const markdownComponents: Components = {
     strong: ({ node, ...props }) => <span className="font-bold" {...props} />,
     ul: ({ node, ...props }) => <ul className="list-disc pl-4 space-y-2 my-2" {...props} />,
@@ -16,10 +18,21 @@ export const markdownComponents: Components = {
         <a
             target="_blank"
             rel="noopener noreferrer"
-            className="text-accent-text underline underline-offset-2 hover:opacity-80 break-words"
+            className={LINK}
             {...props}
         />
     ),
+    // An image shows as a link to it, labelled with its alt text. The
+    // Content-Security-Policy (lib/csp.ts) refuses images from other sites, so
+    // one in a reply or a shared chat would otherwise draw as broken. An
+    // unsafe address arrives empty (react-markdown's urlTransform): text only.
+    img: ({ src, alt }) => (typeof src === 'string' && src ? (
+        <a href={src} target="_blank" rel="noopener noreferrer" className={LINK}>
+            {alt || src}
+        </a>
+    ) : (
+        <>{alt}</>
+    )),
     // react-markdown v10 removed the `inline` prop: style code as an inline
     // chip and neutralize it inside pre blocks via the [&_code] variant below.
     code: ({ node, ...props }) => (
