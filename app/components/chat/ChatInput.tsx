@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useId, useRef } from 'react';
+import Link from 'next/link';
 import { PaperAirplaneIcon, StopIcon } from '@heroicons/react/24/solid';
 import { BookOpenIcon } from '@heroicons/react/24/outline';
-import { useT } from '../../context/LanguageContext';
+import { useLocalePath, useT } from '../../context/LanguageContext';
 import { MAX_MESSAGE_CHARS, type ChatContext } from '@/lib/chat/config';
 import { fmt } from '@/lib/i18n/fmt';
 import ContextChip from './ContextChip';
@@ -49,6 +50,7 @@ export default function ChatInput({
     disclaimer,
 }: Props) {
     const t = useT();
+    const to = useLocalePath();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const countId = useId();
     const nearCap = value.length >= MAX_MESSAGE_CHARS * 0.8;
@@ -190,7 +192,10 @@ export default function ChatInput({
                 go — the site footer is hidden here. ink-muted keeps AA contrast
                 in dark mode, which ink-faint does not. */}
             <div className="max-w-3xl mx-auto mt-2 flex items-start justify-between gap-3 text-[11px] text-ink-muted">
-                <p>{disclaimer}</p>
+                <p>
+                    {disclaimer}{' '}
+                    <Link href={to('/privacy')} className="underline hover:text-accent-text">{t.footer.privacy}</Link>
+                </p>
                 {nearCap && (
                     <span id={countId} className={`shrink-0 tabular-nums ${atCap ? 'text-red-600 dark:text-red-400 font-semibold' : ''}`}>
                         {fmt(t.chat.charCount, { n: value.length, max: MAX_MESSAGE_CHARS })}

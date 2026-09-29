@@ -68,7 +68,7 @@ test('/en is never a public address', () => {
 
 test('the sitemap lists every page and every Ang in every language, each with its twins', () => {
     const entries = sitemap();
-    assert.equal(entries.length, (7 + 1430) * 3);
+    assert.equal(entries.length, (8 + 1430) * 3);
     const hukamnama = entries.find((e) => e.url === 'https://sikhai.vercel.app/pa/hukamnama')!;
     assert.deepEqual(hukamnama.alternates?.languages, {
         en: 'https://sikhai.vercel.app/hukamnama',

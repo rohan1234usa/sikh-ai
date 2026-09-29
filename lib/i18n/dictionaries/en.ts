@@ -651,6 +651,60 @@ const en = {
     footer: {
         builtBy: 'Built by',
         navAria: 'Footer',
+        privacy: 'Privacy',
+    },
+
+    // /privacy (app/[lang]/privacy): what the site keeps, where, for how long,
+    // what it sends to other services, and how to remove it. Owner-reviewed text.
+    privacy: {
+        title: 'Privacy',
+        updated: 'Last updated 28 September 2026.',
+        intro: 'SikhAI is a small, independent site. This page says what it keeps about you, where, and for how long; what it sends to other services; and how to remove it.',
+        sections: [
+            {
+                heading: 'Kept in your browser',
+                items: [
+                    'Your chats: up to 50. When there is no room, the one used longest ago goes first, but never a pinned or open chat.',
+                    'Your last 30 translations, and your chat settings: guide, style and reply language.',
+                    'Your theme and language. The language is a cookie, kept for a year, so a link opens in your language.',
+                    'Whether you were signed in, so your session comes back quickly.',
+                ],
+            },
+            {
+                heading: 'Kept in your account',
+                items: [
+                    'If you sign in with Google, the site receives your name, email address and profile photo from Google, and shows your first name.',
+                    'Once saved chats are switched on for accounts, your chats are kept in your account instead of the browser: up to 100, plus any you pin.',
+                    'A chat you share becomes a read-only copy that anyone with the link can open, until you stop sharing it or delete the chat.',
+                    'Seva events you post are public. Joining one adds your account ID to that event.',
+                ],
+            },
+            {
+                heading: 'Sent to other services',
+                items: [
+                    'Google Gemini writes the answers. Each message you send goes to it with up to 10 earlier messages from the chat, any passage you attached, and your settings. Text you translate goes to it too.',
+                    'Google Cloud Translation stands in when Gemini is busy, and does the comparison with Google Translate.',
+                    'GurbaniNow supplies the Hukamnama and the Angs. To check a reply\'s Gurbani quotes, the quoted lines are looked up there; your question is not sent.',
+                    'Google Analytics counts visits: the pages you open, your device and browser, and your approximate location, using cookies.',
+                    'Vercel hosts the site. Its logs record your IP address and the pages you request, for a short time. The site\'s own logs never contain what you write.',
+                    'Vercel Speed Insights measures how fast pages load for real visitors, without cookies.',
+                ],
+            },
+            {
+                heading: 'Removing it',
+                items: [
+                    'Delete a chat from the chat list, or clear this site\'s data in your browser to remove everything kept there.',
+                    'Stop sharing a chat from its share dialog: the link stops working at once.',
+                    'Sign out from the navbar. To have your account\'s chats or a Seva sign-up removed, get in touch.',
+                ],
+            },
+            {
+                heading: 'Contact',
+                items: [
+                    'Questions about this page, or a request to remove your data: reach Rohan Singh through the links on the About page.',
+                ],
+            },
+        ],
     },
 
     meta: {

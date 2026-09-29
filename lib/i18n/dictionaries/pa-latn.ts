@@ -641,6 +641,60 @@ const paLatn: Dictionary = {
     footer: {
         builtBy: 'Nirmata:',
         navAria: 'Footer',
+        privacy: 'Nijjta',
+    },
+
+    // /privacy (app/[lang]/privacy): what the site keeps, where, for how long,
+    // what it sends to other services, and how to remove it. Owner-reviewed text.
+    privacy: {
+        title: 'Nijjta',
+        updated: 'Aakhri vaar badleya: 28 September 2026.',
+        intro: 'SikhAI ik chhoti, sutantar site hai. Eh panna dassda hai ki eh tuhade baare ki rakhdi hai, kithe ate kinne samay layi; hor sevavan nu ki bhejdi hai; ate isnu kiven hatauna hai.',
+        sections: [
+            {
+                heading: 'Tuhade browser vich',
+                items: [
+                    'Tuhadian gallbaatan: 50 tak. Jagah na hove taan sabh ton pehlan varti gayi gallbaat hatdi hai, par kade vi pin kiti ja khulli hoi nahi.',
+                    'Tuhade aakhri 30 anuvad, ate tuhadian chat settings: margdarshak, andaaz ate jawab di bhasha.',
+                    'Tuhadi theme ate bhasha. Bhasha ik cookie vich ik saal layi rakhi jaandi hai, taan jo link tuhadi bhasha vich khulle.',
+                    'Ki tusin sign in si, taan jo tuhada session chheti vapas aa jave.',
+                ],
+            },
+            {
+                heading: 'Tuhade khate vich',
+                items: [
+                    'Je tusin Google naal sign in karde ho, taan site nu Google ton tuhada naam, email pata ate profile photo mildi hai, ate eh tuhada pehla naam dikhaundi hai.',
+                    'Jadon khatian layi sambhalian gallbaatan chaalu hon, tuhadian gallbaatan browser di thaan tuhade khate vich rakhian jaandian han: 100 tak, naal hi jo tusin pin karo.',
+                    'Jo gallbaat tusin saanjhi karde ho, oh sirf-parhan vali copy ban jaandi hai jisnu link vala koi vi khol sakda hai, jadon tak tusin saanjha karna band nahi karde ja gallbaat nahi mitaunde.',
+                    'Tuhade paaye seva samagam sarian nu disde han. Kise samagam vich shamil hon naal tuhade khate di ID us samagam vich jud jaandi hai.',
+                ],
+            },
+            {
+                heading: 'Hor sevavan nu bhejia jaanda',
+                items: [
+                    'Google Gemini jawab likhda hai. Tuhada har suneha gallbaat de 10 tak pichhle sunehian, tuhade jode kise paath, ate tuhadian settings samet usnu jaanda hai. Jis likhat da tusin anuvad karde ho, oh vi usnu jaandi hai.',
+                    'Jadon Gemini rujhia hove taan Google Cloud Translation usdi thaan kamm karda hai, ate Google Translate naal tulna vi ohi karda hai.',
+                    'GurbaniNow ton Hukamnama ate Ang aunde han. Jawab vichlian Gurbani dian tukkan jaanchan layi oh tukkan uthe labbhian jaandian han; tuhada sawal nahi bhejia jaanda.',
+                    'Google Analytics pheriaan ginda hai: tuhade khole panne, tuhada device ate browser, ate tuhada lagbhag tikana, cookies raahin.',
+                    'Vercel site nu chalaunda hai. Isde log thorhe samay layi tuhada IP pata ate mange panne darj karde han. Site de apne logan vich tuhada likhia kade nahi hunda.',
+                    'Vercel Speed Insights mapda hai ki asal pathakan layi panne kinni tezi naal khulhde han, bina cookies de.',
+                ],
+            },
+            {
+                heading: 'Isnu hatauna',
+                items: [
+                    'Gallbaatan di suchi vichon koi gallbaat mitao, ja uthe rakhia sabh kujh hataun layi apne browser vich is site da data saaf karo.',
+                    'Gallbaat de saanjha karan vale dabbe vichon saanjha karna band karo: link usse vele kamm karna band kar dinda hai.',
+                    'Navbar ton sign out karo. Apne khate dian gallbaatan ja seva vich apna naam hatvaun layi sampark karo.',
+                ],
+            },
+            {
+                heading: 'Sampark',
+                items: [
+                    'Is panne baare sawal, ja apna data hatvaun di benti: "Saade Baare" panne de linkan raahin Rohan Singh naal sampark karo.',
+                ],
+            },
+        ],
     },
 
     meta: {

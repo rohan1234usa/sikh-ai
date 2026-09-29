@@ -16,6 +16,7 @@ export default function Footer() {
         { href: to('/seva'), label: t.nav.seva },
         { href: to('/shabad'), label: t.nav.shabad },
         { href: to('/translate'), label: t.nav.translate },
+        { href: to('/privacy'), label: t.footer.privacy },
     ];
 
     // The chat screen (/chat and each saved chat) is a fixed-height app screen

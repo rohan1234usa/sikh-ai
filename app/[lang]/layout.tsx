@@ -72,7 +72,9 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
             <Footer />
           </LanguageProvider>
         </AuthProvider>
-        <GoogleAnalytics gaId="G-9WWKK5Z5GD" />
+        {/* Production only: previews and local builds would otherwise send
+            their visits to the real Analytics property. */}
+        {process.env.VERCEL_ENV === "production" && <GoogleAnalytics gaId="G-9WWKK5Z5GD" />}
         {/* Core Web Vitals from real visits, on Vercel's dashboard once it's
             switched on there. No cookies; Vercel serves the script from this
             site (/_vercel/speed-insights), so it only exists on Vercel. */}
