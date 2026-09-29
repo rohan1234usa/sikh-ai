@@ -22,7 +22,7 @@ import type { QuizScore } from '@/lib/learn/quiz';
 // page's copy of it, so a page that missed another tab's writes (one restored
 // by Back, say) can't write over them. Progress saved by a newer version of
 // the site is left alone. When storage is blocked or full, or holds that
-// newer progress, changes last for this visit only.
+// newer progress, changes last for this page only.
 const STORAGE_KEY = 'sikhai.learn.progress.v1'; // the suffix names the storage generation
 
 type Saved = { progress: LearnProgress; writable: boolean };
@@ -66,8 +66,9 @@ export function useLearnProgress() {
             if (event.key === null || event.key === STORAGE_KEY) load();
         };
         // A page restored by Back or Forward may have missed those events.
+        // One that couldn't save keeps what it holds instead.
         const onShow = (event: PageTransitionEvent) => {
-            if (event.persisted) load();
+            if (event.persisted && !memoryOnly.current) load();
         };
         window.addEventListener('storage', onStorage);
         window.addEventListener('pageshow', onShow);
@@ -117,8 +118,12 @@ export function useLearnProgress() {
 
     const reset = useCallback(() => {
         try {
-            localStorage.removeItem(STORAGE_KEY);
-            memoryOnly.current = false;
+            // Progress saved by a newer version of the site isn't this page's
+            // to clear: only what this page shows is reset.
+            if (readSaved().writable) {
+                localStorage.removeItem(STORAGE_KEY);
+                memoryOnly.current = false;
+            }
         } catch { /* storage blocked: nothing was saved */ }
         setProgress(EMPTY_PROGRESS);
     }, []);
@@ -126,6 +131,9 @@ export function useLearnProgress() {
     return {
         progress,
         hydrated: loadedAt !== null,
+        // When the saved copy was last read: it changes when another tab or
+        // a restored page brings a new copy, never for this page's changes.
+        loadedAt,
         // What due flashcards are counted against: the later of the read and
         // the last change, so a card just missed counts as due at once.
         now: loadedAt === null ? null : Math.max(loadedAt, progress.updatedAt),
