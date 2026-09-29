@@ -132,7 +132,7 @@ const policy: PolicyDictionary = {
             ai: {
                 heading: 'AI de jawab galat ho sakde han',
                 items: [
-                    'SikhAI de jawab ate anuvaad, ate tutor de jawab vi, AI likhda hai: Google Gemini. Ih galat ho sakde han, bhaven poore yakeen naal likhe lagan.',
+                    'SikhAI de jawab ate anuvaad, ate tutor de jawab vi, AI likhda hai: Google Gemini, jaan jadon Gemini rujhia hove taan anuvaad layi Google Cloud Translation. Ih galat ho sakde han, bhaven poore yakeen naal likhe lagan.',
                     'Ih Gurbani nahi han, ate inhan nu koi dharmik adhikar prapt nahi hai. Gurbani di har tuk asal sarot naal mila ke jaancho (jawab de heth “Gurbani di jaanch” is vich madad kardi hai), ate sedh layi kise Granthi jaan apni Sangat nu puchho.',
                     'Ih doctori, kanooni jaan maali salah nahi han, ate sankat vele di madad vi nahi. Je tuhanu jaan kise hor nu khatra hai, taan apne ilaake de emergency number utte phone karo.',
                 ],

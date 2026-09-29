@@ -130,7 +130,7 @@ const policy = {
             ai: {
                 heading: 'AI answers can be wrong',
                 items: [
-                    'SikhAI\'s answers and translations, and the tutor\'s replies, are written by AI: Google Gemini. They can be wrong, even when they sound sure.',
+                    'SikhAI\'s answers and translations, and the tutor\'s replies, are written by AI: Google Gemini, or, for a translation when Gemini is busy, Google Cloud Translation. They can be wrong, even when they sound sure.',
                     'They are not Gurbani, and they carry no religious authority. Check every Gurbani quote against the source (the Gurbani check under a reply helps), and for guidance, ask a Granthi or your Sangat.',
                     'They are not medical, legal or financial advice, and not help in a crisis. If you or someone else is in danger, call your local emergency number.',
                 ],
