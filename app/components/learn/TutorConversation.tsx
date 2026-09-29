@@ -3,7 +3,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { AcademicCapIcon, ArrowDownIcon, PlusIcon } from '@heroicons/react/24/outline';
 import IntentLink from '@/app/components/IntentLink';
-import { GreetingBubble, QuestionBubble } from '@/app/components/chat/ChatMessage';
+import { GreetingBubble, QuestionBubble } from '@/app/components/chat/Bubbles';
 import StarterPrompts from '@/app/components/chat/StarterPrompts';
 import { useLocalePath, useT } from '@/app/context/LanguageContext';
 import type { Dictionary } from '@/lib/i18n';

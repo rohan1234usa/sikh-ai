@@ -13,7 +13,8 @@ import { formatDate } from '@/lib/i18n/date';
 import { fmt } from '@/lib/i18n/fmt';
 import { useLanguage } from '../../context/LanguageContext';
 import ContextChip from '../chat/ContextChip';
-import ReplyMessage, { QuestionBubble } from '../chat/ChatMessage';
+import { QuestionBubble } from '../chat/Bubbles';
+import ReplyMessage from '../chat/ChatMessage';
 import NoticeDivider from '../chat/NoticeDivider';
 import { storeFor, useChatHomes } from '../chat/useChatHomes';
 

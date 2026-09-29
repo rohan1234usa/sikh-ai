@@ -2,7 +2,7 @@
 
 import { memo, useState } from 'react';
 import { ArrowPathIcon, CheckIcon, ClipboardIcon, StopCircleIcon } from '@heroicons/react/24/outline';
-import { BUBBLE, Markdown, SHAPE, StreamingMarkdown } from '@/app/components/chat/ChatMessage';
+import { BUBBLE, Markdown, SHAPE, StreamingMarkdown } from '@/app/components/chat/Bubbles';
 import { useT } from '@/app/context/LanguageContext';
 import type { TutorReply } from '@/lib/learn/tutor';
 
