@@ -109,3 +109,100 @@ export type VocabWord = {
     example?: Example; // every verb has one
     note?: string;     // English, one line
 };
+
+export type LessonMeta = {
+    slug: string;         // its URL segment, unique across tracks
+    track: LessonTrackId;
+    title: string;        // English, at most 60 characters
+    summary: string;      // one English sentence of at most 160; also the page description
+};
+
+// Every lesson, in curriculum order: a track's lessons in the order they're
+// taken. Titles live here rather than beside each body so the tutor page can
+// name the lesson it was opened from without loading any lesson text.
+export const LESSON_META = [
+    {
+        track: 'script',
+        slug: 'how-gurmukhi-works',
+        title: 'How Gurmukhi works',
+        summary: 'Why every letter already says “a”, how vowels attach to letters, and the first two rows of the alphabet.',
+    },
+    {
+        track: 'script',
+        slug: 'rows-3-4-palatal-retroflex',
+        title: 'Rows three and four: ਚ to ਣ',
+        summary: 'The ch and j sounds, and the letters English doesn’t have: ਟ ਠ ਡ ਢ ਣ, said with the tongue curled back.',
+    },
+    {
+        track: 'script',
+        slug: 'rows-5-7-dental-labial-last',
+        title: 'Rows five to seven: ਤ to ੜ',
+        summary: 'The t and d said against the teeth, the lip sounds p, b and m, and the last row: y, r, l, v and the flapped ੜ.',
+    },
+    {
+        track: 'script',
+        slug: 'nukta-letters-and-digits',
+        title: 'Dotted letters and Gurmukhi digits',
+        summary: 'The six letters with a dot underneath for sounds like z, f and sh, and the digits you’ll see on every Ang.',
+    },
+    {
+        track: 'script',
+        slug: 'vowel-signs-1-muharni',
+        title: 'Vowel signs, part 1: a, i and u',
+        summary: 'Kanna, sihari, bihari, aunkar and dulainkar: the marks for aa, i, ee, u and oo, and how the romanization spells them.',
+    },
+    {
+        track: 'script',
+        slug: 'vowel-signs-2-and-carriers',
+        title: 'Vowel signs, part 2, and the vowel carriers',
+        summary: 'Lavan, dulavan, hora and kanaura, the whole muharni, and how ੳ ਅ ੲ carry a vowel at the start of a word.',
+    },
+    {
+        track: 'script',
+        slug: 'bindi-tippi-addak-subjoined',
+        title: 'Nasal dots, doubled letters, letters underneath',
+        summary: 'Bindi and tippi for nasal vowels, addak for doubled consonants, and the half letters tucked under another letter.',
+    },
+    {
+        track: 'script',
+        slug: 'tones',
+        title: 'Tones: what ਘ ਝ ਢ ਧ ਭ and ਹ really do',
+        summary: 'Punjabi has tones. Here is how five letters and ਹ turn into a low or a high pitch, and why you already hear them.',
+    },
+    {
+        track: 'script',
+        slug: 'reading-drills',
+        title: 'Reading practice: words you already know',
+        summary: 'Put it all together on words from the Gurdwara, the kitchen and the family, then on short sentences.',
+    },
+] as const satisfies readonly LessonMeta[];
+
+// One lesson's metadata, with its slug and track as literal types.
+export type LessonEntry = (typeof LESSON_META)[number];
+export type LessonSlug = LessonEntry['slug'];
+export type Lesson = LessonEntry & LessonBody;
+
+export const isLessonSlug = (value: unknown): value is LessonSlug =>
+    typeof value === 'string' && LESSON_META.some((meta) => meta.slug === value);
+
+export function lessonMeta(slug: LessonSlug): LessonEntry {
+    return LESSON_META.find((meta) => meta.slug === slug)!;
+}
+
+export function lessonsFor(track: LessonTrackId): LessonEntry[] {
+    return LESSON_META.filter((meta) => meta.track === track);
+}
+
+export const lessonPath = (meta: Pick<LessonMeta, 'track' | 'slug'>): string => `/learn/${meta.track}/${meta.slug}`;
+export const topicPath = (topic: VocabTopicId): string => `/learn/vocab/${topic}`;
+
+// Every page of the section, for the sitemap.
+export function learnPaths(): string[] {
+    return [
+        '/learn',
+        ...LESSON_TRACK_IDS.map((track) => `/learn/${track}`),
+        ...LESSON_META.map(lessonPath),
+        '/learn/vocab',
+        ...VOCAB_TOPIC_IDS.map(topicPath),
+    ];
+}

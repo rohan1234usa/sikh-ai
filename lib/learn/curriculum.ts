@@ -1,0 +1,42 @@
+// The whole curriculum, joined: each lesson's metadata (lib/learn/config.ts)
+// with its body (lib/learn/content/). Server side only, in practice: pages
+// and the tutor route import it, and hand a client component only the lesson
+// or topic it shows, so no page ships the rest of the course.
+
+import { LESSON_META, lessonMeta, lessonsFor, type Lesson, type LessonBody, type LessonEntry, type LessonSlug } from './config';
+import howGurmukhiWorks from './content/script/01-how-gurmukhi-works';
+import rows34 from './content/script/02-rows-3-4-palatal-retroflex';
+import rows57 from './content/script/03-rows-5-7-dental-labial-last';
+import nuktaAndDigits from './content/script/04-nukta-letters-and-digits';
+import vowelSigns1 from './content/script/05-vowel-signs-1-muharni';
+import vowelSigns2 from './content/script/06-vowel-signs-2-and-carriers';
+import bindiTippiAddak from './content/script/07-bindi-tippi-addak-subjoined';
+import tones from './content/script/08-tones';
+import readingDrills from './content/script/09-reading-drills';
+
+// Keyed by slug, so a lesson listed in LESSON_META without a body, or a body
+// under a slug that isn't listed, is a compile error.
+const BODIES: Record<LessonSlug, LessonBody> = {
+    'how-gurmukhi-works': howGurmukhiWorks,
+    'rows-3-4-palatal-retroflex': rows34,
+    'rows-5-7-dental-labial-last': rows57,
+    'nukta-letters-and-digits': nuktaAndDigits,
+    'vowel-signs-1-muharni': vowelSigns1,
+    'vowel-signs-2-and-carriers': vowelSigns2,
+    'bindi-tippi-addak-subjoined': bindiTippiAddak,
+    'tones': tones,
+    'reading-drills': readingDrills,
+};
+
+export function getLesson(slug: LessonSlug): Lesson {
+    return { ...lessonMeta(slug), ...BODIES[slug] };
+}
+
+// A lesson's place in its track, for "Lesson 3 of 9" and the links either side.
+export function neighbours(slug: LessonSlug): { prev?: LessonEntry; next?: LessonEntry; index: number; total: number } {
+    const track = lessonsFor(lessonMeta(slug).track);
+    const index = track.findIndex((meta) => meta.slug === slug);
+    return { prev: track[index - 1], next: track[index + 1], index, total: track.length };
+}
+
+export { LESSON_META };
