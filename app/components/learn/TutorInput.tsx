@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId } from 'react';
 import Link from 'next/link';
 import { PaperAirplaneIcon, StopIcon } from '@heroicons/react/24/solid';
 import { useLocalePath, useT } from '@/app/context/LanguageContext';
@@ -15,6 +15,7 @@ type Props = {
     isStreaming: boolean;
     canSend: boolean;
     lessonChip: React.ReactNode; // the lesson in use, or nothing
+    textareaRef: React.RefObject<HTMLTextAreaElement | null>; // the page moves focus here
 };
 
 function fitHeight(el: HTMLTextAreaElement) {
@@ -25,10 +26,9 @@ function fitHeight(el: HTMLTextAreaElement) {
 // The tutor's composer: the chat's (app/components/chat/ChatInput.tsx)
 // without its answer settings. One box holds the lesson chip and the
 // question; Enter sends, Shift+Enter starts a new line.
-export default function TutorInput({ value, onChange, onSend, onStop, isStreaming, canSend, lessonChip }: Props) {
+export default function TutorInput({ value, onChange, onSend, onStop, isStreaming, canSend, lessonChip, textareaRef }: Props) {
     const t = useT();
     const to = useLocalePath();
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
     const countId = useId();
     const nearCap = value.length >= MAX_TUTOR_MESSAGE_CHARS * 0.8;
     const atCap = value.length >= MAX_TUTOR_MESSAGE_CHARS;
@@ -38,12 +38,12 @@ export default function TutorInput({ value, onChange, onSend, onStop, isStreamin
     // open the keyboard over the page just opened, so it waits for a tap.
     useEffect(() => {
         if (window.matchMedia('(pointer: fine)').matches) textareaRef.current?.focus({ preventScroll: true });
-    }, []);
+    }, [textareaRef]);
 
     useEffect(() => {
         const el = textareaRef.current;
         if (el) fitHeight(el);
-    }, [value]);
+    }, [value, textareaRef]);
 
     // A change of width (the window, a phone turned) re-wraps the text, so
     // the height is fitted again. Only width: fitting changes the height,
@@ -59,7 +59,7 @@ export default function TutorInput({ value, onChange, onSend, onStop, isStreamin
         });
         observer.observe(el);
         return () => observer.disconnect();
-    }, []);
+    }, [textareaRef]);
 
     const submit = () => {
         if (!isStreaming && canSubmit) onSend();

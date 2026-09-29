@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { AcademicCapIcon, ArrowDownIcon, PlusIcon } from '@heroicons/react/24/outline';
 import IntentLink from '@/app/components/IntentLink';
 import { GreetingBubble, QuestionBubble } from '@/app/components/chat/Bubbles';
@@ -46,6 +46,16 @@ export default function TutorConversation() {
     const lessonTitle = session.lesson && isLessonSlug(session.lesson) ? lessonMeta(session.lesson).title : null;
     const last = session.exchanges.at(-1);
     const canRetry = !tutor.busy && (last?.reply.status === 'error' || last?.reply.status === 'stopped');
+    const inputRef = useRef<HTMLTextAreaElement>(null);
+
+    // New conversation, a starter and Retry go away when pressed, so keyboard
+    // focus moves to the question box. Only with a mouse or trackpad: on a
+    // touch screen, focus would open the keyboard over the reply.
+    const refocus = useCallback(() => {
+        if (window.matchMedia('(pointer: fine)').matches) inputRef.current?.focus({ preventScroll: true });
+    }, []);
+    const { retry: retryLast, dismissLesson } = tutor;
+    const retry = useCallback(() => { retryLast(); refocus(); }, [retryLast, refocus]);
 
     // Stick to the bottom while a reply arrives, unless the reader scrolled up.
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -85,6 +95,12 @@ export default function TutorConversation() {
             setAnnouncement(ended ? spoken(t, ended.reply) : '');
         }
     }
+    // The lesson-not-found notice appears after load, so it is announced here.
+    const [notFound, setNotFound] = useState(tutor.lessonNotFound);
+    if (tutor.lessonNotFound !== notFound) {
+        setNotFound(tutor.lessonNotFound);
+        if (tutor.lessonNotFound) setAnnouncement(t.learn.tutor.lessonNotFound);
+    }
 
     const ask = (text: string, fromInput: boolean) => {
         atBottomRef.current = true;
@@ -106,7 +122,7 @@ export default function TutorConversation() {
                         </IntentLink>
                         <button
                             type="button"
-                            onClick={() => { tutor.reset(); setInput(''); }}
+                            onClick={() => { tutor.reset(); setInput(''); refocus(); }}
                             disabled={session.exchanges.length === 0}
                             className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 font-semibold text-accent-text transition-colors hover:bg-kesri/10 disabled:opacity-40"
                         >
@@ -121,7 +137,7 @@ export default function TutorConversation() {
                 <div ref={scrollRef} onScroll={onScroll} className="relative h-full overflow-y-auto p-4 md:p-8">
                     <div className="mx-auto w-full max-w-3xl space-y-6">
                         {tutor.lessonNotFound && (
-                            <p role="status" className="text-center text-sm text-ink-muted">{t.learn.tutor.lessonNotFound}</p>
+                            <p className="text-center text-sm text-ink-muted">{t.learn.tutor.lessonNotFound}</p>
                         )}
                         <GreetingBubble text={t.learn.tutor.greeting} />
                         {session.exchanges.map((exchange) => (
@@ -129,14 +145,14 @@ export default function TutorConversation() {
                                 <QuestionBubble text={exchange.question} />
                                 <TutorMessage
                                     reply={exchange.reply}
-                                    onRetry={exchange === last && canRetry ? tutor.retry : undefined}
+                                    onRetry={exchange === last && canRetry ? retry : undefined}
                                 />
                             </Fragment>
                         ))}
                         {hydrated && session.exchanges.length === 0 && (
                             <StarterPrompts
                                 prompts={lessonTitle ? t.learn.tutor.lessonStarters : t.learn.tutor.starters}
-                                onSelect={(prompt) => ask(prompt, false)}
+                                onSelect={(prompt) => { ask(prompt, false); refocus(); }}
                             />
                         )}
                     </div>
@@ -163,7 +179,14 @@ export default function TutorConversation() {
                 onStop={tutor.stop}
                 isStreaming={tutor.busy}
                 canSend={hydrated}
-                lessonChip={lessonTitle ? <LessonChip title={lessonTitle} onDismiss={tutor.dismissLesson} /> : null}
+                lessonChip={lessonTitle ? (
+                    <LessonChip
+                        title={lessonTitle}
+                        // Dismissing unmounts the button that had focus; keep it in the question.
+                        onDismiss={() => { dismissLesson(); inputRef.current?.focus(); }}
+                    />
+                ) : null}
+                textareaRef={inputRef}
             />
         </div>
     );

@@ -23,8 +23,20 @@ import {
 // lib/learn/tutor.ts; this hook streams the replies and keeps the copy.
 //
 // A lesson comes from the address (?lesson=<slug>). Opening a different
-// lesson starts a new conversation; the parameter is then dropped from the
-// address, so a reload continues the conversation rather than restarting it.
+// lesson, or one that doesn't exist, starts a new conversation; the
+// parameter is then dropped from the address, so a reload continues the
+// conversation rather than restarting it.
+
+// While a reply streams, it is saved at most this often, and once more when
+// the page goes away, as the chat does.
+const SAVE_EVERY_MS = 1000;
+
+function save(session: TutorSession) {
+    try {
+        sessionStorage.setItem(TUTOR_SESSION_KEY, JSON.stringify(session));
+    } catch { /* storage full or blocked: the conversation lasts for this page */ }
+}
+
 export function useTutor() {
     const [session, setSession] = useState<TutorSession>(EMPTY_SESSION);
     const [hydrated, setHydrated] = useState(false);
@@ -32,6 +44,8 @@ export function useTutor() {
     const [busy, setBusy] = useState(false);
     const controllerRef = useRef<AbortController | null>(null);
     const sessionRef = useRef(session);
+    const hydratedRef = useRef(false);
+    const savedAtRef = useRef(0);
 
     useEffect(() => { sessionRef.current = session; }, [session]);
 
@@ -48,27 +62,41 @@ export function useTutor() {
         const requested = new URL(window.location.href).searchParams.get('lesson');
         let next = stored;
         if (requested !== null) {
-            if (!isLessonSlug(requested)) setLessonNotFound(true);
-            else if (requested !== stored.lesson) next = { lesson: requested, exchanges: [] };
+            if (!isLessonSlug(requested)) {
+                setLessonNotFound(true);
+                next = EMPTY_SESSION;
+            } else if (requested !== stored.lesson) {
+                next = { lesson: requested, exchanges: [] };
+            }
         }
         setSession(next);
         setHydrated(true);
-        return () => controllerRef.current?.abort();
+        hydratedRef.current = true;
+
+        const onHide = () => { if (hydratedRef.current) save(sessionRef.current); };
+        window.addEventListener('pagehide', onHide);
+        return () => {
+            window.removeEventListener('pagehide', onHide);
+            controllerRef.current?.abort();
+        };
     }, []);
 
-    // Saved on every change, a streaming reply included, so a reload keeps
-    // what had arrived.
+    // Saved on every change, and while a reply streams once a second, so a
+    // reload keeps what had arrived.
     useEffect(() => {
         if (!hydrated) return;
-        try {
-            sessionStorage.setItem(TUTOR_SESSION_KEY, JSON.stringify(session));
-        } catch { /* storage full or blocked: the conversation lasts for this page */ }
+        const now = Date.now();
+        const streaming = session.exchanges.at(-1)?.reply.status === 'streaming';
+        if (streaming && now - savedAtRef.current < SAVE_EVERY_MS) return;
+        savedAtRef.current = now;
+        save(session);
         // Saved, so the lesson no longer needs the address: a reload now
-        // continues the conversation instead of starting it again.
+        // continues the conversation instead of starting it again. The state
+        // is null, as in the chat, so Next's router follows the new address.
         const url = new URL(window.location.href);
         if (url.searchParams.has('lesson')) {
             url.searchParams.delete('lesson');
-            window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+            window.history.replaceState(null, '', url.pathname + url.search + url.hash);
         }
     }, [session, hydrated]);
 
@@ -103,6 +131,12 @@ export function useTutor() {
                     if (!chunk) continue;
                     text = (text + chunk).slice(0, MAX_TUTOR_REPLY_CHARS);
                     setReply(id, { text, status: 'streaming' });
+                    // A runaway reply: stop the server generating the rest,
+                    // and keep it, marked as cut off.
+                    if (text.length === MAX_TUTOR_REPLY_CHARS) {
+                        controller.abort();
+                        throw new Error('The reply reached its length cap');
+                    }
                 }
                 outcome = { kind: 'closed' };
             }
@@ -145,6 +179,7 @@ export function useTutor() {
         controllerRef.current?.abort();
         controllerRef.current = null;
         setBusy(false);
+        setLessonNotFound(false);
         setSession((s) => ({ lesson: s.lesson, exchanges: [] }));
     }, []);
 

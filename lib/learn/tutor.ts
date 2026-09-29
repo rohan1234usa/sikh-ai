@@ -31,7 +31,8 @@ export type TutorExchange = { id: string; question: string; reply: TutorReply };
 export type TutorSession = { lesson: string | null; exchanges: TutorExchange[] };
 export type HistoryTurn = { role: 'user' | 'ai'; text: string };
 
-export const EMPTY_SESSION: TutorSession = { lesson: null, exchanges: [] };
+// Shared, so frozen: nothing changes it in place.
+export const EMPTY_SESSION: TutorSession = Object.freeze({ lesson: null, exchanges: Object.freeze([] as TutorExchange[]) as TutorExchange[] });
 
 // A reply the next question can build on: something was actually said.
 const answered = (reply: TutorReply) =>
@@ -93,10 +94,16 @@ function parseReply(raw: unknown): TutorReply | null {
     const status = raw.status;
     if (typeof status !== 'string' || !(TUTOR_STATUSES as readonly string[]).includes(status)) return null;
     const text = raw.text.slice(0, MAX_TUTOR_REPLY_CHARS);
-    // A reply saved mid-stream (the tab was reloaded) can't resume.
-    if (status === 'streaming') return settleReply({ text, status: 'streaming' }, { kind: 'aborted' });
-    if (status === 'error') return { text: '', status, errorCode: isTutorErrorCode(raw.errorCode) ? raw.errorCode : 'generic' };
-    return { text, status: status as TutorStatus };
+    // Each state is held to what settleReply can produce, so an old or
+    // edited copy can't bring back an empty bubble.
+    switch (status as TutorStatus) {
+        case 'error': return { text: '', status: 'error', errorCode: isTutorErrorCode(raw.errorCode) ? raw.errorCode : 'generic' };
+        case 'stopped': return { text: '', status: 'stopped' };
+        case 'done': return settleReply({ text, status: 'streaming' }, { kind: 'closed' });
+        // A reply saved mid-stream (the tab was reloaded) can't resume.
+        case 'streaming':
+        case 'interrupted': return settleReply({ text, status: 'streaming' }, { kind: 'aborted' });
+    }
 }
 
 function parseExchange(raw: unknown): TutorExchange[] {
@@ -111,6 +118,14 @@ function parseExchange(raw: unknown): TutorExchange[] {
 export function parseTutorSession(raw: unknown): TutorSession {
     if (!isObject(raw)) return EMPTY_SESSION;
     const lesson = typeof raw.lesson === 'string' && /^[a-z0-9-]{1,80}$/.test(raw.lesson) ? raw.lesson : null;
-    const exchanges = Array.isArray(raw.exchanges) ? raw.exchanges.flatMap(parseExchange).slice(-MAX_TUTOR_EXCHANGES) : [];
+    // An id names one exchange: a repeat is dropped.
+    const seen = new Set<string>();
+    const exchanges = (Array.isArray(raw.exchanges) ? raw.exchanges.flatMap(parseExchange) : [])
+        .filter((exchange) => {
+            if (seen.has(exchange.id)) return false;
+            seen.add(exchange.id);
+            return true;
+        })
+        .slice(-MAX_TUTOR_EXCHANGES);
     return { lesson, exchanges };
 }

@@ -84,6 +84,24 @@ test('a saved session comes back, and a reply saved mid-stream is marked as cut 
     ]);
 });
 
+test('a saved reply comes back only in a state the page could have left it in', () => {
+    const saved = {
+        lesson: null,
+        exchanges: [
+            exchange('a', { status: 'done', text: '  ' }),
+            exchange('b', { status: 'interrupted', text: '' }),
+            exchange('c', { status: 'stopped', text: 'left over' }),
+            exchange('a', { status: 'done', text: 'a second a' }),
+        ],
+    };
+    const parsed = parseTutorSession(JSON.parse(JSON.stringify(saved)));
+    assert.deepEqual(parsed.exchanges.map((e) => [e.id, e.reply]), [
+        ['a', { text: '', status: 'error', errorCode: 'generic' }],
+        ['b', { text: '', status: 'stopped' }],
+        ['c', { text: '', status: 'stopped' }],
+    ]);
+});
+
 test('anything unreadable gives an empty session, and a damaged exchange is dropped alone', () => {
     for (const raw of [null, 'x', 7, []]) assert.deepEqual(parseTutorSession(raw), EMPTY_SESSION);
     const parsed = parseTutorSession({
