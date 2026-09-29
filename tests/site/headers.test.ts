@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import nextConfig from '@/next.config';
+import { parsePolicy } from '../helpers/csp';
 
 async function sentHeaders() {
     const rules = await nextConfig.headers!();
@@ -22,12 +23,12 @@ test('every response carries the standard security headers, and no X-Powered-By'
 
 test('the Content-Security-Policy is enforced, and still reports what it blocks', async () => {
     const headers = await sentHeaders();
-    const csp = headers.get('content-security-policy') ?? '';
-    assert.match(csp, /frame-ancestors 'none'/);
     assert.ok(!headers.has('content-security-policy-report-only'));
+    const policy = parsePolicy(headers.get('content-security-policy') ?? '');
+    assert.deepEqual(policy.get('frame-ancestors'), ["'none'"]);
     // Blocks still reach /api/csp-report: report-to for Chromium (through the
     // Reporting-Endpoints group), report-uri for the other browsers.
-    assert.match(csp, /report-to csp(;|$)/);
-    assert.match(csp, /report-uri \/api\/csp-report(;|$)/);
+    assert.deepEqual(policy.get('report-to'), ['csp']);
+    assert.deepEqual(policy.get('report-uri'), ['/api/csp-report']);
     assert.equal(headers.get('reporting-endpoints'), 'csp="/api/csp-report"');
 });
