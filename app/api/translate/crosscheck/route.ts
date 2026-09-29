@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { MAX_TRANSLATE_CHARS, isCrosscheckDirection, type CrosscheckDirection } from "@/lib/translate/config";
 import { cloudTranslate, type CloudLang } from "@/lib/translate/cloud";
+import { describeError, logEvent, withRequestLog } from "@/lib/log";
 
 // Deliberately separate from /api/translate: this shares none of the Gemini
 // machinery (no prompts, no schema, no hint resolution) and its request
@@ -38,7 +39,7 @@ function remember(key: string, value: string): void {
   memo.set(key, value);
 }
 
-export async function POST(req: Request) {
+async function handlePost(req: Request) {
   try {
     const raw = await req.text();
     if (raw.length > MAX_BODY_CHARS) {
@@ -89,10 +90,12 @@ export async function POST(req: Request) {
     );
 
   } catch (error) {
-    console.error("Crosscheck Error:", error);
+    logEvent("route_error", { error: describeError(error) }, "error");
     return NextResponse.json(
       { error: "Google Translate comparison is unavailable right now.", code: "crosscheck_failed" },
       { status: 502 },
     );
   }
 }
+
+export const POST = withRequestLog("/api/translate/crosscheck", handlePost);

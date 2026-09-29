@@ -6,6 +6,8 @@
 // and caches for an offline audit and wants loud failures. This one is on a
 // user request path, so it times out fast, meters itself, and never throws.
 
+import { logEvent } from '../log';
+
 export type CloudLang = 'en' | 'pa';
 
 export type CloudTranslateOpts = {
@@ -54,13 +56,13 @@ export async function cloudTranslate(opts: CloudTranslateOpts): Promise<CloudTra
 
     const key = process.env.GOOGLE_TRANSLATE_API_KEY ?? process.env.GEMINI_API_KEY;
     if (!key) {
-        console.error('Cloud Translate: no GOOGLE_TRANSLATE_API_KEY (or GEMINI_API_KEY) set');
+        logEvent('config_error', { missing: 'GOOGLE_TRANSLATE_API_KEY' }, 'error');
         return null;
     }
 
     if (!opts.text.trim()) return null;
     if (overBudget(opts.text.length)) {
-        console.error('Cloud Translate: daily character ceiling reached for this instance');
+        logEvent('cloud_translate_ceiling', { chars: opts.text.length }, 'warn'); // this instance's daily ceiling
         return null;
     }
 
@@ -79,7 +81,7 @@ export async function cloudTranslate(opts: CloudTranslateOpts): Promise<CloudTra
 
         if (!res.ok) {
             // Never log the body verbatim — it can echo the request URL, key included.
-            console.error(`Cloud Translate: HTTP ${res.status}`);
+            logEvent('upstream_error', { upstream: 'cloud_translate', status: res.status }, 'warn');
             return null;
         }
 
@@ -92,7 +94,8 @@ export async function cloudTranslate(opts: CloudTranslateOpts): Promise<CloudTra
 
         return { translatedText, detectedSourceLanguage: first?.detectedSourceLanguage };
     } catch (error) {
-        console.error('Cloud Translate: request failed', error instanceof Error ? error.message : error);
+        // The name only: the request URL carries the key.
+        logEvent('upstream_error', { upstream: 'cloud_translate', error: error instanceof Error ? error.name : typeof error }, 'warn');
         return null;
     }
 }

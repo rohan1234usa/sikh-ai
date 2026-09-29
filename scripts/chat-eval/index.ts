@@ -108,7 +108,7 @@ function parseArgs(argv: string[]): Options {
 // so a capture also changes that fixture's request and starts it afresh.
 async function capturePassages(): Promise<Passages> {
     const t = getDictionary('en');
-    const hukamnama = hukamnamaContext(await (await hukamnamaGET()).json(), t);
+    const hukamnama = hukamnamaContext(await (await hukamnamaGET(new Request('http://localhost/api/hukamnama'))).json(), t);
     const shabadRes = await shabadGET(new Request(`http://localhost/api/shabad?query=${SHABAD_ANG}`));
     const shabad = angContext(SHABAD_ANG, await shabadRes.json(), t);
     return { capturedOn: new Date().toISOString().slice(0, 10), hukamnama, shabad };

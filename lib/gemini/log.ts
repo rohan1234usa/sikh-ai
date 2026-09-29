@@ -4,6 +4,7 @@
 
 import type { GenerateContentResponseUsageMetadata } from '@google/genai';
 import type { GeminiFeature } from './models';
+import { logEvent } from '../log';
 
 export type GeminiOutcome =
     | 'ok'
@@ -37,17 +38,6 @@ export type GeminiCallLog = {
     quotaId?: string;       // which limit a 429 hit
     error?: string;         // SDK/API error message, never user text
 };
-
-// Tests run the routes against a local mock; they switch this off so the
-// output stays readable.
-const silenced = () => process.env.GEMINI_LOG === 'off';
-
-export function logEvent(evt: string, fields: object, level: 'info' | 'warn' = 'info'): void {
-    if (silenced()) return;
-    const line = JSON.stringify({ evt, ...fields });
-    if (level === 'warn') console.warn(line);
-    else console.log(line);
-}
 
 export function logGeminiCall(entry: GeminiCallLog): void {
     logEvent('gemini_call', entry, entry.outcome === 'ok' ? 'info' : 'warn');

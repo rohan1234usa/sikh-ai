@@ -2,7 +2,8 @@ import { ApiError, FinishReason, GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 import { TRANSLATE_ATTEMPT_MS, TRANSLATE_BUDGET_MS } from "@/lib/gemini/budgets";
 import { isCapacityError, statusOf, withModelFallback, withTransport } from "@/lib/gemini/fallback";
-import { logEvent, logGeminiCall, usageFields } from "@/lib/gemini/log";
+import { logGeminiCall, usageFields } from "@/lib/gemini/log";
+import { describeError, logEvent, withRequestLog } from "@/lib/log";
 import {
   MAX_TRANSLATE_CHARS,
   isSourceHint,
@@ -90,7 +91,7 @@ async function attemptCloudFallback(
   return synthesize('english', res.translatedText, trimmed);
 }
 
-export async function POST(req: Request) {
+async function handlePost(req: Request) {
   // Hoisted so the catch block can tell whether Gemini was actually attempted:
   // a malformed body or a validation throw lands in the same catch, and those
   // must not spend Cloud Translation credit.
@@ -120,7 +121,7 @@ export async function POST(req: Request) {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      console.error("Translate Error: GEMINI_API_KEY is missing");
+      logEvent("config_error", { missing: "GEMINI_API_KEY" }, "error");
       return NextResponse.json({ error: FRIENDLY_ERROR, code: "translate_failed" }, { status: 500 });
     }
 
@@ -202,7 +203,7 @@ export async function POST(req: Request) {
     // Gemini failure is already logged by logGeminiCall — but anything else
     // (a response shape the SDK changed, a bug in the code around the call)
     // would otherwise 500 with nothing in the host's log to explain it.
-    if (!text || !(error instanceof ApiError)) console.error("Translate Error:", error);
+    if (!text || !(error instanceof ApiError)) logEvent("route_error", { error: describeError(error) }, "error");
 
     // Both models failed (overloaded, rate-limited, out of prepaid credit, or
     // timed out) or the request itself was rejected. Either way a basic
@@ -225,3 +226,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: FRIENDLY_ERROR, code: "translate_failed" }, { status: 500 });
   }
 }
+
+export const POST = withRequestLog("/api/translate", handlePost);

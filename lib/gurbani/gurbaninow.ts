@@ -12,6 +12,7 @@
 // data cache (the `next` option; ignored outside Next, e.g. in tests).
 
 import { MAX_ANG } from './citations';
+import { describeError, logEvent } from '../log';
 
 const BASE = 'https://api.gurbaninow.com/v2';
 const TIMEOUT_MS = 3500;
@@ -131,12 +132,15 @@ async function request(url: string, revalidate: number, signal?: AbortSignal): P
             next: { revalidate, tags: ['gurbaninow'] },
         });
         if (!res.ok) {
-            console.error(`GurbaniNow: HTTP ${res.status}`);
+            logEvent('upstream_error', { upstream: 'gurbaninow', status: res.status }, 'warn');
             return null;
         }
         return await res.json();
-    } catch {
-        return null; // timed out, aborted, or unreachable
+    } catch (error) {
+        // Timed out or unreachable; a caller that gave up (the visitor left)
+        // is no news.
+        if (!signal?.aborted) logEvent('upstream_error', { upstream: 'gurbaninow', error: describeError(error) }, 'warn');
+        return null;
     }
 }
 

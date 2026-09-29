@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { MAX_VERIFY_CHARS, hasGurmukhiRun } from "@/lib/gurbani/citations";
 import { verifyReply } from "@/lib/gurbani/verify";
+import { describeError, logEvent, withRequestLog } from "@/lib/log";
 
 // Checks the Gurbani a finished chat reply quotes against GurbaniNow. No
 // Gemini call. The chat never waits on this or breaks because of it: the
@@ -15,7 +16,7 @@ const DEADLINE_MS = 8000;
 const MAX_BODY_CHARS = 2 * MAX_VERIFY_CHARS + 1000;
 const NO_STORE = { "Cache-Control": "no-store" };
 
-export async function POST(req: Request) {
+async function handlePost(req: Request) {
   try {
     const raw = await req.text();
     if (raw.length > MAX_BODY_CHARS) {
@@ -41,7 +42,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ citations }, { headers: NO_STORE });
   } catch (error) {
     // Never the reply text — only what went wrong.
-    console.error("Verify Error:", error instanceof Error ? error.message : error);
+    logEvent("route_error", { error: describeError(error) }, "error");
     return NextResponse.json({ error: "Verification failed", code: "verify_failed" }, { status: 500, headers: NO_STORE });
   }
 }
+
+export const POST = withRequestLog("/api/chat/verify", handlePost);

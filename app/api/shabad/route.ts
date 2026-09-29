@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { MAX_ANG } from '@/lib/gurbani/citations';
 import { fetchAngPayload } from '@/lib/gurbani/gurbaninow';
+import { withRequestLog } from '@/lib/log';
 
 // One Ang from GurbaniNow, passed through as-is for the Ang reader and the
 // chat's links to an Ang. An Ang's text never changes, so a good answer is
@@ -9,7 +10,7 @@ import { fetchAngPayload } from '@/lib/gurbani/gurbaninow';
 const ANG_CACHE = 'public, max-age=86400, s-maxage=2592000, stale-while-revalidate=86400';
 const NO_STORE = { 'Cache-Control': 'no-store' };
 
-export async function GET(request: Request) {
+async function handleGet(request: Request) {
   const query = new URL(request.url).searchParams.get('query');
 
   // The `code` field lets clients render a translated message; the English
@@ -36,3 +37,5 @@ export async function GET(request: Request) {
   }
   return NextResponse.json(data, { headers: { 'Cache-Control': ANG_CACHE } });
 }
+
+export const GET = withRequestLog('/api/shabad', handleGet);
