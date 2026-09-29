@@ -33,11 +33,6 @@ export function cardOf(cards: Readonly<Record<string, CardState>>, id: string): 
     return Object.prototype.hasOwnProperty.call(cards, id) ? cards[id] : undefined;
 }
 
-// A card never seen is always due.
-export function isDue(state: CardState | undefined, now: number): boolean {
-    return !state || state.due <= now;
-}
-
 // A new card starts in box 0, so knowing it straight away earns tomorrow.
 export function review(state: CardState | undefined, correct: boolean, now: number): CardState {
     const box = correct ? Math.min((state?.box ?? 0) + 1, MAX_BOX) : 0;

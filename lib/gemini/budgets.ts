@@ -19,8 +19,9 @@ export const CHAT_FIRST_TEXT_MS = 10_000;
 export const TRANSLATE_BUDGET_MS = 20_000;
 export const TRANSLATE_ATTEMPT_MS = 12_000;
 
-// The Punjabi tutor streams like the chat. Its replies are short, so a first
-// word that hasn't come after 8 s means the call is stuck, and 19 s remain
-// for the fallback model.
+// The Punjabi tutor streams like the chat. Its first word came in about a
+// second in testing (a smaller prompt than the chat's, LOW thinking), so one
+// that hasn't come after 8 s means the call is stuck, and 19 s remain for
+// the fallback model.
 export const LEARN_BUDGET_MS = 27_000;
 export const LEARN_FIRST_TEXT_MS = 8_000;

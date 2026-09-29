@@ -8,7 +8,6 @@ import {
     MAX_BOX,
     cardCounts,
     cardOf,
-    isDue,
     review,
     reviewQueue,
     type CardState,
@@ -18,12 +17,6 @@ const NOW = Date.UTC(2026, 8, 28, 20, 0);
 
 const card = (box: number, due: number, over: Partial<CardState> = {}): CardState =>
     ({ box, due, reviews: 1, lastAt: NOW - DAY_MS, ...over });
-
-test('a card never seen is due', () => {
-    assert.ok(isDue(undefined, NOW));
-    assert.ok(isDue(card(2, NOW), NOW));
-    assert.ok(!isDue(card(2, NOW + 1), NOW));
-});
 
 test('knowing a new card sends it to tomorrow, a few hours early', () => {
     const next = review(undefined, true, NOW);
@@ -48,7 +41,7 @@ test('the top box keeps a card there', () => {
 test('a miss drops a card to the first box, due again at once', () => {
     const missed = review(card(4, NOW, { reviews: 6 }), false, NOW);
     assert.deepEqual(missed, { box: 0, due: NOW, reviews: 7, lastAt: NOW });
-    assert.ok(isDue(missed, NOW));
+    assert.ok(missed.due <= NOW, 'due again at once');
 });
 
 test('a session shows due cards by box then age, then new ones, never cards not yet due', () => {

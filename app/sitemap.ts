@@ -8,9 +8,9 @@ import { SITE_URL, languageAlternates } from '@/lib/metadata';
 // The pages worth finding from a search, in each language, each listing its
 // twins in the others (hreflang), so the Gurmukhi and romanized Punjabi pages
 // get found too: the site's pages, every Learn Punjabi lesson and topic, then
-// every Ang (/shabad/1 … /shabad/1430), whose text never changes. Saved chats (/chat/{id}), share links
-// (/share/{id}) and the event form (/seva/create) are left out; they are
-// noindex.
+// every Ang (/shabad/1 … /shabad/1430), whose text never changes. Saved chats
+// (/chat/{id}), share links (/share/{id}) and the event form (/seva/create)
+// are left out; they are noindex.
 const PAGES: { path: string; changeFrequency?: MetadataRoute.Sitemap[number]['changeFrequency'] }[] = [
   { path: '/' },
   { path: '/hukamnama', changeFrequency: 'daily' },
