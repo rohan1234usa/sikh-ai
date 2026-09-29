@@ -10,31 +10,35 @@ export type QuizScore = { correct: number; total: number };
 const GURMUKHI_DIGITS = /[੦-੯]/g;
 
 // The comparison form of a typed answer. Romanized Punjabi has no single
-// spelling, so grading ignores what a learner can't be expected to know:
-// case, spaces, punctuation, accents, and the choices every family makes
-// differently (w or v, ph or f, ee or i, oo or u, and whether a letter is
-// doubled: haal/hal, rajj/raj, achha/acha). Nothing that changes a sound is
-// folded: t and th, d and dh, n and nh stay different, and there is no
-// "close enough". The house spelling is always shown once checked, so the
-// leniency never teaches a wrong one. Gurmukhi digits count as digits.
-export function foldRoman(input: string): string {
-    return input
+// spelling, so grading ignores what families write differently: case,
+// spaces, punctuation, accents, w or v, ph or f, and how length is shown (ee
+// or i, oo or u, a letter doubled or not: haal/hal, rajj/raj, achha/acha).
+// That would let a misread vowel or addak through (deel folds to dil, pata to
+// patta), so a strict question, one where reading them is the point, keeps
+// them. No consonant is ever folded into another: t and th, d and dh, n and
+// nh stay different, and there is no "close enough". The house spelling is
+// always shown once checked, so the leniency never teaches a wrong one.
+// Gurmukhi digits count as digits.
+export function foldRoman(input: string, strict = false): string {
+    const plain = input
         .replace(GURMUKHI_DIGITS, (digit) => String(digit.charCodeAt(0) - 0x0a66))
         .normalize('NFKD')
         .replace(/\p{M}/gu, '')
         .toLowerCase()
         .replace(/[^a-z0-9]/g, '')
         .replace(/w/g, 'v')
-        .replace(/ph/g, 'f')
+        .replace(/ph/g, 'f');
+    if (strict) return plain;
+    return plain
         .replace(/ee/g, 'i')
         .replace(/oo/g, 'u')
         .replace(/([a-z])\1+/g, '$1');
 }
 
-export function typedMatches(input: string, question: Pick<TypedQuestion, 'answer' | 'accept'>): boolean {
-    const given = foldRoman(input);
+export function typedMatches(input: string, question: Pick<TypedQuestion, 'answer' | 'accept' | 'strict'>): boolean {
+    const given = foldRoman(input, question.strict);
     if (given === '') return false;
-    return [question.answer, ...(question.accept ?? [])].some((answer) => foldRoman(answer) === given);
+    return [question.answer, ...(question.accept ?? [])].some((answer) => foldRoman(answer, question.strict) === given);
 }
 
 export function choiceMatches(choice: string | null, question: Pick<ChoiceQuestion, 'answer'>): boolean {

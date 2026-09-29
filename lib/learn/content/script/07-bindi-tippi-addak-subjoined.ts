@@ -95,12 +95,16 @@ const lesson: LessonBody = {
             prompt: 'Read this word. It means leaf.',
             promptPa: 'ਪੱਤਾ',
             answer: 'patta',
+            strict: true,
+            explanation: 'The addak doubles the t: patta, a leaf. Without it, ਪਤਾ (pata) means knowing, as in mainu pata hai, I know.',
         },
         {
             kind: 'typed',
             prompt: 'Read this word. It means today.',
             promptPa: 'ਅੱਜ',
             answer: 'ajj',
+            strict: true,
+            explanation: 'The addak doubles the j, so ਅੱਜ is ajj, even though many people text aj.',
         },
         {
             kind: 'typed',

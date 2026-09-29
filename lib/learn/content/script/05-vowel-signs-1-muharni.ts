@@ -98,12 +98,17 @@ const lesson: LessonBody = {
             prompt: 'Read this word. It means heart.',
             promptPa: 'ਦਿਲ',
             answer: 'dil',
+            strict: true,
+            explanation: 'Sihari is a short i, so ਦਿਲ is dil. The long ee is bihari (◌ੀ).',
         },
         {
             kind: 'typed',
             prompt: 'Read this word. It means book.',
             promptPa: 'ਕਿਤਾਬ',
             answer: 'kitaab',
+            accept: ['kitab'],
+            strict: true,
+            explanation: 'Sihari makes the first vowel short and kanna the second long: kitaab, or kitab, but never keetaab.',
         },
         {
             kind: 'typed',

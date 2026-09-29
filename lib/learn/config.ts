@@ -88,6 +88,9 @@ export type TypedQuestion = QuestionBase & {
     kind: 'typed';
     answer: string;
     accept?: string[]; // other spellings families really use: nahin for nahi
+    // Vowel length and doubled letters count: for a script question that
+    // tests reading them (ਦਿਲ is dil, not deel; ਪੱਤਾ is patta, not pata).
+    strict?: true;
 };
 
 export type QuizQuestion = ChoiceQuestion | TypedQuestion;

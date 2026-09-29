@@ -9,6 +9,7 @@ import {
     seededShuffle,
     typedMatches,
 } from '@/lib/learn/quiz';
+import { getLesson } from '@/lib/learn/curriculum';
 
 test('grading ignores case, spaces, punctuation and accents', () => {
     assert.equal(foldRoman('  Ki haal HAI? '), foldRoman('kihaalhai'));
@@ -31,7 +32,7 @@ test('grading forgives the spellings families choose differently', () => {
     for (const [a, b] of same) assert.equal(foldRoman(a), foldRoman(b), `${a} and ${b}`);
 });
 
-test('grading keeps apart the sounds a spelling tells apart', () => {
+test('grading never folds one consonant into another', () => {
     const different: [string, string][] = [
         ['thik', 'tik'],
         ['dhan', 'dan'],
@@ -54,6 +55,31 @@ test('a typed answer matches the house spelling or an accepted one, and never an
     assert.ok(!typedMatches('na', question));
     assert.ok(!typedMatches('   ', question));
     assert.ok(!typedMatches('?!', { answer: '...' }));
+});
+
+test('a strict question keeps the vowel length and the addak it tests', () => {
+    // The script lessons' own questions: each misreading folds to the answer
+    // under the lenient rules, so these questions grade strictly.
+    const quiz = [...getLesson('vowel-signs-1-muharni').quiz, ...getLesson('bindi-tippi-addak-subjoined').quiz];
+    const find = (promptPa: string) => {
+        const question = quiz.find((q) => q.promptPa === promptPa);
+        assert.ok(question?.kind === 'typed' && question.strict, promptPa);
+        return question;
+    };
+    const cases: [string, string[], string[]][] = [
+        ['ਦਿਲ', ['dil', 'Dil'], ['deel']],
+        ['ਕਿਤਾਬ', ['kitaab', 'kitab'], ['keetaab', 'keetab']],
+        ['ਪੱਤਾ', ['patta', 'PATTA'], ['pata']],
+        ['ਅੱਜ', ['ajj'], ['aj']],
+    ];
+    for (const [promptPa, right, wrong] of cases) {
+        const question = find(promptPa);
+        for (const answer of right) assert.ok(typedMatches(answer, question), `${promptPa}: ${answer}`);
+        for (const answer of wrong) {
+            assert.ok(!typedMatches(answer, question), `${promptPa}: ${answer} is a misreading`);
+            assert.ok(typedMatches(answer, { ...question, strict: undefined }), `${promptPa}: ${answer} would pass if lenient`);
+        }
+    }
 });
 
 test('a choice matches only the answer itself', () => {
