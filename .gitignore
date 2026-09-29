@@ -44,8 +44,6 @@ yarn-error.log*
 next-env.d.ts
 
 
-#firestore rules
-firestore.rules
 
 # i18n audit — cache.json and report.md are meant to be committed, so they are
 # not ignored (the cache doubles as the spend ledger, and first appears when a

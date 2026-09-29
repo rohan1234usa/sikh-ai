@@ -14,8 +14,8 @@ export const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Chats saved to the signed-in account (and shared links) need the Firestore
-// rules in firestore.chat-history.rules deployed first; until the owner turns
-// this on, every chat stays in the browser. Needs a real Firebase project too.
+// Chats saved to the signed-in account (and shared links) need the chat
+// section of firestore.rules live first; until the owner turns this on, every
+// chat stays in the browser. Needs a real Firebase project too.
 export const cloudChatsEnabled =
   process.env.NEXT_PUBLIC_CHAT_CLOUD === '1' && !!firebaseConfig.apiKey && !!firebaseConfig.projectId;
