@@ -19,9 +19,10 @@ export default function Navbar() {
     const closeMenu = () => setOpen(false);
 
     // Seven links fit on one line from lg (1024px) up in all three languages,
-    // romanized Punjabi's being the longest, at a tighter gap until xl; below
-    // lg they sit in the menu. The signed-in greeting waits for xl, where
-    // there is room for it too.
+    // romanized Punjabi's being the longest, at a tight gap; below lg they sit
+    // in the menu. The sign-in button never wraps, and the signed-in greeting
+    // waits for xl and cuts a long name short, so the row stays one line
+    // (checked at 1024 and 1280px in romanized Punjabi, signed in and out).
     const links = [
         { href: to('/about'), label: t.nav.about },
         { href: to('/hukamnama'), label: t.nav.hukamnama },
@@ -42,7 +43,7 @@ export default function Navbar() {
                     <span className="font-gurmukhi text-kesri" aria-hidden="true">ੴ</span> SikhAI
                 </IntentLink>
 
-                <ul className="hidden lg:flex items-center gap-3 xl:gap-6 whitespace-nowrap text-sm font-medium">
+                <ul className="hidden lg:flex items-center gap-2 xl:gap-4 whitespace-nowrap text-sm font-medium">
                     {links.map(({ href, label }) => (
                         <li key={href}>
                             <IntentLink
@@ -63,12 +64,12 @@ export default function Navbar() {
                     <ThemeToggle />
                     {user ? (
                         <div className="flex items-center gap-3">
-                            <span className="hidden xl:inline text-sm text-slate-300">
+                            <span className="hidden xl:block max-w-40 truncate text-sm text-slate-300">
                                 {fmt(t.nav.greeting, { name: user.displayName?.split(' ')[0] ?? '' })}
                             </span>
                             <button
                                 onClick={logOut}
-                                className="border border-kesri text-kesri text-sm font-semibold px-3 py-1.5 rounded-lg hover:bg-kesri hover:text-navy transition-colors"
+                                className="shrink-0 whitespace-nowrap border border-kesri text-kesri text-sm font-semibold px-3 py-1.5 rounded-lg hover:bg-kesri hover:text-navy transition-colors"
                             >
                                 {t.nav.signOut}
                             </button>
@@ -79,7 +80,7 @@ export default function Navbar() {
                         <button
                             onClick={signIn}
                             {...signInIntent}
-                            className="bg-kesri text-navy text-sm font-semibold px-3 py-1.5 rounded-lg hover:bg-kesri-hover transition-colors in-data-[auth=1]:invisible"
+                            className="shrink-0 whitespace-nowrap bg-kesri text-navy text-sm font-semibold px-3 py-1.5 rounded-lg hover:bg-kesri-hover transition-colors in-data-[auth=1]:invisible"
                         >
                             {t.nav.signIn}
                         </button>
