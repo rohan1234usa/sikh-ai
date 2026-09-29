@@ -5,7 +5,8 @@
 // represented.
 
 export const MAX_TUTOR_MESSAGE_CHARS = 1000;
-// Four exchanges ride along with each question, each turn cut to this.
+// Four exchanges ride along with each question: each question at the
+// message cap, each reply cut to this.
 export const MAX_TUTOR_HISTORY_TURNS = 8;
 export const MAX_TUTOR_HISTORY_TURN_CHARS = 4000;
 // A reply longer than this stops being shown (the output cap ends it far
@@ -44,7 +45,7 @@ export function historyFor(exchanges: readonly TutorExchange[]): HistoryTurn[] {
         .filter((exchange) => answered(exchange.reply))
         .slice(-(MAX_TUTOR_HISTORY_TURNS / 2))
         .flatMap((exchange): HistoryTurn[] => [
-            { role: 'user', text: exchange.question.slice(0, MAX_TUTOR_HISTORY_TURN_CHARS) },
+            { role: 'user', text: exchange.question.slice(0, MAX_TUTOR_MESSAGE_CHARS) },
             { role: 'ai', text: exchange.reply.text.slice(0, MAX_TUTOR_HISTORY_TURN_CHARS) },
         ]);
 }

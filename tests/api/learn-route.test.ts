@@ -20,7 +20,7 @@ const ask = (message: string, extra: object = {}) =>
     POST(postJson('http://local/api/learn', { message, history: [], ...extra }));
 
 type WireBody = {
-    contents: { role: string }[];
+    contents: { role: string; parts: { text: string }[] }[];
     systemInstruction: { parts: { text: string }[] };
     generationConfig: Record<string, unknown> & { maxOutputTokens: number; thinkingConfig: { thinkingLevel: string } };
 };
@@ -57,7 +57,7 @@ test('a lesson id brings that lesson into the instruction, looked up on the serv
     const { result: res, requests } = await captured(mock, () => ask('Quiz me', { lesson: lesson.slug }));
     await readStream(res);
     const instruction = instructionOf(requests[0].body);
-    assert.match(instruction, new RegExp(`--- BEGIN LESSON \\w+: ${lesson.title} ---`));
+    assert.ok(instruction.includes(`--- BEGIN LESSON: ${lesson.title} ---`));
     assert.ok(instruction.includes(lesson.summary));
 });
 
@@ -76,7 +76,9 @@ test('the history is cut to the last turns', async () => {
     const history = Array.from({ length: 12 }, (_, i) => ({ role: i % 2 ? 'ai' : 'user', text: `turn ${i}` }));
     const { result: res, requests } = await captured(mock, () => ask('Next?', { history }));
     await readStream(res);
-    assert.equal((requests[0].body as WireBody).contents.length, MAX_TUTOR_HISTORY_TURNS + 1);
+    const texts = (requests[0].body as WireBody).contents.map((c) => c.parts[0].text);
+    assert.equal(texts.length, MAX_TUTOR_HISTORY_TURNS + 1);
+    assert.deepEqual([texts[0], texts.at(-2), texts.at(-1)], ['turn 4', 'turn 11', 'Next?']);
 });
 
 test('a rate-limited pinned model is answered by the fallback', async () => {
@@ -150,11 +152,21 @@ test('an oversized body is refused before it is parsed or sent anywhere', async 
     assert.equal(requests.length, 0);
 });
 
+test('a body that isn’t a JSON object is a 400, before any model call', async () => {
+    for (const body of ['{not json', 'null', '[]', '"hello"']) {
+        const req = new Request('http://local/api/learn', { method: 'POST', headers: { 'content-type': 'application/json' }, body });
+        const { result: res, requests } = await captured(mock, () => POST(req));
+        assert.equal(res.status, 400, body);
+        assert.equal((await res.json()).code, 'learn_empty');
+        assert.equal(requests.length, 0);
+    }
+});
+
 test('the largest body a real client sends still gets an answer', async () => {
-    // Every field at its cap, in characters JSON has to escape.
+    // Every question and reply at its cap, in characters JSON has to escape.
     const message = '"\n'.repeat(MAX_TUTOR_MESSAGE_CHARS / 2);
-    const turn = '"\n'.repeat(MAX_TUTOR_HISTORY_TURN_CHARS / 2);
-    const history = Array.from({ length: MAX_TUTOR_HISTORY_TURNS }, (_, i) => ({ role: i % 2 ? 'ai' : 'user', text: turn }));
+    const reply = '"\n'.repeat(MAX_TUTOR_HISTORY_TURN_CHARS / 2);
+    const history = Array.from({ length: MAX_TUTOR_HISTORY_TURNS }, (_, i) => (i % 2 ? { role: 'ai', text: reply } : { role: 'user', text: message }));
     const res = await ask(message, { history, lesson: 'compound-verbs-and-modals' });
     assert.equal(res.status, 200);
     await readStream(res);

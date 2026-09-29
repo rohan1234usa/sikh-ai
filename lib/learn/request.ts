@@ -15,11 +15,13 @@ import { MAX_TUTOR_HISTORY_TURNS, MAX_TUTOR_HISTORY_TURN_CHARS, MAX_TUTOR_MESSAG
 // answer's cap. A reply that reaches it is cut short, and marked that way.
 export const LEARN_MAX_OUTPUT_TOKENS = 1536;
 
-// The largest body a real client can send: the message and a full history,
-// each at its cap, doubled for worst-case JSON escaping, plus room for the
-// lesson id. Anything larger is refused before it is parsed.
+// The largest body a real client sends: the message and four earlier
+// exchanges, every question and reply at its cap, twice over for the quotes,
+// backslashes and line breaks JSON escapes, plus room for the lesson id.
+// Anything larger is refused before it is parsed.
+const HISTORY_EXCHANGES = MAX_TUTOR_HISTORY_TURNS / 2;
 export const MAX_LEARN_BODY_CHARS =
-    2 * (MAX_TUTOR_MESSAGE_CHARS + MAX_TUTOR_HISTORY_TURNS * MAX_TUTOR_HISTORY_TURN_CHARS) + 1000;
+    2 * (MAX_TUTOR_MESSAGE_CHARS * (1 + HISTORY_EXCHANGES) + MAX_TUTOR_HISTORY_TURN_CHARS * HISTORY_EXCHANGES) + 1000;
 
 export type TutorInput = {
     message: string;
@@ -27,15 +29,17 @@ export type TutorInput = {
     lesson: Lesson | null;
 };
 
-// The client sends [{ role: 'user' | 'ai', text }]. Each turn is capped, so
-// the message limit can't be bypassed by stuffing the history.
+// The client sends [{ role: 'user' | 'ai', text }], the last turns kept. A
+// question is cut to the message cap and a reply to the turn cap, so the
+// history can't carry more than a real conversation would.
 export function toTutorHistory(raw: unknown): Content[] {
     return (Array.isArray(raw) ? raw : [])
         .slice(-MAX_TUTOR_HISTORY_TURNS)
-        .map((turn: { role?: unknown; text?: unknown }) => ({
-            role: turn?.role === 'ai' ? 'model' : 'user',
-            text: typeof turn?.text === 'string' ? turn.text.slice(0, MAX_TUTOR_HISTORY_TURN_CHARS) : '',
-        }))
+        .map((turn: { role?: unknown; text?: unknown }) => {
+            const role = turn?.role === 'ai' ? 'model' : 'user';
+            const cap = role === 'model' ? MAX_TUTOR_HISTORY_TURN_CHARS : MAX_TUTOR_MESSAGE_CHARS;
+            return { role, text: typeof turn?.text === 'string' ? turn.text.slice(0, cap) : '' };
+        })
         .filter((turn) => turn.text.trim() !== '')
         .map((turn) => ({ role: turn.role, parts: [{ text: turn.text }] }));
 }
@@ -43,13 +47,13 @@ export function toTutorHistory(raw: unknown): Content[] {
 export function buildTutorRequest(
     model: string,
     input: TutorInput,
-    overrides: { thinkingLevel?: ThinkingLevel; nonce?: string } = {},
+    overrides: { thinkingLevel?: ThinkingLevel } = {},
 ): GenerateContentParameters {
     return {
         model,
         contents: [...input.history, { role: 'user', parts: [{ text: input.message }] }],
         config: {
-            systemInstruction: composeTutorInstruction({ lesson: input.lesson, nonce: overrides.nonce }),
+            systemInstruction: composeTutorInstruction({ lesson: input.lesson }),
             maxOutputTokens: LEARN_MAX_OUTPUT_TOKENS,
             // Low, as for the chat: a streaming reply is judged on time to its
             // first word. No temperature: Gemini 3.x deprecates it.

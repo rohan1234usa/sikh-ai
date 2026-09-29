@@ -27,7 +27,11 @@ async function handlePost(req: Request) {
     if (raw.length > MAX_LEARN_BODY_CHARS) {
       return NextResponse.json({ error: TOO_LONG_ERROR, code: "learn_too_long" }, { status: 413 });
     }
-    const { message, history, lesson } = JSON.parse(raw);
+    // A body that isn't a JSON object has no message: a 400, not a crash.
+    let body: unknown = null;
+    try { body = JSON.parse(raw); } catch { /* answered below */ }
+    const { message, history, lesson } =
+      body !== null && typeof body === "object" && !Array.isArray(body) ? (body as Record<string, unknown>) : {};
 
     if (typeof message !== "string" || message.trim() === "") {
       return NextResponse.json({ error: "Please enter a message.", code: "learn_empty" }, { status: 400 });
