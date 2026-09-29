@@ -53,7 +53,8 @@ test('a Punjabi cookie redirects pages, never files, the API or Next and Vercel 
     const { source } = cookiePages[0];
     for (const path of ['/about', '/chat/abc-123', '/seva/create'])
         assert.ok(matches(source, path), path);
-    for (const path of ['/og.jpg', '/robots.txt', '/sitemap.xml', '/favicon.ico', '/api/chat', '/api/shabad',
+    for (const path of ['/og.jpg', '/robots.txt', '/sitemap.xml', '/favicon.ico', '/manifest.webmanifest',
+        '/icon-192.png', '/icons/app.png', '/fonts/a/b.woff2', '/api/chat', '/api/shabad',
         '/_next/static/chunks/a.js', '/_vercel/speed-insights/script.js', '/pa/about', '/pa-latn', '/en/about'])
         assert.ok(!matches(source, path), path);
     assert.ok(cookiePages.every((r) => !r.permanent), 'a choice can change, so never cached as permanent');

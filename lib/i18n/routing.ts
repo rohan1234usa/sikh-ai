@@ -23,12 +23,14 @@ type Redirect = Rule & { permanent: boolean };
 const PREFIXED = LANGS.filter((l) => l !== DEFAULT_LANG);
 
 // A first path segment that is a page, not a language prefix. For redirects,
-// also not the API, Next's or Vercel's own paths, or a file (a dot in the
-// name: og.jpg, robots.txt, sitemap.xml, favicon.ico). The lookahead ends at
-// the segment's slash: a `$` would mean the end of the whole path.
+// also not the API, Next's or Vercel's own paths, and not a file anywhere in
+// the path (a dot in its last segment: og.jpg, icon-192.png, a file in a
+// folder of public/). The first lookahead ends at the segment's slash, since
+// a `$` there would mean the end of the whole path; the second means just that.
 const notFirst = (names: readonly string[]) => `(?!(?:${names.join('|')})(?:/|$))`;
+const NOT_A_FILE = '(?!.*\\.[^/]*$)';
 const PAGE_SEGMENT = `${notFirst(LANGS)}[^/]+`;
-const REDIRECTABLE_SEGMENT = `${notFirst([...LANGS, 'api', '_next', '_vercel'])}[^/.]+`;
+const REDIRECTABLE_SEGMENT = `${notFirst([...LANGS, 'api', '_next', '_vercel'])}${NOT_A_FILE}[^/]+`;
 
 export function languageRewrites(): Rule[] {
     return [
