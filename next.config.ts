@@ -18,9 +18,9 @@ const SECURITY_HEADERS = [
   // no-referrer through its own meta tag.
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Frame-Options", value: "DENY" },
-  // A window another site opens onto this one gets no handle on it. Not
-  // same-origin: that would also cut off the popups this site opens, and
-  // Google sign-in runs in one.
+  // Another site that opens this one in a window gets no handle on it. Not
+  // same-origin, which would also cut off the popups this site opens, Google
+  // sign-in's among them.
   { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
   // Nothing on the site uses these. A voice feature would need microphone=(self).
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
@@ -29,7 +29,6 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
-  /* config options here */
   poweredByHeader: false,
   // app/global-not-found.tsx: the 404 for every language (pages live under
   // app/[lang], whose layout can't serve one of its own).
@@ -46,8 +45,6 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return { beforeFiles: [], afterFiles: languageRewrites(), fallback: [] };
   },
-  // If the error persists, uncomment the line below to bypass type checking temporarily
-  // typescript: { ignoreBuildErrors: true },
 };
 
 export default nextConfig;
