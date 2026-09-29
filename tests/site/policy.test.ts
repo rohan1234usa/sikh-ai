@@ -10,6 +10,7 @@ import { CONTACT_EMAIL } from '@/lib/site';
 
 // The pages built on app/components/PolicyPage.tsx, and their words.
 const PAGES: Record<string, (t: Dictionary) => PolicyCopy<string>> = {
+    privacy: (t) => t.privacy,
     terms: (t) => t.terms,
 };
 
@@ -58,6 +59,15 @@ test('every language has the same sections, in the same order, with as many item
             Object.entries(copyOf(getDictionary(lang)).sections).map(([id, s]) => `${id}:${s.items.length}`);
         for (const lang of LANGS) assert.deepEqual(shape(lang), shape('en'), `${page} (${lang})`);
     }
+});
+
+test('every figure lib/policy.ts supplies is stated on a page', () => {
+    const en = getDictionary('en');
+    const used = new Set(Object.values(PAGES).flatMap((copyOf) => {
+        const copy = copyOf(en);
+        return [copy.updated, ...Object.values(copy.sections).flatMap((s) => s.items)].flatMap(names);
+    }));
+    for (const name of Object.keys(POLICY_VARS)) assert.ok(used.has(name), name);
 });
 
 test('a placeholder is either a figure or a link, never both', () => {
