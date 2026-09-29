@@ -13,8 +13,8 @@
 import type { VocabWord } from '../../config';
 
 const words: VocabWord[] = [
-    { id: 'family-mummy', topic: 'family', gurmukhi: 'ਮੰਮੀ', roman: 'mummy', english: 'mom', pos: 'noun', gender: 'f', accept: ['mommy'] },
-    { id: 'family-papa', topic: 'family', gurmukhi: 'ਪਾਪਾ', roman: 'papa', english: 'dad', pos: 'noun', gender: 'm', note: 'Many families say daddy or bhapa ji instead.' },
+    { id: 'family-mummy', topic: 'family', gurmukhi: 'ਮੰਮੀ', roman: 'mummy', english: 'mom', sameAs: ['family-mata'], pos: 'noun', gender: 'f', accept: ['mommy'] },
+    { id: 'family-papa', topic: 'family', gurmukhi: 'ਪਾਪਾ', roman: 'papa', english: 'dad', sameAs: ['family-pita'], pos: 'noun', gender: 'm', note: 'Many families say daddy or bhapa ji instead.' },
     { id: 'family-mata', topic: 'family', gurmukhi: 'ਮਾਤਾ', roman: 'mata', english: 'mother (formal)', pos: 'noun', gender: 'f', note: 'Said with ji: mata ji. Also a respectful way to address any elderly woman.' },
     { id: 'family-pita', topic: 'family', gurmukhi: 'ਪਿਤਾ', roman: 'pita', english: 'father (formal)', pos: 'noun', gender: 'm', note: 'Said with ji: pita ji.' },
     { id: 'family-bhra', topic: 'family', gurmukhi: 'ਭਰਾ', roman: 'bhra', english: 'brother', pos: 'noun', gender: 'm', accept: ['pra'] },

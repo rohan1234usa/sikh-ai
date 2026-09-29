@@ -88,8 +88,8 @@ export type TypedQuestion = QuestionBase & {
     kind: 'typed';
     answer: string;
     accept?: string[]; // other spellings families really use: nahin for nahi
-    // Vowel length and doubled letters count: for a script question that
-    // tests reading them (ਦਿਲ is dil, not deel; ਪੱਤਾ is patta, not pata).
+    // Vowel length and doubled letters count: for a question that tests
+    // them, reading ਦਿਲ (dil, not deel) or telling haan (I am) from han.
     strict?: true;
 };
 
@@ -109,6 +109,9 @@ export type VocabWord = {
     pos: PartOfSpeech;
     gender?: Gender;   // nouns only, and every noun has one
     accept?: string[]; // other spellings a quiz accepts
+    // Words in the topic that mean the same where the glosses don't show it
+    // (mom and mother), so a quiz never offers both as choices.
+    sameAs?: string[];
     example?: Example; // every verb has one
     note?: string;     // English, one line
 };

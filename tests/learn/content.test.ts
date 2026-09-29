@@ -253,6 +253,9 @@ test('every vocabulary word is complete, in its topic, and typed right', () => {
                 assert.ok(word.example, `${word.id}: a verb needs an example`);
                 assert.match(word.roman, /na$/, `${word.id}: a verb is its -na infinitive`);
             }
+            for (const id of word.sameAs ?? []) {
+                assert.ok(id !== word.id && words.some((w) => w.id === id), `${word.id}: sameAs ${id} is another word in ${topic}`);
+            }
             const asTyped = { answer: word.roman, accept: word.accept };
             assert.ok(typedMatches(word.roman, asTyped), `${word.id}: its own spelling is graded right`);
             for (const spelling of word.accept ?? []) assert.ok(typedMatches(spelling, asTyped), `${word.id}: "${spelling}"`);

@@ -43,9 +43,13 @@ test('grading never folds one consonant into another', () => {
     for (const [a, b] of different) assert.notEqual(foldRoman(a), foldRoman(b), `${a} and ${b}`);
 });
 
-test('Gurmukhi digits count as digits, and Gurmukhi letters as nothing', () => {
-    assert.equal(foldRoman('੧੯'), '19');
+test('Gurmukhi letters and digits count as nothing, so a digits question wants ordinary digits', () => {
+    assert.equal(foldRoman('੧੯'), '');
     assert.equal(foldRoman('ਰੋਟੀ'), '');
+    const year = getLesson('nukta-letters-and-digits').quiz.find((q) => q.promptPa === '੨੦੨੬');
+    assert.ok(year?.kind === 'typed');
+    assert.ok(typedMatches('2026', year));
+    assert.ok(!typedMatches('੨੦੨੬', year), 'copying the prompt is not reading it');
 });
 
 test('a typed answer matches the house spelling or an accepted one, and never an empty answer', () => {
@@ -80,6 +84,20 @@ test('a strict question keeps the vowel length and the addak it tests', () => {
             assert.ok(typedMatches(answer, { ...question, strict: undefined }), `${promptPa}: ${answer} would pass if lenient`);
         }
     }
+});
+
+test('a copula question tells haan (I am) from han (they are)', () => {
+    const find = (slug: Parameters<typeof getLesson>[0], answer: string) => {
+        const question = getLesson(slug).quiz.find((q) => q.kind === 'typed' && q.answer === answer);
+        assert.ok(question?.kind === 'typed' && question.strict, answer);
+        return question;
+    };
+    const iAm = find('sentence-order-and-copulas', 'Main theek haan');
+    assert.ok(typedMatches('main thik haan', iAm));
+    assert.ok(!typedMatches('Main theek han', iAm));
+    const dad = find('honorifics-and-respect', 'Papa ji aaye han');
+    assert.ok(typedMatches('Papa ji aye han', dad));
+    assert.ok(!typedMatches('Papa ji aaye haan', dad));
 });
 
 test('a choice matches only the answer itself', () => {
@@ -119,19 +137,41 @@ const WORDS: VocabWord[] = ['roti', 'pani', 'daal', 'saag', 'lassi', 'chaul'].ma
 }));
 const PROMPTS = { meaning: 'What does this mean?', say: 'How do you say “{english}”?' };
 
-test('a meaning question never offers two choices that mean the same', () => {
-    // greetings has thank you and thank you (warmer); family has brother and
-    // brother (affectionate): only one of each pair may be on offer.
-    const gist = (english: string) => english.split(/[;(]/)[0].trim().toLowerCase();
-    for (const words of Object.values(VOCAB)) {
-        for (let seed = 0; seed < 40; seed++) {
-            for (const question of buildVocabQuiz(words, `s${seed}`, PROMPTS, words.length)) {
+test('a meaning question never offers two choices a learner could defend either way', () => {
+    // Listed by hand, not worked out the way the quiz builder does it, so the
+    // test can catch the builder missing a pair.
+    const pairs = [
+        ['family-mata', 'family-mummy'],
+        ['family-pita', 'family-papa'],
+        ['family-bhra', 'family-veer'],
+        ['greetings-dhanvaad', 'greetings-meharbani'],
+        ['greetings-sat-sri-akal', 'greetings-rabb-rakha'],
+        ['greetings-ki-haal-hai', 'greetings-tuhada-ki-haal-hai'],
+    ];
+    const all = Object.values(VOCAB).flat();
+    for (const id of pairs.flat()) assert.ok(all.some((w) => w.id === id), `${id} exists`);
+    for (const [topic, words] of Object.entries(VOCAB)) {
+        const idOf = new Map(words.map((w) => [w.english, w.id]));
+        for (let round = 0; round < 100; round++) {
+            for (const question of buildVocabQuiz(words, `${topic}:${round}`, PROMPTS, words.length)) {
                 if (question.kind !== 'choice') continue;
-                const gists = question.choices.map(gist);
-                assert.equal(new Set(gists).size, gists.length, question.choices.join(' | '));
+                const ids = question.choices.map((choice) => idOf.get(choice));
+                for (const [a, b] of pairs) assert.ok(!(ids.includes(a) && ids.includes(b)), `${topic}:${round} offers ${a} and ${b}`);
             }
         }
     }
+});
+
+test('a typed question takes a word from the topic that means exactly what was asked', () => {
+    const quizzes = Array.from({ length: 50 }, (_, round) => buildVocabQuiz(VOCAB.family, `family:${round}`, PROMPTS, VOCAB.family.length)).flat();
+    const askedFor = (roman: string) => {
+        const question = quizzes.find((q) => q.kind === 'typed' && q.answer === roman);
+        assert.ok(question?.kind === 'typed', roman);
+        return question;
+    };
+    assert.ok(typedMatches('veer', askedFor('bhra')), 'brother: veer is a brother too');
+    assert.ok(!typedMatches('bhra', askedFor('veer')), 'brother (affectionate): only veer');
+    assert.ok(!typedMatches('mata', askedFor('mummy')), 'mom: mata is formal');
 });
 
 test('a vocabulary quiz alternates choosing a meaning and typing a word', () => {

@@ -7,8 +7,6 @@ import type { ChoiceQuestion, QuizQuestion, TypedQuestion, VocabWord } from './c
 
 export type QuizScore = { correct: number; total: number };
 
-const GURMUKHI_DIGITS = /[੦-੯]/g;
-
 // The comparison form of a typed answer. Romanized Punjabi has no single
 // spelling, so grading ignores what families write differently: case,
 // spaces, punctuation, accents, w or v, ph or f, and how length is shown (ee
@@ -18,10 +16,10 @@ const GURMUKHI_DIGITS = /[੦-੯]/g;
 // them. No consonant is ever folded into another: t and th, d and dh, n and
 // nh stay different, and there is no "close enough". The house spelling is
 // always shown once checked, so the leniency never teaches a wrong one.
-// Gurmukhi digits count as digits.
+// Gurmukhi letters and digits count as nothing, so a question that shows
+// Gurmukhi digits can't be answered by copying them.
 export function foldRoman(input: string, strict = false): string {
     const plain = input
-        .replace(GURMUKHI_DIGITS, (digit) => String(digit.charCodeAt(0) - 0x0a66))
         .normalize('NFKD')
         .replace(/\p{M}/gu, '')
         .toLowerCase()
@@ -95,15 +93,26 @@ export type VocabQuizPrompts = {
     say: string;     // "How do you say “{english}” in Punjabi?"
 };
 
-// The core of a meaning: "thank you (warmer); kindness" is "thank you".
-const gist = (english: string) => english.split(/[;(]/)[0].trim().toLowerCase();
+// The core meanings of a gloss: each ";" part, up to any "(". "hello;
+// goodbye" means hello and goodbye; "thank you (warmer); kindness" means
+// thank you and kindness.
+const senses = (english: string) => english.split(';').map((part) => part.split('(')[0].trim().toLowerCase());
+
+// Two words mean the same when they share a core meaning, or when the data
+// says so where the glosses don't show it (mom and mother).
+function sameMeaning(a: VocabWord, b: VocabWord): boolean {
+    if (a.sameAs?.includes(b.id) || b.sameAs?.includes(a.id)) return true;
+    const theirs = senses(b.english);
+    return senses(a.english).some((sense) => theirs.includes(sense));
+}
 
 // A topic's quiz: `count` of its words, alternating "what does this mean?"
 // (four English meanings to choose from, the wrong ones from the same topic,
-// and never two that mean the same, like "thank you" and "thank you
-// (warmer)") and "how do you say it?" (type the romanization).
-// The same words and seed always give the same quiz; a new seed gives a new
-// one. The quiz shuffles the choices when it shows them.
+// and never two that mean the same, like "mom" and "mother (formal)") and
+// "how do you say it?" (type the romanization; a word from the topic that
+// means exactly what was asked is right too). The same words and seed always
+// give the same quiz; a new seed gives a new one. The quiz shuffles the
+// choices when it shows them.
 export function buildVocabQuiz(
     words: readonly VocabWord[],
     seed: string,
@@ -114,17 +123,22 @@ export function buildVocabQuiz(
         .slice(0, count)
         .map((word, i): QuizQuestion => {
             if (i % 2 === 1) {
+                // "brother" takes veer as well as bhra; "brother (affectionate)"
+                // takes only veer.
+                const asked = word.english.trim().toLowerCase();
+                const synonyms = words.filter((w) => w !== word && senses(w.english).includes(asked));
+                const accept = [...(word.accept ?? []), ...synonyms.flatMap((w) => [w.roman, ...(w.accept ?? [])])];
                 return {
                     kind: 'typed',
                     prompt: fmt(prompts.say, { english: word.english }),
                     answer: word.roman,
-                    ...(word.accept ? { accept: word.accept } : {}),
+                    ...(accept.length ? { accept } : {}),
                 };
             }
-            const wrong = seededShuffle(words.filter((w) => gist(w.english) !== gist(word.english)), `${seed}:${word.id}`)
-                .map((w) => w.english)
-                .filter((english, j, all) => all.findIndex((other) => gist(other) === gist(english)) === j)
-                .slice(0, 3);
+            const wrong = seededShuffle(words.filter((w) => w !== word && !sameMeaning(w, word)), `${seed}:${word.id}`)
+                .filter((w, j, all) => all.findIndex((other) => sameMeaning(other, w)) === j)
+                .slice(0, 3)
+                .map((w) => w.english);
             return {
                 kind: 'choice',
                 prompt: prompts.meaning,

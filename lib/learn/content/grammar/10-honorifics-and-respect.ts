@@ -97,13 +97,18 @@ const lesson: LessonBody = {
             kind: 'typed',
             prompt: 'Say “Dad has come,” respectfully.',
             answer: 'Papa ji aaye han',
-            accept: ['Papa ji aaye ne', 'Papa ji aa gaye'],
+            // Strict, so haan (I am) isn't taken for han.
+            accept: ['Papa ji aye han', 'Papa ji aaye ne', 'Papa ji aye ne', 'Papa ji aa gaye'],
+            strict: true,
+            explanation: 'Respect takes the plural han, even for one person; haan is only for main (I).',
         },
         {
             kind: 'typed',
             prompt: 'Say “Mom says,” respectfully.',
             answer: 'Mummy kehnde han',
             accept: ['Mummy kehnde ne', 'Mummy ji kehnde han'],
+            strict: true,
+            explanation: 'Respect takes the plural: kehnde han, not kehndi hai.',
         },
     ],
 };

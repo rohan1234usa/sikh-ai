@@ -109,6 +109,10 @@ const lesson: LessonBody = {
             kind: 'typed',
             prompt: 'Say “I am fine.”',
             answer: 'Main theek haan',
+            // Strict, so han (they are) isn't taken for haan (I am).
+            accept: ['Main thik haan'],
+            strict: true,
+            explanation: 'Main takes haan, with the long aa; han is for more than one person, or respect.',
         },
         {
             kind: 'typed',
