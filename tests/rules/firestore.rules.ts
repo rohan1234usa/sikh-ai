@@ -80,7 +80,7 @@ function commit(db: Firestore, ops: Op[]): Promise<void> {
 
 // ─── Seva ───────────────────────────────────────────────────────────────────
 
-// What app/seva/create/page.tsx writes.
+// What app/[lang]/seva/create/page.tsx writes.
 const event = (over: Record<string, unknown> = {}) => ({
     title: 'Langar seva',
     location: 'Gurdwara Sahib, Fremont',

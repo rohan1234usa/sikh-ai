@@ -40,7 +40,7 @@ export function planAuthStart(hint: AuthHint, firebaseDb: boolean | null): 'rest
 }
 
 // Firebase Auth's IndexedDB database, where a signed-in session is kept.
-export const FIREBASE_AUTH_DB = 'firebaseLocalStorageDb';
+const FIREBASE_AUTH_DB = 'firebaseLocalStorageDb';
 
 export async function hasFirebaseAuthDb(): Promise<boolean | null> {
     try {
@@ -52,5 +52,5 @@ export async function hasFirebaseAuthDb(): Promise<boolean | null> {
     }
 }
 
-// Runs before first paint (see app/layout.tsx), alongside the theme script.
+// Runs before first paint (see app/[lang]/layout.tsx), alongside the theme script.
 export const AUTH_HINT_SCRIPT = `try{if(localStorage.getItem('${AUTH_HINT_KEY}')==='1')document.documentElement.dataset.auth='1'}catch(e){}`;

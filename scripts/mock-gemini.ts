@@ -63,7 +63,7 @@ function cannedReply(name: string): string | undefined {
 
 // About 12,000 characters of real model answers (headings, lists, Gurmukhi
 // quotes), roughly what a whole Ang explained line by line comes to.
-export const LONG_REPLY_CHARS = 12_000;
+const LONG_REPLY_CHARS = 12_000;
 function longReply(): string {
     const parts: string[] = [];
     let length = 0;

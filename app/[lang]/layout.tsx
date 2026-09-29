@@ -22,9 +22,9 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: t.meta.description,
     metadataBase: new URL(SITE_URL),
-    // The preview for pages that don't build their own (share links, 404s):
-    // the site's title and image, with no URL. Each page's own preview and
-    // canonical URL come from pageMetadata() in lib/metadata.ts.
+    // The preview for pages that don't build their own (share links): the
+    // site's title and image, with no URL. Each page's own preview, canonical
+    // URL and language alternates come from pageMetadata() in lib/metadata.ts.
     openGraph: openGraph(lang, t, t.meta.title),
     twitter: { card: "summary_large_image" },
   };

@@ -13,7 +13,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 type RequestContext = { requestId: string; route: string };
 const requests = new AsyncLocalStorage<RequestContext>();
 
-export function requestIdOf(req: Request): string {
+function requestIdOf(req: Request): string {
     return req.headers.get('x-vercel-id')?.slice(0, 120) || crypto.randomUUID();
 }
 

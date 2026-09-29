@@ -54,7 +54,7 @@ graph TD
 The chat client sends only whitelisted IDs (`lensId` / `modeId` / `languageId`, plus an optional `script` hint) and an optional reference passage — never prompt text. The route validates each value, silently falls back to defaults on anything unknown, and assembles the persona server-side in `lib/chat/`, so prompt fragments never ship to the browser and can't be tampered with from the client.
 
 ### Engineering Highlights
-*   **Hybrid Rendering**: React Server Components for static/data-fetched content (e.g. the server-rendered Hukamnama) with Client Components for the interactive AI chat.
+*   **Hybrid Rendering**: React Server Components for static/data-fetched content (the server-rendered Hukamnama and every Ang's page) with Client Components for the interactive AI chat.
 *   **Streamed Responses**: The chat API returns a raw `text/plain` `ReadableStream`, so tokens render as they generate — minimizing time-to-first-token. The page redraws at most once per animation frame, and only the reply that is streaming redraws: the replies above it are memoized, and the streaming one is cut into Markdown blocks (`lib/chat/markdownBlocks.ts`), so each new piece re-parses only its unfinished end. `MOCK_LONG` in the Gemini mock streams a 12,000-character answer in small pieces to profile this.
 *   **Schema-constrained JSON output**: The translator uses Gemini's `responseMimeType: 'application/json'` + `responseSchema`, with the schema enums generated from the same `as const` unions as the TypeScript types so the two can't drift. The response is then re-validated at runtime in `lib/translate/parse.ts` — malformed list entries are dropped rather than failing the whole translation, and a truncated response is caught via its `MAX_TOKENS` finish reason instead of surfacing as a JSON parse error.
 *   **Pinned models, not aliases**: Every Gemini call names a specific stable model, set in one place (`lib/gemini/models.ts`) with a per-feature env override (`GEMINI_CHAT_MODEL`, `GEMINI_TRANSLATE_MODEL`). Google hot-swaps the `gemini-flash-latest` alias on each release, so the model behind the prompts could change with no code change; pinning makes upgrades deliberate, and the override lets a preview deployment try a model first. Both routes set `thinkingLevel: LOW` and no sampling temperature, per Google's Gemini 3.x guidance, with the translator's fidelity rules stated in its system prompt instead.
@@ -70,7 +70,7 @@ The chat client sends only whitelisted IDs (`lensId` / `modeId` / `languageId`, 
     *   Firebase loads only where it's used (`lib/firebase/`). Firestore ships with Seva, shared chats and account chats. Auth, about 50 KB, loads straight away only in a browser that was signed in last time (a hint in `localStorage`, copied onto `<html data-auth>` before first paint so "Sign in" never flashes up), and otherwise as the pointer, focus or a finger reaches a sign-in button. Pages that don't use Firebase dropped from about 305 KB of script to 170 KB (gzipped).
     *   Every route sends the standard security headers (`next.config.ts`), and none sends `X-Powered-By`. A Content-Security-Policy (`lib/csp.ts`) runs report-only: browsers post what it would block to `/api/csp-report`, which logs a `csp_violation` line (directive, blocked origin, page path). Scripts keep `'unsafe-inline'`, because Next sends each page's data in inline scripts and a per-request nonce would make every page dynamic, so the policy guards where scripts, frames and connections come from and who may frame the site.
     *   The chat and translator refuse request bodies larger than a real client can send.
-    *   Each page builds its own link preview and canonical URL (`lib/metadata.ts`), because Next replaces a parent's `openGraph` rather than merging it.
+    *   Each page builds its own description, link preview, canonical URL and language alternates (`lib/metadata.ts`), because Next replaces a parent's `openGraph` rather than merging it.
     *   Crawlers get `robots.txt` and `sitemap.xml`.
     *   A failure in the root layout itself gets a translated, themed page (`app/global-error.tsx`) rather than Next's bare default.
     *   The site installs as an app on a phone: `app/manifest.ts`, and icons that are the navbar's ੴ in the site's own Gurmukhi font (`public/icon-*.png`, `app/apple-icon.png`).
@@ -176,7 +176,7 @@ Two more, for seeing how the site does:
 ## 💻 Usage Examples
 
 ### 1. The Hukamnama Fetcher (Server-Side)
-A server component renders the daily decree through the same GurbaniNow client that checks the chat's quotes. The Hukamnama is kept for ten minutes, so repeat visits don't wait on the source. `app/hukamnama/loading.tsx` draws the page's shape meanwhile, and a source that is slow or down becomes a readable message rather than a hanging page.
+A server component renders the daily decree through the same GurbaniNow client that checks the chat's quotes. The Hukamnama is kept for ten minutes, so repeat visits don't wait on the source. `app/[lang]/hukamnama/loading.tsx` draws the page's shape meanwhile, and a source that is slow or down becomes a readable message rather than a hanging page.
 
 ```typescript
 // lib/gurbani/gurbaninow.ts
@@ -317,7 +317,7 @@ Answers are cached in `scripts/phrasebook-build/cache.json`, so a rebuild only p
 *   [ ] **Localized phrasebook notes**: the phrasebook's cultural notes are English-only in every UI language. `npm run audit:i18n -- --localize-notes` generates Gurmukhi drafts ready to hand-apply; romanized Punjabi has no machine path and needs a fluent speaker.
 *   [ ] **Retrieval grounding**: A real citation/retrieval layer over Gurbani texts to anchor answers to specific Shabads.
 *   [x] **Cloud-synced history**: Firestore-backed chat history across devices, with share links — on once the rules are deployed (Running in production, step 5).
-*   [ ] **Mobile App**: React Native export for iOS/Android.
+*   [ ] **Mobile App**: The site already installs from a phone's browser (web app manifest and icons). Next, an offline copy of today's Hukamnama; later, a React Native export for iOS/Android.
 
 Smaller planned work — speed, security, search and cost — is tracked in the [issues](https://github.com/rohan1234usa/sikh-ai/issues).
 

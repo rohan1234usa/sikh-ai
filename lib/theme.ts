@@ -44,7 +44,7 @@ function readStoredTheme(): Theme {
 }
 
 // The page's one theme-color tag, written only by this module and the
-// pre-paint script; app/layout.tsx must not emit `viewport.themeColor`. React
+// pre-paint script; app/[lang]/layout.tsx must not emit `viewport.themeColor`. React
 // hydrates a <meta> by claiming any existing one with the same name + content,
 // so a Next-rendered tag beside this one would be mistaken for it — the crash
 // fixed in #2. Found by its own id, so no other theme-color tag takes the
