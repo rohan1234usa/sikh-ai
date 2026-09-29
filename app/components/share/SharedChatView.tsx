@@ -8,7 +8,7 @@ import { LinkIcon } from '@heroicons/react/24/outline';
 import { isChatId } from '@/lib/chat/chatMeta';
 import { toDisplayItems } from '@/lib/chat/exchange';
 import { parseShareDoc, shareToRecord, type SharedChat } from '@/lib/chat/share';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase/firestore';
 import { formatDate } from '@/lib/i18n/date';
 import { fmt } from '@/lib/i18n/fmt';
 import { useLanguage } from '../../context/LanguageContext';

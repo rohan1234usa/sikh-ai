@@ -3,7 +3,7 @@
 import { useCallback, useSyncExternalStore } from 'react';
 import type { ChatHome } from '@/lib/chat/chatMeta';
 import type { ChatStore } from '@/lib/chat/store/types';
-import { cloudChatsEnabled } from '@/lib/firebase';
+import { cloudChatsEnabled } from '@/lib/firebase/config';
 import { useAuth } from '../../context/AuthContext';
 import { getAccountChatStore, getLocalChatStore } from './chatStores';
 

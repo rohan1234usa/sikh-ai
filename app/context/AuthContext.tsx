@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { auth, googleProvider } from '@/lib/firebase';
+import { auth, googleProvider } from '@/lib/firebase/auth';
 import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
 
 type AuthContextType = {

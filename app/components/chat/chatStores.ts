@@ -6,7 +6,8 @@
 
 import { onAuthStateChanged } from 'firebase/auth';
 import type { ChatHome } from '@/lib/chat/chatMeta';
-import { auth, db } from '@/lib/firebase';
+import { auth } from '@/lib/firebase/auth';
+import { db } from '@/lib/firebase/firestore';
 import { FirestoreChatStore, type WriteFailure } from '@/lib/chat/store/firestore';
 import { LocalChatStore, type StorageLike } from '@/lib/chat/store/local';
 import { ReplyRuntime, verifyOverHttp } from '@/lib/chat/runtime';

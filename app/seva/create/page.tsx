@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase/firestore';
 import { collection, addDoc } from 'firebase/firestore';
 import { useT } from '../../context/LanguageContext';
 
