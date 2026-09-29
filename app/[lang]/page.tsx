@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import IntentLink from '@/app/components/IntentLink';
 import {
+  AcademicCapIcon,
   ChatBubbleLeftRightIcon,
   SunIcon,
   MagnifyingGlassIcon,
@@ -17,6 +18,7 @@ import { pageMetadata } from '@/lib/metadata';
 const FEATURE_LINKS = [
   { key: 'chat', href: '/chat', Icon: ChatBubbleLeftRightIcon },
   { key: 'translate', href: '/translate', Icon: LanguageIcon },
+  { key: 'learn', href: '/learn', Icon: AcademicCapIcon },
   { key: 'hukamnama', href: '/hukamnama', Icon: SunIcon },
   { key: 'shabad', href: '/shabad', Icon: MagnifyingGlassIcon },
   { key: 'seva', href: '/seva', Icon: UserGroupIcon },

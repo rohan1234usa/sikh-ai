@@ -261,6 +261,7 @@ const en = {
         seva: 'Seva Events',
         shabad: 'Shabad Search',
         translate: 'Translator',
+        learn: 'Learn Punjabi',
         greeting: 'Sat Sri Akal, {name}',
         signIn: 'Sign In',
         signOut: 'Sign Out',
@@ -303,6 +304,11 @@ const en = {
                 title: 'Punjabi Translator',
                 desc: 'Translate between English and Punjabi — Gurmukhi, Roman, and meaning together.',
                 cta: 'Start translating',
+            },
+            learn: {
+                title: 'Learn Punjabi',
+                desc: 'Lessons for Punjabi Americans: read Gurmukhi, learn the grammar, practice words with flashcards, and ask a tutor.',
+                cta: 'Start learning',
             },
             shabad: {
                 title: 'Shabad Search',

@@ -18,6 +18,10 @@ export default function Navbar() {
     const [open, setOpen] = useState(false);
     const closeMenu = () => setOpen(false);
 
+    // Seven links fit on one line from lg (1024px) up in all three languages,
+    // romanized Punjabi's being the longest, at a tighter gap until xl; below
+    // lg they sit in the menu. The signed-in greeting waits for xl, where
+    // there is room for it too.
     const links = [
         { href: to('/about'), label: t.nav.about },
         { href: to('/hukamnama'), label: t.nav.hukamnama },
@@ -25,6 +29,7 @@ export default function Navbar() {
         { href: to('/seva'), label: t.nav.seva },
         { href: to('/shabad'), label: t.nav.shabad },
         { href: to('/translate'), label: t.nav.translate },
+        { href: to('/learn'), label: t.nav.learn },
     ];
 
     const isActive = (href: string) =>
@@ -37,7 +42,7 @@ export default function Navbar() {
                     <span className="font-gurmukhi text-kesri" aria-hidden="true">ੴ</span> SikhAI
                 </IntentLink>
 
-                <ul className="hidden md:flex items-center gap-6 text-sm font-medium">
+                <ul className="hidden lg:flex items-center gap-3 xl:gap-6 whitespace-nowrap text-sm font-medium">
                     {links.map(({ href, label }) => (
                         <li key={href}>
                             <IntentLink
@@ -58,7 +63,7 @@ export default function Navbar() {
                     <ThemeToggle />
                     {user ? (
                         <div className="flex items-center gap-3">
-                            <span className="hidden lg:inline text-sm text-slate-300">
+                            <span className="hidden xl:inline text-sm text-slate-300">
                                 {fmt(t.nav.greeting, { name: user.displayName?.split(' ')[0] ?? '' })}
                             </span>
                             <button
@@ -85,7 +90,7 @@ export default function Navbar() {
                         aria-expanded={open}
                         aria-controls="mobile-nav"
                         aria-label={t.nav.toggleMenu}
-                        className="md:hidden p-2 -mr-2"
+                        className="lg:hidden p-2 -mr-2"
                     >
                         {open ? <XMarkIcon className="w-6 h-6" /> : <Bars3Icon className="w-6 h-6" />}
                     </button>
@@ -93,7 +98,7 @@ export default function Navbar() {
             </nav>
 
             {open && (
-                <ul id="mobile-nav" className="md:hidden border-t border-white/10 bg-navy px-4 py-3 space-y-1">
+                <ul id="mobile-nav" className="lg:hidden border-t border-white/10 bg-navy px-4 py-3 space-y-1">
                     {links.map(({ href, label }) => (
                         <li key={href}>
                             <IntentLink

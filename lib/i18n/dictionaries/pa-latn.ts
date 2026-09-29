@@ -257,6 +257,7 @@ const paLatn: Dictionary = {
         seva: 'Seva Samagam',
         shabad: 'Shabad Khoj',
         translate: 'Anuvadak',
+        learn: 'Punjabi Sikho',
         greeting: 'Sat Sri Akal, {name}',
         signIn: 'Sign In',
         signOut: 'Sign Out',
@@ -298,6 +299,11 @@ const paLatn: Dictionary = {
                 title: 'Punjabi Anuvadak',
                 desc: 'Angrezi ate Punjabi vichkar anuvaad karo — Gurmukhi, Roman ate arth ikatthe.',
                 cta: 'Anuvaad shuru karo',
+            },
+            learn: {
+                title: 'Punjabi Sikho',
+                desc: 'Punjabi Amrikian layi sabak: Gurmukhi parho, viakaran sikho, flashcardan naal shabadan da abhiaas karo, ate tutor nu puchho.',
+                cta: 'Sikhna shuru karo',
             },
             shabad: {
                 title: 'Shabad Khoj',
