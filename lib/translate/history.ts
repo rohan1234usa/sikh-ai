@@ -4,6 +4,11 @@
 
 import { TRANSLATE_RESULT_REV, type SourceHint, type TranslationResult } from './config';
 
+// How many results the list keeps, newest first
+// (app/components/translate/useTranslateHistory.ts). /privacy states it
+// (lib/policy.ts).
+export const MAX_TRANSLATE_HISTORY = 30;
+
 export type HistoryEntry = {
     input: string;
     sourceHint: SourceHint;
