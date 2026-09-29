@@ -1,0 +1,31 @@
+# Weekly, grouped update PRs. next, react and react-dom are pinned to exact
+# versions, so without these, patch and security releases only arrive when
+# someone bumps them by hand.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    # A package joins the first group it matches.
+    groups:
+      # Released together, and eslint-config-next must match next.
+      nextjs:
+        patterns: ["next", "eslint-config-next", "@next/*"]
+      react:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+    ignore:
+      # Node is pinned to 24 (.nvmrc and engines), and its types follow it.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

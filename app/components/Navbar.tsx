@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import IntentLink from './IntentLink';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
@@ -32,14 +32,14 @@ export default function Navbar() {
     return (
         <header className="sticky top-0 z-50 bg-navy text-white shadow-md dark:border-b dark:border-white/10">
             <nav aria-label={t.nav.mainNavAria} className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-                <Link href="/" onClick={closeMenu} className="flex items-center gap-2 text-xl font-bold tracking-wide">
+                <IntentLink href="/" onClick={closeMenu} className="flex items-center gap-2 text-xl font-bold tracking-wide">
                     <span className="font-gurmukhi text-kesri" aria-hidden="true">ੴ</span> SikhAI
-                </Link>
+                </IntentLink>
 
                 <ul className="hidden md:flex items-center gap-6 text-sm font-medium">
                     {links.map(({ href, label }) => (
                         <li key={href}>
-                            <Link
+                            <IntentLink
                                 href={href}
                                 aria-current={isActive(href) ? 'page' : undefined}
                                 className={isActive(href)
@@ -47,7 +47,7 @@ export default function Navbar() {
                                     : 'text-slate-300 hover:text-kesri transition-colors'}
                             >
                                 {label}
-                            </Link>
+                            </IntentLink>
                         </li>
                     ))}
                 </ul>
@@ -92,7 +92,7 @@ export default function Navbar() {
                 <ul id="mobile-nav" className="md:hidden border-t border-white/10 bg-navy px-4 py-3 space-y-1">
                     {links.map(({ href, label }) => (
                         <li key={href}>
-                            <Link
+                            <IntentLink
                                 href={href}
                                 onClick={closeMenu}
                                 aria-current={isActive(href) ? 'page' : undefined}
@@ -101,7 +101,7 @@ export default function Navbar() {
                                     : 'text-slate-200 hover:bg-white/5'}`}
                             >
                                 {label}
-                            </Link>
+                            </IntentLink>
                         </li>
                     ))}
                 </ul>

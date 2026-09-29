@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import IntentLink from './IntentLink';
 import { usePathname } from 'next/navigation';
 import { useT } from '../context/LanguageContext';
 
@@ -30,9 +30,9 @@ export default function Footer() {
                     <ul className="flex flex-wrap justify-center gap-x-5 gap-y-2">
                         {links.map(({ href, label }) => (
                             <li key={href}>
-                                <Link href={href} className="hover:text-accent-text transition-colors">
+                                <IntentLink href={href} className="hover:text-accent-text transition-colors">
                                     {label}
-                                </Link>
+                                </IntentLink>
                             </li>
                         ))}
                     </ul>

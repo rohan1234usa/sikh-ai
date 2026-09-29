@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import { getServerT } from '@/lib/i18n/server';
+import { pageMetadata } from '@/lib/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { t } = await getServerT();
-  return { title: t.meta.translateTitle };
+  const { lang, t } = await getServerT();
+  return pageMetadata(lang, t, '/translate', t.meta.translateTitle);
 }
 
 export default function TranslateLayout({ children }: { children: React.ReactNode }) {
