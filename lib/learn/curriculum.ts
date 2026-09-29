@@ -3,7 +3,17 @@
 // and the tutor route import it, and hand a client component only the lesson
 // or topic it shows, so no page ships the rest of the course.
 
-import { LESSON_META, lessonMeta, lessonsFor, type Lesson, type LessonBody, type LessonEntry, type LessonSlug } from './config';
+import {
+    LESSON_META,
+    lessonMeta,
+    lessonsFor,
+    type Lesson,
+    type LessonBody,
+    type LessonEntry,
+    type LessonSlug,
+    type VocabTopicId,
+    type VocabWord,
+} from './config';
 import howGurmukhiWorks from './content/script/01-how-gurmukhi-works';
 import rows34 from './content/script/02-rows-3-4-palatal-retroflex';
 import rows57 from './content/script/03-rows-5-7-dental-labial-last';
@@ -25,6 +35,16 @@ import questions from './content/grammar/09-questions-and-negation';
 import honorifics from './content/grammar/10-honorifics-and-respect';
 import dativeSubjects from './content/grammar/11-dative-subjects';
 import compoundVerbs from './content/grammar/12-compound-verbs-and-modals';
+import bodyHealth from './content/vocab/body-health';
+import describing from './content/vocab/describing';
+import family from './content/vocab/family';
+import feelings from './content/vocab/feelings';
+import food from './content/vocab/food';
+import greetings from './content/vocab/greetings';
+import gurdwara from './content/vocab/gurdwara';
+import home from './content/vocab/home';
+import numbersTime from './content/vocab/numbers-time';
+import verbs from './content/vocab/verbs';
 
 // Keyed by slug, so a lesson listed in LESSON_META without a body, or a body
 // under a slug that isn't listed, is a compile error.
@@ -62,5 +82,19 @@ export function neighbours(slug: LessonSlug): { prev?: LessonEntry; next?: Lesso
     const index = track.findIndex((meta) => meta.slug === slug);
     return { prev: track[index - 1], next: track[index + 1], index, total: track.length };
 }
+
+// Every vocabulary topic's words, in the order its page lists them.
+export const VOCAB: Record<VocabTopicId, VocabWord[]> = {
+    'family': family,
+    'greetings': greetings,
+    'gurdwara': gurdwara,
+    'food': food,
+    'home': home,
+    'numbers-time': numbersTime,
+    'body-health': bodyHealth,
+    'feelings': feelings,
+    'describing': describing,
+    'verbs': verbs,
+};
 
 export { LESSON_META };

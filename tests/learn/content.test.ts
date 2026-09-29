@@ -1,4 +1,4 @@
-// Holds every lesson to the section's contract: complete parallel text,
+// Holds every lesson and vocabulary word to the section's contract: complete parallel text,
 // Gurmukhi that is only Gurmukhi, romanization in the house style, quizzes
 // that can be answered, and one spelling per word across the lessons, the
 // vocabulary and the translator's phrasebook. The content is AI-drafted and
@@ -8,17 +8,21 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+    GENDERS,
     LESSON_META,
     LESSON_TRACK_IDS,
+    PARTS_OF_SPEECH,
+    VOCAB_TOPIC_IDS,
     isLessonSlug,
     learnPaths,
     lessonPath,
     lessonsFor,
+    topicPath,
     type Example,
     type QuizQuestion,
 } from '@/lib/learn/config';
-import { getLesson, neighbours } from '@/lib/learn/curriculum';
-import { typedMatches } from '@/lib/learn/quiz';
+import { VOCAB, getLesson, neighbours } from '@/lib/learn/curriculum';
+import { buildVocabQuiz, typedMatches } from '@/lib/learn/quiz';
 import { PHRASES } from '@/lib/translate/phrasebook';
 import { scanValue } from '../../scripts/i18n-audit/free-checks';
 import { caseIssues, romanIssues, scriptIssues } from '../../scripts/translate-eval/score';
@@ -81,6 +85,18 @@ for (const lesson of LESSONS) {
         section.examples?.forEach((example, e) => addExample(`${where}.examples[${e}]`, example));
     });
     lesson.quiz.forEach((question, q) => addQuestion(`${at}.quiz[${q}]`, question));
+}
+
+for (const topic of VOCAB_TOPIC_IDS) {
+    VOCAB[topic].forEach((word, w) => {
+        const at = `vocab.${word.id ?? `${topic}[${w}]`}`;
+        gurmukhiFields.push({ label: `${at}.gurmukhi`, value: word.gurmukhi });
+        romanFields.push({ label: `${at}.roman`, value: word.roman });
+        englishFields.push({ label: `${at}.english`, value: word.english });
+        if (word.note) englishFields.push({ label: `${at}.note`, value: word.note });
+        pairs.push({ label: at, gurmukhi: word.gurmukhi, roman: word.roman });
+        if (word.example) addExample(`${at}.example`, word.example);
+    });
 }
 
 test('every lesson has a unique, URL-safe slug and a title and summary that fit', () => {
@@ -171,7 +187,7 @@ const romanWords = (text: string) =>
 // this short: each entry is a spelling a reader sees in two forms.
 const HOMOGRAPHS = new Set<string>([]);
 
-test('one spelling per word across the lessons and the phrasebook', () => {
+test('one spelling per word across the lessons, the vocabulary and the phrasebook', () => {
     const seen = new Map<string, Map<string, string>>(); // Gurmukhi word → roman → where
     const all = [
         ...pairs,
@@ -207,10 +223,50 @@ test('every track links its lessons in order, first to last', () => {
     }
 });
 
-test('the section lists every lesson page once', () => {
+test('the section lists every lesson and topic page once', () => {
     const paths = learnPaths();
     assert.equal(new Set(paths).size, paths.length, 'no path twice');
     for (const meta of LESSON_META) assert.ok(paths.includes(lessonPath(meta)), lessonPath(meta));
-    assert.ok(paths.includes('/learn'));
-    for (const track of LESSON_TRACK_IDS) assert.ok(paths.includes(`/learn/${track}`));
+    for (const topic of VOCAB_TOPIC_IDS) assert.ok(paths.includes(topicPath(topic)), topicPath(topic));
+    for (const path of ['/learn', '/learn/vocab', ...LESSON_TRACK_IDS.map((track) => `/learn/${track}`)]) {
+        assert.ok(paths.includes(path), path);
+    }
+});
+
+test('every vocabulary word is complete, in its topic, and typed right', () => {
+    const ids = new Set<string>();
+    for (const topic of VOCAB_TOPIC_IDS) {
+        const words = VOCAB[topic];
+        assert.ok(words.length >= 15, `${topic}: ${words.length} words`);
+        const meanings = new Set<string>();
+        for (const word of words) {
+            assert.match(word.id, new RegExp(`^${topic}-[a-z0-9]+(-[a-z0-9]+)*$`), `${word.id} is prefixed by its topic`);
+            assert.ok(!ids.has(word.id), `${word.id} is listed twice`);
+            ids.add(word.id);
+            assert.equal(word.topic, topic, `${word.id} is filed under ${topic}`);
+            assert.ok(!meanings.has(word.english), `${topic}: two words mean "${word.english}"`);
+            meanings.add(word.english);
+            assert.ok(PARTS_OF_SPEECH.includes(word.pos), `${word.id}: part of speech`);
+            if (word.pos === 'noun') assert.ok(word.gender && GENDERS.includes(word.gender), `${word.id}: a noun needs its gender`);
+            else assert.equal(word.gender, undefined, `${word.id}: only nouns have a gender`);
+            if (word.pos === 'verb') {
+                assert.ok(word.example, `${word.id}: a verb needs an example`);
+                assert.match(word.roman, /na$/, `${word.id}: a verb is its -na infinitive`);
+            }
+            const asTyped = { answer: word.roman, accept: word.accept };
+            assert.ok(typedMatches(word.roman, asTyped), `${word.id}: its own spelling is graded right`);
+            for (const spelling of word.accept ?? []) assert.ok(typedMatches(spelling, asTyped), `${word.id}: "${spelling}"`);
+        }
+    }
+});
+
+test('every topic can build a full vocabulary quiz', () => {
+    const prompts = { meaning: 'What does this mean?', say: 'How do you say “{english}”?' };
+    for (const topic of VOCAB_TOPIC_IDS) {
+        const quiz = buildVocabQuiz(VOCAB[topic], `check-${topic}`, prompts);
+        assert.equal(quiz.length, 10, topic);
+        for (const question of quiz) {
+            if (question.kind === 'choice') assert.equal(new Set(question.choices).size, 4, `${topic}: four different meanings`);
+        }
+    }
 });
