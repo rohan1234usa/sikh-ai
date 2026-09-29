@@ -25,6 +25,7 @@ import {
     getDoc,
     getDocs,
     setDoc,
+    setLogLevel,
     updateDoc,
     writeBatch,
     type Firestore,
@@ -46,6 +47,9 @@ import { meta } from '../chat/store-helpers';
 let env: RulesTestEnvironment;
 
 before(async () => {
+    // The SDK logs every refused write as an error. Here refusals are the
+    // point, and they'd bury a real failure in the output.
+    setLogLevel('silent');
     env = await initializeTestEnvironment({
         projectId: 'demo-sikhai',
         firestore: { rules: readFileSync(resolve(import.meta.dirname, '../../firestore.rules'), 'utf8') },
