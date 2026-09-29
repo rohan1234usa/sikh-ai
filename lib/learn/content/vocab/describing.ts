@@ -1,4 +1,4 @@
-// Vocabulary: colours and describing words. Adjectives ending in -a change
+// Vocabulary: colors and describing words. Adjectives ending in -a change
 // to match their noun (changa, changi, change); those ending in a consonant
 // never change. Types: lib/learn/config.ts.
 //

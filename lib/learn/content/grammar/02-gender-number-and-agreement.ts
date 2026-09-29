@@ -70,7 +70,7 @@ const lesson: LessonBody = {
                 { gurmukhi: 'ਉਹ ਥੱਕਿਆ ਹੋਇਆ ਹੈ', roman: 'Oh thakkia hoya hai', english: 'He is tired' },
                 { gurmukhi: 'ਉਹ ਥੱਕੀ ਹੋਈ ਹੈ', roman: 'Oh thakki hoyi hai', english: 'She is tired' },
             ],
-            tip: 'If you are a woman, practise your own forms out loud: main sakdi haan, main thakki hoyi haan. Many learners only ever heard the masculine ones.',
+            tip: 'If you are a woman, practice your own forms out loud: main sakdi haan, main thakki hoyi haan. Many learners only ever heard the masculine ones.',
         },
     ],
     quiz: [

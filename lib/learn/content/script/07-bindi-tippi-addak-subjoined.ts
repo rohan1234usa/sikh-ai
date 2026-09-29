@@ -57,7 +57,7 @@ const lesson: LessonBody = {
                 { gurmukhi: 'ਪੜ੍ਹੋ', roman: 'parho', english: 'read (politely)' },
                 { gurmukhi: 'ਥੋੜ੍ਹਾ', roman: 'thorha', english: 'a little' },
                 { gurmukhi: 'ਪ੍ਰੇਮ', roman: 'prem', english: 'love' },
-                { gurmukhi: 'ਸ੍ਰੀ', roman: 'Sri', english: 'Sri, a title of honour', note: 'As in Sri Guru Granth Sahib Ji. ਸਿਰੀ is the same word, spelled out.' },
+                { gurmukhi: 'ਸ੍ਰੀ', roman: 'Sri', english: 'Sri, a title of honor', note: 'As in Sri Guru Granth Sahib Ji. ਸਿਰੀ is the same word, spelled out.' },
             ],
         },
     ],

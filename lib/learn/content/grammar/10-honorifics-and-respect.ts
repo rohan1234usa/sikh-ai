@@ -56,7 +56,7 @@ const lesson: LessonBody = {
         {
             heading: 'Sahib, Bhai and Bibi',
             body: [
-                'ਸਾਹਿਬ (Sahib) honours places, scripture and people: ਦਰਬਾਰ ਸਾਹਿਬ, ਸ੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ. At the Gurdwara, a man you don’t know is ਭਾਈ ਸਾਹਿਬ and a woman is ਬੀਬੀ ਜੀ.',
+                'ਸਾਹਿਬ (Sahib) honors places, scripture and people: ਦਰਬਾਰ ਸਾਹਿਬ, ਸ੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ. At the Gurdwara, a man you don’t know is ਭਾਈ ਸਾਹਿਬ and a woman is ਬੀਬੀ ਜੀ.',
             ],
             examples: [
                 { gurmukhi: 'ਦਰਬਾਰ ਸਾਹਿਬ', roman: 'Darbar Sahib', english: 'Darbar Sahib, the Golden Temple in Amritsar' },
