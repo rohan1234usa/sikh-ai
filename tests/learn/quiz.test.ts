@@ -9,7 +9,7 @@ import {
     seededShuffle,
     typedMatches,
 } from '@/lib/learn/quiz';
-import { getLesson } from '@/lib/learn/curriculum';
+import { VOCAB, getLesson } from '@/lib/learn/curriculum';
 
 test('grading ignores case, spaces, punctuation and accents', () => {
     assert.equal(foldRoman('  Ki haal HAI? '), foldRoman('kihaalhai'));
@@ -118,6 +118,21 @@ const WORDS: VocabWord[] = ['roti', 'pani', 'daal', 'saag', 'lassi', 'chaul'].ma
     ...(roman === 'chaul' ? { accept: ['chawal'] } : {}),
 }));
 const PROMPTS = { meaning: 'What does this mean?', say: 'How do you say “{english}”?' };
+
+test('a meaning question never offers two choices that mean the same', () => {
+    // greetings has thank you and thank you (warmer); family has brother and
+    // brother (affectionate): only one of each pair may be on offer.
+    const gist = (english: string) => english.split(/[;(]/)[0].trim().toLowerCase();
+    for (const words of Object.values(VOCAB)) {
+        for (let seed = 0; seed < 40; seed++) {
+            for (const question of buildVocabQuiz(words, `s${seed}`, PROMPTS, words.length)) {
+                if (question.kind !== 'choice') continue;
+                const gists = question.choices.map(gist);
+                assert.equal(new Set(gists).size, gists.length, question.choices.join(' | '));
+            }
+        }
+    }
+});
 
 test('a vocabulary quiz alternates choosing a meaning and typing a word', () => {
     const quiz = buildVocabQuiz(WORDS, 'seed-1', PROMPTS, 6);

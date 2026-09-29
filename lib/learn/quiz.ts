@@ -95,10 +95,15 @@ export type VocabQuizPrompts = {
     say: string;     // "How do you say “{english}” in Punjabi?"
 };
 
+// The core of a meaning: "thank you (warmer); kindness" is "thank you".
+const gist = (english: string) => english.split(/[;(]/)[0].trim().toLowerCase();
+
 // A topic's quiz: `count` of its words, alternating "what does this mean?"
-// (four English meanings to choose from, the wrong ones from the same topic)
-// and "how do you say it?" (type the romanization). The same words and seed
-// always give the same quiz; a new seed gives a new one.
+// (four English meanings to choose from, the wrong ones from the same topic,
+// and never two that mean the same, like "thank you" and "thank you
+// (warmer)") and "how do you say it?" (type the romanization).
+// The same words and seed always give the same quiz; a new seed gives a new
+// one. The quiz shuffles the choices when it shows them.
 export function buildVocabQuiz(
     words: readonly VocabWord[],
     seed: string,
@@ -116,16 +121,16 @@ export function buildVocabQuiz(
                     ...(word.accept ? { accept: word.accept } : {}),
                 };
             }
-            const wrong = seededShuffle(words.filter((w) => w.english !== word.english), `${seed}:${word.id}`)
+            const wrong = seededShuffle(words.filter((w) => gist(w.english) !== gist(word.english)), `${seed}:${word.id}`)
                 .map((w) => w.english)
-                .filter((english, j, all) => all.indexOf(english) === j)
+                .filter((english, j, all) => all.findIndex((other) => gist(other) === gist(english)) === j)
                 .slice(0, 3);
             return {
                 kind: 'choice',
                 prompt: prompts.meaning,
                 promptPa: word.gurmukhi,
                 promptRoman: word.roman,
-                choices: seededShuffle([word.english, ...wrong], `${seed}:${word.id}:choices`),
+                choices: [word.english, ...wrong],
                 answer: word.english,
             };
         });
