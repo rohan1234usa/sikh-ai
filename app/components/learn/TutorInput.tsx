@@ -122,6 +122,8 @@ export default function TutorInput({ value, onChange, onSend, onStop, isStreamin
                 <p>
                     {t.learn.tutor.disclaimer}{' '}
                     <Link href={to('/privacy')} className="underline hover:text-accent-text">{t.footer.privacy}</Link>
+                    {' · '}
+                    <Link href={to('/terms')} className="underline hover:text-accent-text">{t.footer.terms}</Link>
                 </p>
                 {nearCap && (
                     <span id={countId} className={`shrink-0 tabular-nums ${atCap ? 'font-semibold text-red-600 dark:text-red-400' : ''}`}>

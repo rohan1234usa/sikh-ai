@@ -805,6 +805,7 @@ const paLatn: Dictionary = {
         builtBy: 'Nirmata:',
         navAria: 'Footer',
         privacy: 'Nijjta',
+        terms: 'Shartan',
     },
 
     // /privacy (app/[lang]/privacy): who runs the site; what it keeps, where and

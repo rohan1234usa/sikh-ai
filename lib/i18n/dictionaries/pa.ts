@@ -805,6 +805,7 @@ const pa: Dictionary = {
         builtBy: 'ਨਿਰਮਾਤਾ:',
         navAria: 'ਫੁੱਟਰ',
         privacy: 'ਨਿੱਜਤਾ',
+        terms: 'ਸ਼ਰਤਾਂ',
     },
 
     // /privacy (app/[lang]/privacy): who runs the site; what it keeps, where and

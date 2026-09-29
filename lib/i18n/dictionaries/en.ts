@@ -818,6 +818,7 @@ const en = {
         builtBy: 'Built by',
         navAria: 'Footer',
         privacy: 'Privacy',
+        terms: 'Terms',
     },
 
     // /privacy (app/[lang]/privacy): who runs the site; what it keeps, where and
