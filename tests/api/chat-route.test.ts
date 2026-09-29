@@ -109,6 +109,16 @@ test('input validation happens before any model call', async () => {
     assert.equal(requests.length, 0);
 });
 
+test('a body that isn’t a JSON object is a 400, before any model call', async () => {
+    for (const body of ['{not json', 'null', '[]', '"hello"', '']) {
+        const req = new Request('http://local/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body });
+        const { result: res, requests } = await captured(mock, () => POST(req));
+        assert.equal(res.status, 400, JSON.stringify(body));
+        assert.equal((await res.json()).code, 'chat_empty');
+        assert.equal(requests.length, 0);
+    }
+});
+
 test('an oversized body is refused before it is parsed or sent anywhere', async () => {
     const huge = new Request('http://local/api/chat', {
         method: 'POST',

@@ -45,7 +45,11 @@ async function handlePost(req: Request) {
     if (raw.length > MAX_CHAT_BODY_CHARS) {
       return NextResponse.json({ error: "That message is too long. Please shorten it and try again.", code: "chat_too_long" }, { status: 413 });
     }
-    const { message, history, lensId, modeId, languageId, script, context } = JSON.parse(raw);
+    // A body that isn't a JSON object has no message: a 400, not a crash.
+    let body: unknown = null;
+    try { body = JSON.parse(raw); } catch { /* answered below */ }
+    const { message, history, lensId, modeId, languageId, script, context } =
+      body !== null && typeof body === 'object' && !Array.isArray(body) ? (body as Record<string, unknown>) : {};
 
     if (typeof message !== 'string' || message.trim() === '') {
       return NextResponse.json({ error: "Please enter a message.", code: "chat_empty" }, { status: 400 });
