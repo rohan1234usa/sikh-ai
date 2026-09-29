@@ -11,6 +11,7 @@ import {
     GENDERS,
     LESSON_META,
     LESSON_TRACK_IDS,
+    TRACK_IDS,
     PARTS_OF_SPEECH,
     VOCAB_TOPIC_IDS,
     isLessonSlug,
@@ -228,7 +229,7 @@ test('the section lists every lesson and topic page once', () => {
     assert.equal(new Set(paths).size, paths.length, 'no path twice');
     for (const meta of LESSON_META) assert.ok(paths.includes(lessonPath(meta)), lessonPath(meta));
     for (const topic of VOCAB_TOPIC_IDS) assert.ok(paths.includes(topicPath(topic)), topicPath(topic));
-    for (const path of ['/learn', '/learn/vocab', '/learn/tutor', ...LESSON_TRACK_IDS.map((track) => `/learn/${track}`)]) {
+    for (const path of ['/learn', ...TRACK_IDS.map((track) => `/learn/${track}`)]) {
         assert.ok(paths.includes(path), path);
     }
 });

@@ -44,11 +44,7 @@ export function toTutorHistory(raw: unknown): Content[] {
         .map((turn) => ({ role: turn.role, parts: [{ text: turn.text }] }));
 }
 
-export function buildTutorRequest(
-    model: string,
-    input: TutorInput,
-    overrides: { thinkingLevel?: ThinkingLevel } = {},
-): GenerateContentParameters {
+export function buildTutorRequest(model: string, input: TutorInput): GenerateContentParameters {
     return {
         model,
         contents: [...input.history, { role: 'user', parts: [{ text: input.message }] }],
@@ -57,7 +53,7 @@ export function buildTutorRequest(
             maxOutputTokens: LEARN_MAX_OUTPUT_TOKENS,
             // Low, as for the chat: a streaming reply is judged on time to its
             // first word. No temperature: Gemini 3.x deprecates it.
-            thinkingConfig: { thinkingLevel: overrides.thinkingLevel ?? ThinkingLevel.LOW },
+            thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         },
     };
 }

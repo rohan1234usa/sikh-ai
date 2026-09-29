@@ -4,7 +4,6 @@
 // or topic it shows, so no page ships the rest of the course.
 
 import {
-    LESSON_META,
     lessonMeta,
     lessonsFor,
     type Lesson,
@@ -97,4 +96,3 @@ export const VOCAB: Record<VocabTopicId, VocabWord[]> = {
     'verbs': verbs,
 };
 
-export { LESSON_META };

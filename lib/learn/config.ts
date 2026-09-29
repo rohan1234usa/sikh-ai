@@ -278,10 +278,8 @@ export const topicPath = (topic: VocabTopicId): string => `/learn/vocab/${topic}
 export function learnPaths(): string[] {
     return [
         '/learn',
-        ...LESSON_TRACK_IDS.map((track) => `/learn/${track}`),
+        ...TRACK_IDS.map((track) => `/learn/${track}`),
         ...LESSON_META.map(lessonPath),
-        '/learn/vocab',
         ...VOCAB_TOPIC_IDS.map(topicPath),
-        '/learn/tutor',
     ];
 }

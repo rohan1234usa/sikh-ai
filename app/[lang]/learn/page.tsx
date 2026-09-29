@@ -3,7 +3,7 @@ import LearnHero from '@/app/components/learn/LearnHero';
 import LearnHub from '@/app/components/learn/LearnHub';
 import { localePath } from '@/lib/i18n/paths';
 import { getServerT } from '@/lib/i18n/server';
-import { LESSON_META, LESSON_TRACK_IDS, lessonPath } from '@/lib/learn/config';
+import { LESSON_META, TRACK_IDS, lessonPath } from '@/lib/learn/config';
 import { VOCAB } from '@/lib/learn/curriculum';
 import { pageMetadata } from '@/lib/metadata';
 
@@ -25,11 +25,7 @@ export default async function LearnPage() {
         <LearnHub
           lessons={LESSON_META.map((meta) => ({ slug: meta.slug, track: meta.track, title: meta.title, href: to(lessonPath(meta)) }))}
           wordIds={Object.values(VOCAB).flatMap((words) => words.map((word) => word.id))}
-          tracks={[
-            ...LESSON_TRACK_IDS.map((id) => ({ id, href: to(`/learn/${id}`) })),
-            { id: 'vocab' as const, href: to('/learn/vocab') },
-            { id: 'tutor' as const, href: to('/learn/tutor') },
-          ]}
+          tracks={TRACK_IDS.map((id) => ({ id, href: to(`/learn/${id}`) }))}
         />
       </div>
     </main>
