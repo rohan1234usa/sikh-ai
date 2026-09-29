@@ -864,6 +864,83 @@ const paLatn: Dictionary = {
         ],
     },
 
+    // /terms (app/[lang]/terms): the few rules that come with using SikhAI, among
+    // them that its AI features are for people 18 and over, as Google's terms for
+    // Gemini require. Sections are keyed by id, the page's anchors, and every
+    // language has the same ones in the same order; {placeholders} are filled
+    // from lib/policy.ts. The owner signs off on the words.
+    terms: {
+        title: 'Varton Dian Shartan',
+        updated: 'Aakhri vaar badleya: {date}.',
+        intro: 'SikhAI vartna muft hai. Is naal jurhe kujh ku niyam ih han, sidhe shabadan vich. Site varat ke tusi inhan nu mannde ho.',
+        sections: {
+            about: {
+                heading: 'SikhAI ki hai',
+                items: [
+                    'SikhAI Sikhi, Gurbani ate Punjabi bhasha baare ik muft, sutantar site hai. Isnu Rohan Singh ne banaya hai ate ohi isnu chalaunde han.',
+                    'Ih kise Gurdwara, Sikh sanstha jaan Google da hissa nahi hai, ate isnu unhan vichon kise di manyata prapt nahi hai.',
+                ],
+            },
+            ai: {
+                heading: 'AI de jawab galat ho sakde han',
+                items: [
+                    'SikhAI de jawab ate anuvaad, ate tutor de jawab vi, AI likhda hai: Google Gemini. Ih galat ho sakde han, bhaven poore yakeen naal likhe lagan.',
+                    'Ih Gurbani nahi han, ate inhan nu koi dharmik adhikar prapt nahi hai. Gurbani di har tuk asal sarot naal mila ke jaancho (jawab de heth “Gurbani di jaanch” is vich madad kardi hai), ate sedh layi kise Granthi jaan apni Sangat nu puchho.',
+                    'Ih doctori, kanooni jaan maali salah nahi han, ate sankat vele di madad vi nahi. Je tuhanu jaan kise hor nu khatra hai, taan apne ilaake de emergency number utte phone karo.',
+                ],
+            },
+            age: {
+                heading: 'AI layi 18 saal jaan vadh',
+                items: [
+                    'SikhAI de oh hisse jo AI vartde han (SikhAI nu Puchho, Anuvadak ate Punjabi tutor) 18 saal jaan vadh umar de lokan layi han, jiven Gemini layi Google dian shartan mangdian han. Je tuhadi umar 18 saal ton ghatt hai, taan kirpa karke inhan nu na varto.',
+                ],
+            },
+            use: {
+                heading: 'Sahi dhang naal varton',
+                items: [
+                    'SikhAI nu kise nu tang karan, dhamkaun jaan dhokha den layi, nafrat bhari jaan jinsi samagri paun layi, jaan kise vi gair-kanooni kamm layi na varto.',
+                    'Is de jawaban nu Gurbani, kise Guru Sahib de bachan, jaan koi adhikarit Sikh faisla bana ke pesh na karo.',
+                    'Site di samagri aape-aap ikatthi na karo, isnu automatic benatian naal na bharo, ate is dian hadda jaan suraksha ton bachan di koshish na karo.',
+                    'AI vale hissian nu kise vi aise kamm layi na varto jis di Google di {usePolicy} manahi kardi hai.',
+                    'Inhan shartan nu torhan vali varton seemit jaan band kiti ja sakdi hai, ate us raahin paai gayi samagri hatai ja sakdi hai.',
+                ],
+            },
+            sharing: {
+                heading: 'Jo tusi saanjha karde ho',
+                items: [
+                    'Saanjhe kite link ate seva samagam sarian nu disde han. Jo tusi saanjha karde jaan paunde ho, us de tusi zimmevar ho, ate usnu saanjha karan da haq tuhade kol hona chahida hai.',
+                    'Gallbaat saanjhi karke jaan samagam pa ke, tusi SikhAI nu usnu sarian nu dikhaun di ijazat dinde ho, jadon tak tusi saanjha karna band nahi karde jaan oh hataya nahi jaanda.',
+                    'Seva samagam seva de asal mauke hone chahide han. Hor samagam hataye ja sakde han.',
+                ],
+            },
+            gurbani: {
+                heading: 'Gurbani',
+                items: [
+                    'Gurbani da paath, us de English anuvaad ate rozana Hukamnama {gurbaninow} ton aunde han, dhanvaad sahit. “Gurbani di jaanch” jawab vichlian tukkan nu ise sarot naal milaundi hai.',
+                ],
+            },
+            warranty: {
+                heading: 'Koi guarantee nahi',
+                items: [
+                    'SikhAI jiven hai uven hi ditta jaanda hai, bina kise kism di guarantee de. Ih galat ho sakda hai, hauli chal sakda hai jaan band ho sakda hai, ate koi vi sahulat badal jaan khatam ho sakdi hai.',
+                    'Kanoon jithon tak ijazat dinda hai, Rohan Singh SikhAI vartan naal hoye kise vi ghaate jaan nuksaan layi zimmevar nahi han.',
+                ],
+            },
+            changes: {
+                heading: 'Tabdilian',
+                items: [
+                    'Ih shartan badal sakdian han. Upar ditti tareekh dassdi hai ki ih aakhri vaar kadon badlian, ate tabdili ton baad SikhAI vartan da matlab hai ki tusi inhan nu mannde ho.',
+                ],
+            },
+            contact: {
+                heading: 'Sampark',
+                items: [
+                    'Inhan shartan baare sawal: {email} utte email karo. Site tuhade baare ki rakhdi hai, ate usnu kiven hatauna hai, ih {privacy} panne utte hai.',
+                ],
+            },
+        },
+    },
+
     meta: {
         title: 'SikhAI - Guruan da Gyan, AI di Roshni vich',
         titleTemplate: '%s | SikhAI',

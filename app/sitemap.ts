@@ -21,6 +21,7 @@ const PAGES: { path: string; changeFrequency?: MetadataRoute.Sitemap[number]['ch
   { path: '/seva', changeFrequency: 'daily' },
   { path: '/about' },
   { path: '/privacy', changeFrequency: 'yearly' },
+  { path: '/terms', changeFrequency: 'yearly' },
   ...Array.from({ length: MAX_ANG }, (_, i) => ({ path: `/shabad/${i + 1}`, changeFrequency: 'yearly' as const })),
 ];
 

@@ -877,6 +877,83 @@ const en = {
         ],
     },
 
+    // /terms (app/[lang]/terms): the few rules that come with using SikhAI, among
+    // them that its AI features are for people 18 and over, as Google's terms for
+    // Gemini require. Sections are keyed by id, the page's anchors, and every
+    // language has the same ones in the same order; {placeholders} are filled
+    // from lib/policy.ts. The owner signs off on the words.
+    terms: {
+        title: 'Terms of use',
+        updated: 'Last updated {date}.',
+        intro: 'SikhAI is free to use. These are the few rules that come with it, in plain words. By using the site, you agree to them.',
+        sections: {
+            about: {
+                heading: 'What SikhAI is',
+                items: [
+                    'SikhAI is a free, independent site about Sikhi, Gurbani and the Punjabi language, built and run by Rohan Singh.',
+                    'It isn\'t part of, or endorsed by, any Gurdwara, Sikh organization or Google.',
+                ],
+            },
+            ai: {
+                heading: 'AI answers can be wrong',
+                items: [
+                    'SikhAI\'s answers and translations, and the tutor\'s replies, are written by AI: Google Gemini. They can be wrong, even when they sound sure.',
+                    'They are not Gurbani, and they carry no religious authority. Check every Gurbani quote against the source (the Gurbani check under a reply helps), and for guidance, ask a Granthi or your Sangat.',
+                    'They are not medical, legal or financial advice, and not help in a crisis. If you or someone else is in danger, call your local emergency number.',
+                ],
+            },
+            age: {
+                heading: '18 and over for AI',
+                items: [
+                    'The parts of SikhAI that use AI (Ask SikhAI, the translator and the Punjabi tutor) are for people 18 and over, as Google\'s terms for Gemini require. If you are under 18, please don\'t use them.',
+                ],
+            },
+            use: {
+                heading: 'Using it fairly',
+                items: [
+                    'Don\'t use SikhAI to harass, threaten or deceive anyone, to post hateful or sexual content, or for anything illegal.',
+                    'Don\'t present its answers as Gurbani, as a Guru\'s words, or as an official Sikh ruling.',
+                    'Don\'t scrape the site, flood it with automated requests, or try to get around its limits or security.',
+                    'Don\'t use the AI features for anything Google\'s {usePolicy} forbids.',
+                    'Use that breaks these terms can be limited or blocked, and what it posted removed.',
+                ],
+            },
+            sharing: {
+                heading: 'What you share',
+                items: [
+                    'Share links and Seva events are public. You are responsible for what you share and post, and it must be yours to share.',
+                    'By sharing a chat or posting an event, you let SikhAI show it publicly until you stop sharing it or it is removed.',
+                    'Seva events must be real chances to serve. Others may be removed.',
+                ],
+            },
+            gurbani: {
+                heading: 'Gurbani',
+                items: [
+                    'Gurbani text, its English translations and the daily Hukamnama come from {gurbaninow}, with thanks. The Gurbani check compares a reply\'s quotes with the same source.',
+                ],
+            },
+            warranty: {
+                heading: 'No guarantees',
+                items: [
+                    'SikhAI is offered as it is, with no guarantee of any kind. It may be wrong, slow or unavailable, and any feature may change or end.',
+                    'As far as the law allows, Rohan Singh is not responsible for any loss or harm that comes from using SikhAI.',
+                ],
+            },
+            changes: {
+                heading: 'Changes',
+                items: [
+                    'These terms may change. The date at the top says when they last did, and using SikhAI after a change means you accept it.',
+                ],
+            },
+            contact: {
+                heading: 'Contact',
+                items: [
+                    'Questions about these terms: email {email}. What the site keeps about you, and how to remove it, is on the {privacy} page.',
+                ],
+            },
+        },
+    },
+
     meta: {
         title: 'SikhAI - Wisdom of the Gurus, Illuminated by AI',
         titleTemplate: '%s | SikhAI',
