@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { PRIMARY_BUTTON } from '@/app/components/StatusPage';
 import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
@@ -37,13 +37,26 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
     const [direction, setDirection] = useState<'pa' | 'en'>('pa');
     const [session, setSession] = useState<Session>(() => startSession(reviewQueue(ids, cards, now, SESSION_SIZE)));
     const showRef = useRef<HTMLButtonElement>(null);
-    const started = useRef(false);
+    const answerRef = useRef<HTMLDivElement>(null);
+    const doneRef = useRef<HTMLDivElement>(null);
+    const shown = useRef(session);
 
-    // After each answer, keyboard focus goes to the next card's button.
+    // Focus follows the card, since the button pressed goes away: to the
+    // answer when it shows (so a screen reader reads it), then to the next
+    // card's button, or to the end of the session. Not on arrival.
     useEffect(() => {
-        if (started.current) showRef.current?.focus();
-        started.current = true;
-    }, [session.index, session.queue]);
+        if (shown.current === session) return;
+        shown.current = session;
+        if (session.revealed) answerRef.current?.focus();
+        else (showRef.current ?? doneRef.current)?.focus();
+    }, [session]);
+
+    // The answer buttons take the place of Show answer, so the second click
+    // of a double-click would answer a card nobody has seen. `detail` is the
+    // click count (0 from a keyboard), so only a single click counts.
+    const single = (act: () => void) => (event: MouseEvent) => {
+        if (event.detail <= 1) act();
+    };
 
     const id = session.queue[session.index];
     const word = words.find((w) => w.id === id);
@@ -78,7 +91,7 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
                     onClick={() => setDirection(side)}
                     aria-pressed={direction === side}
                     className={`rounded-full border px-3 py-1 text-sm transition-colors ${direction === side
-                        ? 'border-navy bg-navy font-semibold text-white'
+                        ? 'border-navy bg-navy font-semibold text-white dark:border-kesri dark:bg-kesri dark:text-navy'
                         : 'border-edge bg-surface-raised text-ink-muted hover:text-ink'}`}
                 >
                     {side === 'pa' ? t.learn.cards.punjabiFirst : t.learn.cards.englishFirst}
@@ -98,7 +111,7 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
 
     if (!word) {
         return (
-            <div className="space-y-4 rounded-xl border border-edge bg-surface-raised p-6 text-center" aria-live="polite">
+            <div ref={doneRef} tabIndex={-1} className="space-y-4 rounded-xl border border-edge bg-surface-raised p-6 text-center outline-none">
                 <p className="text-xl font-bold text-ink">{t.learn.cards.doneTitle}</p>
                 <p className="text-ink-muted">{fmt(t.learn.cards.doneBody, { right: session.right, wrong: session.wrong })}</p>
                 <button type="button" onClick={reviewAgain} className={PRIMARY_BUTTON}>{t.learn.cards.again}</button>
@@ -118,13 +131,13 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
         <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 {directionPicker}
-                <p className="text-sm text-ink-faint">{fmt(t.learn.cards.progress, { n: session.index + 1, total: session.queue.length })}</p>
+                <p className="text-sm text-ink-muted">{fmt(t.learn.cards.progress, { n: session.index + 1, total: session.queue.length })}</p>
             </div>
 
             <div className="flex min-h-64 flex-col items-center justify-center gap-4 rounded-2xl border border-edge bg-surface-raised p-6 text-center shadow-sm">
                 {direction === 'pa' ? punjabi : english}
                 {session.revealed && (
-                    <div className="w-full space-y-2 border-t border-edge pt-4" aria-live="polite">
+                    <div ref={answerRef} tabIndex={-1} className="w-full space-y-2 border-t border-edge pt-4 outline-none">
                         {direction === 'pa' ? english : punjabi}
                         {word.note && <p lang="en" className="text-sm text-ink-muted">{word.note}</p>}
                     </div>
@@ -135,12 +148,12 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
                 <div className="grid grid-cols-2 gap-3">
                     <button
                         type="button"
-                        onClick={() => answer(false)}
+                        onClick={single(() => answer(false))}
                         className="rounded-lg border border-edge bg-surface-raised px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-edge/40"
                     >
                         {t.learn.cards.notYet}
                     </button>
-                    <button type="button" onClick={() => answer(true)} className={`${PRIMARY_BUTTON} text-center`}>
+                    <button type="button" onClick={single(() => answer(true))} className={`${PRIMARY_BUTTON} text-center`}>
                         {t.learn.cards.knewIt}
                     </button>
                 </div>
@@ -148,7 +161,7 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
                 <button
                     ref={showRef}
                     type="button"
-                    onClick={() => setSession((s) => ({ ...s, revealed: true }))}
+                    onClick={single(() => setSession((s) => ({ ...s, revealed: true })))}
                     className={`${PRIMARY_BUTTON} w-full text-center`}
                 >
                     {t.learn.cards.show}

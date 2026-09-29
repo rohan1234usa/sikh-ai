@@ -11,7 +11,7 @@ export default function ExampleRow({ example, copyLabel }: { example: Example; c
                 <p lang="pa" className="font-gurmukhi text-2xl leading-relaxed text-ink">{example.gurmukhi}</p>
                 <p lang="pa-Latn" className="font-medium text-ink">{example.roman}</p>
                 <p lang="en" className="text-sm text-ink-muted">{example.english}</p>
-                {example.note && <p lang="en" className="text-xs italic text-ink-faint">{example.note}</p>}
+                {example.note && <p lang="en" className="text-xs italic text-ink-muted">{example.note}</p>}
             </div>
             <CopyButton text={example.gurmukhi} ariaLabel={copyLabel} />
         </div>

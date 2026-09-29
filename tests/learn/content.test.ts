@@ -21,7 +21,7 @@ import {
     type Example,
     type QuizQuestion,
 } from '@/lib/learn/config';
-import { VOCAB, getLesson, neighbours } from '@/lib/learn/curriculum';
+import { VOCAB, getLesson, neighbors } from '@/lib/learn/curriculum';
 import { buildVocabQuiz, typedMatches } from '@/lib/learn/quiz';
 import { PHRASES } from '@/lib/translate/phrasebook';
 import { scanValue } from '../../scripts/i18n-audit/free-checks';
@@ -214,7 +214,7 @@ test('every track links its lessons in order, first to last', () => {
     for (const track of LESSON_TRACK_IDS) {
         const lessons = lessonsFor(track);
         lessons.forEach((meta, i) => {
-            const around = neighbours(meta.slug);
+            const around = neighbors(meta.slug);
             assert.equal(around.index, i);
             assert.equal(around.total, lessons.length);
             assert.equal(around.prev?.slug, lessons[i - 1]?.slug);

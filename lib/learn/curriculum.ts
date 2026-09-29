@@ -77,7 +77,7 @@ export function getLesson(slug: LessonSlug): Lesson {
 }
 
 // A lesson's place in its track, for "Lesson 3 of 9" and the links either side.
-export function neighbours(slug: LessonSlug): { prev?: LessonEntry; next?: LessonEntry; index: number; total: number } {
+export function neighbors(slug: LessonSlug): { prev?: LessonEntry; next?: LessonEntry; index: number; total: number } {
     const track = lessonsFor(lessonMeta(slug).track);
     const index = track.findIndex((meta) => meta.slug === slug);
     return { prev: track[index - 1], next: track[index + 1], index, total: track.length };

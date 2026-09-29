@@ -661,6 +661,7 @@ const pa: Dictionary = {
             previous: 'ਪਿਛਲਾ',
             next: 'ਅਗਲਾ',
             allLessons: 'ਸਾਰੇ ਸਬਕ',
+            pagerAria: 'ਪਿਛਲਾ ਅਤੇ ਅਗਲਾ ਸਬਕ',
             tip: 'ਸੁਝਾਅ',
             lettersAria: 'ਅੱਖਰ',
             examplesAria: 'ਉਦਾਹਰਨਾਂ',

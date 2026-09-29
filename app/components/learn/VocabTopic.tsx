@@ -75,20 +75,24 @@ export default function VocabTopic({ topic, words }: { topic: VocabTopicId; word
                 ))}
             </div>
 
-            <div role="tabpanel" id={`panel-${mode}`} aria-labelledby={`tab-${mode}`}>
-                {mode === 'words' && <WordList words={words} />}
-                {mode === 'cards' && (now !== null
+            {/* Every panel stays mounted, only hidden, so looking a word up
+                keeps a quiz's answers and a flashcard session where they were. */}
+            <div role="tabpanel" id="panel-words" aria-labelledby="tab-words" hidden={mode !== 'words'}>
+                <WordList words={words} />
+            </div>
+            <div role="tabpanel" id="panel-cards" aria-labelledby="tab-cards" hidden={mode !== 'cards'}>
+                {now !== null
                     ? <Flashcards words={words} cards={progress.cards} now={now} onReview={reviewCard} />
-                    : <div aria-hidden="true" className="h-64 animate-pulse rounded-2xl bg-edge/40" />)}
-                {mode === 'quiz' && (
-                    <Quiz
-                        key={round}
-                        questions={quiz}
-                        seed={`${topic}:${round}`}
-                        onChecked={(score) => recordTopicQuiz(topic, score)}
-                        onNewQuestions={() => setRound((r) => r + 1)}
-                    />
-                )}
+                    : <div aria-hidden="true" className="h-64 animate-pulse rounded-2xl bg-edge/40" />}
+            </div>
+            <div role="tabpanel" id="panel-quiz" aria-labelledby="tab-quiz" hidden={mode !== 'quiz'}>
+                <Quiz
+                    key={round}
+                    questions={quiz}
+                    seed={`${topic}:${round}`}
+                    onChecked={(score) => recordTopicQuiz(topic, score)}
+                    onNewQuestions={() => setRound((r) => r + 1)}
+                />
             </div>
         </div>
     );

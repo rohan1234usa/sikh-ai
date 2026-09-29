@@ -54,7 +54,7 @@ export default function Phrasebook({ onUsePhrase }: Props) {
                             onClick={() => setCategory(id)}
                             aria-pressed={category === id}
                             className={`px-3 py-1 rounded-full text-sm transition-colors border ${category === id
-                                ? 'bg-navy text-white border-navy font-semibold'
+                                ? 'bg-navy text-white border-navy font-semibold dark:bg-kesri dark:text-navy dark:border-kesri'
                                 : 'bg-surface-raised text-ink-muted border-edge hover:text-ink'}`}
                         >
                             {t.translate.categories[id]}

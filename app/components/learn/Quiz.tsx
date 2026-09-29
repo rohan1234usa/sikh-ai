@@ -13,6 +13,7 @@ type Props = {
     seed: string;                             // orders each question's choices: same seed, same order
     onChecked?: (score: QuizScore) => void;   // once per check
     onNewQuestions?: () => void;              // offered instead of "Try again" when given
+    promptLang?: 'en';                        // a lesson's prompts; a topic's are in the site's language
 };
 
 const choiceLang = (question: QuizQuestion) =>
@@ -22,7 +23,7 @@ const choiceLang = (question: QuizQuestion) =>
 // are graded leniently (lib/learn/quiz.ts), and the house spelling is always
 // shown afterwards, so the leniency never teaches a wrong spelling. The
 // parent remounts it (key) for a fresh set of questions.
-export default function Quiz({ questions, seed, onChecked, onNewQuestions }: Props) {
+export default function Quiz({ questions, seed, onChecked, onNewQuestions, promptLang }: Props) {
     const t = useT();
     const id = useId();
     const [answers, setAnswers] = useState<(string | null)[]>(() => questions.map(() => null));
@@ -69,14 +70,18 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions }: Pro
                     return (
                         <li key={i}>
                             <fieldset disabled={checked} className="space-y-3">
-                                <legend className="text-sm font-semibold text-ink">
-                                    <span className="mr-1 text-accent-text">{fmt(t.learn.quiz.questionN, { n: i + 1 })}.</span>
-                                    <span lang="en">{question.prompt}</span>
+                                {/* The word asked about is part of the legend, so it is
+                                    read out with the question. */}
+                                <legend className="space-y-3">
+                                    <span className="block text-sm font-semibold text-ink">
+                                        <span className="mr-1 text-accent-text">{fmt(t.learn.quiz.questionN, { n: i + 1 })}.</span>
+                                        <span lang={promptLang}>{question.prompt}</span>
+                                    </span>
+                                    {question.promptPa && (
+                                        <span lang="pa" className="block font-gurmukhi text-3xl leading-relaxed text-ink">{question.promptPa}</span>
+                                    )}
+                                    {question.promptRoman && <span lang="pa-Latn" className="block text-ink-muted">{question.promptRoman}</span>}
                                 </legend>
-                                {question.promptPa && (
-                                    <p lang="pa" className="font-gurmukhi text-3xl leading-relaxed text-ink">{question.promptPa}</p>
-                                )}
-                                {question.promptRoman && <p lang="pa-Latn" className="text-ink-muted">{question.promptRoman}</p>}
 
                                 {question.kind === 'choice' ? (
                                     <div className="grid gap-2 sm:grid-cols-2">

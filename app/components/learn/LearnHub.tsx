@@ -61,9 +61,11 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
 
     return (
         <div className="space-y-8">
-            {/* Held at its height until progress is read, so nothing jumps. */}
+            {/* Held at the card's usual height until progress is read, so the
+                tracks below don't jump: 208px on a phone, where the button
+                drops below and most lesson titles take two lines, 120px wider. */}
             {!hydrated ? (
-                <div aria-hidden="true" className="h-36 animate-pulse rounded-2xl bg-edge/40" />
+                <div aria-hidden="true" className="h-52 animate-pulse rounded-2xl bg-edge/40 sm:h-30" />
             ) : nextLink ? (
                 <div className="flex flex-col gap-4 rounded-2xl bg-navy p-6 text-white shadow-md sm:flex-row sm:items-center">
                     <div className="min-w-0 flex-1 space-y-1">
@@ -80,7 +82,7 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
                     </IntentLink>
                 </div>
             ) : (
-                <div className="rounded-2xl bg-navy p-6 text-white shadow-md">
+                <div className="flex min-h-52 flex-col justify-center rounded-2xl bg-navy p-6 text-white shadow-md sm:min-h-30">
                     <p className="text-xl font-bold">{t.learn.hub.allDone}</p>
                     <p className="text-sm text-slate-300">{t.learn.hub.allDoneBody}</p>
                 </div>
@@ -129,12 +131,12 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
                                 >
                                     {t.learn.hub.resetConfirm}
                                 </button>
-                                <button type="button" onClick={() => setConfirming(false)} className="text-ink-faint hover:text-ink hover:underline">
+                                <button type="button" onClick={() => setConfirming(false)} className="text-ink-muted hover:text-ink hover:underline">
                                     {t.learn.hub.cancel}
                                 </button>
                             </>
                         ) : (
-                            <button type="button" onClick={() => setConfirming(true)} className="text-ink-faint hover:text-ink hover:underline">
+                            <button type="button" onClick={() => setConfirming(true)} className="text-ink-muted hover:text-ink hover:underline">
                                 {t.learn.hub.reset}
                             </button>
                         )}

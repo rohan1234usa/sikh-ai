@@ -46,7 +46,9 @@ function WordRow({ word, expanded, onToggle }: { word: VocabWord; expanded: bool
                     <span lang="pa-Latn" className="truncate font-semibold text-ink">{word.roman}</span>
                     <span lang="en" className="truncate text-sm text-ink-muted">{word.english}</span>
                 </span>
-                <span lang="pa" className="shrink-0 font-gurmukhi text-lg text-ink-faint">{word.gurmukhi}</span>
+                {/* Capped, so a long phrase can't squeeze out the romanization on a
+                    phone; the open row shows it whole. */}
+                <span lang="pa" className="min-w-0 max-w-[45%] truncate font-gurmukhi text-lg text-ink-muted">{word.gurmukhi}</span>
                 <ChevronDownIcon
                     className={`h-4 w-4 shrink-0 text-ink-faint transition-transform ${expanded ? 'rotate-180' : ''}`}
                     aria-hidden="true"

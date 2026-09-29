@@ -29,7 +29,7 @@ export default function LessonQuiz({ slug, questions }: { slug: string; question
                     <p className="text-sm font-semibold text-accent-text">{fmt(t.learn.quiz.lessonDone, record.best)}</p>
                 )}
             </div>
-            <Quiz questions={questions} seed={slug} onChecked={(score) => completeLesson(slug, score)} />
+            <Quiz questions={questions} seed={slug} promptLang="en" onChecked={(score) => completeLesson(slug, score)} />
         </section>
     );
 }

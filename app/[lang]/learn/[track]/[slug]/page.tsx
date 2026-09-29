@@ -10,7 +10,7 @@ import { fmt } from '@/lib/i18n/fmt';
 import { localePath } from '@/lib/i18n/paths';
 import { getServerT } from '@/lib/i18n/server';
 import { LESSON_META, isLessonSlug, lessonMeta, lessonPath } from '@/lib/learn/config';
-import { getLesson, neighbours } from '@/lib/learn/curriculum';
+import { getLesson, neighbors } from '@/lib/learn/curriculum';
 import { pageMetadata } from '@/lib/metadata';
 
 // Every lesson, built ahead of time in every language. An unknown one, or a
@@ -46,7 +46,7 @@ export default async function LessonPage({ params }: PageProps<'/[lang]/learn/[t
   if (!meta) redirect(localePath(lang, '/learn'));
 
   const lesson = getLesson(meta.slug);
-  const { prev, next, index, total } = neighbours(meta.slug);
+  const { prev, next, index, total } = neighbors(meta.slug);
   const to = (path: string) => localePath(lang, path);
 
   return (
@@ -76,16 +76,18 @@ export default async function LessonPage({ params }: PageProps<'/[lang]/learn/[t
 
         <LessonQuiz slug={lesson.slug} questions={lesson.quiz} />
 
-        <nav className="grid gap-3 border-t border-edge pt-6 text-sm sm:grid-cols-2">
+        {/* Plain Links, like the Ang page's: the next lesson is prefetched
+            as it scrolls into view, since reading on is the likely move. */}
+        <nav aria-label={t.learn.lesson.pagerAria} className="grid gap-3 border-t border-edge pt-6 text-sm sm:grid-cols-2">
           {prev ? (
             <Link rel="prev" href={to(lessonPath(prev))} className="rounded-xl border border-edge p-3 transition-colors hover:border-accent-text/40">
-              <span className="block text-ink-faint">← {t.learn.lesson.previous}</span>
+              <span className="block text-ink-muted">← {t.learn.lesson.previous}</span>
               <span lang="en" className="block font-semibold text-ink">{prev.title}</span>
             </Link>
           ) : <span className="hidden sm:block" />}
           {next ? (
             <Link rel="next" href={to(lessonPath(next))} className="rounded-xl border border-edge p-3 text-right transition-colors hover:border-accent-text/40">
-              <span className="block text-ink-faint">{t.learn.lesson.next} →</span>
+              <span className="block text-ink-muted">{t.learn.lesson.next} →</span>
               <span lang="en" className="block font-semibold text-ink">{next.title}</span>
             </Link>
           ) : (
@@ -95,7 +97,7 @@ export default async function LessonPage({ params }: PageProps<'/[lang]/learn/[t
           )}
         </nav>
 
-        <p className="text-xs italic text-ink-faint">{t.learn.caveat}</p>
+        <p className="text-xs italic text-ink-muted">{t.learn.caveat}</p>
       </div>
     </main>
   );

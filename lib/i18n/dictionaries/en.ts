@@ -672,6 +672,7 @@ const en = {
             previous: 'Previous',
             next: 'Next',
             allLessons: 'All lessons',
+            pagerAria: 'Previous and next lesson',
             tip: 'Tip',
             lettersAria: 'Letters',
             examplesAria: 'Examples',

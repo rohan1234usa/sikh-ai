@@ -17,7 +17,7 @@ export default function LearnPageHeader({ t, crumbs, eyebrow, title, lead, lang 
     return (
         <header className="space-y-2">
             <nav aria-label={t.learn.breadcrumbAria}>
-                <ol className="flex flex-wrap items-center gap-1 text-sm text-ink-faint">
+                <ol className="flex flex-wrap items-center gap-1 text-sm text-ink-muted">
                     {crumbs.map((crumb, i) => (
                         <li key={crumb.href} className="flex items-center gap-1">
                             {i > 0 && <span aria-hidden="true">›</span>}

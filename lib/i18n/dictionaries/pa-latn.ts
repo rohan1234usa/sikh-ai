@@ -661,6 +661,7 @@ const paLatn: Dictionary = {
             previous: 'Pichhla',
             next: 'Agla',
             allLessons: 'Saare sabak',
+            pagerAria: 'Pichhla ate agla sabak',
             tip: 'Sujhaa',
             lettersAria: 'Akhar',
             examplesAria: 'Udaharnan',

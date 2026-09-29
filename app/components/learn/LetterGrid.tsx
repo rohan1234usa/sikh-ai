@@ -10,7 +10,7 @@ export default function LetterGrid({ letters, label }: { letters: LetterCard[]; 
                 <li key={i} className="bg-surface-raised border border-edge rounded-xl p-3 text-center">
                     <span lang="pa" className="block font-gurmukhi text-4xl leading-tight text-ink">{letter.glyph}</span>
                     <span lang="pa-Latn" className="block font-bold text-accent-text">{letter.roman}</span>
-                    <span lang="pa-Latn" className="block text-xs text-ink-faint">{letter.name}</span>
+                    <span lang="pa-Latn" className="block text-xs text-ink-muted">{letter.name}</span>
                     <span lang="en" className="block mt-1 text-xs text-ink-muted">{letter.sound}</span>
                 </li>
             ))}
