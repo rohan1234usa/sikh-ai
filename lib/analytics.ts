@@ -37,7 +37,9 @@ export const resolveAnalyticsState = (choice: AnalyticsChoice | null, gpc: boole
 // carries an ID or a secret belongs here. Matched anywhere in the path and
 // in any case, so a mistyped address can't carry an ID out either.
 const ID_PAGES = new Set(['share', 'chat']);
-export const ID_PLACEHOLDER = ':id';
+// What stands in for the ID: `/share/:id`, the address the README tells the
+// owner to look for, which the tests spell out.
+const ID_PLACEHOLDER = ':id';
 
 // This site's address as analytics may record it: the language prefix kept
 // (the internal /en dropped), an ID and anything after it replaced, and no
