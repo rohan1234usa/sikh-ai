@@ -12,6 +12,7 @@ import { getServerT } from '@/lib/i18n/server';
 import { LESSON_META, isLessonSlug, lessonMeta, lessonPath } from '@/lib/learn/config';
 import { getLesson, neighbors } from '@/lib/learn/curriculum';
 import { pageMetadata } from '@/lib/metadata';
+import Mixed from '@/app/components/learn/Mixed';
 
 // Every lesson, built ahead of time in every language. An unknown one, or a
 // lesson under the wrong track, gets the site's own 404
@@ -82,13 +83,13 @@ export default async function LessonPage({ params }: PageProps<'/[lang]/learn/[t
           {prev ? (
             <Link rel="prev" href={to(lessonPath(prev))} className="rounded-xl border border-edge p-3 transition-colors hover:border-accent-text/40">
               <span className="block text-ink-muted">← {t.learn.lesson.previous}</span>
-              <span lang="en" className="block font-semibold text-ink">{prev.title}</span>
+              <span lang="en" className="block font-semibold text-ink"><Mixed text={prev.title} /></span>
             </Link>
           ) : <span className="hidden sm:block" />}
           {next ? (
             <Link rel="next" href={to(lessonPath(next))} className="rounded-xl border border-edge p-3 text-right transition-colors hover:border-accent-text/40">
               <span className="block text-ink-muted">{t.learn.lesson.next} →</span>
-              <span lang="en" className="block font-semibold text-ink">{next.title}</span>
+              <span lang="en" className="block font-semibold text-ink"><Mixed text={next.title} /></span>
             </Link>
           ) : (
             <Link href={to(`/learn/${meta.track}`)} className="rounded-xl border border-edge p-3 text-right font-semibold text-accent-text transition-colors hover:border-accent-text/40">

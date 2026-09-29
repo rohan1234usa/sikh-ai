@@ -8,6 +8,7 @@ import type { VocabWord } from '@/lib/learn/config';
 import { seededShuffle } from '@/lib/learn/quiz';
 import { reviewQueue, type CardState } from '@/lib/learn/srs';
 import { useSwapGuard } from './useSwapGuard';
+import Mixed from './Mixed';
 
 type Props = {
     words: VocabWord[];
@@ -138,7 +139,7 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
             <p lang="pa-Latn" className="text-lg font-medium text-ink-muted">{word.roman}</p>
         </div>
     );
-    const english = <p lang="en" className="text-2xl font-semibold text-ink">{word.english}</p>;
+    const english = <p lang="en" className="text-2xl font-semibold text-ink"><Mixed text={word.english} /></p>;
 
     return (
         <div className="space-y-4">
@@ -152,7 +153,7 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
                 {session.revealed && (
                     <div ref={answerRef} tabIndex={-1} className="w-full space-y-2 border-t border-edge pt-4 outline-none">
                         {direction === 'pa' ? english : punjabi}
-                        {word.note && <p lang="en" className="text-sm text-ink-muted">{word.note}</p>}
+                        {word.note && <p lang="en" className="text-sm text-ink-muted"><Mixed text={word.note} /></p>}
                     </div>
                 )}
             </div>

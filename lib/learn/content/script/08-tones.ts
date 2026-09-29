@@ -91,8 +91,9 @@ const lesson: LessonBody = {
         {
             kind: 'choice',
             prompt: 'Which letters make tones?',
-            choices: ['ਘ ਝ ਢ ਧ ਭ and ਹ', 'ਕ ਚ ਟ ਤ ਪ', 'ਙ ਞ ਣ ਨ ਮ'],
-            answer: 'ਘ ਝ ਢ ਧ ਭ and ਹ',
+            choices: ['ਘ ਝ ਢ ਧ ਭ ਹ', 'ਕ ਚ ਟ ਤ ਪ', 'ਙ ਞ ਣ ਨ ਮ'],
+            choicesLang: 'pa',
+            answer: 'ਘ ਝ ਢ ਧ ਭ ਹ',
         },
         {
             kind: 'typed',

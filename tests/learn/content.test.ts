@@ -165,6 +165,11 @@ test('every quiz question can be answered', () => {
             const at = `${lesson.slug}.quiz[${i}]`;
             if (question.kind === 'choice') {
                 assert.ok(question.choices.length >= 2 && question.choices.length <= 4, `${at}: ${question.choices.length} choices`);
+                // Choices written only in Gurmukhi say so, so they are marked
+                // lang="pa" and set in the Gurmukhi font.
+                if (question.choices.every((choice) => GURMUKHI.test(choice) && !/[A-Za-z]/.test(choice))) {
+                    assert.equal(question.choicesLang, 'pa', `${at}: Gurmukhi choices need choicesLang: 'pa'`);
+                }
                 assert.equal(new Set(question.choices).size, question.choices.length, `${at}: repeated choices`);
                 assert.equal(question.choices.filter((c) => c === question.answer).length, 1, `${at}: the answer is one of the choices`);
             } else {

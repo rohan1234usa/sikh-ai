@@ -15,6 +15,7 @@ import type { LessonTrackId, TrackId } from '@/lib/learn/config';
 import { isLessonDone, nextLesson, trackProgress } from '@/lib/learn/progress';
 import { cardCounts } from '@/lib/learn/srs';
 import { useLearnProgress } from './useLearnProgress';
+import Mixed from './Mixed';
 
 export type HubLesson = { slug: string; track: LessonTrackId; title: string; href: string };
 
@@ -70,7 +71,7 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
                 <div className="flex flex-col gap-4 rounded-2xl bg-navy p-6 text-white shadow-md sm:flex-row sm:items-center">
                     <div className="min-w-0 flex-1 space-y-1">
                         <p className="text-xs font-bold uppercase tracking-widest text-kesri">{label}</p>
-                        <p lang="en" className="text-xl font-bold">{nextLink.title}</p>
+                        <p lang="en" className="text-xl font-bold"><Mixed text={nextLink.title} /></p>
                         <p className="text-sm text-slate-300">{t.learn.tracks[nextLink.track].title}</p>
                     </div>
                     <IntentLink

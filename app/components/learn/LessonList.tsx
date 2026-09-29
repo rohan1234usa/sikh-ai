@@ -6,6 +6,7 @@ import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import { lessonRecord } from '@/lib/learn/progress';
 import { useLearnProgress } from './useLearnProgress';
+import Mixed from './Mixed';
 
 export type LessonLink = { slug: string; title: string; summary: string; href: string };
 
@@ -32,8 +33,8 @@ export default function LessonList({ lessons }: { lessons: LessonLink[] }) {
                                 {record ? <CheckIcon className="h-5 w-5" /> : i + 1}
                             </span>
                             <span className="min-w-0 space-y-1">
-                                <span lang="en" className="block font-semibold text-ink">{lesson.title}</span>
-                                <span lang="en" className="block text-sm text-ink-muted">{lesson.summary}</span>
+                                <span lang="en" className="block font-semibold text-ink"><Mixed text={lesson.title} /></span>
+                                <span lang="en" className="block text-sm text-ink-muted"><Mixed text={lesson.summary} /></span>
                                 {record && (
                                     <span className="block text-xs font-semibold text-accent-text">
                                         {t.learn.lesson.done} · {fmt(t.learn.lesson.best, record.best)}

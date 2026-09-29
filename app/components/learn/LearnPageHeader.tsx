@@ -1,5 +1,6 @@
 import IntentLink from '@/app/components/IntentLink';
 import type { Dictionary } from '@/lib/i18n';
+import Mixed from './Mixed';
 
 type Crumb = { href: string; label: string };
 
@@ -29,8 +30,8 @@ export default function LearnPageHeader({ t, crumbs, eyebrow, title, lead, lang 
                 </ol>
             </nav>
             {eyebrow && <p className="text-xs uppercase tracking-widest text-accent-text font-bold">{eyebrow}</p>}
-            <h1 lang={lang} className="text-3xl font-bold text-ink">{title}</h1>
-            {lead && <p lang={lang} className="max-w-2xl text-ink-muted">{lead}</p>}
+            <h1 lang={lang} className="text-3xl font-bold text-ink"><Mixed text={title} /></h1>
+            {lead && <p lang={lang} className="max-w-2xl text-ink-muted"><Mixed text={lead} /></p>}
         </header>
     );
 }

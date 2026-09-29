@@ -1,4 +1,5 @@
 import type { LetterCard } from '@/lib/learn/config';
+import Mixed from './Mixed';
 
 // A row of the alphabet, a set of vowel signs, or the digits: the glyph
 // large, then how it is written in English letters, its name, and how to
@@ -11,7 +12,7 @@ export default function LetterGrid({ letters, label }: { letters: LetterCard[]; 
                     <span lang="pa" className="block font-gurmukhi text-4xl leading-tight text-ink">{letter.glyph}</span>
                     <span lang="pa-Latn" className="block font-bold text-accent-text">{letter.roman}</span>
                     <span lang="pa-Latn" className="block text-xs text-ink-muted">{letter.name}</span>
-                    <span lang="en" className="block mt-1 text-xs text-ink-muted">{letter.sound}</span>
+                    <span lang="en" className="block mt-1 text-xs text-ink-muted"><Mixed text={letter.sound} /></span>
                 </li>
             ))}
         </ul>

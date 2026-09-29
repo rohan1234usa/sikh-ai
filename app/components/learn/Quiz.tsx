@@ -8,6 +8,7 @@ import { fmt } from '@/lib/i18n/fmt';
 import type { QuizQuestion } from '@/lib/learn/config';
 import { isCorrect, scoreQuiz, seededShuffle, type QuizScore } from '@/lib/learn/quiz';
 import { useSwapGuard } from './useSwapGuard';
+import Mixed from './Mixed';
 
 type Props = {
     questions: QuizQuestion[];
@@ -81,7 +82,7 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                 <legend className="space-y-3">
                                     <span className="block text-sm font-semibold text-ink">
                                         <span className="mr-1 text-accent-text">{fmt(t.learn.quiz.questionN, { n: i + 1 })}.</span>
-                                        <span lang={promptLang}>{question.prompt}</span>
+                                        <span lang={promptLang}><Mixed text={question.prompt} /></span>
                                     </span>
                                     {question.promptPa && (
                                         <span lang="pa" className="block font-gurmukhi text-3xl leading-relaxed text-ink">{question.promptPa}</span>
@@ -105,7 +106,7 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                                     className="accent-kesri"
                                                 />
                                                 <span lang={choiceLang(question)} className={question.choicesLang === 'pa' ? 'font-gurmukhi text-xl' : ''}>
-                                                    {choice}
+                                                    {question.choicesLang ? choice : <Mixed text={choice} />}
                                                 </span>
                                             </label>
                                         ))}
@@ -143,12 +144,12 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                         <p className="text-ink">
                                             {answerBefore}
                                             <span lang={question.kind === 'typed' ? 'pa-Latn' : choiceLang(question)} className={`font-semibold ${question.kind === 'choice' && question.choicesLang === 'pa' ? 'font-gurmukhi text-lg' : ''}`}>
-                                                {question.answer}
+                                                {question.kind === 'choice' && !question.choicesLang ? <Mixed text={question.answer} /> : question.answer}
                                             </span>
                                             {answerAfter}
                                         </p>
                                     )}
-                                    {question.explanation && <p lang="en" className="text-ink-muted">{question.explanation}</p>}
+                                    {question.explanation && <p lang="en" className="text-ink-muted"><Mixed text={question.explanation} /></p>}
                                 </div>
                             )}
                         </li>
