@@ -149,7 +149,7 @@ Follow these steps to set up the project locally.
     ```bash
     npm run typecheck && npm run lint && npm test
     ```
-    On every pull request and every push to `main`, [CI](.github/workflows/ci.yml) runs these three, then the i18n audit's dry run (whose committed report must not change), then a build. It runs with placeholder keys, so it needs no secrets and costs nothing.
+    On every pull request and every push to `main`, [CI](.github/workflows/ci.yml) runs these three, then the i18n audit's dry run (whose committed report must not change), then a build. It runs with placeholder keys, so it needs no secrets and costs nothing. A pull request can merge into `main` only once CI passes.
 
 ### Running in production
 

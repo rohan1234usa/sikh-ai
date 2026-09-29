@@ -21,6 +21,9 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # A ruleset on main requires a passing check with this job's name. If the
+  # job is renamed or split, change the ruleset too, or every pull request
+  # waits for a check that never reports.
   checks:
     runs-on: ubuntu-latest
     timeout-minutes: 15
