@@ -7,7 +7,8 @@
 
 import type { Metadata } from 'next';
 import type { Dictionary } from '@/lib/i18n';
-import { LANG_META, type Lang } from '@/lib/i18n/config';
+import { LANGS, LANG_META, type Lang } from '@/lib/i18n/config';
+import { localePath } from '@/lib/i18n/paths';
 
 export const SITE_URL = 'https://sikhai.vercel.app';
 
@@ -26,15 +27,28 @@ export function openGraph(lang: Lang, t: Dictionary, title: string, url?: string
     };
 }
 
+// A page's address in every language, keyed by hreflang ('en', 'pa',
+// 'pa-Latn'), plus x-default, the unprefixed English address. Search engines
+// treat the three as one page and show each reader their own language's.
+export function languageAlternates(path: string): Record<string, string> {
+    return {
+        ...Object.fromEntries(LANGS.map((lang) => [LANG_META[lang].htmlLang, localePath(lang, path)])),
+        'x-default': path,
+    };
+}
+
 /**
- * A page's title, canonical URL and link preview. `path` is the page's own
- * address ('/hukamnama'), made absolute through the root's metadataBase.
- * Leave `title` out for the home page, which uses the site title.
+ * A page's title, canonical URL, language alternates and link preview.
+ * `path` is the page's address without a language prefix ('/hukamnama');
+ * the canonical URL is this language's ('/pa/hukamnama'), made absolute
+ * through the root's metadataBase. Leave `title` out for the home page,
+ * which uses the site title.
  */
 export function pageMetadata(lang: Lang, t: Dictionary, path: string, title?: string): Metadata {
+    const url = localePath(lang, path);
     return {
         ...(title ? { title } : {}),
-        alternates: { canonical: path },
-        openGraph: openGraph(lang, t, title ? t.meta.titleTemplate.replace('%s', title) : t.meta.title, path),
+        alternates: { canonical: url, languages: languageAlternates(path) },
+        openGraph: openGraph(lang, t, title ? t.meta.titleTemplate.replace('%s', title) : t.meta.title, url),
     };
 }
