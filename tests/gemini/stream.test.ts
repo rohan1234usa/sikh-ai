@@ -6,7 +6,7 @@
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { GoogleGenAI } from '@google/genai';
-import type { MockGemini } from '../../scripts/mock-gemini';
+import { startMockGemini, type MockGemini } from '../../scripts/mock-gemini';
 import { isAbortError } from '@/lib/gemini/fallback';
 import { openTextStream, settleNoText, textStreamResponse, type Opened } from '@/lib/gemini/stream';
 import { readStream, startRouteMock } from '../helpers/routes';
@@ -83,4 +83,26 @@ test('a reply stopped by the output cap errors the body too', async () => {
     const { text, error } = await readStream(textStreamResponse(opened, CALL, new AbortController().signal));
     assert.match(text, /^Waheguru/);
     assert.ok(error);
+});
+
+test('a reader who leaves (Stop) stops Gemini generating, instead of paying for the rest', async () => {
+    // Its own mock, with a gap between chunks, so the reply is still
+    // streaming when the reader cancels.
+    const slow = await startMockGemini({ chunkDelayMs: 50 });
+    try {
+        const slowAi = new GoogleGenAI({ apiKey: 'test-key', httpOptions: { baseUrl: slow.url } });
+        const opened = await openTextStream(slowAi, { model: 'gemini-3.8-flash', contents: 'MOCK_LONG' }, {
+            signal: new AbortController().signal,
+            deadline: Date.now() + 20_000,
+            firstTextMs: 5000,
+        });
+        assert.ok(opened.kind === 'text', opened.kind);
+        const reader = textStreamResponse(opened, CALL, new AbortController().signal).body!.getReader();
+        await reader.read();
+        assert.equal(opened.upstream.signal.aborted, false);
+        await reader.cancel();
+        assert.equal(opened.upstream.signal.aborted, true, 'cancelling the body aborts the Gemini request');
+    } finally {
+        await slow.close();
+    }
 });
