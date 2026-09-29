@@ -22,7 +22,12 @@ test('every response carries the standard security headers, and no X-Powered-By'
 
 test('the Content-Security-Policy is enforced, and still reports what it blocks', async () => {
     const headers = await sentHeaders();
-    assert.match(headers.get('content-security-policy') ?? '', /frame-ancestors 'none'/);
+    const csp = headers.get('content-security-policy') ?? '';
+    assert.match(csp, /frame-ancestors 'none'/);
     assert.ok(!headers.has('content-security-policy-report-only'));
+    // Blocks still reach /api/csp-report: report-to for Chromium (through the
+    // Reporting-Endpoints group), report-uri for the other browsers.
+    assert.match(csp, /report-to csp(;|$)/);
+    assert.match(csp, /report-uri \/api\/csp-report(;|$)/);
     assert.equal(headers.get('reporting-endpoints'), 'csp="/api/csp-report"');
 });
