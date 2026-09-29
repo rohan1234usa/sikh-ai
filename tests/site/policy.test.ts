@@ -1,17 +1,19 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
 import type { PolicyCopy } from '@/app/components/PolicyPage';
-import { getDictionary, type Dictionary } from '@/lib/i18n';
 import { LANGS, LANG_COOKIE_MAX_AGE } from '@/lib/i18n/config';
 import { formatDay } from '@/lib/i18n/date';
+import { getPolicyCopy, type PolicyDictionary } from '@/lib/i18n/policy';
 import { extractPlaceholders, splitTemplate } from '@/lib/i18n/fmt';
 import { POLICY_VARS, PRIVACY_UPDATED, TERMS_UPDATED, policyLinks } from '@/lib/policy';
 import { CONTACT_EMAIL } from '@/lib/site';
 
 // The pages built on app/components/PolicyPage.tsx, and their words.
-const PAGES: Record<string, (t: Dictionary) => PolicyCopy<string>> = {
-    privacy: (t) => t.privacy,
-    terms: (t) => t.terms,
+const PAGES: Record<string, (copy: PolicyDictionary) => PolicyCopy<string>> = {
+    privacy: (copy) => copy.privacy,
+    terms: (copy) => copy.terms,
 };
 
 const names = (s: string) => extractPlaceholders(s).map((p) => p.slice(1, -1));
@@ -36,9 +38,8 @@ test('the date at the top is written out in each language', () => {
 test('every placeholder on a policy page is filled, in every language', () => {
     for (const [page, copyOf] of Object.entries(PAGES)) {
         for (const lang of LANGS) {
-            const t = getDictionary(lang);
-            const copy = copyOf(t);
-            const known = new Set([...Object.keys(POLICY_VARS), 'date', ...Object.keys(policyLinks(lang, t))]);
+            const copy = copyOf(getPolicyCopy(lang));
+            const known = new Set([...Object.keys(POLICY_VARS), 'date', ...Object.keys(policyLinks(lang, getPolicyCopy(lang)))]);
             const texts = [copy.updated, ...Object.values(copy.sections).flatMap((s) => s.items)];
             for (const text of texts)
                 for (const name of names(text)) assert.ok(known.has(name), `${page} (${lang}): {${name}} in "${text}"`);
@@ -56,13 +57,13 @@ test('every language has the same sections, in the same order, with as many item
     // translation has no extra item.
     for (const [page, copyOf] of Object.entries(PAGES)) {
         const shape = (lang: (typeof LANGS)[number]) =>
-            Object.entries(copyOf(getDictionary(lang)).sections).map(([id, s]) => `${id}:${s.items.length}`);
+            Object.entries(copyOf(getPolicyCopy(lang)).sections).map(([id, s]) => `${id}:${s.items.length}`);
         for (const lang of LANGS) assert.deepEqual(shape(lang), shape('en'), `${page} (${lang})`);
     }
 });
 
 test('every figure lib/policy.ts supplies is stated on a page', () => {
-    const en = getDictionary('en');
+    const en = getPolicyCopy('en');
     const used = new Set(Object.values(PAGES).flatMap((copyOf) => {
         const copy = copyOf(en);
         return [copy.updated, ...Object.values(copy.sections).flatMap((s) => s.items)].flatMap(names);
@@ -71,9 +72,27 @@ test('every figure lib/policy.ts supplies is stated on a page', () => {
 });
 
 test('a placeholder is either a figure or a link, never both', () => {
-    const links = Object.keys(policyLinks('en', getDictionary('en')));
+    const links = Object.keys(policyLinks('en', getPolicyCopy('en')));
     for (const name of Object.keys(POLICY_VARS)) assert.ok(!links.includes(name), name);
     assert.ok(!links.includes('date'));
+});
+
+test("the pages' words never reach a client component", () => {
+    // They live apart from the dictionaries so that only /privacy and /terms
+    // ship them. One import from a 'use client' file, or from the dictionaries'
+    // index (which every page's client code reads), would put them in every
+    // page's script again.
+    const importsPolicy = /from\s+['"](?:@\/lib\/i18n\/policy|\.{1,2}\/(?:i18n\/)?policy)(?:\/[\w-]+)?['"]/;
+    const sources = ['app', 'lib'].flatMap((dir) =>
+        readdirSync(dir, { recursive: true, encoding: 'utf8' })
+            .filter((f) => /\.tsx?$/.test(f))
+            .map((f) => join(dir, f)));
+    assert.ok(sources.length > 50, 'found the sources');
+    for (const file of sources) {
+        const src = readFileSync(file, 'utf8');
+        const client = /^\s*['"]use client['"]/.test(src) || file === join('lib', 'i18n', 'index.ts');
+        if (client) assert.ok(!importsPolicy.test(src), `${file} imports lib/i18n/policy`);
+    }
 });
 
 test('the figures the pages state in words match the code', () => {

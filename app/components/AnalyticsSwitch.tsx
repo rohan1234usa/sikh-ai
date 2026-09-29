@@ -13,7 +13,7 @@ const notYet = (): AnalyticsState | 'pending' => 'pending';
 // counted, and the switch says so rather than offering a choice it can't
 // honour. The choice holds across tabs, and is kept in this browser only.
 export default function AnalyticsSwitch() {
-    const t = useT().privacy.analyticsSwitch;
+    const t = useT().analyticsSwitch;
     const state = useSyncExternalStore(subscribeAnalyticsChoice, analyticsState, notYet);
     const stateId = `${useId()}-state`;
 

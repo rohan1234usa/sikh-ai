@@ -4,9 +4,9 @@
 // audit holds every language to the same placeholders. tests/site/policy.test.ts
 // fails on any placeholder a page doesn't fill.
 
-import type { Dictionary } from './i18n';
 import { LANG_COOKIE, type Lang } from './i18n/config';
 import { localePath } from './i18n/paths';
+import type { PolicyDictionary } from './i18n/policy';
 import { MAX_ACCOUNT_CHATS, MAX_HISTORY_TURNS, MAX_LOCAL_CHATS } from './chat/config';
 import { MAX_TUTOR_HISTORY_TURNS } from './learn/tutor';
 import { MAX_TRANSLATE_HISTORY } from './translate/history';
@@ -31,11 +31,11 @@ export const POLICY_VARS = {
 // name and a document's title stay as they are in every language.
 export type PolicyLink = { href: string; label: string; kind: 'page' | 'site' | 'mail' };
 
-export function policyLinks(lang: Lang, t: Dictionary): Record<string, PolicyLink> {
+export function policyLinks(lang: Lang, copy: PolicyDictionary): Record<string, PolicyLink> {
     return {
         email: { href: `mailto:${CONTACT_EMAIL}`, label: CONTACT_EMAIL, kind: 'mail' },
-        privacy: { href: localePath(lang, '/privacy'), label: t.privacy.title, kind: 'page' },
-        terms: { href: localePath(lang, '/terms'), label: t.terms.title, kind: 'page' },
+        privacy: { href: localePath(lang, '/privacy'), label: copy.privacy.title, kind: 'page' },
+        terms: { href: localePath(lang, '/terms'), label: copy.terms.title, kind: 'page' },
         gurbaninow: { href: 'https://gurbaninow.com', label: 'GurbaniNow', kind: 'site' },
         usePolicy: {
             href: 'https://policies.google.com/terms/generative-ai/use-policy',

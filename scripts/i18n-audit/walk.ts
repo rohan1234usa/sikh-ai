@@ -3,12 +3,21 @@
 // those imports and the modules execute standalone — but the `@/*` alias is a
 // Next-bundler feature, so everything here must use relative paths.
 
-import en from '../../lib/i18n/dictionaries/en';
-import pa from '../../lib/i18n/dictionaries/pa';
-import paLatn from '../../lib/i18n/dictionaries/pa-latn';
+import enDictionary from '../../lib/i18n/dictionaries/en';
+import paDictionary from '../../lib/i18n/dictionaries/pa';
+import paLatnDictionary from '../../lib/i18n/dictionaries/pa-latn';
+import enPolicy from '../../lib/i18n/policy/en';
+import paPolicy from '../../lib/i18n/policy/pa';
+import paLatnPolicy from '../../lib/i18n/policy/pa-latn';
 import { PHRASES } from '../../lib/translate/phrasebook';
 
-export { en, pa, paLatn, PHRASES };
+// The words of /privacy and /terms live apart from the dictionaries, so only
+// those pages ship them (lib/i18n/policy); they're audited as one with the
+// rest, under `policy.`
+export const en = { ...enDictionary, policy: enPolicy };
+export const pa = { ...paDictionary, policy: paPolicy };
+export const paLatn = { ...paLatnDictionary, policy: paLatnPolicy };
+export { PHRASES };
 
 export type Leaf = { path: string; value: string };
 
