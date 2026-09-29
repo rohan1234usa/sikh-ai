@@ -6,9 +6,9 @@
 // MIN_FALLBACK_MS, so the fallback never starts — for the one failure it was
 // added for, a primary that hangs. Translate sat at 20 s and 15 s, a 5 s gap
 // against a 6 s minimum, and every hang fell straight through to Cloud
-// Translation. tests/api/budgets.test.ts holds both routes to that rule.
+// Translation. tests/api/budgets.test.ts holds every route to that rule.
 //
-// Both budgets sit inside the routes' `maxDuration = 30`, leaving the
+// Every budget sits inside the routes' `maxDuration = 30`, leaving the
 // translator's Cloud fallback (8 s) room after Gemini has had its turn.
 
 export const CHAT_BUDGET_MS = 27_000;
@@ -18,3 +18,9 @@ export const CHAT_FIRST_TEXT_MS = 10_000;
 
 export const TRANSLATE_BUDGET_MS = 20_000;
 export const TRANSLATE_ATTEMPT_MS = 12_000;
+
+// The Punjabi tutor streams like the chat. Its replies are short, so a first
+// word that hasn't come after 8 s means the call is stuck, and 19 s remain
+// for the fallback model.
+export const LEARN_BUDGET_MS = 27_000;
+export const LEARN_FIRST_TEXT_MS = 8_000;

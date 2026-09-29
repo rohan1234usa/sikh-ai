@@ -2,12 +2,16 @@ import { afterEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { geminiFallbackModel, geminiModel } from '@/lib/gemini/models';
 
-const VARS = ['GEMINI_CHAT_MODEL', 'GEMINI_TRANSLATE_MODEL', 'GEMINI_CHAT_FALLBACK_MODEL', 'GEMINI_TRANSLATE_FALLBACK_MODEL'];
+const VARS = [
+    'GEMINI_CHAT_MODEL', 'GEMINI_TRANSLATE_MODEL', 'GEMINI_LEARN_MODEL',
+    'GEMINI_CHAT_FALLBACK_MODEL', 'GEMINI_TRANSLATE_FALLBACK_MODEL', 'GEMINI_LEARN_FALLBACK_MODEL',
+];
 afterEach(() => { for (const name of VARS) delete process.env[name]; });
 
-test('both features use the pinned model by default', () => {
+test('every feature uses the pinned model by default', () => {
     assert.equal(geminiModel('chat'), 'gemini-3.8-flash');
     assert.equal(geminiModel('translate'), 'gemini-3.8-flash');
+    assert.equal(geminiModel('learn'), 'gemini-3.8-flash');
 });
 
 test('an env override applies to its own feature only, trimmed', () => {
@@ -24,6 +28,16 @@ test('a blank override falls back to the pinned model', () => {
 test('the fallback model defaults to 3.7 Flash', () => {
     assert.equal(geminiFallbackModel('chat'), 'gemini-3.7-flash');
     assert.equal(geminiFallbackModel('translate'), 'gemini-3.7-flash');
+    assert.equal(geminiFallbackModel('learn'), 'gemini-3.7-flash');
+});
+
+test('the tutor has its own override, apart from the chat', () => {
+    process.env.GEMINI_LEARN_MODEL = 'gemini-3.6-flash';
+    process.env.GEMINI_LEARN_FALLBACK_MODEL = 'off';
+    assert.equal(geminiModel('learn'), 'gemini-3.6-flash');
+    assert.equal(geminiFallbackModel('learn'), null);
+    assert.equal(geminiModel('chat'), 'gemini-3.8-flash');
+    assert.equal(geminiFallbackModel('chat'), 'gemini-3.7-flash');
 });
 
 test('the fallback can be switched off', () => {
