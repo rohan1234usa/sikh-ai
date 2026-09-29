@@ -15,6 +15,8 @@
 //   MOCK_BLOCKED      prompt refused                MOCK_SAFETY      text, then cut by a filter
 //   MOCK_MAX_TOKENS   hits the output cap           MOCK_GARBAGE     translator gets non-JSON
 //   MOCK_REPLY:<name> a canned chat reply (CANNED below, or a citation fixture id)
+//   MOCK_LONG         a reply as long as a whole Ang explained line by line,
+//                     in small pieces (for profiling the chat's rendering)
 // Anything else gets a normal reply naming the model that served it.
 
 import { readFileSync } from 'node:fs';
@@ -45,15 +47,32 @@ export const CANNED: Record<string, string> = {
     plain: 'Seva is selfless service, offered without any expectation of reward.',
 };
 
-function cannedReply(name: string): string | undefined {
-    if (CANNED[name] !== undefined) return CANNED[name];
+function fixtureReplies(): { id: string; text: string }[] {
     try {
         const file = resolve(import.meta.dirname, '../tests/gurbani/fixtures/replies.json');
-        const replies = JSON.parse(readFileSync(file, 'utf8')) as { id: string; text: string }[];
-        return replies.find(r => r.id === name)?.text;
+        return JSON.parse(readFileSync(file, 'utf8')) as { id: string; text: string }[];
     } catch {
-        return undefined;
+        return [];
     }
+}
+
+function cannedReply(name: string): string | undefined {
+    if (CANNED[name] !== undefined) return CANNED[name];
+    return fixtureReplies().find(r => r.id === name)?.text;
+}
+
+// About 12,000 characters of real model answers (headings, lists, Gurmukhi
+// quotes), roughly what a whole Ang explained line by line comes to.
+export const LONG_REPLY_CHARS = 12_000;
+function longReply(): string {
+    const parts: string[] = [];
+    let length = 0;
+    for (const { text } of [...fixtureReplies()].sort((a, b) => b.text.length - a.text.length)) {
+        if (length >= LONG_REPLY_CHARS) break;
+        parts.push(text);
+        length += text.length;
+    }
+    return parts.join('\n\n');
 }
 
 const GURMUKHI = /[਀-੿]/;
@@ -106,9 +125,10 @@ function translation(userText: string) {
     };
 }
 
-function pieces(text: string): string[] {
+// A reply in `count` pieces, split between words.
+function pieces(text: string, count = 4): string[] {
     const words = text.split(/(?<=\s)/);
-    const size = Math.max(1, Math.ceil(words.length / 4));
+    const size = Math.max(1, Math.ceil(words.length / count));
     const out: string[] = [];
     for (let i = 0; i < words.length; i += size) out.push(words.slice(i, i + size).join(''));
     return out;
@@ -186,10 +206,13 @@ export async function startMockGemini(opts: MockOptions = {}): Promise<MockGemin
                 return res.end();
             }
             const canned = /MOCK_REPLY:([\w:-]+)/.exec(text)?.[1];
-            const reply = (canned && cannedReply(canned))
-                ?? `Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh. This is a **mock** reply from \`${model}\`.`;
-            for (const piece of pieces(reply)) {
-                await sleep(delay);
+            const long = text.includes('MOCK_LONG');
+            const reply = (long ? longReply() : canned && cannedReply(canned))
+                || `Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh. This is a **mock** reply from \`${model}\`.`;
+            // A long reply comes in about as many pieces as Gemini sends: one
+            // every ~80 characters.
+            for (const piece of pieces(reply, long ? Math.ceil(reply.length / 80) : 4)) {
+                await sleep(long ? Math.min(delay, 40) : delay);
                 send(candidate([{ text: piece }]));
             }
             const finishReason = text.includes('MOCK_MAX_TOKENS') ? 'MAX_TOKENS' : 'STOP';
