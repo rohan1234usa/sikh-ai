@@ -79,7 +79,7 @@ The chat client sends only whitelisted IDs (`lensId` / `modeId` / `languageId`, 
     *   Crawlers get `robots.txt` and `sitemap.xml`.
     *   A failure in the root layout itself gets a translated, themed page (`app/global-error.tsx`) rather than Next's bare default.
     *   The site installs as an app on a phone: `app/manifest.ts`, and icons that are the navbar's ੴ in the site's own Gurmukhi font (`public/icon-*.png`, `app/apple-icon.png`).
-    *   `/privacy` says, in all three languages, what the site keeps, where, for how long, what it sends to which service, and how to remove it. Visits are counted by Vercel Web Analytics, on the production deployment only, and page speed by Speed Insights: both are Vercel's own, set no cookies and load from this site. Neither counts a visitor who switches counting off on `/privacy` or whose browser sends Global Privacy Control, and every address they record has a share link's or chat's ID, query and fragment taken out (`lib/analytics.ts`).
+    *   `/privacy` and `/terms` say, in all three languages, what the site keeps, where, for how long, what it sends to which service and how to remove it, and the few rules for using it (the AI features are for people 18 and over, as Gemini's terms require). Both render from sections kept in the dictionaries through `app/components/PolicyPage.tsx`, keyed by id so each is an anchor (`/privacy#analytics`). The limits they state are placeholders filled from the constants the code enforces (`lib/policy.ts`), and a test fails on any a page doesn't fill; the contact address is one constant (`lib/site.ts`). Visits are counted by Vercel Web Analytics, on the production deployment only, and page speed by Speed Insights: both are Vercel's own, set no cookies and load from this site. Neither counts a visitor who switches counting off on `/privacy` or whose browser sends Global Privacy Control, and every address they record has a share link's or chat's ID, query and fragment taken out (`lib/analytics.ts`).
 
 ## 🚀 Getting Started
 
@@ -166,7 +166,7 @@ Follow these steps to set up the project locally.
 
 Four settings outside the code keep a public deployment affordable and safe, and a fifth turns on saved chats and share links:
 
-1.  **Billing on the Gemini key's project.** In AI Studio → API keys, find the project behind the production key and set up billing. A small prepaid balance with auto-reload off caps the worst case at that balance. When it runs out, Gemini answers HTTP 402: the chat shows its "busy" message, and the translator falls back to Cloud Translation where it can.
+1.  **Billing on the Gemini key's project.** In AI Studio → API keys, find the project behind the production key and set up billing. A small prepaid balance with auto-reload off caps the worst case at that balance. When it runs out, Gemini answers HTTP 402: the chat shows its "busy" message, and the translator falls back to Cloud Translation where it can. Keep billing on: `/privacy` tells visitors the site uses Gemini's paid service, under which Google doesn't use what it's sent to improve its products, and Gemini's terms allow only the paid service for visitors in the EEA, Switzerland and the UK.
 2.  **A monthly spend cap** (AI Studio → Spend). Enforcement lags by about ten minutes.
 3.  **One rate-limit rule** (Vercel → Firewall; the Hobby plan allows one): path starts with `/api/`, method POST, 20 requests per IP in a 60-second fixed window. Leave out `/api/csp-report`, where browsers post policy reports, so they never count against a visitor's chat. Run it in Log mode for a week, then switch it to deny with 429. The chat, the translator and the tutor already show their "busy" message for the firewall's 429.
 4.  **Restrict the Gemini key** to the Generative Language API, but only after `GOOGLE_TRANSLATE_API_KEY` is set on its own. Until then Cloud Translation borrows the Gemini key, and restricting it would quietly break the translator's fallback.
@@ -176,6 +176,20 @@ Four settings outside the code keep a public deployment affordable and safe, and
     3.  Set `NEXT_PUBLIC_CHAT_CLOUD=1` in Vercel (try a preview first, with its domain added to Firebase Auth's authorized domains) and redeploy. Add a Firestore budget alert: rules can't cap how much a signed-in user stores.
 
 **The Firestore rules** live in [`firestore.rules`](firestore.rules): the whole file, reviewed in pull requests and tested on the emulator (`npm run test:rules`, which needs Java 21; CI runs it). `firebase deploy --only firestore:rules` replaces every rule in the console, so before the first deploy, export the console's rules and compare them with the file: anything they allow that the file doesn't would stop working. After that, deploy only from the file.
+
+**Before `/privacy` and `/terms` go live:**
+1.  **Set `CONTACT_EMAIL`** in `lib/site.ts`. Until then it's a placeholder at `example.invalid`, which `npm test` lists as a TODO. Use an inbox someone reads: the pages promise a reply, and that a deletion is done within 30 days.
+2.  **Google sign-in's branding** (Google Cloud console for the Firebase project → Google Auth Platform → Branding): home page `https://sikhai.vercel.app`, privacy policy `https://sikhai.vercel.app/privacy`, terms `https://sikhai.vercel.app/terms`. Google asks for a privacy policy on the app's own domain that says how it uses Google user data, which `/privacy` does.
+3.  Whenever what a page says changes, move its date in `lib/policy.ts` (`PRIVACY_UPDATED`, `TERMS_UPDATED`); every language shows it.
+
+**Requests to delete an account or a Seva sign-up** (the pages offer them by email, within 30 days):
+1.  Reply to confirm the request came from the account's own email address.
+2.  Firebase console → Authentication → Users: search for the address and copy the User UID.
+3.  Delete the account's chats with `npx firebase-tools firestore:delete users/<uid> --recursive --project <project-id>` (each chat's `entries` go with it), then check in Firestore that `users/<uid>` is gone.
+4.  Firestore → `shared_chats`: filter `ownerUid == <uid>` and delete every match. A share that's left still opens by its link.
+5.  Firestore → `seva_events`: filter `attendees array-contains <uid>` and remove the UID from each one's `attendees`. For a request about a Seva sign-up only, this is the whole job. A posted event records no poster, so one can be removed only by what it says.
+6.  Authentication → Users: delete the user, last, since the UID is how everything else is found.
+7.  Reply that it's done. Mention that chats, translations and settings in their own browser stay until they clear the site's data there, and that Google clears its backups within 180 days.
 
 Three more, for seeing how the site does:
 *   **Web Analytics** (Vercel → Analytics → Enable), before deploying the code that uses it: Vercel adds its routes at the next deploy, and until then the script isn't found. It counts visits on the production deployment, without cookies. The Hobby plan counts 50,000 events a month and keeps a month of reports; when a month's events run out, counting pauses (after three days' grace) rather than costing anything. To check it, open the site in an ordinary browser (automated ones aren't counted): each page sends a POST to `/<random>/view`, and on a share link its `o` ends in `/share/:id`.
