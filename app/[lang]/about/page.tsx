@@ -1,10 +1,15 @@
-'use client';
-
+import type { Metadata } from 'next';
 import Image from 'next/image';
-import { useT } from '@/app/context/LanguageContext';
+import { getServerT } from '@/lib/i18n/server';
+import { pageMetadata } from '@/lib/metadata';
 
-export default function AboutPage() {
-    const t = useT();
+export async function generateMetadata(): Promise<Metadata> {
+    const { lang, t } = await getServerT();
+    return pageMetadata(lang, t, '/about', t.meta.aboutTitle, t.meta.descriptions.about);
+}
+
+export default async function AboutPage() {
+    const { t } = await getServerT();
 
     return (
         <main className="flex-1 flex flex-col">
