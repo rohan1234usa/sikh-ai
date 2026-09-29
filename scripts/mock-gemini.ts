@@ -45,6 +45,11 @@ export type MockOptions = {
 // misquotes Gurbani, to watch the citation check at work.
 export const CANNED: Record<string, string> = {
     plain: 'Seva is selfless service, offered without any expectation of reward.',
+    // The Punjabi tutor's shape: Punjabi in three forms, a short list, a next step.
+    tutor: 'Good question! In the past tense, the verb agrees with the **thing** that was done, not with you:\n\n'
+        + '- ਮੈਂ ਕੰਮ ਕੀਤਾ — Main kamm kita — I did the work. ਕੰਮ (kamm, work) is masculine.\n'
+        + '- ਮੈਂ ਗੱਲ ਕੀਤੀ — Main gall kiti — I had a talk. ਗੱਲ (gall, a talk) is feminine.\n\n'
+        + 'Try one: how would you say “I made tea”?',
 };
 
 function fixtureReplies(): { id: string; text: string }[] {
