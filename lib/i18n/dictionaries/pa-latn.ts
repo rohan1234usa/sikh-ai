@@ -711,6 +711,7 @@ const paLatn: Dictionary = {
             again: 'Dubara duhrao',
             nothingDue: 'Is vele kujh duhraun vala nahi. Har card baad layi tai hai.',
             practice: 'Phir vi abhiaas karo',
+            checkAgain: 'Dubara dekho',
         },
         tutor: {
             greeting: 'Sat Sri Akal! Main tuhada Punjabi tutor haan. Kise vi vaak baare puchho, puchho ki kujh kiven kahida hai, jaan mere naal gallbaat da abhiaas karo. Har Punjabi gall Gurmukhi, Angrezi akhran ate Angrezi vich milegi, ate samjhauna Angrezi vich hovega.',

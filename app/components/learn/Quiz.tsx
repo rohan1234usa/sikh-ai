@@ -7,6 +7,7 @@ import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { QuizQuestion } from '@/lib/learn/config';
 import { isCorrect, scoreQuiz, seededShuffle, type QuizScore } from '@/lib/learn/quiz';
+import { useSwapGuard } from './useSwapGuard';
 
 type Props = {
     questions: QuizQuestion[];
@@ -44,7 +45,11 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
     const setAnswer = (index: number, value: string) =>
         setAnswers((prev) => prev.map((answer, i) => (i === index ? value : answer)));
 
+    // Check and Try again are one button in one place (./useSwapGuard.ts).
+    const { mark, allowed, noRepeat } = useSwapGuard();
+
     const check = () => {
+        mark();
         setChecked(true);
         onChecked?.(scoreQuiz(questions, answers).score);
         // Keyboard and screen-reader users land on the score.
@@ -52,6 +57,7 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
     };
 
     const again = () => {
+        mark();
         if (onNewQuestions) {
             onNewQuestions();
             return;
@@ -152,11 +158,11 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
 
             <div className="flex flex-wrap items-center gap-4">
                 {checked ? (
-                    <button type="button" onClick={again} className={PRIMARY_BUTTON}>
+                    <button type="button" onClick={(e) => allowed(e) && again()} onKeyDown={noRepeat} className={PRIMARY_BUTTON}>
                         {onNewQuestions ? t.learn.quiz.newQuestions : t.learn.quiz.tryAgain}
                     </button>
                 ) : (
-                    <button type="button" onClick={check} className={PRIMARY_BUTTON}>
+                    <button type="button" onClick={(e) => allowed(e) && check()} onKeyDown={noRepeat} className={PRIMARY_BUTTON}>
                         {t.learn.quiz.check}
                     </button>
                 )}

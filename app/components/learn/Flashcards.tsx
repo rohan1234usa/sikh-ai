@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type SetStateAction } from 'react';
 import { PRIMARY_BUTTON } from '@/app/components/StatusPage';
 import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { VocabWord } from '@/lib/learn/config';
 import { seededShuffle } from '@/lib/learn/quiz';
 import { reviewQueue, type CardState } from '@/lib/learn/srs';
+import { useSwapGuard } from './useSwapGuard';
 
 type Props = {
     words: VocabWord[];
@@ -51,11 +52,13 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
         else (showRef.current ?? doneRef.current)?.focus();
     }, [session]);
 
-    // The answer buttons take the place of Show answer, so the second click
-    // of a double-click would answer a card nobody has seen. `detail` is the
-    // click count (0 from a keyboard), so only a single click counts.
-    const single = (act: () => void) => (event: MouseEvent) => {
-        if (event.detail <= 1) act();
+    // The answer buttons take the place of Show answer, and the next card's
+    // Show answer theirs, so a double-click would answer a card nobody has
+    // judged (./useSwapGuard.ts).
+    const { mark, allowed, noRepeat } = useSwapGuard();
+    const change = (update: SetStateAction<Session>) => {
+        mark();
+        setSession(update);
     };
 
     const id = session.queue[session.index];
@@ -64,7 +67,7 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
     const answer = (correct: boolean) => {
         if (!id) return;
         onReview(id, correct);
-        setSession((s) => {
+        change((s) => {
             const again = !correct && !s.missed.includes(id);
             return {
                 ...s,
@@ -79,8 +82,8 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
     };
 
     // A new session reads the schedule as it is now, answers included.
-    const reviewAgain = () => setSession(startSession(reviewQueue(ids, cards, Date.now(), SESSION_SIZE)));
-    const practiceAll = () => setSession(startSession(seededShuffle(ids, String(Date.now())).slice(0, SESSION_SIZE)));
+    const reviewAgain = () => change(startSession(reviewQueue(ids, cards, Date.now(), SESSION_SIZE)));
+    const practiceAll = () => change(startSession(seededShuffle(ids, String(Date.now())).slice(0, SESSION_SIZE)));
 
     const directionPicker = (
         <div role="group" aria-label={t.learn.cards.directionAria} className="flex flex-wrap gap-2">
@@ -102,9 +105,19 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
 
     if (session.queue.length === 0) {
         return (
-            <div className="space-y-4 rounded-xl border border-edge bg-surface-raised p-6 text-center">
+            <div ref={doneRef} tabIndex={-1} className="space-y-4 rounded-xl border border-edge bg-surface-raised p-6 text-center outline-none">
                 <p className="text-ink-muted">{t.learn.cards.nothingDue}</p>
-                <button type="button" onClick={practiceAll} className={PRIMARY_BUTTON}>{t.learn.cards.practice}</button>
+                {/* A page left open overnight: check the schedule again. */}
+                <div className="flex flex-wrap justify-center gap-3">
+                    <button
+                        type="button"
+                        onClick={(e) => allowed(e) && reviewAgain()}
+                        className="rounded-lg border border-edge bg-surface-raised px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-edge/40"
+                    >
+                        {t.learn.cards.checkAgain}
+                    </button>
+                    <button type="button" onClick={(e) => allowed(e) && practiceAll()} className={PRIMARY_BUTTON}>{t.learn.cards.practice}</button>
+                </div>
             </div>
         );
     }
@@ -114,7 +127,7 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
             <div ref={doneRef} tabIndex={-1} className="space-y-4 rounded-xl border border-edge bg-surface-raised p-6 text-center outline-none">
                 <p className="text-xl font-bold text-ink">{t.learn.cards.doneTitle}</p>
                 <p className="text-ink-muted">{fmt(t.learn.cards.doneBody, { right: session.right, wrong: session.wrong })}</p>
-                <button type="button" onClick={reviewAgain} className={PRIMARY_BUTTON}>{t.learn.cards.again}</button>
+                <button type="button" onClick={(e) => allowed(e) && reviewAgain()} className={PRIMARY_BUTTON}>{t.learn.cards.again}</button>
             </div>
         );
     }
@@ -148,12 +161,13 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
                 <div className="grid grid-cols-2 gap-3">
                     <button
                         type="button"
-                        onClick={single(() => answer(false))}
+                        onClick={(e) => allowed(e) && answer(false)}
+                        onKeyDown={noRepeat}
                         className="rounded-lg border border-edge bg-surface-raised px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-edge/40"
                     >
                         {t.learn.cards.notYet}
                     </button>
-                    <button type="button" onClick={single(() => answer(true))} className={`${PRIMARY_BUTTON} text-center`}>
+                    <button type="button" onClick={(e) => allowed(e) && answer(true)} onKeyDown={noRepeat} className={`${PRIMARY_BUTTON} text-center`}>
                         {t.learn.cards.knewIt}
                     </button>
                 </div>
@@ -161,7 +175,8 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
                 <button
                     ref={showRef}
                     type="button"
-                    onClick={single(() => setSession((s) => ({ ...s, revealed: true })))}
+                    onClick={(e) => allowed(e) && change((s) => ({ ...s, revealed: true }))}
+                    onKeyDown={noRepeat}
                     className={`${PRIMARY_BUTTON} w-full text-center`}
                 >
                     {t.learn.cards.show}

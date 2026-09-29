@@ -722,6 +722,7 @@ const en = {
             again: 'Review again',
             nothingDue: 'Nothing is due. Every card here is scheduled for later.',
             practice: 'Practice anyway',
+            checkAgain: 'Check again',
         },
         // /learn/tutor: the Punjabi tutor, a conversation kept in the tab.
         tutor: {

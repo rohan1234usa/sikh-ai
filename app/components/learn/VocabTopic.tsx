@@ -20,8 +20,14 @@ type Mode = (typeof MODES)[number];
 // progress.
 export default function VocabTopic({ topic, words }: { topic: VocabTopicId; words: VocabWord[] }) {
     const t = useT();
-    const { progress, now, reviewCard, recordTopicQuiz } = useLearnProgress();
+    const { progress, now, loadedAt, reviewCard, recordTopicQuiz } = useLearnProgress();
     const [mode, setMode] = useState<Mode>('words');
+    // Tabs opened so far: a panel is built the first time its tab opens.
+    const [opened, setOpened] = useState<ReadonlySet<Mode>>(() => new Set<Mode>(['words']));
+    const show = (next: Mode) => {
+        setMode(next);
+        setOpened((s) => (s.has(next) ? s : new Set(s).add(next)));
+    };
     const [round, setRound] = useState(0);
     const tabs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -38,7 +44,7 @@ export default function VocabTopic({ topic, words }: { topic: VocabTopicId; word
         if (!step) return;
         event.preventDefault();
         const next = (index + step + MODES.length) % MODES.length;
-        setMode(MODES[next]);
+        show(MODES[next]);
         tabs.current[next]?.focus();
     };
 
@@ -64,7 +70,7 @@ export default function VocabTopic({ topic, words }: { topic: VocabTopicId; word
                         aria-selected={mode === m}
                         aria-controls={`panel-${m}`}
                         tabIndex={mode === m ? 0 : -1}
-                        onClick={() => setMode(m)}
+                        onClick={() => show(m)}
                         onKeyDown={(e) => onTabKey(e, i)}
                         className={`-mb-px border-b-2 px-4 py-2 text-sm transition-colors ${mode === m
                             ? 'border-kesri font-semibold text-ink'
@@ -75,24 +81,29 @@ export default function VocabTopic({ topic, words }: { topic: VocabTopicId; word
                 ))}
             </div>
 
-            {/* Every panel stays mounted, only hidden, so looking a word up
-                keeps a quiz's answers and a flashcard session where they were. */}
+            {/* A panel is built the first time its tab opens, then only
+                hidden, so looking a word up keeps a quiz's answers and a
+                flashcard session where they were, and a page carries no quiz
+                until one is asked for. A flashcard session starts again when
+                another tab, or a page restored by Back, brings new progress. */}
             <div role="tabpanel" id="panel-words" aria-labelledby="tab-words" hidden={mode !== 'words'}>
                 <WordList words={words} />
             </div>
             <div role="tabpanel" id="panel-cards" aria-labelledby="tab-cards" hidden={mode !== 'cards'}>
-                {now !== null
-                    ? <Flashcards words={words} cards={progress.cards} now={now} onReview={reviewCard} />
-                    : <div aria-hidden="true" className="h-64 animate-pulse rounded-2xl bg-edge/40" />}
+                {opened.has('cards') && (now !== null
+                    ? <Flashcards key={loadedAt} words={words} cards={progress.cards} now={now} onReview={reviewCard} />
+                    : <div aria-hidden="true" className="h-64 animate-pulse rounded-2xl bg-edge/40" />)}
             </div>
             <div role="tabpanel" id="panel-quiz" aria-labelledby="tab-quiz" hidden={mode !== 'quiz'}>
-                <Quiz
-                    key={round}
-                    questions={quiz}
-                    seed={`${topic}:${round}`}
-                    onChecked={(score) => recordTopicQuiz(topic, score)}
-                    onNewQuestions={() => setRound((r) => r + 1)}
-                />
+                {opened.has('quiz') && (
+                    <Quiz
+                        key={round}
+                        questions={quiz}
+                        seed={`${topic}:${round}`}
+                        onChecked={(score) => recordTopicQuiz(topic, score)}
+                        onNewQuestions={() => setRound((r) => r + 1)}
+                    />
+                )}
             </div>
         </div>
     );
