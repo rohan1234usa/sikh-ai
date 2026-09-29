@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join, normalize, sep } from 'node:path';
 import type { PolicyCopy } from '@/app/components/PolicyPage';
 import { LANGS, LANG_COOKIE_MAX_AGE } from '@/lib/i18n/config';
 import { formatDay } from '@/lib/i18n/date';
@@ -81,18 +81,28 @@ test("the pages' words never reach a client component", () => {
     // They live apart from the dictionaries so that only /privacy and /terms
     // ship them. One import from a 'use client' file, or from the dictionaries'
     // index (which every page's client code reads), would put them in every
-    // page's script again.
-    const importsPolicy = /from\s+['"](?:@\/lib\/i18n\/policy|\.{1,2}\/(?:i18n\/)?policy)(?:\/[\w-]+)?['"]/;
+    // page's script again. Every import is resolved, by alias or relative
+    // path, static or dynamic, and the directive may follow comments.
+    const policy = join('lib', 'i18n', 'policy');
+    const leadingComments = /^(?:\s|\/\/[^\n]*|\/\*[\s\S]*?\*\/)*/;
+    const specifiers = /\b(?:from|import)\s*\(?\s*['"]([^'"]+)['"]/g;
     const sources = ['app', 'lib'].flatMap((dir) =>
         readdirSync(dir, { recursive: true, encoding: 'utf8' })
             .filter((f) => /\.tsx?$/.test(f))
             .map((f) => join(dir, f)));
     assert.ok(sources.length > 50, 'found the sources');
+    let clients = 0;
     for (const file of sources) {
         const src = readFileSync(file, 'utf8');
-        const client = /^\s*['"]use client['"]/.test(src) || file === join('lib', 'i18n', 'index.ts');
-        if (client) assert.ok(!importsPolicy.test(src), `${file} imports lib/i18n/policy`);
+        const client = /^['"]use client['"]/.test(src.replace(leadingComments, '')) || file === join('lib', 'i18n', 'index.ts');
+        if (!client) continue;
+        clients++;
+        for (const [, spec] of src.matchAll(specifiers)) {
+            const target = spec.startsWith('@/') ? normalize(spec.slice(2)) : spec.startsWith('.') ? join(dirname(file), spec) : null;
+            assert.ok(target === null || (target !== policy && !target.startsWith(policy + sep)), `${file} imports ${spec}`);
+        }
     }
+    assert.ok(clients > 20, 'found the client components');
 });
 
 test('the figures the pages state in words match the code', () => {
