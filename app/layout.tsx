@@ -4,6 +4,7 @@ import { FONT_VARIABLES } from "./fonts";
 import { AuthProvider } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { LANG_META } from "@/lib/i18n/config";
@@ -67,6 +68,10 @@ export default async function RootLayout({
           </LanguageProvider>
         </AuthProvider>
         <GoogleAnalytics gaId="G-9WWKK5Z5GD" />
+        {/* Core Web Vitals from real visits, on Vercel's dashboard once it's
+            switched on there. No cookies; Vercel serves the script from this
+            site (/_vercel/speed-insights), so it only exists on Vercel. */}
+        {process.env.VERCEL === "1" && <SpeedInsights />}
       </body>
     </html>
   );
