@@ -1,10 +1,9 @@
-'use client';
-
 import type { ReactNode } from 'react';
 
 // The body of the error pages. It sits on the same theme tokens as every
 // other page, so it follows the user's theme (Next's built-in fallback pages
-// paint their own white, or OS-dark, body). The 404 is app/global-not-found.tsx.
+// paint their own white, or OS-dark, body). The 404 is app/global-not-found.tsx,
+// a server page that shares PRIMARY_BUTTON; neither needs the client.
 export function StatusPage({ code, heading, body, children }: {
     code?: string;
     heading: string;

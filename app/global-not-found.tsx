@@ -4,11 +4,13 @@ import { getDictionary } from '@/lib/i18n';
 import { LANGS, LANG_META, type Lang } from '@/lib/i18n/config';
 import { localePath } from '@/lib/i18n/paths';
 import { THEME_INIT_SCRIPT } from '@/lib/theme';
+import { PRIMARY_BUTTON } from './components/StatusPage';
 
 // The site's 404, for any address that isn't a page, in any language. Pages
 // live under app/[lang], whose layout can't serve a 404 of its own (Next
 // would fall back to its bare default page), so this is a whole document of
-// its own: static, built once, with no navbar or providers.
+// its own: static, built once, with no navbar or providers. The logo still
+// leads home, as it does on every page.
 //
 // A 404 page can't know its language when it's built, so it carries all
 // three. A pre-paint script reads the language from the address (/pa/…,
@@ -43,8 +45,14 @@ export default function GlobalNotFound() {
       </head>
       <body className="antialiased min-h-dvh flex flex-col">
         <header className="bg-navy text-white shadow-md dark:border-b dark:border-white/10">
-          <div className="mx-auto flex h-16 max-w-7xl items-center px-4 sm:px-6 text-xl font-bold tracking-wide">
-            <span className="font-gurmukhi text-kesri mr-2" aria-hidden="true">ੴ</span> SikhAI
+          <div className="mx-auto flex h-16 max-w-7xl items-center px-4 sm:px-6">
+            {LANGS.map((lang) => (
+              <div key={lang} className={SHOWN[lang]}>
+                <a href={localePath(lang, '/')} className="flex items-center gap-2 text-xl font-bold tracking-wide">
+                  <span className="font-gurmukhi text-kesri" aria-hidden="true">ੴ</span> SikhAI
+                </a>
+              </div>
+            ))}
           </div>
         </header>
         <main className="flex-1 flex items-center justify-center px-4 py-20">
@@ -56,10 +64,7 @@ export default function GlobalNotFound() {
                 <h1 className="text-3xl font-bold text-ink">{t.notFound.heading}</h1>
                 <p className="text-ink-muted">{t.notFound.body}</p>
                 <div className="pt-2">
-                  <a
-                    href={localePath(lang, '/')}
-                    className="inline-block bg-kesri text-navy text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-kesri-hover transition-colors shadow-md shadow-kesri/20"
-                  >
+                  <a href={localePath(lang, '/')} className={PRIMARY_BUTTON}>
                     {t.notFound.home}
                   </a>
                 </div>
