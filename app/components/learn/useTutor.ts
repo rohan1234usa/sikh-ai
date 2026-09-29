@@ -7,6 +7,7 @@ import {
     MAX_TUTOR_REPLY_CHARS,
     TUTOR_SESSION_KEY,
     appendExchange,
+    cap,
     historyFor,
     parseTutorSession,
     settleReply,
@@ -28,24 +29,29 @@ import {
 // conversation rather than restarting it.
 
 // While a reply streams, it is saved at most this often, and once more when
-// the page goes away, as the chat does.
+// the page goes away or the tutor is left by a link, as the chat does.
 const SAVE_EVERY_MS = 1000;
 
-function save(session: TutorSession) {
+// False when storage is full or blocked: the conversation then lasts for
+// this page.
+function save(session: TutorSession): boolean {
     try {
         sessionStorage.setItem(TUTOR_SESSION_KEY, JSON.stringify(session));
-    } catch { /* storage full or blocked: the conversation lasts for this page */ }
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 export function useTutor() {
     const [session, setSession] = useState<TutorSession>(EMPTY_SESSION);
     const [hydrated, setHydrated] = useState(false);
     const [lessonNotFound, setLessonNotFound] = useState(false);
-    const [busy, setBusy] = useState(false);
     const controllerRef = useRef<AbortController | null>(null);
     const sessionRef = useRef(session);
-    const hydratedRef = useRef(false);
     const savedAtRef = useRef(0);
+    // A reply is on its way exactly when the last one is streaming.
+    const busy = session.exchanges.at(-1)?.reply.status === 'streaming';
 
     useEffect(() => { sessionRef.current = session; }, [session]);
 
@@ -69,27 +75,32 @@ export function useTutor() {
                 next = { lesson: requested, exchanges: [] };
             }
         }
+        // Set here, not left to the effect that follows renders, so a save
+        // before the next render (the cleanup below, a pagehide) has it.
+        sessionRef.current = next;
         setSession(next);
         setHydrated(true);
-        hydratedRef.current = true;
 
-        const onHide = () => { if (hydratedRef.current) save(sessionRef.current); };
+        const onHide = () => save(sessionRef.current);
         window.addEventListener('pagehide', onHide);
         return () => {
+            // Leaving by a link unmounts the tutor without a pagehide.
+            save(sessionRef.current);
             window.removeEventListener('pagehide', onHide);
             controllerRef.current?.abort();
         };
     }, []);
 
-    // Saved on every change, and while a reply streams once a second, so a
-    // reload keeps what had arrived.
+    // Saved on every change, and while a reply's text streams in once a
+    // second, so a reload keeps what had arrived. A new question is saved at
+    // once.
     useEffect(() => {
         if (!hydrated) return;
         const now = Date.now();
-        const streaming = session.exchanges.at(-1)?.reply.status === 'streaming';
-        if (streaming && now - savedAtRef.current < SAVE_EVERY_MS) return;
+        const last = session.exchanges.at(-1)?.reply;
+        if (last?.status === 'streaming' && last.text !== '' && now - savedAtRef.current < SAVE_EVERY_MS) return;
         savedAtRef.current = now;
-        save(session);
+        if (!save(session)) return;
         // Saved, so the lesson no longer needs the address: a reload now
         // continues the conversation instead of starting it again. The state
         // is null, as in the chat, so Next's router follows the new address.
@@ -107,7 +118,6 @@ export function useTutor() {
     const stream = useCallback(async (id: string, message: string, history: HistoryTurn[], lesson: string | null) => {
         const controller = new AbortController();
         controllerRef.current = controller;
-        setBusy(true);
         let text = '';
         let outcome: StreamOutcome;
         try {
@@ -129,11 +139,12 @@ export function useTutor() {
                     if (done) break;
                     const chunk = decoder.decode(value, { stream: true });
                     if (!chunk) continue;
-                    text = (text + chunk).slice(0, MAX_TUTOR_REPLY_CHARS);
+                    const whole = text + chunk;
+                    text = cap(whole, MAX_TUTOR_REPLY_CHARS);
                     setReply(id, { text, status: 'streaming' });
                     // A runaway reply: stop the server generating the rest,
                     // and keep it, marked as cut off.
-                    if (text.length === MAX_TUTOR_REPLY_CHARS) {
+                    if (text.length < whole.length) {
                         controller.abort();
                         throw new Error('The reply reached its length cap');
                     }
@@ -144,10 +155,7 @@ export function useTutor() {
             outcome = controller.signal.aborted ? { kind: 'aborted' } : { kind: 'failed' };
         }
         setReply(id, settleReply({ text, status: 'streaming' }, outcome));
-        if (controllerRef.current === controller) {
-            controllerRef.current = null;
-            setBusy(false);
-        }
+        if (controllerRef.current === controller) controllerRef.current = null;
     }, [setReply]);
 
     const send = useCallback((raw: string) => {
@@ -178,7 +186,6 @@ export function useTutor() {
     const reset = useCallback(() => {
         controllerRef.current?.abort();
         controllerRef.current = null;
-        setBusy(false);
         setLessonNotFound(false);
         setSession((s) => ({ lesson: s.lesson, exchanges: [] }));
     }, []);

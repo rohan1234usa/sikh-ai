@@ -6,6 +6,7 @@ import {
     MAX_TUTOR_HISTORY_TURNS,
     MAX_TUTOR_HISTORY_TURN_CHARS,
     appendExchange,
+    cap,
     historyFor,
     parseTutorSession,
     settleReply,
@@ -18,6 +19,18 @@ const exchange = (id: string, reply: Partial<TutorReply> = {}): TutorExchange =>
     id,
     question: `question ${id}`,
     reply: { text: `answer ${id}`, status: 'done', ...reply },
+});
+
+test('a cut never splits a character, so no half an emoji reaches Gemini', () => {
+    assert.equal(cap('short', 10), 'short');
+    assert.equal(cap('abcdef', 4), 'abcd');
+    assert.equal(cap('abc🙏def', 4), 'abc', 'the emoji would straddle the cut, so it goes whole');
+    assert.equal(cap('ab🙏def', 4), 'ab🙏');
+    // A reply whose 4,000th unit is the first half of an emoji.
+    const reply = 'a'.repeat(MAX_TUTOR_HISTORY_TURN_CHARS - 1) + '🙏 and more';
+    const [, ai] = historyFor([exchange('x', { text: reply })]);
+    assert.ok(ai.text.isWellFormed());
+    assert.equal(ai.text.length, MAX_TUTOR_HISTORY_TURN_CHARS - 1);
 });
 
 test('the history holds only answered exchanges, the most recent ones, each cut to size', () => {

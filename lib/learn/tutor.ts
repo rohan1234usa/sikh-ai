@@ -31,6 +31,15 @@ export type TutorExchange = { id: string; question: string; reply: TutorReply };
 export type TutorSession = { lesson: string | null; exchanges: TutorExchange[] };
 export type HistoryTurn = { role: 'user' | 'ai'; text: string };
 
+// Cuts text to at most `max` UTF-16 units without splitting a character: an
+// emoji cut in half would reach Gemini as a lone surrogate, which it may
+// refuse, on every later question of the conversation.
+export function cap(text: string, max: number): string {
+    if (text.length <= max) return text;
+    const last = text.charCodeAt(max - 1);
+    return text.slice(0, last >= 0xd800 && last <= 0xdbff ? max - 1 : max);
+}
+
 // Shared, so frozen: nothing changes it in place.
 export const EMPTY_SESSION: TutorSession = Object.freeze({ lesson: null, exchanges: Object.freeze([] as TutorExchange[]) as TutorExchange[] });
 
@@ -46,8 +55,8 @@ export function historyFor(exchanges: readonly TutorExchange[]): HistoryTurn[] {
         .filter((exchange) => answered(exchange.reply))
         .slice(-(MAX_TUTOR_HISTORY_TURNS / 2))
         .flatMap((exchange): HistoryTurn[] => [
-            { role: 'user', text: exchange.question.slice(0, MAX_TUTOR_MESSAGE_CHARS) },
-            { role: 'ai', text: exchange.reply.text.slice(0, MAX_TUTOR_HISTORY_TURN_CHARS) },
+            { role: 'user', text: cap(exchange.question, MAX_TUTOR_MESSAGE_CHARS) },
+            { role: 'ai', text: cap(exchange.reply.text, MAX_TUTOR_HISTORY_TURN_CHARS) },
         ]);
 }
 
@@ -93,7 +102,7 @@ function parseReply(raw: unknown): TutorReply | null {
     if (!isObject(raw) || typeof raw.text !== 'string') return null;
     const status = raw.status;
     if (typeof status !== 'string' || !(TUTOR_STATUSES as readonly string[]).includes(status)) return null;
-    const text = raw.text.slice(0, MAX_TUTOR_REPLY_CHARS);
+    const text = cap(raw.text, MAX_TUTOR_REPLY_CHARS);
     // Each state is held to what settleReply can produce, so an old or
     // edited copy can't bring back an empty bubble.
     switch (status as TutorStatus) {
@@ -110,7 +119,7 @@ function parseExchange(raw: unknown): TutorExchange[] {
     if (!isObject(raw) || typeof raw.id !== 'string' || raw.id.length === 0 || raw.id.length > 64) return [];
     if (typeof raw.question !== 'string' || raw.question.trim() === '') return [];
     const reply = parseReply(raw.reply);
-    return reply ? [{ id: raw.id, question: raw.question.slice(0, MAX_TUTOR_MESSAGE_CHARS), reply }] : [];
+    return reply ? [{ id: raw.id, question: cap(raw.question, MAX_TUTOR_MESSAGE_CHARS), reply }] : [];
 }
 
 // Anything in, a usable session out: junk gives an empty one, and a damaged

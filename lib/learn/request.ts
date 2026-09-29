@@ -6,7 +6,7 @@
 import { ThinkingLevel, type Content, type GenerateContentParameters } from '@google/genai';
 import type { Lesson } from './config';
 import { composeTutorInstruction } from './prompts';
-import { MAX_TUTOR_HISTORY_TURNS, MAX_TUTOR_HISTORY_TURN_CHARS, MAX_TUTOR_MESSAGE_CHARS } from './tutor';
+import { MAX_TUTOR_HISTORY_TURNS, MAX_TUTOR_HISTORY_TURN_CHARS, MAX_TUTOR_MESSAGE_CHARS, cap } from './tutor';
 
 // A tutor turn is short: a sentence in three forms is 60 to 90 tokens (Gurmukhi
 // costs more tokens than English), an explanation with a few examples 500 to
@@ -37,8 +37,8 @@ export function toTutorHistory(raw: unknown): Content[] {
         .slice(-MAX_TUTOR_HISTORY_TURNS)
         .map((turn: { role?: unknown; text?: unknown }) => {
             const role = turn?.role === 'ai' ? 'model' : 'user';
-            const cap = role === 'model' ? MAX_TUTOR_HISTORY_TURN_CHARS : MAX_TUTOR_MESSAGE_CHARS;
-            return { role, text: typeof turn?.text === 'string' ? turn.text.slice(0, cap) : '' };
+            const max = role === 'model' ? MAX_TUTOR_HISTORY_TURN_CHARS : MAX_TUTOR_MESSAGE_CHARS;
+            return { role, text: typeof turn?.text === 'string' ? cap(turn.text, max) : '' };
         })
         .filter((turn) => turn.text.trim() !== '')
         .map((turn) => ({ role: turn.role, parts: [{ text: turn.text }] }));

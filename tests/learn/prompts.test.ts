@@ -104,4 +104,7 @@ test('the history the client sends is capped, turn by turn, and junk is dropped'
     assert.equal(textOf(history[0]).length, MAX_TUTOR_MESSAGE_CHARS);
     assert.equal(textOf(history[1]).length, MAX_TUTOR_HISTORY_TURN_CHARS);
     assert.deepEqual(toTutorHistory('nope'), []);
+    // A cut that would split an emoji leaves it out instead.
+    const [ai] = toTutorHistory([{ role: 'ai', text: 'a'.repeat(MAX_TUTOR_HISTORY_TURN_CHARS - 1) + '🙏' }]);
+    assert.ok(textOf(ai).isWellFormed());
 });
