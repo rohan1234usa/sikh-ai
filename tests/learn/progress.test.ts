@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
     EMPTY_PROGRESS,
     isLessonDone,
+    isNewerProgress,
     lessonRecord,
     nextLesson,
     parseProgress,
@@ -27,6 +28,14 @@ test('anything unreadable gives empty progress', () => {
     for (const raw of [null, undefined, 'x', 42, [], { v: 2 }, { lessons: {} }]) {
         assert.deepEqual(parseProgress(raw), EMPTY_PROGRESS);
     }
+});
+
+test('progress saved by a newer version is recognized, so it is never written over', () => {
+    assert.equal(isNewerProgress({ v: 2, lessons: {} }), true);
+    assert.equal(isNewerProgress({ v: 1 }), false);
+    assert.equal(isNewerProgress({ v: '2' }), false);
+    assert.equal(isNewerProgress(null), false);
+    assert.equal(isNewerProgress('v: 2'), false);
 });
 
 test('saved progress survives a round trip through JSON', () => {

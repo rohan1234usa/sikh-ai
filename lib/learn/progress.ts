@@ -6,8 +6,9 @@
 //
 // Saved data comes back through parseProgress, which never throws and keeps
 // every record it can vouch for. A later change of shape bumps `v` and
-// migrates the old one inside parseProgress, so progress is never dropped
-// just because the format moved on.
+// migrates the old one inside parseProgress, and a page from before the
+// change leaves the newer shape alone (isNewerProgress), so progress is never
+// dropped just because the format moved on.
 
 import type { QuizScore } from './quiz';
 import { MAX_BOX, cardOf, review, type CardState } from './srs';
@@ -84,6 +85,12 @@ function records<T>(raw: unknown, parse: (value: unknown) => T | null): Record<s
 
 // Anything at all in, a usable LearnProgress out: junk or another version
 // gives the empty one, and a damaged record is dropped on its own.
+// Saved by a newer version of the site than this page: it can't be read
+// here, and it must not be written over.
+export function isNewerProgress(raw: unknown): boolean {
+    return isObject(raw) && typeof raw.v === 'number' && raw.v > PROGRESS_VERSION;
+}
+
 export function parseProgress(raw: unknown): LearnProgress {
     if (!isObject(raw) || raw.v !== PROGRESS_VERSION) return EMPTY_PROGRESS;
     return {
