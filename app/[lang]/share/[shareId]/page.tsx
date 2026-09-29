@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getServerT } from '@/lib/i18n/server';
-import SharedChatView from '../../components/share/SharedChatView';
+import SharedChatView from '@/app/components/share/SharedChatView';
 
 // The link is the only key to a shared chat, so it stays out of search
 // results and out of the Referer header of any link followed from it. The

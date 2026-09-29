@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useT } from '../context/LanguageContext';
+import { useT } from '@/app/context/LanguageContext';
 
 export default function AboutPage() {
     const t = useT();

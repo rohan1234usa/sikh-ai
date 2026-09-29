@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { useEffect } from 'react';
-import { useT } from './context/LanguageContext';
-import { PRIMARY_BUTTON, StatusPage } from './components/StatusPage';
+import { useT } from '@/app/context/LanguageContext';
+import { PRIMARY_BUTTON, StatusPage } from '@/app/components/StatusPage';
 
 // Catches a render error in any page and shows it inside the root layout, so
 // the navbar, the theme and the language all survive. Without it Next's

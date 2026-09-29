@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/firebase/firestore';
 import { collection, addDoc } from 'firebase/firestore';
-import { useT } from '../../context/LanguageContext';
+import { useT } from '@/app/context/LanguageContext';
 
 // Stored category values stay English (they are data/style keys); only the
 // visible <option> labels are translated.

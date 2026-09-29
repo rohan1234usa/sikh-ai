@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import IntentLink from './components/IntentLink';
+import IntentLink from '@/app/components/IntentLink';
 import {
   ChatBubbleLeftRightIcon,
   SunIcon,

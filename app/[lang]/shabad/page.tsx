@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { MagnifyingGlassIcon, BookOpenIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { normalizeVerse, type AngItem } from '@/lib/gurbani/verse';
-import { useT } from '../context/LanguageContext';
+import { useT } from '@/app/context/LanguageContext';
 import type { Dictionary } from '@/lib/i18n';
 import { fmt } from '@/lib/i18n/fmt';
 

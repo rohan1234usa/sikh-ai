@@ -1,14 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import "./globals.css";
-import { FONT_VARIABLES } from "./fonts";
-import { AuthProvider } from "./context/AuthContext";
-import { LanguageProvider } from "./context/LanguageContext";
+import "@/app/globals.css";
+import { FONT_VARIABLES } from "@/app/fonts";
+import { AuthProvider } from "@/app/context/AuthContext";
+import { LanguageProvider } from "@/app/context/LanguageContext";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import { LANG_META } from "@/lib/i18n/config";
-import { getLang, getServerT } from "@/lib/i18n/server";
+import Navbar from "@/app/components/Navbar";
+import Footer from "@/app/components/Footer";
+import { LANGS, LANG_META, parseLang } from "@/lib/i18n/config";
+import { getServerT } from "@/lib/i18n/server";
 import { SITE_URL, openGraph } from "@/lib/metadata";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { AUTH_HINT_SCRIPT } from "@/lib/firebase/hint";
@@ -37,15 +37,18 @@ export const viewport: Viewport = {
   // put two parties on the same tag, and React's hydration mixed them up.
 };
 
-export default async function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  // Cookie-backed so SSR emits the right language and <html lang> on the
-  // first byte; the client provider is seeded from the same value, so
-  // hydration can never mismatch.
-  const lang = await getLang();
+// Every page is built once per language, ahead of time, and served from the
+// CDN. The language comes from the URL (lib/i18n/paths.ts): English at the
+// root, Punjabi under /pa and /pa-latn. No other value is a page.
+export function generateStaticParams() {
+  return LANGS.map((lang) => ({ lang }));
+}
+export const dynamicParams = false;
+
+export default async function RootLayout({ children, params }: LayoutProps<"/[lang]">) {
+  // From the URL, so <html lang> and every word are right in the built HTML,
+  // and the client provider is seeded with the same value.
+  const lang = parseLang((await params).lang);
 
   return (
     <html
@@ -61,7 +64,7 @@ export default async function RootLayout({
       </head>
       <body className="antialiased min-h-dvh flex flex-col">
         <AuthProvider>
-          <LanguageProvider initialLang={lang}>
+          <LanguageProvider lang={lang}>
             <Navbar />
             {children}
             <Footer />

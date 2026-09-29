@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { MapPinIcon, CalendarIcon, UserGroupIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { db } from '@/lib/firebase/firestore';
 import { collection, getDocs, doc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { useAuth } from '../context/AuthContext';
-import { useT } from '../context/LanguageContext';
+import { useAuth } from '@/app/context/AuthContext';
+import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 
 interface SevaEvent {

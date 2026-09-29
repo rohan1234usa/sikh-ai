@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { CSP_REPORT_GROUP, CSP_REPORT_PATH, contentSecurityPolicy } from "./lib/csp";
+import { languageRedirects, languageRewrites } from "./lib/i18n/routing";
 
 // Report-only for now: see lib/csp.ts for what it allows, and why scripts
 // keep 'unsafe-inline'.
@@ -25,6 +26,9 @@ const SECURITY_HEADERS = [
 const nextConfig: NextConfig = {
   /* config options here */
   poweredByHeader: false,
+  // app/global-not-found.tsx: the 404 for every language (pages live under
+  // app/[lang], whose layout can't serve one of its own).
+  experimental: { globalNotFound: true },
   images: {
     remotePatterns: [
       {
@@ -35,6 +39,15 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
+  },
+  // Each language's own URLs: English unprefixed, Punjabi under /pa and
+  // /pa-latn, all from app/[lang] (lib/i18n/routing.ts). The rewrites come
+  // after files and pages, so /og.jpg or /api/chat never reach them.
+  async redirects() {
+    return languageRedirects();
+  },
+  async rewrites() {
+    return { beforeFiles: [], afterFiles: languageRewrites(), fallback: [] };
   },
   // If the error persists, uncomment the line below to bypass type checking temporarily
   // typescript: { ignoreBuildErrors: true },

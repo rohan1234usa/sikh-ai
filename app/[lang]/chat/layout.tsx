@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getServerT } from '@/lib/i18n/server';
 import { pageMetadata } from '@/lib/metadata';
-import ChatScreen from '../components/chat/ChatScreen';
+import ChatScreen from '@/app/components/chat/ChatScreen';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { lang, t } = await getServerT();

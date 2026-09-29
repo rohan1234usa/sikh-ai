@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useT } from '../context/LanguageContext';
+import { useT } from '@/app/context/LanguageContext';
 import { FriendlyError, responseErrorText } from '@/lib/i18n/apiError';
 import {
   MAX_TRANSLATE_CHARS,
@@ -13,15 +13,15 @@ import { detectScript } from '@/lib/translate/detect';
 import { sameRequest } from '@/lib/translate/history';
 import type { Phrase } from '@/lib/translate/phrasebook';
 import { loadPhraseResult } from '@/lib/translate/phrasebookResults';
-import TranslateInput from '../components/translate/TranslateInput';
-import TranslationCard from '../components/translate/TranslationCard';
-import WordBreakdown from '../components/translate/WordBreakdown';
-import TrickyNotes from '../components/translate/TrickyNotes';
-import PronunciationTips from '../components/translate/PronunciationTips';
-import TranslateSkeleton from '../components/translate/TranslateSkeleton';
-import Phrasebook from '../components/translate/Phrasebook';
-import TranslateHistory from '../components/translate/TranslateHistory';
-import { useTranslateHistory, type TranslateHistoryEntry } from '../components/translate/useTranslateHistory';
+import TranslateInput from '@/app/components/translate/TranslateInput';
+import TranslationCard from '@/app/components/translate/TranslationCard';
+import WordBreakdown from '@/app/components/translate/WordBreakdown';
+import TrickyNotes from '@/app/components/translate/TrickyNotes';
+import PronunciationTips from '@/app/components/translate/PronunciationTips';
+import TranslateSkeleton from '@/app/components/translate/TranslateSkeleton';
+import Phrasebook from '@/app/components/translate/Phrasebook';
+import TranslateHistory from '@/app/components/translate/TranslateHistory';
+import { useTranslateHistory, type TranslateHistoryEntry } from '@/app/components/translate/useTranslateHistory';
 
 export default function TranslatePage() {
   const t = useT();
