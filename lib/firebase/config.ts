@@ -4,7 +4,8 @@
 //   app.ts            the shared app, pulled in by the others
 //   auth.ts           sign-in, loaded by AuthContext when it's needed
 //   firestore.ts      shared chats and account chats
-//   firestoreLite.ts  Seva's sign-ups and hosting, loaded when someone acts
+//   firestoreLite.ts  Seva's sign-ups and hosting, loaded when someone acts,
+//                     and deleting an account
 
 export const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,

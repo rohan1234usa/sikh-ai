@@ -20,6 +20,15 @@ type AuthContextType = {
   // closed or blocked), so an action that needed it can carry on or stop.
   signIn: () => Promise<User | null>;
   logOut: () => Promise<void>;
+  // Google confirms it's still them, before their account is deleted. Its
+  // popup opens straight away: call this first in the click, before any
+  // await, or Safari blocks it. Rejects with Firebase's error: the popup
+  // closed or blocked, or another account chosen (auth/user-mismatch).
+  reauthenticate: () => Promise<void>;
+  // Deletes the signed-in account itself, last of all it keeps, which signs
+  // it out everywhere. Rejects with auth/requires-recent-login if confirming
+  // was too long ago.
+  deleteAccount: () => Promise<void>;
   // Spread onto a sign-in button: Auth starts loading as the pointer, focus
   // or a finger arrives, so the click can open Google's popup at once. Safari
   // may block a popup that opens only after a download.
@@ -34,6 +43,9 @@ const AuthContext = createContext<AuthContextType | null>(null);
 // then the visitor counts as signed out and nothing waits on it.
 let authModule: AuthModule | null = null;
 let authLoad: Promise<AuthModule> | null = null;
+
+// Firebase's own code for an action that needs someone signed in.
+const signedOut = () => Object.assign(new Error('No one is signed in'), { code: 'auth/no-current-user' });
 
 function loadAuth(): Promise<AuthModule> {
   if (!authLoad) {
@@ -123,13 +135,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const reauthenticate = useCallback(async () => {
+    const current = authModule?.auth.currentUser;
+    if (!authModule || !current) throw signedOut();
+    await authModule.reauthenticate(current);
+  }, []);
+
+  const deleteAccount = useCallback(async () => {
+    const current = authModule?.auth.currentUser;
+    if (!authModule || !current) throw signedOut();
+    await authModule.deleteUser(current);
+  }, []);
+
   const value = useMemo<AuthContextType>(() => ({
     user,
     loading,
     signIn,
     logOut,
+    reauthenticate,
+    deleteAccount,
     signInIntent: { onPointerEnter: load, onFocus: load, onTouchStart: load },
-  }), [user, loading, signIn, logOut, load]);
+  }), [user, loading, signIn, logOut, reauthenticate, deleteAccount, load]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
