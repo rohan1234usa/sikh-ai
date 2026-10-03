@@ -73,6 +73,23 @@ test('after a clear in another tab, the page empties only what this tab keeps fo
     assert.equal(local.length, Object.keys(LOCAL).length);
 });
 
+test('the page removes every key, even where removing one reorders the rest', () => {
+    // Storage whose order, as the spec allows once the count changes, is
+    // reshuffled by every removal.
+    class Reordering extends FakeStorage {
+        removeItem(k: string) {
+            super.removeItem(k);
+            const entries = [...this.map].reverse();
+            this.map.clear();
+            for (const [key, value] of entries) this.map.set(key, value);
+        }
+    }
+    // Walked from the end, the kept choice and a reorder hide `a` for good.
+    const local = new Reordering({ a: '1', b: '2', [ANALYTICS_CHOICE_KEY]: 'off' });
+    prePaint(new FakeStorage({ [CLEAR_FLAG_KEY]: 'all' }), local);
+    assert.deepEqual(local.toJSON(), { [ANALYTICS_CHOICE_KEY]: 'off' });
+});
+
 test('storage that throws leaves the page alone', () => {
     const blocked = { getItem: () => { throw new Error('SecurityError'); } };
     assert.doesNotThrow(() => new Function('sessionStorage', 'localStorage', 'window', 'indexedDB', 'document', CLEAR_SCRIPT)(
@@ -105,7 +122,11 @@ function installBrowser(local: FakeStorage, session: FakeStorage) {
             get cookie() { return '_gid=1; sikhai.lang=pa'; },
             set cookie(v: string) { cookies.push(v); },
         },
-        location: { hostname: 'sikhai.vercel.app', pathname: '/privacy', search: '', reload: () => calls.push('reload') },
+        location: {
+            hostname: 'sikhai.vercel.app', pathname: '/privacy', search: '',
+            reload: () => calls.push('reload'),
+            assign: (url: string) => calls.push(`assign ${url}`),
+        },
         history: { state: { kept: true }, replaceState: (state: unknown, _: string, url: string) => calls.push(`replace ${url} ${JSON.stringify(state)}`) },
     };
     for (const [name, value] of Object.entries(globals))
@@ -123,6 +144,12 @@ test('clearing here empties the browser but for that choice, leaves the flag for
     assert.ok(cookies.includes('sikhai.lang=; Max-Age=0; Path=/'));
     assert.ok(cookies.includes('_gid=; Max-Age=0; Path=/'));
     assert.deepEqual(calls, ['replace /privacy#removing {"kept":true}', 'reload']);
+});
+
+test('clearing from another page (the Delete account dialog) goes to the privacy page to say so', () => {
+    const { calls } = installBrowser(new FakeStorage(LOCAL), new FakeStorage());
+    clearThisBrowser('/pa/privacy');
+    assert.deepEqual(calls, ['assign /pa/privacy#removing']);
 });
 
 test('another tab clearing the browser makes this one start again, with its own storage emptied', () => {

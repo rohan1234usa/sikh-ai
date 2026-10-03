@@ -45,12 +45,14 @@ export function siteCookieExpiries(cookies: string, hostname: string): string[] 
 
 // Pass 2, before first paint (app/[lang]/layout.tsx, ahead of the theme and
 // sign-in scripts, which then see a clean browser). Key by key, so other tabs
-// hear keys removed, not storage emptied again, and don't reload again.
+// hear keys removed, not storage emptied again, and don't reload again; from
+// a list taken first, since removing one may reorder the rest.
 export const CLEAR_SCRIPT = `(function(){try{
 var s=sessionStorage,f=s.getItem('${CLEAR_FLAG_KEY}');if(f!=='all'&&f!=='tab')return;
 s.clear();
-if(f==='all'){var l=localStorage,k=l.getItem('${ANALYTICS_CHOICE_KEY}')==='off';
-for(var i=l.length-1;i>=0;i--){var n=l.key(i);if(n!==null&&!(k&&n==='${ANALYTICS_CHOICE_KEY}'))l.removeItem(n)}
+if(f==='all'){var l=localStorage,k=l.getItem('${ANALYTICS_CHOICE_KEY}')==='off',ks=[];
+for(var i=0;i<l.length;i++)ks.push(l.key(i));
+ks.forEach(function(n){if(n!==null&&!(k&&n==='${ANALYTICS_CHOICE_KEY}'))l.removeItem(n)});
 if(window.indexedDB)${JSON.stringify(FIREBASE_DATABASES)}.forEach(function(d){indexedDB.deleteDatabase(d)})}
 document.documentElement.dataset.cleared=f
 }catch(e){}})()`;
@@ -64,9 +66,10 @@ function setFlag(scope: ClearScope) {
     } catch { /* blocked: nothing kept there either */ }
 }
 
-// Pass 1, from /privacy, once whoever was signed in is signed out. The page
-// comes back at #removing, where the control then says it's done.
-export function clearThisBrowser(): void {
+// Pass 1, once whoever was signed in is signed out. Next comes /privacy's
+// #removing, where the control says it's done: this page loaded again if it's
+// /privacy (in the reader's language), or else that page.
+export function clearThisBrowser(privacyPage = location.pathname): void {
     try {
         const kept = keptThroughClear(localStorage.getItem(ANALYTICS_CHOICE_KEY));
         localStorage.clear();
@@ -76,6 +79,13 @@ export function clearThisBrowser(): void {
     try {
         for (const expiry of siteCookieExpiries(document.cookie, location.hostname)) document.cookie = expiry;
     } catch { /* cookies blocked: none were set */ }
+    if (privacyPage !== location.pathname) {
+        // A whole new page, not the router's soft navigation: pass 2 runs as
+        // a page starts.
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        location.assign(`${privacyPage}#removing`);
+        return;
+    }
     history.replaceState(history.state, '', `${location.pathname}${location.search}#removing`);
     location.reload();
 }

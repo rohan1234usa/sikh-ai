@@ -31,7 +31,8 @@ export default function ClearBrowserControl({ copy }: { copy: AccountCopy['clear
         else if (mode === 'idle' && asked.current) actionRef.current?.focus();
     }, [mode]);
 
-    // Arriving from a clear: the news, where the button was.
+    // Arriving from a clear: the news, above the button (which stays, for
+    // whatever this visit adds).
     const doneRef = useRef<HTMLParagraphElement>(null);
     useEffect(() => {
         if (cleared) doneRef.current?.focus();
@@ -51,11 +52,12 @@ export default function ClearBrowserControl({ copy }: { copy: AccountCopy['clear
                 {copy.body}
                 {user && ` ${copy.signedIn}`}
             </p>
-            {cleared && mode === 'idle' ? (
+            {cleared && mode === 'idle' && (
                 <p ref={doneRef} tabIndex={-1} role="status" className="text-sm font-semibold text-ink">
                     {copy.done}
                 </p>
-            ) : mode === 'idle' ? (
+            )}
+            {mode === 'idle' ? (
                 <button ref={actionRef} type="button" onClick={() => setMode('confirm')} className={SECONDARY_BUTTON}>
                     {copy.action}
                 </button>
