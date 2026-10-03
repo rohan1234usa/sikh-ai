@@ -36,10 +36,13 @@ export const whatsappUrl = (message: string) => `https://wa.me/?text=${encodeURI
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[\d\s().-]{6,}$/;
 
+// A phone number as a link to call it.
+export const telUrl = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`;
+
 // A contact as typed, as a link when it's wholly an email or a phone number.
 export function contactHref(contact: string): string | null {
     const c = contact.trim();
     if (EMAIL_RE.test(c)) return `mailto:${c}`;
-    if (PHONE_RE.test(c) && c.replace(/\D/g, '').length >= 6) return `tel:${c.replace(/[^\d+]/g, '')}`;
+    if (PHONE_RE.test(c) && c.replace(/\D/g, '').length >= 6) return telUrl(c);
     return null;
 }
