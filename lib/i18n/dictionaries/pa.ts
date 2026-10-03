@@ -261,6 +261,8 @@ const pa: Dictionary = {
         greeting: 'ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ, {name}',
         signIn: 'ਸਾਈਨ ਇਨ',
         signOut: 'ਸਾਈਨ ਆਊਟ',
+        account: 'ਤੁਹਾਡਾ ਖਾਤਾ',
+        deleteAccount: 'ਖਾਤਾ ਮਿਟਾਓ…',
         toggleMenu: 'ਨੈਵੀਗੇਸ਼ਨ ਮੀਨੂ ਖੋਲ੍ਹੋ ਜਾਂ ਬੰਦ ਕਰੋ',
         changeTheme: 'ਥੀਮ ਬਦਲੋ',
         themes: {

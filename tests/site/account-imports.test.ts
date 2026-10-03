@@ -43,6 +43,8 @@ const DELETION_ONLY = [
 const ENTRIES = [
     join('app', '[lang]', 'layout.tsx'),
     join('app', 'context', 'AuthContext.tsx'),
+    join('app', 'components', 'Navbar.tsx'),
+    join('app', 'components', 'AccountMenu.tsx'),
     join('app', 'components', 'account', 'AccountDialogHost.tsx'),
     join('app', 'components', 'account', 'DeleteAccountPanel.tsx'),
     join('app', 'components', 'account', 'accountDeletion.ts'),

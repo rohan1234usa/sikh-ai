@@ -6,12 +6,12 @@ import { useState } from 'react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 import { useLocalePath, useT } from '../context/LanguageContext';
-import { fmt } from '@/lib/i18n/fmt';
+import AccountMenu from './AccountMenu';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
 
 export default function Navbar() {
-    const { user, signIn, logOut, signInIntent } = useAuth();
+    const { user, signIn, signInIntent } = useAuth();
     const t = useT();
     const to = useLocalePath();
     const pathname = usePathname();
@@ -20,9 +20,9 @@ export default function Navbar() {
 
     // Seven links fit on one line from lg (1024px) up in all three languages,
     // romanized Punjabi's being the longest, at a tight gap; below lg they sit
-    // in the menu. The sign-in button never wraps, and the signed-in greeting
-    // waits for xl and cuts a long name short, so the row stays one line
-    // (checked at 1024 and 1280px in romanized Punjabi, signed in and out).
+    // in the menu. The sign-in button never wraps, and the account menu's
+    // greeting waits for xl and cuts a long name short, so the row stays one
+    // line (checked at 1024 and 1280px in romanized Punjabi, signed in and out).
     const links = [
         { href: to('/about'), label: t.nav.about },
         { href: to('/hukamnama'), label: t.nav.hukamnama },
@@ -63,21 +63,14 @@ export default function Navbar() {
                     <LanguageToggle />
                     <ThemeToggle />
                     {user ? (
-                        <div className="flex items-center gap-3">
-                            <span className="hidden xl:block max-w-40 truncate text-sm text-slate-300">
-                                {fmt(t.nav.greeting, { name: user.displayName?.split(' ')[0] ?? '' })}
-                            </span>
-                            <button
-                                onClick={logOut}
-                                className="shrink-0 whitespace-nowrap border border-kesri text-kesri text-sm font-semibold px-3 py-1.5 rounded-lg hover:bg-kesri hover:text-navy transition-colors"
-                            >
-                                {t.nav.signOut}
-                            </button>
-                        </div>
+                        <AccountMenu user={user} />
                     ) : (
                         // Hidden, keeping its place, while a returning member's
                         // session is restored (data-auth: lib/firebase/hint.ts).
+                        // data-sign-in: where focus goes once an account is
+                        // signed out or deleted, and the menu that had it is gone.
                         <button
+                            data-sign-in
                             onClick={signIn}
                             {...signInIntent}
                             className="shrink-0 whitespace-nowrap bg-kesri text-navy text-sm font-semibold px-3 py-1.5 rounded-lg hover:bg-kesri-hover transition-colors in-data-[auth=1]:invisible"

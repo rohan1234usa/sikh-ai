@@ -265,6 +265,8 @@ const en = {
         greeting: 'Sat Sri Akal, {name}',
         signIn: 'Sign In',
         signOut: 'Sign Out',
+        account: 'Your account',
+        deleteAccount: 'Delete account…',
         toggleMenu: 'Toggle navigation menu',
         changeTheme: 'Change theme',
         themes: {

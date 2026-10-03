@@ -261,6 +261,8 @@ const paLatn: Dictionary = {
         greeting: 'Sat Sri Akal, {name}',
         signIn: 'Sign In',
         signOut: 'Sign Out',
+        account: 'Tuhada khaata',
+        deleteAccount: 'Khaata mitao…',
         toggleMenu: 'Navigation menu kholo jaan band karo',
         changeTheme: 'Theme badlo',
         themes: {
