@@ -15,7 +15,7 @@
 
 import { chunk, type DocPath, type Op } from '@/lib/firebase/ops';
 import type { EventStatus } from './config';
-import { SEVA_ADMIN_BATCH, SEVA_EVENT_VERSION } from './limits';
+import { SEVA_ADMIN_BATCH, SEVA_EVENT_VERSION, SEVA_HOST_CLEAR_BATCH } from './limits';
 import type { EventFields, EventPatch, ReportFields, SevaEvent, VolunteerFields } from './model';
 
 export type Sentinels = { now: unknown; inc: (n: number) => unknown };
@@ -109,6 +109,28 @@ export function planForget(uid: string, eventId: string, key: string): Op[] {
     return [
         { type: 'delete', path: volunteerPath(eventId, key) },
         { type: 'delete', path: signupPath(uid, eventId) },
+    ];
+}
+
+// A volunteer's note of a sign-up its host has already cleared, winding the
+// event down: nothing else is left to take back.
+export function planDropNote(uid: string, eventId: string): Op[] {
+    return [{ type: 'delete', path: signupPath(uid, eventId) }];
+}
+
+// The host winding down an event that's cancelled or over (or gone): every
+// sign-up first, a few to a batch, then the event with their note of it. The
+// sign-ups go while the event still holds its id: once it's gone, anyone may
+// post under it and list what's under it. The count isn't touched, since the
+// event is about to go.
+export function planClearSignups(eventId: string, keys: string[]): Op[][] {
+    return chunk(keys.map((key): Op => ({ type: 'delete', path: volunteerPath(eventId, key) })), SEVA_HOST_CLEAR_BATCH);
+}
+
+export function planDeleteEvent(uid: string, eventId: string): Op[] {
+    return [
+        { type: 'delete', path: eventPath(eventId) },
+        { type: 'delete', path: hostingPath(uid, eventId) },
     ];
 }
 

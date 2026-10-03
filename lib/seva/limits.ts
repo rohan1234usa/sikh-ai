@@ -46,3 +46,7 @@ export const SEVA_PAGE_MAX = 100;
 // Reports an admin dismisses per batch. Each delete reads the admin's own
 // document, and a batch may read 20.
 export const SEVA_ADMIN_BATCH = 10;
+
+// Sign-ups a host clears per batch, winding an event down: each delete reads
+// the host's note, and the event twice (whether it's there, and its state).
+export const SEVA_HOST_CLEAR_BATCH = 5;
