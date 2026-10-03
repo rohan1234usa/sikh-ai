@@ -36,6 +36,9 @@ test('odd fields are made safe rather than trusted', () => {
     assert.equal(e.volunteerCount, e.spots, 'a count edited by hand stays within the spots');
     assert.equal(e.country, '');
     assert.equal(e.timeZone, 'UTC');
+    // A zone this engine doesn't know would make every date on the page throw.
+    assert.equal(parseEvent(ID, raw({ timeZone: 'Foo/Bar' }))?.timeZone, 'UTC');
+    assert.equal(parseEvent(ID, raw({ timeZone: 'Asia/Kolkata' }))?.timeZone, 'Asia/Kolkata');
 });
 
 test('sign-ups, notes and reports read back, or not at all', () => {

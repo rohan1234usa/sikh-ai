@@ -2,7 +2,7 @@
 // addresses, and how long pages are cached. The limits the rules enforce are
 // in ./limits.ts.
 
-import { SEVA_CATEGORIES, SEVA_PAGE_MAX, SEVA_REPORT_REASONS, SEVA_STATUSES } from './limits';
+import { SEVA_CATEGORIES, SEVA_REPORT_REASONS, SEVA_STATUSES } from './limits';
 
 export type SevaCategory = (typeof SEVA_CATEGORIES)[number];
 export type EventStatus = (typeof SEVA_STATUSES)[number];
@@ -35,5 +35,4 @@ export const postAgainHref = (id: string) => `/seva/create?from=${id}`;
 export const SEVA_REVALIDATE_SECONDS = 300;
 export const SEVA_UPCOMING_TAG = 'seva-upcoming';
 export const eventTag = (id: string) => `seva-event:${id}`;
-export const UPCOMING_LIMIT = SEVA_PAGE_MAX;
 export const HOME_STRIP_COUNT = 3;

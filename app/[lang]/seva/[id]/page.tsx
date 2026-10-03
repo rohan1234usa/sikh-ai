@@ -25,7 +25,7 @@ import { ADMIN_HREF, editHref, eventHref, isEventId, postAgainHref } from '@/lib
 import { describeEvent } from '@/lib/seva/display';
 import { hasEnded, isFull } from '@/lib/seva/event';
 import { eventJsonLd, serializeJsonLd } from '@/lib/seva/jsonld';
-import { contactHref, googleCalendarUrl, mapsUrl, whatsappUrl } from '@/lib/seva/links';
+import { CALENDAR_LINK_CHARS, calendarText, contactHref, googleCalendarUrl, mapsUrl, whatsappUrl } from '@/lib/seva/links';
 import { clip, indexable } from '@/lib/seva/meta';
 import { fetchEvent, isBuilding, renderTime, sevaProject } from '@/lib/seva/server';
 
@@ -164,7 +164,7 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
               />
               <CalendarCard
                 copy={{ ...copy.event, newTab: copy.common.newTab }}
-                googleHref={googleCalendarUrl(event, event.description ? `${event.description}\n\n${calendarDetails}` : calendarDetails, display.placeFull)}
+                googleHref={googleCalendarUrl(event, calendarText(event.description, calendarDetails, CALENDAR_LINK_CHARS), display.placeFull)}
                 icsHref={`/api/seva/ics?id=${id}&lang=${lang}`}
               />
               <ShareCard

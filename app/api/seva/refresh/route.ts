@@ -4,12 +4,12 @@ import { LANGS } from '@/lib/i18n/config';
 import { logRouteError, withRequestLog } from '@/lib/log';
 import { SEVA_UPCOMING_TAG, eventHref, eventTag } from '@/lib/seva/config';
 import { refreshAfterChange } from '@/lib/seva/refresh';
-import { fetchEvent } from '@/lib/seva/server';
+import { fetchEvent, fetchUpcomingEvents } from '@/lib/seva/server';
 
 // POST /api/seva/refresh {id}: after someone's browser changes an event, its
-// cached page (and, for a public change, the list of what's coming up) is
-// built again, so the change shows at once. lib/seva/refresh.ts says what it
-// believes and why anyone may call it.
+// cached page (and the list of what's coming up, when the change shows there)
+// is built again, so the change shows at once. lib/seva/refresh.ts says what
+// it believes and why anyone may call it.
 const MAX_BODY_CHARS = 200;
 const NO_STORE = { 'Cache-Control': 'no-store' };
 
@@ -32,6 +32,12 @@ async function handlePost(req: Request) {
             // Built again before the next answer too: refreshes come only
             // after a real change, and whoever made it looks next.
             refreshUpcoming: () => revalidateTag(SEVA_UPCOMING_TAG, { expire: 0 }),
+            // The cached list the pages are built from: no Firestore read
+            // while it's fresh.
+            listed: async (eventId) => {
+                const list = await fetchUpcomingEvents();
+                return list.kind === 'ok' && list.value.some((e) => e.id === eventId);
+            },
             now: Date.now,
         });
         return NextResponse.json(result.body, { status: result.status, headers: NO_STORE });

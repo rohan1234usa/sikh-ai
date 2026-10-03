@@ -1,13 +1,13 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { FlagIcon } from '@heroicons/react/24/outline';
 import IntentLink from '@/app/components/IntentLink';
 import { PRIMARY_BUTTON, SECONDARY_BUTTON } from '@/app/components/buttons';
 import { CharCount } from '@/app/components/form/CharCount';
 import { ERROR_TEXT, Field, INPUT } from '@/app/components/form/Field';
 import { useAnnouncer } from '@/app/components/useAnnouncer';
-import { useModalDialog } from '@/app/components/useModalDialog';
+import { MODAL_DIALOG, useModalDialog } from '@/app/components/useModalDialog';
 import { useAuth } from '@/app/context/AuthContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { SevaCopy } from '@/lib/i18n/seva';
@@ -15,8 +15,6 @@ import { SEVA_REPORT_NOTE, SEVA_REPORT_REASONS } from '@/lib/seva/limits';
 import { textLength, validateReport, type ReportErrors } from '@/lib/seva/validate';
 import { useEvent } from './EventContext';
 import { loadSeva, refreshPages } from './sevaClient';
-
-const DIALOG = 'm-auto w-[min(32rem,calc(100vw-2rem))] max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl border border-edge bg-surface-raised p-0 text-ink shadow-2xl backdrop:bg-black/40';
 
 // "Something wrong with this event?": a report goes to the site's admins,
 // once per account per event. Signing in first keeps reports to real people;
@@ -26,6 +24,16 @@ export function ReportControl({ copy }: { copy: SevaCopy['report'] }) {
     const { viewer, setIs, whenViewer } = useEvent();
     const [open, setOpen] = useState(false);
     const [note, setNote] = useState('');
+    // Once there's a report (just sent, or found on signing in), the button
+    // gives way to a line saying so, which takes the focus.
+    const doneRef = useRef<HTMLParagraphElement>(null);
+    const focusDone = useRef(false);
+    useEffect(() => {
+        if (focusDone.current && doneRef.current) {
+            focusDone.current = false;
+            doneRef.current.focus();
+        }
+    });
 
     if (viewer.kind === 'ready' && viewer.is.isHost) return null;
     const reported = viewer.kind === 'ready' && viewer.is.reported;
@@ -37,12 +45,8 @@ export function ReportControl({ copy }: { copy: SevaCopy['report'] }) {
         setNote('');
         const account = user ?? await signIn();
         if (!account) return;
-        let is = viewer.kind === 'ready' && viewer.user.uid === account.uid ? viewer.is : null;
-        if (!is) {
-            try {
-                is = await whenViewer(account);
-            } catch { /* not known: the form says so if sending fails */ }
-        }
+        const is = await whenViewer(account).catch(() => null); // not known: the form says so if sending fails
+        if (is?.reported) focusDone.current = true;
         if (is?.isHost || is?.reported) return;
         setOpen(true);
     };
@@ -51,7 +55,7 @@ export function ReportControl({ copy }: { copy: SevaCopy['report'] }) {
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-ink-muted">
             <FlagIcon className="h-4 w-4" aria-hidden="true" />
             {reported ? (
-                <p>{copy.already}</p>
+                <p ref={doneRef} tabIndex={-1}>{copy.already}</p>
             ) : (
                 <>
                     <span>{copy.prompt}</span>
@@ -66,6 +70,7 @@ export function ReportControl({ copy }: { copy: SevaCopy['report'] }) {
                 copy={copy}
                 onClose={() => setOpen(false)}
                 onSent={() => {
+                    focusDone.current = true;
                     setOpen(false);
                     setIs({ reported: true });
                     setNote(copy.sent);
@@ -78,7 +83,7 @@ export function ReportControl({ copy }: { copy: SevaCopy['report'] }) {
 function ReportDialog({ open, copy, onClose, onSent }: { open: boolean; copy: SevaCopy['report']; onClose: () => void; onSent: () => void }) {
     const { ref, onCancel, onClick } = useModalDialog(open, onClose);
     return (
-        <dialog ref={ref} onCancel={onCancel} onClick={onClick} aria-labelledby="report-title" className={DIALOG}>
+        <dialog ref={ref} onCancel={onCancel} onClick={onClick} aria-labelledby="report-title" className={MODAL_DIALOG}>
             {/* Mounted while open, so each report starts blank. */}
             {open && <ReportForm copy={copy} onClose={onClose} onSent={onSent} />}
         </dialog>

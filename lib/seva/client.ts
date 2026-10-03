@@ -31,7 +31,6 @@ import {
     planCreateEvent,
     planDismissReports,
     planForget,
-    planForgetHosted,
     planJoin,
     planLeave,
     planReport,
@@ -87,8 +86,6 @@ export function sevaClient(db: Firestore) {
     }
 
     return {
-        newEventId: () => doc(collection(db, 'seva_events')).id,
-
         isAdmin: async (uid: string) => (await tryGet(adminPath(uid))) !== null,
 
         getEvent,
@@ -146,8 +143,6 @@ export function sevaClient(db: Firestore) {
                 await commit(planForget(uid, eventId, key));
             }
         },
-
-        forgetHosted: (uid: string, eventId: string) => commit(planForgetHosted(uid, eventId)),
 
         report: (uid: string, eventId: string, r: ReportFields) => commit(planReport(uid, eventId, r, S)),
 

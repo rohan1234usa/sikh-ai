@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildIcs, escapeText, foldLine } from '@/lib/seva/ics';
 import { eventJsonLd, serializeJsonLd } from '@/lib/seva/jsonld';
-import { contactHref, googleCalendarUrl, mapsUrl, placeLine, utcStamp, whatsappUrl } from '@/lib/seva/links';
+import { CALENDAR_LINK_CHARS, calendarText, contactHref, googleCalendarUrl, mapsUrl, placeLine, utcStamp, whatsappUrl } from '@/lib/seva/links';
 import { clip, indexable } from '@/lib/seva/meta';
 import { event } from './helpers';
 
@@ -23,6 +23,17 @@ test('Google Calendar gets UTC times shown in the venue zone', () => {
     assert.equal(url.searchParams.get('dates'), '20261011T010000Z/20261011T040000Z');
     assert.equal(url.searchParams.get('ctz'), 'America/Los_Angeles');
     assert.equal(url.searchParams.get('text'), e.title);
+});
+
+test("a calendar link carries the start of a long description, and the host's line in full", () => {
+    assert.equal(calendarText('Bring gloves.', 'Hosted by Youth committee'), 'Bring gloves.\n\nHosted by Youth committee');
+    assert.equal(calendarText('', 'Hosted by Youth committee'), 'Hosted by Youth committee');
+    const long = 'ਸੇਵਾ '.repeat(400); // 2,000 characters, as long as a description gets
+    assert.equal(calendarText(long, 'F'), `${long}\n\nF`, 'an .ics file keeps it all');
+    const clipped = calendarText(long, 'F', CALENDAR_LINK_CHARS);
+    assert.ok(Array.from(clipped.split('\n\n')[0]).length <= CALENDAR_LINK_CHARS, 'counted in characters, the ellipsis included');
+    assert.match(clipped, /ਸੇਵਾ…\n\nF$/u);
+    assert.ok(googleCalendarUrl(event(), clipped, 'Fremont').length < 8000, 'the link stays short');
 });
 
 test('a WhatsApp message keeps its lines; a contact links when it is wholly an email or a phone', () => {

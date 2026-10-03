@@ -78,10 +78,10 @@ export function saveCountry(country: string) {
 }
 
 // A word for an event's page to show once it opens, after a change made on
-// another page: posted, saved or cancelled. Kept for the tab, not in the
-// address, so the page stays the same for everyone and a copied link carries
-// nothing. It goes when dismissed, or when the page is left.
-export type Flash = 'posted' | 'saved' | 'cancelled';
+// another page (the hosting form): posted, or saved. Kept for the tab, not in
+// the address, so the page stays the same for everyone and a copied link
+// carries nothing. It goes when dismissed, or when the page is left.
+export type Flash = 'posted' | 'saved';
 const FLASH_KEY = 'sikhai.seva.flash';
 const FLASH_CHANGED = 'sikhai:seva-flash';
 
@@ -117,7 +117,7 @@ export function useFlash(eventId: string): Flash | null {
     try {
         const flash = JSON.parse(raw) as { eventId?: unknown; kind?: unknown };
         if (flash.eventId !== eventId) return null;
-        return flash.kind === 'posted' || flash.kind === 'saved' || flash.kind === 'cancelled' ? flash.kind : null;
+        return flash.kind === 'posted' || flash.kind === 'saved' ? flash.kind : null;
     } catch {
         return null;
     }

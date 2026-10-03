@@ -112,10 +112,6 @@ export function planForget(uid: string, eventId: string, key: string): Op[] {
     ];
 }
 
-export function planForgetHosted(uid: string, eventId: string): Op[] {
-    return [{ type: 'delete', path: hostingPath(uid, eventId) }];
-}
-
 export function planReport(uid: string, eventId: string, r: ReportFields, s: Sentinels): Op[] {
     return [{ type: 'set', path: reportPath(eventId, uid), data: { eventId, reason: r.reason, note: r.note, createdAt: s.now } }];
 }

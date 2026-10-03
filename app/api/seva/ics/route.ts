@@ -8,7 +8,7 @@ import { SITE_URL } from '@/lib/metadata';
 import { eventHref, isEventId } from '@/lib/seva/config';
 import { countryName } from '@/lib/seva/countries';
 import { buildIcs } from '@/lib/seva/ics';
-import { placeLine } from '@/lib/seva/links';
+import { calendarText, placeLine } from '@/lib/seva/links';
 import { fetchEvent } from '@/lib/seva/server';
 
 // GET /api/seva/ics?id=…&lang=…: an event as a calendar file, for "Add to
@@ -40,7 +40,7 @@ async function handleGet(request: Request) {
     const details = fmt(copy.calendar.details, { name: event.organizer, url });
     const ics = buildIcs(event, {
         url,
-        description: event.description ? `${event.description}\n\n${details}` : details,
+        description: calendarText(event.description, details),
         location: placeLine(event, countryName(event.country, lang)),
     });
     return new Response(ics, {

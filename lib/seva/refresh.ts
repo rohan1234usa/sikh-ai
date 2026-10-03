@@ -7,8 +7,10 @@
 // wrote it moments ago, or it's no longer public. Anyone can call it, but it
 // only ever does what a real, recent change would have done, and the
 // firewall limits how often (20 a minute per address). The board's list is
-// refreshed only for a change to a public event, so a stream of made-up ids
-// costs one read each and refreshes nothing shared.
+// refreshed for a change to a public event, or for one no longer public that
+// the list still shows (just hidden): a stream of made-up ids costs one read
+// each and refreshes nothing shared, and nor does a hidden event once the
+// list has dropped it.
 
 import { isEventId } from './config';
 import type { FetchedEvent, Read } from './server';
@@ -20,6 +22,8 @@ export type RefreshDeps = {
     // The event's own page, in every language; and the shared list.
     refreshEvent: (id: string) => void;
     refreshUpcoming: () => void;
+    // Whether the shared list, as cached, shows the event.
+    listed: (id: string) => Promise<boolean>;
     now: () => number;
 };
 
@@ -34,8 +38,10 @@ export async function refreshAfterChange(id: unknown, deps: RefreshDeps): Promis
     const read = await deps.fetchFresh(id);
     if (read.kind === 'failed') return { status: 502, body: { error: 'Could not reach Firestore', code: 'source_error' } };
     if (read.kind === 'missing') {
-        // Hidden, or gone: its page shouldn't keep showing it.
+        // Hidden, or gone: its page shouldn't keep showing it, nor should the
+        // board or the home page.
         deps.refreshEvent(id);
+        if (await deps.listed(id)) deps.refreshUpcoming();
         return { status: 200, body: { ok: true } };
     }
     const { updateTime } = read.value;

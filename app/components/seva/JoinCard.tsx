@@ -83,19 +83,16 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
         }
         // What this account is to the event: known already, or (just signed
         // in) once it's been read.
+        const known = viewer.kind === 'ready' && viewer.user.uid === account.uid;
+        if (!known) setNote(copy.checking);
         let is: ViewerOfEvent;
-        if (viewer.kind === 'ready' && viewer.user.uid === account.uid) {
-            is = viewer.is;
-        } else {
-            setNote(copy.checking);
-            try {
-                is = await whenViewer(account);
-            } catch {
-                setNote(copy.errors.failed);
-                return;
-            }
-            setNote('');
+        try {
+            is = await whenViewer(account);
+        } catch {
+            setNote(copy.errors.failed);
+            return;
         }
+        if (!known) setNote('');
         if (is.signup) {
             focusNext.current = 'joined';
             setMode('idle');

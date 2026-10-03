@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import IntentLink from '@/app/components/IntentLink';
 import { PRIMARY_BUTTON, SECONDARY_BUTTON } from '@/app/components/buttons';
 import { ERROR_TEXT } from '@/app/components/form/Field';
@@ -33,6 +33,9 @@ export default function AdminReview({ lang, copy, reasons, hostedBy, retry, even
     const [loaded, setLoaded] = useState<Loaded | null>(null);
     const [attempt, setAttempt] = useState(0);
     const [tab, setTab] = useState<'reported' | 'hidden'>('reported');
+    // Rows acted on stay where they are, saying what was done, until the tab
+    // changes: one that left the list at once would take the focus with it.
+    const [kept, setKept] = useState<string[]>([]);
 
     useEffect(() => {
         if (!user) return;
@@ -77,10 +80,11 @@ export default function AdminReview({ lang, copy, reasons, hostedBy, retry, even
         );
     }
 
-    const rows = current.rows.filter((r) => (tab === 'reported' ? r.reports.length > 0 : r.event?.hidden));
-    const replace = (eventId: string, next: Partial<Row> | null) => {
+    const rows = current.rows.filter((r) => kept.includes(r.eventId) || (tab === 'reported' ? r.reports.length > 0 : r.event?.hidden));
+    const replace = (eventId: string, next: Partial<Row>) => {
+        setKept((k) => (k.includes(eventId) ? k : [...k, eventId]));
         setLoaded((l) => (l && l.state === 'ready'
-            ? { ...l, rows: next === null ? l.rows.filter((r) => r.eventId !== eventId) : l.rows.map((r) => (r.eventId === eventId ? { ...r, ...next } : r)) }
+            ? { ...l, rows: l.rows.map((r) => (r.eventId === eventId ? { ...r, ...next } : r)) }
             : l));
     };
 
@@ -91,7 +95,7 @@ export default function AdminReview({ lang, copy, reasons, hostedBy, retry, even
                 <div className="mt-2 flex flex-wrap gap-4">
                     {(['reported', 'hidden'] as const).map((t) => (
                         <label key={t} className="flex min-h-11 items-center gap-2 text-ink">
-                            <input type="radio" name="admin-tab" className="h-5 w-5" checked={tab === t} onChange={() => setTab(t)} />
+                            <input type="radio" name="admin-tab" className="h-5 w-5" checked={tab === t} onChange={() => { setTab(t); setKept([]); }} />
                             {t === 'reported' ? copy.reported : copy.hiddenTab}
                         </label>
                     ))}
@@ -120,16 +124,19 @@ function AdminRow({ row, lang, copy, reasons, hostedBy, eventBase, onChange }: {
     reasons: SevaCopy['report']['reasons'];
     hostedBy: string;
     eventBase: string;
-    onChange: (next: Partial<Row> | null) => void;
+    onChange: (next: Partial<Row>) => void;
 }) {
     const [busy, setBusy] = useState(false);
     const [note, setNote] = useState('');
     const [problem, setProblem] = useState('');
+    const headingRef = useRef<HTMLHeadingElement>(null);
     const { event, reports } = row;
     const titleId = `admin-${row.eventId}`;
     const name = event?.title ?? row.eventId;
 
-    const act = async (work: () => Promise<void>, done: string, next: Partial<Row> | null) => {
+    // `next` is the row afterwards; with no button left to keep the focus
+    // (the reports dismissed), the row's heading takes it.
+    const act = async (work: () => Promise<void>, done: string, next: Partial<Row>, focusHeading = false) => {
         if (busy) return;
         setBusy(true);
         setProblem('');
@@ -137,6 +144,7 @@ function AdminRow({ row, lang, copy, reasons, hostedBy, eventBase, onChange }: {
             await work();
             setNote(done);
             onChange(next);
+            if (focusHeading) headingRef.current?.focus();
             void refreshPages(row.eventId);
         } catch {
             setProblem(copy.actionFailed);
@@ -147,7 +155,7 @@ function AdminRow({ row, lang, copy, reasons, hostedBy, eventBase, onChange }: {
 
     return (
         <article aria-labelledby={titleId} className="rounded-xl border border-edge bg-surface-raised p-5 shadow-sm">
-            <h2 id={titleId} className="text-lg font-bold text-ink [overflow-wrap:anywhere]">
+            <h2 ref={headingRef} id={titleId} tabIndex={-1} className="text-lg font-bold text-ink [overflow-wrap:anywhere]">
                 {event ? <IntentLink href={`${eventBase}${event.id}`} className="hover:underline">{event.title}</IntentLink> : copy.missingEvent}
             </h2>
             {event && (
@@ -195,7 +203,8 @@ function AdminRow({ row, lang, copy, reasons, hostedBy, eventBase, onChange }: {
                         onClick={() => act(
                             async () => (await loadSeva()).dismissReports(reports.map((r) => r.id)),
                             copy.dismissedDone,
-                            event?.hidden ? { reports: [] } : null,
+                            { reports: [] },
+                            true,
                         )}
                         className={SECONDARY_BUTTON}
                     >

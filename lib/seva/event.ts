@@ -7,6 +7,7 @@
 import { isCategory, isCountryCode, isEventId, isReportReason } from './config';
 import { SEVA_EVENT_VERSION } from './limits';
 import type { Report, SevaEvent, Signup, Volunteer } from './model';
+import { isTimeZone } from './time';
 
 // A Firestore time, however it arrives: a Timestamp from the SDK, a Date, an
 // RFC 3339 string from the REST API, or milliseconds.
@@ -50,7 +51,10 @@ export function parseEvent(id: string, raw: unknown, { allowHidden = false } = {
         description: text(d.description),
         startsAt,
         endsAt,
-        timeZone: text(d.timeZone) || 'UTC',
+        // The rules check only a zone name's shape, and this engine may not know
+        // one a newer browser does: an unknown zone would make every date on
+        // the page throw, so it's shown in UTC, which its host can correct.
+        timeZone: isTimeZone(text(d.timeZone)) ? text(d.timeZone) : 'UTC',
         venue: text(d.venue),
         address: text(d.address),
         city: text(d.city),
@@ -94,8 +98,7 @@ export function parseReport(id: string, raw: unknown): Report | null {
     return { id, eventId: d.eventId, reason: d.reason, note: text(d.note), createdAt };
 }
 
-// Whether an event is over, has begun, or has room, at a given moment.
+// Whether an event is over at a given moment, or has room.
 export const hasEnded = (e: SevaEvent, now: number) => e.endsAt <= now;
-export const hasStarted = (e: SevaEvent, now: number) => e.startsAt <= now;
 export const isFull = (e: SevaEvent) => e.volunteerCount >= e.spots;
 export const spotsLeft = (e: SevaEvent) => Math.max(e.spots - e.volunteerCount, 0);

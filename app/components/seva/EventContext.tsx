@@ -33,8 +33,8 @@ type EventContextValue = {
     update: (patch: Partial<LiveEvent>) => void;
     // What the viewer is to the event, after they changed it.
     setIs: (patch: Partial<ViewerOfEvent>) => void;
-    // What an account is to the event, once known: for an action that has
-    // just signed someone in.
+    // What an account is to the event, as it stands (setIs included), once
+    // known: for an action, which may have just signed someone in.
     whenViewer: (user: User) => Promise<ViewerOfEvent>;
 };
 
@@ -58,15 +58,19 @@ export function EventProvider({ initial, endedAtBuild, children }: { initial: Li
     const flash = useFlash(initial.id);
     const reading = useRef<{ uid: string; promise: Promise<ViewerOfEvent> } | null>(null);
 
-    // One read per account, shared by the page and an action waiting on it.
-    const whenViewer = useCallback((u: User) => {
-        if (reading.current?.uid !== u.uid) {
-            const promise = loadSeva().then((seva) => seva.viewerOf(u.uid, initial.id));
-            promise.catch(() => { if (reading.current?.promise === promise) reading.current = null; });
-            reading.current = { uid: u.uid, promise };
-        }
-        return reading.current.promise;
-    }, [initial.id]);
+    // One read per account, shared by the page and an action waiting on it,
+    // and kept in step with what the viewer does here (setIs). One that fails
+    // is forgotten, so the next asks again.
+    const remember = useCallback((uid: string, promise: Promise<ViewerOfEvent>) => {
+        promise.catch(() => { if (reading.current?.promise === promise) reading.current = null; });
+        reading.current = { uid, promise };
+        return promise;
+    }, []);
+    const whenViewer = useCallback((u: User) => (
+        reading.current?.uid === u.uid
+            ? reading.current.promise
+            : remember(u.uid, loadSeva().then((seva) => seva.viewerOf(u.uid, initial.id)))
+    ), [initial.id, remember]);
 
     useEffect(() => {
         if (!user) return;
@@ -100,7 +104,9 @@ export function EventProvider({ initial, endedAtBuild, children }: { initial: Li
     const update = useCallback((patch: Partial<LiveEvent>) => setEvent((e) => ({ ...e, ...patch })), []);
     const setIs = useCallback((patch: Partial<ViewerOfEvent>) => {
         setLoaded((l) => (l?.is ? { ...l, is: { ...l.is, ...patch } } : l));
-    }, []);
+        const r = reading.current;
+        if (r) remember(r.uid, r.promise.then((is) => ({ ...is, ...patch })));
+    }, [remember]);
 
     const value = useMemo<EventContextValue>(() => ({
         event,

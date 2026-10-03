@@ -31,20 +31,18 @@ export function StatusBanner({ copy }: { copy: SevaCopy['event'] }) {
     return null;
 }
 
-// "Your event is live", "Changes saved", "Cancelled": the word after a change
-// made on another page, which takes the focus so it's heard first.
+// "Your event is live", "Changes saved": the word after a change made on the
+// hosting form, which takes the focus so it's heard first.
 export function FlashPanel({ copy }: { copy: SevaCopy['actions'] }) {
     const { flash, dismissFlash } = useEvent();
     const ref = useRef<HTMLHeadingElement>(null);
     useEffect(() => { if (flash) ref.current?.focus(); }, [flash]);
     if (!flash) return null;
-    const [title, body] = flash === 'posted'
-        ? [copy.postedTitle, copy.postedBody]
-        : flash === 'saved' ? [copy.savedTitle, copy.savedBody] : [copy.cancelledFlash, ''];
+    const [title, body] = flash === 'posted' ? [copy.postedTitle, copy.postedBody] : [copy.savedTitle, copy.savedBody];
     return (
         <div className="mt-6 rounded-xl border-2 border-kesri-deep bg-surface-raised p-4 dark:border-kesri">
             <h2 ref={ref} tabIndex={-1} className="font-bold text-ink">{title}</h2>
-            {body && <p className="mt-1 text-ink">{body}</p>}
+            <p className="mt-1 text-ink">{body}</p>
             <button
                 type="button"
                 onClick={() => {

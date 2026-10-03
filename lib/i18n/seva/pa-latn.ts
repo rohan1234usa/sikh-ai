@@ -120,6 +120,8 @@ const seva: SevaCopy = {
         changed: 'Tuhade shamil hon ton baad tabdili hoi',
         removed: 'Ih samagam hata ditta gaya hai.',
         forget: 'Suchi vichon hatao',
+        forgotten: 'Tuhadi suchi vichon hata ditta gaya.',
+        forgetFailed: 'Hataya nahi ja sakia. Apna connection jaancho ate dubara koshish karo.',
         reviewReports: 'Shikayatan jaancho',
         showAll: 'Sare dikhao',
         whenWhere: '{when} · {city}',

@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import IntentLink from '@/app/components/IntentLink';
+import { ERROR_TEXT } from '@/app/components/form/Field';
 import { useAnnouncer } from '@/app/components/useAnnouncer';
 import { useAuth } from '@/app/context/AuthContext';
 import type { Lang } from '@/lib/i18n/config';
@@ -36,7 +37,11 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
     const [mine, setMine] = useState<{ uid: string; data: Mine | 'failed' } | null>(null);
     const [attempt, setAttempt] = useState(0);
     const [showAll, setShowAll] = useState({ joined: false, hosting: false });
+    const [problem, setProblem] = useState('');
     const { announce, announcer } = useAnnouncer();
+    const titleRef = useRef<HTMLHeadingElement>(null);
+    const joinedRef = useRef<HTMLHeadingElement>(null);
+    const refocus = useRef(false);
 
     useEffect(() => {
         if (!user) return;
@@ -48,17 +53,30 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
         return () => { cancelled = true; };
     }, [user, attempt]);
 
+    // After a line leaves the list, its heading takes the focus; or, with the
+    // list now empty, the panel's.
+    useEffect(() => {
+        if (!refocus.current) return;
+        refocus.current = false;
+        (joinedRef.current ?? titleRef.current)?.focus();
+    });
+
     if (!user) return null;
     const data = mine?.uid === user.uid ? mine.data : null;
 
+    // The sign-up for an event that's gone, cleared.
     const forget = async (signup: Signup) => {
+        setProblem('');
         try {
             await (await loadSeva()).leave(user.uid, signup.eventId, signup.volunteerId);
             setMine((m) => (m && m.data !== 'failed'
                 ? { ...m, data: { ...m.data, joined: m.data.joined.filter((j) => j.signup.eventId !== signup.eventId) } }
                 : m));
-            announce(copy.removed);
-        } catch { /* stays listed; trying again works */ }
+            refocus.current = true;
+            announce(copy.forgotten);
+        } catch {
+            setProblem(copy.forgetFailed);
+        }
     };
 
     const upcoming = (e: SevaEvent | null) => !e || now === null || e.endsAt > now;
@@ -106,7 +124,8 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
                 ) : (
                     <div className="mt-3 grid gap-6 md:grid-cols-2">
                         <div>
-                            <h3 className="font-semibold text-ink">{copy.joined}</h3>
+                            <h3 ref={joinedRef} tabIndex={-1} className="font-semibold text-ink">{copy.joined}</h3>
+                            {problem && <p role="alert" className={`mt-1 ${ERROR_TEXT}`}>{problem}</p>}
                             {joined.length === 0 ? <p className="mt-1 text-sm text-ink-muted">{copy.noneJoined}</p> : (
                                 <ul className="mt-2 space-y-3">
                                     {joined.map(({ signup, event }) => (
@@ -160,7 +179,7 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
 
     return (
         <section aria-labelledby="your-seva" className="rounded-xl border border-edge bg-surface-raised p-5 shadow-sm">
-            <h2 id="your-seva" className="text-lg font-bold text-ink">{copy.title}</h2>
+            <h2 ref={titleRef} id="your-seva" tabIndex={-1} className="text-lg font-bold text-ink">{copy.title}</h2>
             {body}
             {announcer}
         </section>

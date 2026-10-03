@@ -11,16 +11,14 @@ export const CHIP = 'inline-flex items-center rounded-full border border-edge-st
 // One event on the board or the home page: its title is the link to its page,
 // stretched over the card, and the rest is a list of facts. Under a day's
 // heading only the times are given; elsewhere the whole date.
-export default function EventCard({ event, display, href, copy, showDate = false, headingLevel = 3 }: {
+export default function EventCard({ event, display, href, copy, showDate = false }: {
     event: SevaEvent;
     display: EventDisplay;
     href: string;
     copy: SevaCopy['common'];
     showDate?: boolean;
-    headingLevel?: 2 | 3;
 }) {
     const titleId = `event-${event.id}`;
-    const Heading = headingLevel === 2 ? 'h2' : 'h3';
     const full = isFull(event);
     return (
         <article
@@ -31,11 +29,11 @@ export default function EventCard({ event, display, href, copy, showDate = false
                 <span className={CHIP}>{copy.categories[event.category]}</span>
                 {full && <span className={`${CHIP} font-semibold`}>{copy.full}</span>}
             </p>
-            <Heading id={titleId} className="mt-2 text-lg font-bold leading-snug text-ink [overflow-wrap:anywhere]">
+            <h3 id={titleId} className="mt-2 text-lg font-bold leading-snug text-ink [overflow-wrap:anywhere]">
                 <IntentLink href={href} className="after:absolute after:inset-0 after:content-[''] hover:underline">
                     <Mixed text={event.title} />
                 </IntentLink>
-            </Heading>
+            </h3>
             <dl className="mt-2 space-y-1 text-sm text-ink-muted">
                 <div>
                     <dt className="sr-only">{copy.whenLabel}</dt>

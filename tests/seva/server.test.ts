@@ -93,12 +93,13 @@ test('an event is ok, missing (404, 403, hidden or unreadable) or failed (anythi
     assert.deepEqual(await fetchEvent('not-an-id'), { kind: 'missing' });
 });
 
-test('refreshing believes only a recent write by Firestore, and refreshes the list only for a public event', async () => {
+test('refreshing believes only a recent write by Firestore, and refreshes the list only for a public event or one it still shows', async () => {
     const done: string[] = [];
-    const deps = (read: Awaited<ReturnType<RefreshDeps['fetchFresh']>>, now = 1_000_000): RefreshDeps => ({
+    const deps = (read: Awaited<ReturnType<RefreshDeps['fetchFresh']>>, { now = 1_000_000, listed = false } = {}): RefreshDeps => ({
         fetchFresh: async () => read,
         refreshEvent: (id) => { done.push(`event ${id}`); },
         refreshUpcoming: () => { done.push('upcoming'); },
+        listed: async () => listed,
         now: () => now,
     });
     const fresh = { kind: 'ok' as const, value: { event: event(), updateTime: 1_000_000 - 1000 } };
@@ -109,7 +110,9 @@ test('refreshing believes only a recent write by Firestore, and refreshes the li
     assert.equal((await refreshAfterChange(ID, deps(stale))).status, 409);
     assert.deepEqual(done.splice(0), []);
     assert.equal((await refreshAfterChange(ID, deps({ kind: 'missing' }))).status, 200);
-    assert.deepEqual(done.splice(0), [`event ${ID}`], 'a hidden or gone event: its page only');
+    assert.deepEqual(done.splice(0), [`event ${ID}`], 'a made-up id, or an event the list has dropped: its page only');
+    assert.equal((await refreshAfterChange(ID, deps({ kind: 'missing' }, { listed: true }))).status, 200);
+    assert.deepEqual(done.splice(0), [`event ${ID}`, 'upcoming'], 'just hidden, and still on the board: both');
     assert.equal((await refreshAfterChange(ID, deps({ kind: 'failed' }))).status, 502);
 });
 

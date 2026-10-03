@@ -31,10 +31,10 @@ import { SEVA_TEXT } from '@/lib/seva/limits';
 import type { EventFields, ReportFields, VolunteerFields } from '@/lib/seva/model';
 import {
     eventPatch,
+    hostingPath,
     planCreateEvent,
     planDismissReports,
     planForget,
-    planForgetHosted,
     planJoin,
     planLeave,
     planReport,
@@ -374,11 +374,14 @@ test('you can leave a cancelled, hidden or finished event', async () => {
 test("a sign-up for an event that's gone can be cleared, and so can its host's note", async () => {
     await assertSucceeds(post());
     await assertSucceeds(join('amar', K_A));
-    await assertFails(commit(as('hana'), planForgetHosted('hana', E))); // not while the event exists
+    // The app doesn't clear a host's note itself; its owner may, once the
+    // event is gone, as with any of their own data.
+    const forgetHosted: Op[] = [{ type: 'delete', path: hostingPath('hana', E) }];
+    await assertFails(commit(as('hana'), forgetHosted)); // not while the event exists
     await wipe(`seva_events/${E}`); // as the console would, leaving what's below it
     await assertFails(leave('amar', K_A));
     await assertSucceeds(commit(as('amar'), planForget('amar', E, K_A)));
-    await assertSucceeds(commit(as('hana'), planForgetHosted('hana', E)));
+    await assertSucceeds(commit(as('hana'), forgetHosted));
 });
 
 test('a volunteer can change their name or stop sharing their contact, and nothing else', async () => {

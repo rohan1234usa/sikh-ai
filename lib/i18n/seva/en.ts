@@ -110,6 +110,8 @@ const seva = {
         changed: 'Changed since you joined',
         removed: 'This event was removed.',
         forget: 'Remove from the list',
+        forgotten: 'Removed from your list.',
+        forgetFailed: 'Couldn’t remove it. Check your connection and try again.',
         reviewReports: 'Review reports',
         showAll: 'Show all',
         whenWhere: '{when} · {city}',

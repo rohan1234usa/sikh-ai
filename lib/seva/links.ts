@@ -16,6 +16,18 @@ export const mapsUrl = (place: string) => `https://www.google.com/maps/search/?a
 // 20261011T010000Z: an instant as Google Calendar and iCalendar write UTC.
 export const utcStamp = (ms: number) => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 
+// What a calendar entry says: the description, then who hosts it and where
+// the event's page is. A link carries only the start of a long description,
+// `max` characters (Google Calendar's address must stay short: 2,000
+// Gurmukhi characters would be 18 KB once encoded); an .ics file, all of it.
+export const CALENDAR_LINK_CHARS = 500;
+
+export function calendarText(description: string, footer: string, max = Infinity): string {
+    const chars = Array.from(description);
+    const body = chars.length > max ? `${chars.slice(0, max - 1).join('').trimEnd()}…` : description;
+    return body ? `${body}\n\n${footer}` : footer;
+}
+
 // A new Google Calendar event, filled in. The times are UTC, shown in the
 // venue's zone (ctz) to whoever adds it.
 export function googleCalendarUrl(e: Pick<SevaEvent, 'title' | 'startsAt' | 'endsAt' | 'timeZone'>, details: string, place: string): string {

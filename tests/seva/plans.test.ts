@@ -6,7 +6,6 @@ import {
     planCreateEvent,
     planDismissReports,
     planForget,
-    planForgetHosted,
     planJoin,
     planLeave,
     planReport,
@@ -78,7 +77,6 @@ test('leaving takes all three back; for an event that is gone, only the two left
     ]);
     assert.deepEqual(dataOf(planLeave('amar', ID, KEY, S)[2]), { volunteerCount: { inc: -1 } });
     assert.deepEqual(planForget('amar', ID, KEY).map(at), [`delete seva_events/${ID}/volunteers/${KEY}`, `delete users/amar/seva_signups/${ID}`]);
-    assert.deepEqual(planForgetHosted('hana', ID).map(at), [`delete users/hana/seva_hosting/${ID}`]);
     assert.deepEqual(dataOf(planUpdateSignup(ID, KEY, { name: 'A.', email: '', phone: '' })[0]), { name: 'A.', email: '', phone: '' });
 });
 

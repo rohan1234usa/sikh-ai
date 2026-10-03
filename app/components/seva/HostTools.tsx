@@ -7,7 +7,7 @@ import { DANGER_BUTTON, PRIMARY_BUTTON, SECONDARY_BUTTON } from '@/app/component
 import { CharCount } from '@/app/components/form/CharCount';
 import { ERROR_TEXT, Field, INPUT } from '@/app/components/form/Field';
 import { useAnnouncer } from '@/app/components/useAnnouncer';
-import { useModalDialog } from '@/app/components/useModalDialog';
+import { MODAL_DIALOG, useModalDialog } from '@/app/components/useModalDialog';
 import type { Lang } from '@/lib/i18n/config';
 import { formatDate } from '@/lib/i18n/date';
 import { fmt } from '@/lib/i18n/fmt';
@@ -18,8 +18,6 @@ import type { Volunteer } from '@/lib/seva/model';
 import { textLength, validateCancelNote } from '@/lib/seva/validate';
 import { useEvent } from './EventContext';
 import { loadSeva, refreshPages } from './sevaClient';
-
-const DIALOG = 'm-auto w-[min(32rem,calc(100vw-2rem))] max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl border border-edge bg-surface-raised p-0 text-ink shadow-2xl backdrop:bg-black/40';
 
 // The host's own tools, on their event's page: edit, see who's coming, post
 // it again, cancel or reopen. Only the host sees them; the rules are what
@@ -36,7 +34,10 @@ export default function HostTools({ lang, copy, cancelCopy, volunteersCopy, retr
     postAgainHref: string;
 }) {
     const { event, viewer, ended, update } = useEvent();
-    const [dialog, setDialog] = useState<'volunteers' | 'cancel' | null>(null);
+    // Two dialogs, which can be open together: the volunteers' list opens over
+    // the cancel dialog, so a host can reach them first and come back to it.
+    const [volunteersOpen, setVolunteersOpen] = useState(false);
+    const [cancelOpen, setCancelOpen] = useState(false);
     const [busy, setBusy] = useState(false);
     const [problem, setProblem] = useState('');
     const { announce, announcer } = useAnnouncer();
@@ -67,7 +68,7 @@ export default function HostTools({ lang, copy, cancelCopy, volunteersCopy, retr
             {event.hidden && <p className="mt-3 rounded-lg border border-edge-strong p-3 text-ink">{copy.hiddenNotice}</p>}
             <div className="mt-4 flex flex-wrap gap-3">
                 <IntentLink href={editHref} className={SECONDARY_BUTTON}>{copy.edit}</IntentLink>
-                <button type="button" onClick={() => setDialog('volunteers')} className={SECONDARY_BUTTON}>
+                <button type="button" onClick={() => setVolunteersOpen(true)} className={SECONDARY_BUTTON}>
                     {fmt(copy.volunteers, { n: event.volunteerCount })}
                 </button>
                 <IntentLink href={postAgainHref} className={SECONDARY_BUTTON} aria-describedby="post-again-hint">{copy.postAgain}</IntentLink>
@@ -76,25 +77,25 @@ export default function HostTools({ lang, copy, cancelCopy, volunteersCopy, retr
                         {busy ? copy.reopening : copy.reopen}
                     </button>
                 ) : (
-                    <button type="button" onClick={() => setDialog('cancel')} className={SECONDARY_BUTTON}>{copy.cancel}</button>
+                    <button type="button" onClick={() => setCancelOpen(true)} className={SECONDARY_BUTTON}>{copy.cancel}</button>
                 ))}
             </div>
             <p id="post-again-hint" className="mt-2 text-sm text-ink-muted">{copy.postAgainHint}</p>
             {problem && <p role="alert" className={`mt-2 ${ERROR_TEXT}`}>{problem}</p>}
             {announcer}
 
-            <VolunteersDialog open={dialog === 'volunteers'} onClose={() => setDialog(null)} copy={volunteersCopy} retry={retry} lang={lang} />
             <CancelDialog
-                open={dialog === 'cancel'}
-                onClose={() => setDialog(null)}
+                open={cancelOpen}
+                onClose={() => setCancelOpen(false)}
                 copy={cancelCopy}
-                onSeeVolunteers={() => setDialog('volunteers')}
+                onSeeVolunteers={() => setVolunteersOpen(true)}
                 onCancelled={(note) => {
                     update({ status: 'cancelled', cancelNote: note });
-                    setDialog(null);
+                    setCancelOpen(false);
                     announce(cancelledMessage);
                 }}
             />
+            <VolunteersDialog open={volunteersOpen} onClose={() => setVolunteersOpen(false)} copy={volunteersCopy} retry={retry} lang={lang} />
         </section>
     );
 }
@@ -108,7 +109,7 @@ function VolunteersDialog({ open, onClose, copy, retry, lang }: {
 }) {
     const { ref, onCancel, onClick } = useModalDialog(open, onClose);
     return (
-        <dialog ref={ref} onCancel={onCancel} onClick={onClick} aria-labelledby="volunteers-title" className={DIALOG}>
+        <dialog ref={ref} onCancel={onCancel} onClick={onClick} aria-labelledby="volunteers-title" className={MODAL_DIALOG}>
             {/* Mounted while open, so each opening reads the list afresh. */}
             {open && <VolunteersBody onClose={onClose} copy={copy} retry={retry} lang={lang} />}
         </dialog>
@@ -225,7 +226,7 @@ function CancelDialog({ open, onClose, copy, onSeeVolunteers, onCancelled }: {
 }) {
     const { ref, onCancel, onClick } = useModalDialog(open, onClose);
     return (
-        <dialog ref={ref} onCancel={onCancel} onClick={onClick} aria-labelledby="cancel-title" className={DIALOG}>
+        <dialog ref={ref} onCancel={onCancel} onClick={onClick} aria-labelledby="cancel-title" className={MODAL_DIALOG}>
             {open && <CancelBody onClose={onClose} copy={copy} onSeeVolunteers={onSeeVolunteers} onCancelled={onCancelled} />}
         </dialog>
     );
