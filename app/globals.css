@@ -54,6 +54,7 @@
   --color-ink-muted: var(--ink-muted);
   --color-ink-faint: var(--ink-faint);
   --color-edge: var(--edge);
+  --color-edge-strong: var(--edge-strong);
   --color-accent-text: var(--accent-text);
 }
 
@@ -65,6 +66,7 @@
   --ink-muted: #475569;       /* secondary text */
   --ink-faint: #64748B;       /* tertiary text */
   --edge: #E2E8F0;            /* borders */
+  --edge-strong: #64748B;     /* a field's or button's outline: 3:1 or more (WCAG 1.4.11) */
   --accent-text: #B45309;     /* kesri-deep on light */
 }
 
@@ -76,6 +78,7 @@
   --ink-muted: #94A3B8;
   --ink-faint: #64748B;
   --edge: #1E293B;
+  --edge-strong: #64748B;
   --accent-text: #FF9933;     /* full kesri passes on dark */
 }
 

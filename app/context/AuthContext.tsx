@@ -16,7 +16,9 @@ type AuthContextType = {
   user: User | null;
   // A signed-in session is being restored, so who's here isn't known yet.
   loading: boolean;
-  signIn: () => Promise<void>;
+  // Resolves to who signed in, or null when it didn't finish (the popup was
+  // closed or blocked), so an action that needed it can carry on or stop.
+  signIn: () => Promise<User | null>;
   logOut: () => Promise<void>;
   // Spread onto a sign-in button: Auth starts loading as the pointer, focus
   // or a finger arrives, so the click can open Google's popup at once. Safari
@@ -94,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [load]);
 
-  const signIn = useCallback(async () => {
+  const signIn = useCallback(async (): Promise<User | null> => {
     try {
       let m = authModule;
       if (!m) {
@@ -104,10 +106,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setAuth(m);
         await m.auth.authStateReady();
       }
-      if (m.auth.currentUser) return;
-      await m.signInWithPopup(m.auth, m.googleProvider);
+      if (m.auth.currentUser) return m.auth.currentUser;
+      return (await m.signInWithPopup(m.auth, m.googleProvider)).user;
     } catch (error) {
       console.error('Error signing in', error);
+      return null;
     }
   }, []);
 
