@@ -183,6 +183,8 @@ Two more, for seeing how the site does:
 *   **Speed Insights** (Vercel → Speed Insights → Enable): real visitors' Core Web Vitals. The page already includes it on Vercel. It sets no cookies and loads nothing from a third party.
 *   **The Content-Security-Policy** is enforced. After a deploy that changes what the pages load, open Logs in Live mode, search for `csp_violation`, and go through the site, including a sign-in. The Hobby plan keeps runtime logs for an hour, so lines from earlier are gone. A line means something was blocked. Add its host to `lib/csp.ts` only if the site itself means to load from it, such as a Google, Firebase or Vercel service it uses. Leave everything else blocked: a browser extension's own code, another site trying to frame this one, or anything that shouldn't be on the page. To stop blocking while you look into one, roll back the deploy, or rename the header in `next.config.ts` to `Content-Security-Policy-Report-Only`.
 
+**If a page keeps failing while GurbaniNow is up**, purge the data cache. It keeps any answer GurbaniNow sent with HTTP 200 for a month, even one the site can't read, and it outlives deploys, so one bad answer can keep an Ang or shabad page on its error page, or a search saying it didn't finish. Purge it from the project's CDN → Caches → Purge cache → All content → Runtime and Data Cache. On Hobby the data cache is shared by every project in the team, so this empties theirs too.
+
 ## 💻 Usage Examples
 
 ### 1. The Hukamnama Fetcher (Server-Side)

@@ -85,6 +85,14 @@ test('romanized words: the likeliest spellings of the clearest stretch, two at a
     assert.deepEqual(plan('spnh'), [[{ query: 'ਸਪਨਹ', type: ANYWHERE, results: 30 }]]);
 });
 
+test("a closing rahao isn't looked up, so it doesn't count toward a romanized query's words", () => {
+    assert.equal(classifyQuery('tu thakur rahao').kind, 'invalid', 'two words and a rahao are two words');
+    assert.equal(classifyQuery('rahao rahao rahao').kind, 'invalid');
+    const waves = plan('tu thakur tum rahao');
+    assert.ok(waves.flat().every(l => [...l.query].length === 3), JSON.stringify(waves));
+    assert.equal(waves[0][0].query, 'ਤਤਤ', 'three words, without the rahao');
+});
+
 test('a long romanized query looks at a second stretch too', () => {
     // jo mange thakur apne te soi soi deve: "apne te soi soi deve" holds one
     // ambiguous letter, "thakur" another; a second stretch starts elsewhere.

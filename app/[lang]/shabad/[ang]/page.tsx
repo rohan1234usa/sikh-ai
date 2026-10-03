@@ -11,7 +11,7 @@ import { LINE_TARGET_STYLE } from '@/app/components/shabad/ShabadVerse';
 import { parseAngParam } from '@/lib/gurbani/ang';
 import { MAX_ANG } from '@/lib/gurbani/citations';
 import { fetchAngPayload, parseAngPayload, type GurbaniLine } from '@/lib/gurbani/gurbaninow';
-import { groupByShabad, lineAnchor, localName, opening, shabadPath } from '@/lib/gurbani/shabad';
+import { groupByShabad, isGurbaniId, lineAnchor, localName, opening, shabadPath } from '@/lib/gurbani/shabad';
 import { jsonLdText } from '@/lib/gurbani/shabadPage';
 import type { Dictionary } from '@/lib/i18n';
 import { LANG_META, type Lang } from '@/lib/i18n/config';
@@ -118,7 +118,7 @@ export default async function AngPage({ params }: PageProps<'/[lang]/shabad/[ang
             <section key={`${group.shabadId}-${g}`} className="space-y-4">
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-edge pb-2">
                 <p lang={lang === 'pa' ? 'pa' : undefined} className="text-xs font-bold uppercase tracking-wider text-ink-muted">{about}</p>
-                {group.shabadId && (
+                {isGurbaniId(group.shabadId) && (
                   <IntentLink href={to(shabadPath(group.shabadId))} className="ml-auto text-sm font-semibold text-accent-text hover:underline">
                     {t.shabad.page.fullShabad} →
                   </IntentLink>

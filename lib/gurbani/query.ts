@@ -14,7 +14,7 @@
 
 import { MAX_ANG } from './citations';
 import { skeletonToken, tokens } from './gurmukhi';
-import { romanTokens } from './roman';
+import { romanTokens, withoutRahao } from './roman';
 import { lineKeys, toSearchLetters } from './score';
 import { isGurbaniId } from './shabad';
 
@@ -26,7 +26,9 @@ const MAX_LETTERS = 24;
 const MAX_WORDS = 20;
 // Romanized words are searched by their first letters, so they need as many
 // words as a first-letter search needs letters, and enough letters to tell
-// the right line from others with the same first letters.
+// the right line from others with the same first letters. A closing rahao
+// isn't looked up, so it doesn't count. The too-short message says three
+// (t.shabad.invalid.tooShort).
 const MIN_ROMAN_WORDS = 3;
 const MIN_ROMAN_CHARS = 8;
 
@@ -204,7 +206,8 @@ function classifyRoman(text: string, as?: SearchAs): ShabadQuery | null {
     if (words.length === 1 && words[0].length >= MIN_LETTERS && words[0].length <= MAX_LETTERS && looksLikeLetters(words[0])) {
         return { kind: 'roman-letters', letters: words[0], alternatives: [] };
     }
-    if (words.length >= MIN_ROMAN_WORDS && words.join('').length >= MIN_ROMAN_CHARS) {
+    const looked = withoutRahao(words);
+    if (looked.length >= MIN_ROMAN_WORDS && looked.join('').length >= MIN_ROMAN_CHARS) {
         return { kind: 'roman', words, alternatives: [] };
     }
     return null;

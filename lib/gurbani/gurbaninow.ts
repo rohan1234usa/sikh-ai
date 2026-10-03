@@ -29,6 +29,11 @@ const HUKAMNAMA_REVALIDATE_SECONDS = 10 * 60;
 // calls, and the CDN answers repeated searches without any.
 export const QUOTE_CHECK_DAILY_CEILING = 3000;
 export const VERSE_SEARCH_DAILY_CEILING = 5000;
+// A shabad's page asks GurbaniNow only while it is being built, but a
+// made-up id is asked for afresh on every visit (see the page reads below).
+// The ceiling is above the Granth's roughly six thousand shabads, so a crawl
+// of every page fits in a day.
+export const SHABAD_PAGE_DAILY_CEILING = 8000;
 const HEADER_LINE_TYPE = 2; // "ਸਿਰੀਰਾਗੁ ਮਹਲਾ ੩ ॥" and the like
 
 // GurbaniNow's search types. phrase matches the words exactly as written, in
@@ -203,6 +208,7 @@ export function dailyMeter(ceiling: number, today = () => new Date().toISOString
 export const meters = {
     quoteCheck: dailyMeter(QUOTE_CHECK_DAILY_CEILING),
     verseSearch: dailyMeter(VERSE_SEARCH_DAILY_CEILING),
+    shabadPage: dailyMeter(SHABAD_PAGE_DAILY_CEILING),
 } as const;
 
 // One GET, kept in the host's data cache for `revalidate` seconds. That cache
@@ -262,11 +268,15 @@ export const verseSearchClient = gurbaniNowClient({ meter: meters.verseSearch, s
 
 // What the site's pages read: an Ang for its page and for /api/shabad (the
 // chat's links to an Ang), a shabad for its page, and the Hukamnama for its
-// page and /api/hukamnama. They skip the daily meters. Each view makes at
-// most one call and the data cache answers repeats, so there is no loop to
-// guard against. A meter is charged before the cache is consulted, so it
-// would count those cache hits too, and a busy day of page views could
-// switch off quote checking or search. null means no usable answer.
+// page and /api/hukamnama. They skip the quote checker's and the search's
+// meters: a meter is charged before the cache is consulted, so it would count
+// cache hits too, and a busy day of page views could switch off quote
+// checking or search. Each view makes at most one call, and the data cache
+// answers repeats, so there is no loop to guard against. The exception is a
+// shabad id GurbaniNow doesn't know: its HTTP 500 is never cached, so each
+// visit to a made-up id asks again. Shabad pages therefore spend an
+// allowance of their own (SHABAD_PAGE_DAILY_CEILING). null means no usable
+// answer.
 
 export async function fetchAngPayload(ang: number): Promise<unknown | null> {
     if (!Number.isInteger(ang) || ang < 1 || ang > MAX_ANG) return null;
@@ -278,7 +288,7 @@ export async function fetchAngPayload(ang: number): Promise<unknown | null> {
 // with the same HTTP 500 as a fault, so the two can't be told apart: both are
 // null, and the page reports an outage rather than caching a verdict.
 export async function fetchShabad(id: string): Promise<Shabad | null> {
-    if (!isGurbaniId(id)) return null;
+    if (!isGurbaniId(id) || !meters.shabadPage.take()) return null;
     const data = await request(`${BASE}/shabad/${id}`, REVALIDATE_SECONDS);
     const shabad = data === null ? null : parseShabadPayload(data);
     return shabad?.id === id ? shabad : null;

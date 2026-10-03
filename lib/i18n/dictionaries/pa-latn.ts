@@ -506,7 +506,7 @@ const paLatn: Dictionary = {
         helpText: 'Gurmukhi jaan English akkhran vich koi tukk likho, jaan har shabad da pehla akkhar ({example}). 1 ton 1430 tak da number oh Ang kholhda hai.',
         angRange: 'Ang number 1 ton 1430 vichkar hona chahida hai.',
         invalid: {
-            tooShort: 'Thorha hor likho: tukk de ghatto-ghatt do shabad, jaan usde tinn pehle akkhar.',
+            tooShort: 'Thorha hor likho: tukk de ghatto-ghatt do shabad (English akkhran vich tinn), jaan usde tinn pehle akkhar.',
             tooLong: 'Ih kise vi tukk ton lamma hai. Ikk tukk, jaan usda kujh hissa likho.',
             noLetters: 'Gurbani di koi tukk, usde pehle akkhar, jaan Ang number likho.',
             english: 'Shabad Khoj tukk nu usde shabdan naal labbhdi hai, arthan naal nahi. Tukk aap likho, Gurmukhi jaan English akkhran vich.',

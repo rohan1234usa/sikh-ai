@@ -15,7 +15,7 @@ import { SEARCH_TYPES, type GurbaniClient, type GurbaniLine, type SearchType } f
 import { firstLetters } from './gurmukhi';
 import type { MatchKind, SearchableQuery, VerseHit } from './query';
 import {
-    acceptsRoman, alignRoman, letterInitials, romanWindows, TUNING, wordInitials, type Alt, type RomanMatch, type Tuning, type Variant,
+    acceptsRoman, alignRoman, letterInitials, romanWindows, TUNING, withoutRahao, wordInitials, type Alt, type RomanMatch, type Tuning, type Variant,
 } from './roman';
 import { closeness, compare, isClose, lineKeys, looseKey, toSearchLetters, type LineKeys } from './score';
 import { isGurbaniId } from './shabad';
@@ -41,13 +41,13 @@ export type VerseSearch = {
 
 // "॥੧॥ ਰਹਾਉ ॥" closes a refrain, and GurbaniNow's index keeps the verse
 // number between the line and ਰਹਾਉ, so neither its words nor its first
-// letters match across it. Lookups leave a closing ਰਹਾਉ out; the ranking,
-// which reads the whole line, keeps it.
+// letters match across it. Lookups leave a closing ਰਹਾਉ out (typed in
+// English letters, ./roman's withoutRahao); the ranking, which reads the
+// whole line, keeps it.
 const RAHAO = looseKey('ਰਹਾਉ');
-const ROMAN_RAHAO = /^rah?a{0,2}(?:o|u|au|ao|aau|aao)$/;
-const withoutRahao = <T>(words: T[], isRahao: (word: T) => boolean): T[] => {
+const withoutGurmukhiRahao = (words: string[]): string[] => {
     let end = words.length;
-    while (end > 1 && isRahao(words[end - 1])) end--;
+    while (end > 1 && looseKey(words[end - 1]) === RAHAO) end--;
     return words.slice(0, end);
 };
 
@@ -100,7 +100,7 @@ function dedupe(lookups: Lookup[]): Lookup[] {
 export function planSearch(query: SearchableQuery): Lookup[][] {
     switch (query.kind) {
         case 'gurmukhi': {
-            const keys = lineKeys(withoutRahao(query.words, word => looseKey(word) === RAHAO).join(' '));
+            const keys = lineKeys(withoutGurmukhiRahao(query.words).join(' '));
             const letters = toSearchLetters(keys.first);
             const n = count(letters);
             const phrase: Lookup = { query: keys.folded.slice(0, PHRASE_WORDS).join(' '), type: SEARCH_TYPES.phrase, results: 30 };
@@ -124,7 +124,7 @@ export function planSearch(query: SearchableQuery): Lookup[][] {
             return n >= 6 ? [first, [start(take(letters, 0, 4)), anywhere(take(letters, n - 5))]] : [first];
         }
         case 'roman':
-            return romanLookups(withoutRahao(query.words, word => ROMAN_RAHAO.test(word)).map(wordInitials));
+            return romanLookups(withoutRahao(query.words).map(wordInitials));
         case 'roman-letters':
             return romanLookups([...query.letters].map(letterInitials));
     }
@@ -135,9 +135,11 @@ export function planSearch(query: SearchableQuery): Lookup[][] {
 // `settles`: a match good enough that more lookups would only find others.
 type Ranked = { line: GurbaniLine; match: MatchKind; tier: number; score: number; whole: number; settles: boolean };
 
+type Score = (line: GurbaniLine) => Ranked | null;
+
 // Each candidate line scored against the query, or null when it doesn't
 // match closely enough to show.
-function scorer(query: SearchableQuery, tuning: Tuning): (line: GurbaniLine) => Ranked | null {
+function scorer(query: SearchableQuery, tuning: Tuning): Score {
     const lineLetters = (line: GurbaniLine) => toSearchLetters(firstLetters(line.gurmukhi));
     switch (query.kind) {
         case 'gurmukhi': {
@@ -234,10 +236,22 @@ function byRank(a: Ranked, b: Ranked): number {
 
 const sameLineKey = (line: GurbaniLine) => lineKeys(line.gurmukhi).raw.map(looseKey).join(' ');
 
+// A search's scores kept by line id, so the lines the first wave found
+// aren't scored again when the second wave's are added.
+function scoredOnce(score: Score): Score {
+    const scored = new Map<string, Ranked | null>();
+    return (line) => {
+        const known = scored.get(line.id);
+        if (known !== undefined) return known;
+        const ranked = score(line);
+        scored.set(line.id, ranked);
+        return ranked;
+    };
+}
+
 // The lines that match, best first, one per shabad (its best line).
 // Headings, other sources and unusable ids never count.
-function rankPool(query: SearchableQuery, lines: GurbaniLine[], tuning: Tuning): Ranked[] {
-    const score = scorer(query, tuning);
+function rankPool(lines: GurbaniLine[], score: Score): Ranked[] {
     const unique = new Map<string, GurbaniLine>();
     for (const line of lines) {
         if (line.isHeader || line.source.id !== SGGS_SOURCE_ID || !isGurbaniId(line.id) || !isGurbaniId(line.shabadId)) continue;
@@ -277,7 +291,7 @@ function toHits(perShabad: Ranked[], maxHits = MAX_HITS): { hits: VerseHit[]; mo
 }
 
 export function rankLines(query: SearchableQuery, lines: GurbaniLine[], opts: { maxHits?: number; tuning?: Tuning } = {}): { hits: VerseHit[]; more: boolean } {
-    return toHits(rankPool(query, lines, opts.tuning ?? TUNING), opts.maxHits);
+    return toHits(rankPool(lines, scorer(query, opts.tuning ?? TUNING)), opts.maxHits);
 }
 
 function toHit(line: GurbaniLine, match: MatchKind, sameLineIn: number): VerseHit {
@@ -305,7 +319,7 @@ export async function searchVerses(query: SearchableQuery, opts: {
     maxHits?: number;
     tuning?: Tuning;
 }): Promise<VerseSearch | null> {
-    const tuning = opts.tuning ?? TUNING;
+    const score = scoredOnce(scorer(query, opts.tuning ?? TUNING));
     const budget = opts.maxCalls ?? MAX_SEARCH_CALLS;
     const pool: GurbaniLine[] = [];
     let ranked: Ranked[] = [];
@@ -337,7 +351,7 @@ export async function searchVerses(query: SearchableQuery, opts: {
         if (answered === 0) break;
         // The second wave runs only when the first found nothing that settles
         // the search.
-        ranked = rankPool(query, pool, tuning);
+        ranked = rankPool(pool, score);
         if (ranked.some(r => r.settles)) break;
     }
 

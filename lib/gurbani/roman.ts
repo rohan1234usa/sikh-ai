@@ -63,6 +63,18 @@ export function romanTokens(text: string): string[] {
     return out;
 }
 
+// "॥੧॥ ਰਹਾਉ ॥" closes a refrain, and GurbaniNow's index keeps the verse
+// number between the line and ਰਹਾਉ, so a first-letter lookup can't match
+// across it. A closing rahao is left out of the lookups (./search.ts), and so
+// it doesn't count toward the words a query needs (./query.ts). The first
+// word always stays.
+const RAHAO = /^rah?a{0,2}(?:o|u|au|ao|aau|aao)$/;
+export function withoutRahao(words: string[]): string[] {
+    let end = words.length;
+    while (end > 1 && RAHAO.test(words[end - 1])) end--;
+    return words.slice(0, end);
+}
+
 // --- First letters ----------------------------------------------------------
 
 export type Alt = { letter: string; p: number };
@@ -281,7 +293,11 @@ export function alignRoman(typed: string[], transliteration: string, tuning: Tun
     const lineWeight = g.reduce((sum, w) => sum + w.weight, 0);
     if (u.length === 0 || g.length === 0) return { coverage: 0, precision: 0, strong: 0 };
 
-    const join = (a: Word, b: Word) => toWord(a.key + b.key);
+    // Each word run together with the one before it, built once per side:
+    // pairs[k] joins words k-1 and k.
+    const pairs = (words: Word[]) => words.map((w, k) => (k > 0 ? toWord(words[k - 1].key + w.key) : w));
+    const uPairs = pairs(u);
+    const gPairs = pairs(g);
     const { strongWord } = tuning;
     const dp: Cell[][] = Array.from({ length: u.length + 1 }, () => Array.from({ length: g.length + 1 }, () => ({ score: 0, line: 0, strong: 0 })));
     const better = (a: Cell, b: Cell) => (b.score > a.score ? b : a);
@@ -293,8 +309,8 @@ export function alignRoman(typed: string[], transliteration: string, tuning: Tun
                 cell = better(cell, { score: from.score + typedW * sim, line: from.line + lineW * sim, strong: from.strong + (sim >= strongWord ? words : 0) });
             };
             add(dp[i - 1][j - 1], similarity(u[i - 1], g[j - 1]), u[i - 1].weight, g[j - 1].weight, 1);
-            if (j >= 2) add(dp[i - 1][j - 2], similarity(u[i - 1], join(g[j - 2], g[j - 1])), u[i - 1].weight, g[j - 2].weight + g[j - 1].weight, 1);
-            if (i >= 2) add(dp[i - 2][j - 1], similarity(join(u[i - 2], u[i - 1]), g[j - 1]), u[i - 2].weight + u[i - 1].weight, g[j - 1].weight, 2);
+            if (j >= 2) add(dp[i - 1][j - 2], similarity(u[i - 1], gPairs[j - 1]), u[i - 1].weight, g[j - 2].weight + g[j - 1].weight, 1);
+            if (i >= 2) add(dp[i - 2][j - 1], similarity(uPairs[i - 1], g[j - 1]), u[i - 2].weight + u[i - 1].weight, g[j - 1].weight, 2);
             dp[i][j] = cell;
         }
     }

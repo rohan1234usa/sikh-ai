@@ -10,7 +10,11 @@ import { useLanguage } from '../../context/LanguageContext';
 // translation, and where it is. The whole card opens the shabad at that
 // line. The link prefetches only on intent: each result is a shabad page
 // that may never have been built, and building it asks GurbaniNow.
-export default function VerseResultCard({ hit }: { hit: VerseHit }) {
+//
+// The other shabads with the same line are counted among the lines the
+// lookups returned. When the answer was `truncated`, more lines matched than
+// were read or shown, so there may be others: the count is shown as "29+".
+export default function VerseResultCard({ hit, truncated }: { hit: VerseHit; truncated: boolean }) {
     const { lang, t, href } = useLanguage();
     const where = [
         hit.ang === null ? null : fmt(t.shabad.angLabel, { n: hit.ang }),
@@ -29,7 +33,7 @@ export default function VerseResultCard({ hit }: { hit: VerseHit }) {
             {hit.translation && <p lang="en" className="mt-2 italic text-ink-muted line-clamp-2">{hit.translation}</p>}
             <p lang={lang === 'pa' ? 'pa' : undefined} className="mt-3 text-xs font-semibold text-ink-muted">
                 {where}
-                {hit.sameLineIn > 0 && <span className="text-ink-faint"> · {fmt(t.shabad.results.sameLine, { n: hit.sameLineIn })}</span>}
+                {hit.sameLineIn > 0 && <span className="text-ink-faint"> · {fmt(t.shabad.results.sameLine, { n: truncated ? `${hit.sameLineIn}+` : hit.sameLineIn })}</span>}
             </p>
         </li>
     );

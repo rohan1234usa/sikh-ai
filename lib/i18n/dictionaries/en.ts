@@ -518,7 +518,7 @@ const en = {
         angRange: 'Ang number must be between 1 and 1430.',
         // What can't be searched, said as soon as it's typed.
         invalid: {
-            tooShort: 'Type a little more: at least two words of the line, or three of its first letters.',
+            tooShort: 'Type a little more: at least two words of the line (three in English letters), or three of its first letters.',
             tooLong: 'That is longer than any line. Type one line, or part of it.',
             noLetters: 'Type a line of Gurbani, its first letters, or an Ang number.',
             english: 'Shabad Search finds a line by its words, not its meaning. Type the line itself, in Gurmukhi or English letters.',
