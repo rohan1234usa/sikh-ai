@@ -37,7 +37,7 @@ export default function Navbar() {
         pathname === href || pathname.startsWith(href + '/');
 
     return (
-        <header className="sticky top-0 z-50 bg-navy text-white shadow-md dark:border-b dark:border-white/10">
+        <header className="sticky top-0 z-50 bg-navy text-white shadow-md dark:border-b dark:border-white/10 [--focus-ring:var(--color-kesri)]">
             <nav aria-label={t.nav.mainNavAria} className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
                 <IntentLink href={to('/')} onClick={closeMenu} className="flex items-center gap-2 text-xl font-bold tracking-wide">
                     <span className="font-gurmukhi text-kesri" aria-hidden="true">ੴ</span> SikhAI

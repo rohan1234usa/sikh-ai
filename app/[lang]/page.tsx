@@ -35,7 +35,7 @@ export default async function Home() {
   return (
     <main className="flex-1 flex flex-col">
       {/* Hero Section */}
-      <section className="relative overflow-hidden text-white px-6 py-20 md:py-28 bg-gradient-to-b from-navy to-navy-light dark:from-[#0b1220] dark:via-navy dark:to-[#020617]">
+      <section className="relative overflow-hidden text-white px-6 py-20 md:py-28 [--focus-ring:var(--color-kesri)] bg-gradient-to-b from-navy to-navy-light dark:from-[#0b1220] dark:via-navy dark:to-[#020617]">
         {/* Ambient glows */}
         <div className="absolute top-0 right-0 w-1/2 h-full bg-gold/10 dark:bg-gold/20 blur-3xl rounded-full -translate-y-1/4 translate-x-1/4 pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-1/2 h-2/3 bg-kesri/10 blur-3xl rounded-full translate-y-1/4 -translate-x-1/4 pointer-events-none"></div>

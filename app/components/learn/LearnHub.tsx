@@ -78,7 +78,7 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
             {!hydrated ? (
                 <div aria-hidden="true" className="h-52 animate-pulse rounded-2xl bg-edge/40 sm:h-30" />
             ) : nextLink ? (
-                <div className="flex flex-col gap-4 rounded-2xl bg-navy p-6 text-white shadow-md sm:flex-row sm:items-center">
+                <div className="flex flex-col gap-4 rounded-2xl bg-navy p-6 text-white shadow-md sm:flex-row sm:items-center [--focus-ring:var(--color-kesri)]">
                     <div className="min-w-0 flex-1 space-y-1">
                         <p className="text-xs font-bold uppercase tracking-widest text-kesri">{label}</p>
                         <p lang="en" className="text-xl font-bold"><Mixed text={nextLink.title} /></p>
