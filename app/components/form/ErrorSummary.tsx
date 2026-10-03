@@ -13,6 +13,7 @@ export function ErrorSummary({ ref, title, errors }: { ref?: Ref<HTMLDivElement>
         <div
             ref={ref}
             tabIndex={-1}
+            role="group"
             aria-labelledby="error-summary-title"
             className="rounded-xl border-2 border-red-700 dark:border-red-400 bg-surface-raised p-4"
         >
