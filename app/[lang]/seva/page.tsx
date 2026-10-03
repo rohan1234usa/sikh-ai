@@ -1,236 +1,100 @@
-'use client';
+import type { Metadata } from 'next';
+import IntentLink from '@/app/components/IntentLink';
+import { PRIMARY_BUTTON } from '@/app/components/buttons';
+import EventCard from '@/app/components/seva/EventCard';
+import SevaBoard, { type BoardGroup } from '@/app/components/seva/SevaBoard';
+import SevaHero from '@/app/components/seva/SevaHero';
+import { localePath } from '@/lib/i18n/paths';
+import { getSevaCopy } from '@/lib/i18n/seva';
+import { getServerT } from '@/lib/i18n/server';
+import { pageMetadata } from '@/lib/metadata';
+import { CREATE_HREF, eventHref } from '@/lib/seva/config';
+import { countryName } from '@/lib/seva/countries';
+import { describeEvent } from '@/lib/seva/display';
+import { facetsOf, groupByDay, upcoming } from '@/lib/seva/listing';
+import type { SevaEvent } from '@/lib/seva/model';
+import { fetchUpcomingEvents, isBuilding, renderTime, sevaProject } from '@/lib/seva/server';
+import { formatDayKey } from '@/lib/seva/time';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { MapPinIcon, CalendarIcon, UserGroupIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { db } from '@/lib/firebase/firestore';
-import { collection, getDocs, doc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { useAuth } from '@/app/context/AuthContext';
-import { useLocalePath, useT } from '@/app/context/LanguageContext';
-import { fmt } from '@/lib/i18n/fmt';
+// The board: every seva still to come, soonest first, as the server reads it
+// from Firestore (lib/seva/server.ts). The page is cached for five minutes,
+// and built again at once after a change made here (app/api/seva/refresh), so
+// a visitor's browser never talks to Firebase to see it. Each card leads to
+// its event's page, where people join, share and add it to a calendar.
+export const revalidate = 300; // SEVA_REVALIDATE_SECONDS
 
-interface SevaEvent {
-  id: string;
-  title: string;
-  location: string;
-  date: string;
-  needed: number;
-  category: string;
-  description?: string;
-  attendees: string[]; // Array of user IDs
+export async function generateMetadata(): Promise<Metadata> {
+  const { lang, t } = await getServerT();
+  const copy = getSevaCopy(lang);
+  return pageMetadata(lang, t, '/seva', copy.meta.title, copy.meta.description);
 }
 
-// Chip styles owned by the UI, keyed by category — not trusted from Firestore
-const CATEGORY_STYLES: Record<string, string> = {
-  Langar: "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950/50 dark:text-orange-400 dark:border-orange-900",
-  Service: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-900",
-  Education: "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/50 dark:text-green-400 dark:border-green-900",
-  Other: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
-};
+export default async function SevaBoardPage() {
+  const { lang } = await getServerT();
+  const copy = getSevaCopy(lang);
+  const to = (path: string) => localePath(lang, path);
+  const now = renderTime();
 
-type Notice = { kind: 'info' | 'error'; text: string };
+  const read = await fetchUpcomingEvents(now);
+  // Once the site is live, a passing outage is thrown, so the board that was
+  // there keeps being served; while building (CI has no network) or with no
+  // project set up, it's shown as unavailable.
+  if (read.kind === 'failed' && !isBuilding() && sevaProject()) {
+    throw new Error('Firestore gave no usable answer for the Seva board');
+  }
+  const events = read.kind === 'ok' ? upcoming(read.value, now) : null;
 
-export default function SevaPage() {
-  const [events, setEvents] = useState<SevaEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [notice, setNotice] = useState<Notice | null>(null);
-  const { user, signIn, signInIntent } = useAuth();
-  const t = useT();
-  const to = useLocalePath();
+  const card = (event: SevaEvent, showDate: boolean) => (
+    <EventCard event={event} display={describeEvent(event, lang, copy)} href={to(eventHref(event.id))} copy={copy.common} showDate={showDate} />
+  );
+  const item = (event: SevaEvent, showDate: boolean) => ({ id: event.id, facets: facetsOf(event), card: card(event, showDate) });
 
-  // The stored category value is the data/style key; only the chip label is
-  // display-mapped through the dictionary.
-  const categoryLabel = (category: string) =>
-    t.seva.categories[category as keyof typeof t.seva.categories] ?? category;
-
-  // Word order around the highlighted word differs per language, so split the
-  // template on {word} and render the styled span between the halves.
-  const [heroBefore, heroAfter] = t.seva.heroTitle.split('{word}');
-
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "seva_events"));
-        const eventsData = querySnapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            // Handle legacy data: if 'attendees' doesn't exist yet, make it empty
-            attendees: data.attendees || []
-          };
-        }) as SevaEvent[];
-        setEvents(eventsData);
-      } catch (error) {
-        console.error("Error fetching seva events: ", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchEvents();
-  }, []);
-
-  // Once the user signs in, the sign-in prompt is no longer relevant
-  useEffect(() => {
-    if (user) setNotice(prev => (prev?.kind === 'info' ? null : prev));
-  }, [user]);
-
-  const handleJoin = async (eventId: string) => {
-    if (!user) {
-      setNotice({ kind: 'info', text: t.seva.signInPrompt });
-      return;
-    }
-
-    // Optimistic update
-    setEvents(prev => prev.map(event =>
-      event.id === eventId
-        ? { ...event, attendees: [...event.attendees, user.uid] }
-        : event
-    ));
-
-    try {
-      // arrayUnion prevents duplicates automatically
-      const eventRef = doc(db, "seva_events", eventId);
-      await updateDoc(eventRef, {
-        attendees: arrayUnion(user.uid)
-      });
-    } catch (error) {
-      console.error("Error joining event:", error);
-      // Roll back the optimistic update
-      setEvents(prev => prev.map(event =>
-        event.id === eventId
-          ? { ...event, attendees: event.attendees.filter(uid => uid !== user.uid) }
-          : event
-      ));
-      setNotice({ kind: 'error', text: t.seva.joinError });
-    }
-  };
+  let groups: BoardGroup[] = [];
+  const countryNames: Record<string, string> = {};
+  if (events) {
+    const { now: underWay, days } = groupByDay(events, now);
+    groups = [
+      ...(underWay.length ? [{ key: 'now', heading: copy.common.happeningNow, items: underWay.map((e) => item(e, true)) }] : []),
+      ...days.map((day) => ({ key: day.key, heading: formatDayKey(day.key, lang), dateTime: day.key, items: day.events.map((e) => item(e, false)) })),
+    ];
+    for (const e of events) if (e.country) countryNames[e.country] ??= countryName(e.country, lang);
+  }
 
   return (
-    <main className="flex-1">
+    <main className="flex-1 flex flex-col">
+      <SevaHero lang={lang} copy={copy.board} hostHref={to(CREATE_HREF)} angHref={to('/shabad/26')} />
 
-      <div className="bg-navy text-white py-12 px-6 text-center">
-        <h1 className="text-3xl md:text-4xl font-bold mb-4">
-          {heroBefore}<span className="text-kesri">{t.seva.heroWord}</span>{heroAfter}
-        </h1>
-        <p className="text-slate-300 max-w-xl mx-auto">
-          {t.seva.quote}
-        </p>
-        {user && (
-          <Link
-            href={to('/seva/create')}
-            className="inline-block mt-6 bg-kesri text-navy text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-kesri-hover transition-colors shadow-md shadow-kesri/20"
-          >
-            {t.seva.postEvent}
-          </Link>
-        )}
-      </div>
-
-      <div className="max-w-6xl mx-auto p-6 -mt-8">
-
-        {notice && (
-          <div
-            role={notice.kind === 'error' ? 'alert' : 'status'}
-            className={`mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4 text-sm font-medium shadow-sm ${notice.kind === 'error'
-              ? 'bg-red-50 border-red-200 text-red-700 dark:bg-red-950/40 dark:border-red-900 dark:text-red-400'
-              : 'bg-surface-raised border-edge text-ink'}`}
-          >
-            <span>{notice.text}</span>
-            <span className="flex items-center gap-2">
-              {notice.kind === 'info' && !user && (
-                <button
-                  onClick={async () => { await signIn(); }}
-                  {...signInIntent}
-                  className="bg-kesri text-navy font-bold px-4 py-1.5 rounded-lg hover:bg-kesri-hover transition-colors"
-                >
-                  {t.nav.signIn}
-                </button>
-              )}
-              <button
-                onClick={() => setNotice(null)}
-                aria-label={t.seva.dismissAria}
-                className="p-1.5 rounded-lg hover:bg-edge/60 transition-colors"
-              >
-                <XMarkIcon className="w-4 h-4" />
-              </button>
-            </span>
+      <div className="mx-auto w-full max-w-4xl space-y-8 px-4 py-8 sm:px-6">
+        {events === null ? (
+          <div className="rounded-xl border border-edge bg-surface-raised p-6 text-center shadow-sm">
+            <h2 className="text-lg font-bold text-ink">{copy.board.unavailableTitle}</h2>
+            <p className="mt-1 text-ink-muted">{copy.board.unavailableBody}</p>
+            <a href={to('/seva')} className="mt-4 inline-block font-semibold text-accent-text underline">{copy.common.retry}</a>
           </div>
+        ) : events.length === 0 ? (
+          <div className="rounded-xl border border-edge bg-surface-raised p-6 text-center shadow-sm">
+            <h2 className="text-lg font-bold text-ink">{copy.board.emptyTitle}</h2>
+            <p className="mt-1 text-ink-muted">{copy.board.emptyBody}</p>
+            <IntentLink href={to(CREATE_HREF)} className={`mt-4 ${PRIMARY_BUTTON}`}>{copy.board.hostCta}</IntentLink>
+          </div>
+        ) : (
+          <SevaBoard
+            groups={groups}
+            totalTemplate={copy.board.total}
+            timesLocal={copy.board.timesLocal}
+            copy={copy.filters}
+            countryNames={countryNames}
+            categoryNames={copy.common.categories}
+            createHref={to(CREATE_HREF)}
+          />
         )}
 
-        {loading && <div className="text-center py-10 text-ink">{t.seva.loading}</div>}
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-          {events.map((event) => {
-            const volunteerCount = event.attendees.length;
-            const isFull = volunteerCount >= event.needed;
-            const hasJoined = user ? event.attendees.includes(user.uid) : false;
-            const chipStyle = CATEGORY_STYLES[event.category] ?? CATEGORY_STYLES.Other;
-
-            return (
-              <div key={event.id} className="bg-surface-raised rounded-xl shadow-lg border border-edge overflow-hidden hover:shadow-2xl transition-all motion-safe:hover:-translate-y-1 group">
-
-                <div className="p-6 border-b border-edge">
-                  <div className="flex justify-between items-start mb-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${chipStyle}`}>
-                      {categoryLabel(event.category)}
-                    </span>
-                    <span className="text-ink-faint text-xs font-semibold">
-                      {fmt(t.seva.spotsLeft, { n: Math.max(0, event.needed - volunteerCount) })}
-                    </span>
-                  </div>
-                  <h2 className="text-xl font-bold text-ink group-hover:text-accent-text transition-colors">
-                    {event.title}
-                  </h2>
-                  {event.description && (
-                    <p className="mt-2 text-sm text-ink-muted line-clamp-2">
-                      {event.description}
-                    </p>
-                  )}
-                </div>
-
-                <div className="p-6 space-y-4 bg-surface/60">
-                  <div className="flex items-center gap-3 text-sm text-ink-muted">
-                    <CalendarIcon className="w-5 h-5 text-accent-text" aria-hidden="true" />
-                    {event.date}
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-ink-muted">
-                    <MapPinIcon className="w-5 h-5 text-accent-text" aria-hidden="true" />
-                    {event.location}
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-ink-muted">
-                    <UserGroupIcon className="w-5 h-5 text-accent-text" aria-hidden="true" />
-                    <div className="w-full bg-edge rounded-full h-2">
-                      <div
-                        className="bg-kesri h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${Math.min(100, (volunteerCount / event.needed) * 100)}%` }}
-                      ></div>
-                    </div>
-                    <span>{volunteerCount}/{event.needed}</span>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-surface-raised border-t border-edge">
-                  <button
-                    onClick={() => handleJoin(event.id)}
-                    disabled={isFull || hasJoined}
-                    className={`w-full py-3 rounded-lg border-2 font-bold transition-all uppercase text-xs tracking-widest
-                      ${hasJoined
-                        ? "bg-green-100 border-green-500 text-green-700 dark:bg-green-950 dark:border-green-700 dark:text-green-400 cursor-default"
-                        : isFull
-                          ? "bg-edge/50 border-edge text-ink-faint cursor-not-allowed"
-                          : "border-ink text-ink hover:bg-ink hover:text-surface-raised"
-                      }
-                    `}
-                  >
-                    {hasJoined ? t.seva.joined : isFull ? t.seva.full : t.seva.join}
-                  </button>
-                </div>
-
-              </div>
-            );
-          })}
-        </div>
+        {events !== null && events.length > 0 && (
+          <p className="rounded-xl border border-dashed border-edge-strong p-5 text-center text-ink-muted">
+            {copy.board.hostPrompt}{' '}
+            <IntentLink href={to(CREATE_HREF)} className="font-semibold text-accent-text underline">{copy.board.hostPromptCta}</IntentLink>
+          </p>
+        )}
       </div>
     </main>
   );

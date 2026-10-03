@@ -9,9 +9,14 @@ import {
   LanguageIcon,
   ArrowRightIcon,
 } from '@heroicons/react/24/outline';
+import UpcomingSevaStrip from '@/app/components/seva/UpcomingSevaStrip';
 import { localePath } from '@/lib/i18n/paths';
+import { getSevaCopy } from '@/lib/i18n/seva';
 import { getServerT } from '@/lib/i18n/server';
 import { pageMetadata } from '@/lib/metadata';
+import { HOME_STRIP_COUNT } from '@/lib/seva/config';
+import { upcoming } from '@/lib/seva/listing';
+import { fetchUpcomingEvents, renderTime } from '@/lib/seva/server';
 
 // Icons and routes live in code; titles/descriptions/CTAs come from the
 // dictionary keyed by the same names.
@@ -24,6 +29,10 @@ const FEATURE_LINKS = [
   { key: 'seva', href: '/seva', Icon: UserGroupIcon },
 ] as const;
 
+// The page is built ahead of time and again every five minutes, for the
+// Seva strip's sake: it shares the board's cached list (lib/seva/server.ts).
+export const revalidate = 300; // SEVA_REVALIDATE_SECONDS
+
 export async function generateMetadata(): Promise<Metadata> {
   const { lang, t } = await getServerT();
   return pageMetadata(lang, t, '/');
@@ -31,6 +40,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Home() {
   const { lang, t } = await getServerT();
+  // The next few seva; the strip is left out if they can't be read, rather
+  // than the home page failing for it.
+  const now = renderTime();
+  const read = await fetchUpcomingEvents(now);
+  const nextSeva = read.kind === 'ok' ? upcoming(read.value, now).slice(0, HOME_STRIP_COUNT) : null;
 
   return (
     <main className="flex-1 flex flex-col">
@@ -99,6 +113,8 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {nextSeva && <UpcomingSevaStrip lang={lang} copy={getSevaCopy(lang)} events={nextSeva} />}
 
       {/* Explore Section */}
       <section className="bg-surface px-6 py-16 md:py-24">

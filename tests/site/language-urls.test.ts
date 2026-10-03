@@ -72,8 +72,9 @@ test('/en is never a public address', () => {
     assert.ok(redirects.some((r) => r.source === '/en/:rest*' && r.destination === '/:rest*' && !r.has));
 });
 
-test('the sitemap lists every page and every Ang in every language, each with its twins', () => {
-    const entries = sitemap();
+test('the sitemap lists every page and every Ang in every language, each with its twins', async () => {
+    // No Firebase project here, so no events: just the pages.
+    const entries = await sitemap();
     assert.equal(entries.length, (9 + learnPaths().length + 1430) * 3);
     const hukamnama = entries.find((e) => e.url === 'https://sikhai.vercel.app/pa/hukamnama')!;
     assert.deepEqual(hukamnama.alternates?.languages, {
