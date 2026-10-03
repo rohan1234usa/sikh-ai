@@ -366,18 +366,27 @@ export class FirestoreChatStore implements ChatStore {
     }
 
     async deleteChat(chatId: string): Promise<void> {
-        // The link from what is being listened to now: the open chat, else the list.
+        // The link from what is being listened to now: the open chat, else the
+        // list. A chat neither holds has its links looked up (remove).
         const state = this.watches.has(chatId) ? this.chats.get(chatId) : undefined;
-        const shareId = (state?.status === 'ready' ? state.record.meta.share : this.list.chats.find((c) => c.id === chatId)?.share)?.id;
-        return this.remove(chatId, shareId ? [shareId] : []);
+        const meta = state?.status === 'ready' ? state.record.meta : this.list.chats.find((c) => c.id === chatId);
+        return this.remove(chatId, meta ? (meta.share ? [meta.share.id] : []) : undefined);
     }
 
-    private async remove(chatId: string, shareIds: readonly string[]): Promise<void> {
-        // Every entry document, including any the transcript repair set aside.
-        const entryIds = this.watches.get(chatId)?.entryIds
-            ?? (await getDocs(collection(this.db, 'users', this.uid, 'chats', chatId, 'entries'))).docs.map((d) => d.id);
+    // `shareIds` undefined: this tab doesn't know the chat's link, so the
+    // account's notes of its links say which copy the chat (one read, as the
+    // entries are), and none outlives it.
+    private async remove(chatId: string, shareIds: readonly string[] | undefined): Promise<void> {
+        const ids = (snap: { docs: { id: string }[] }) => snap.docs.map((d) => d.id);
+        const [entryIds, links] = await Promise.all([
+            // Every entry document, including any the transcript repair set aside.
+            this.watches.get(chatId)?.entryIds
+                ?? getDocs(collection(this.db, 'users', this.uid, 'chats', chatId, 'entries')).then(ids),
+            shareIds
+                ?? getDocs(query(collection(this.db, 'users', this.uid, 'shares'), where('chatId', '==', chatId))).then(ids),
+        ]);
         this.setChat(chatId, MISSING);
-        return this.send(chunk(planDelete(this.uid, chatId, entryIds, shareIds)), { chatId, kind: 'write' });
+        return this.send(chunk(planDelete(this.uid, chatId, entryIds, links)), { chatId, kind: 'write' });
     }
 
     async importChat(record: ChatRecord): Promise<void> {
