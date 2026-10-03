@@ -520,7 +520,6 @@ const en = {
         askAboutAng: 'Ask about this Ang',
         lineN: 'Line {n}',
         granth: 'Guru Granth Sahib Ji',
-        gurmukhiUnavailable: 'Gurmukhi Unavailable',
         translationUnavailable: 'Translation unavailable',
         // A whole shabad's page (/shabad/s/{id}).
         page: {
@@ -530,6 +529,8 @@ const en = {
             title: '{line} · Ang {n}',
             previous: 'Previous shabad',
             next: 'Next shabad',
+            // On an Ang's page, above each shabad's lines.
+            fullShabad: 'Read the full shabad',
             navAria: 'The shabads before and after this one',
             // {source} becomes a link to GurbaniNow.
             sourceNote: 'Gurbani, transliteration and translation from {source}, under CC BY-NC-ND 4.0.',

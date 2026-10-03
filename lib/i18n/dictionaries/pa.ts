@@ -510,7 +510,6 @@ const pa: Dictionary = {
         askAboutAng: 'ਇਸ ਅੰਗ ਬਾਰੇ ਪੁੱਛੋ',
         lineN: 'ਤੁਕ {n}',
         granth: 'ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ',
-        gurmukhiUnavailable: 'ਗੁਰਮੁਖੀ ਉਪਲਬਧ ਨਹੀਂ',
         translationUnavailable: 'ਅਨੁਵਾਦ ਉਪਲਬਧ ਨਹੀਂ',
         page: {
             label: 'ਸ਼ਬਦ',
@@ -518,6 +517,7 @@ const pa: Dictionary = {
             title: '{line} · ਅੰਗ {n}',
             previous: 'ਪਿਛਲਾ ਸ਼ਬਦ',
             next: 'ਅਗਲਾ ਸ਼ਬਦ',
+            fullShabad: 'ਪੂਰਾ ਸ਼ਬਦ ਪੜ੍ਹੋ',
             navAria: 'ਇਸ ਤੋਂ ਪਹਿਲਾਂ ਅਤੇ ਬਾਅਦ ਦੇ ਸ਼ਬਦ',
             sourceNote: 'ਗੁਰਬਾਣੀ, ਲਿਪੀਅੰਤਰ ਅਤੇ ਅਨੁਵਾਦ {source} ਤੋਂ, CC BY-NC-ND 4.0 ਅਧੀਨ।',
         },

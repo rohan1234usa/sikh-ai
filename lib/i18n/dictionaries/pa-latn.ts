@@ -510,7 +510,6 @@ const paLatn: Dictionary = {
         askAboutAng: 'Is Ang baare puchho',
         lineN: 'Tukk {n}',
         granth: 'Guru Granth Sahib Ji',
-        gurmukhiUnavailable: 'Gurmukhi uplabdh nahi',
         translationUnavailable: 'Anuvaad uplabdh nahi',
         page: {
             label: 'Shabad',
@@ -518,6 +517,7 @@ const paLatn: Dictionary = {
             title: '{line} · Ang {n}',
             previous: 'Pichhla shabad',
             next: 'Agla shabad',
+            fullShabad: 'Poora shabad parho',
             navAria: 'Is ton pehlan ate baad de shabad',
             sourceNote: 'Gurbani, Roman lipi ate anuvaad {source} ton, CC BY-NC-ND 4.0 adheen.',
         },

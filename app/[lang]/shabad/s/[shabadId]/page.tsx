@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import IntentLink from '@/app/components/IntentLink';
 import LineHighlight from '@/app/components/shabad/LineHighlight';
 import ShabadHeader from '@/app/components/shabad/ShabadHeader';
+import SourceNote from '@/app/components/shabad/SourceNote';
 import ShabadVerse from '@/app/components/shabad/ShabadVerse';
 import { SGGS_SOURCE_ID } from '@/lib/gurbani/citations';
 import { fetchShabad } from '@/lib/gurbani/gurbaninow';
@@ -40,8 +41,6 @@ export async function generateMetadata({ params }: PageProps<'/[lang]/shabad/s/[
   return pageMetadata(lang, t, shabadPath(id), shabadTitle(t, shabad), shabadDescription(t, shabad));
 }
 
-const GURBANINOW_URL = 'https://www.gurbaninow.com';
-
 export default async function ShabadPage({ params }: PageProps<'/[lang]/shabad/s/[shabadId]'>) {
   const { lang, t } = await getServerT();
   const id = parseShabadIdParam((await params).shabadId);
@@ -63,7 +62,6 @@ export default async function ShabadPage({ params }: PageProps<'/[lang]/shabad/s
   const title = shabadTitle(t, shabad);
   const about = [localName(lang, shabad.writer, shabad.writerGurmukhi), localName(lang, shabad.raag, shabad.raagGurmukhi)]
     .filter(Boolean).join(' · ');
-  const [noteBefore, noteAfter] = t.shabad.page.sourceNote.split('{source}');
 
   return (
     <main className="flex-1 flex flex-col">
@@ -122,11 +120,7 @@ export default async function ShabadPage({ params }: PageProps<'/[lang]/shabad/s
                 )}
               </nav>
             )}
-            <p className="text-center text-xs text-ink-faint">
-              {noteBefore}
-              <a href={GURBANINOW_URL} target="_blank" rel="noopener noreferrer" className="underline hover:text-ink-muted">GurbaniNow</a>
-              {noteAfter}
-            </p>
+            <SourceNote t={t} />
           </footer>
         </article>
       </div>
