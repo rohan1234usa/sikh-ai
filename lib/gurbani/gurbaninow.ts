@@ -12,6 +12,7 @@
 // data cache (the `next` option; ignored outside Next, e.g. in tests).
 
 import { MAX_ANG, SGGS_SOURCE_ID } from './citations';
+import { assignAngs, isGurbaniId, lineKind, type Shabad, type ShabadLine } from './shabad';
 import { describeError, logEvent } from '../log';
 
 const BASE = 'https://api.gurbaninow.com/v2';
@@ -60,27 +61,39 @@ type Json = Record<string, unknown>;
 const obj = (v: unknown): Json => (v && typeof v === 'object' ? v as Json : {});
 const text = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+// Ids are strings upstream; one sent as a number would otherwise be lost.
+const idText = (v: unknown): string => (typeof v === 'number' && Number.isFinite(v) ? String(v) : text(v));
 
 function toSource(v: unknown): GurbaniLine['source'] {
     const s = obj(v);
     return { id: num(s.id) ?? 0, name: text(s.english), nameGurmukhi: text(s.unicode) };
 }
 
-function toLine(raw: unknown, source?: GurbaniLine['source']): GurbaniLine | null {
-    const v = obj(raw);
-    const gurmukhi = text(obj(v.gurmukhi).unicode) || text(v.gurmukhi);
-    const id = text(v.id);
-    if (!gurmukhi || !id) return null;
+// The text fields a line has wherever it comes from: an Ang, a search, or a
+// whole shabad.
+function lineText(v: Json) {
     const english = obj(v.translation).english;
     const roman = obj(v.transliteration).english;
+    return {
+        gurmukhi: text(obj(v.gurmukhi).unicode) || text(v.gurmukhi),
+        translation: text(english) || text(obj(english).default),
+        transliteration: text(roman) || text(obj(roman).text),
+    };
+}
+
+function toLine(raw: unknown, source?: GurbaniLine['source']): GurbaniLine | null {
+    const v = obj(raw);
+    const { gurmukhi, translation, transliteration } = lineText(v);
+    const id = idText(v.id);
+    if (!gurmukhi || !id) return null;
     const writer = obj(v.writer);
     const raag = obj(v.raag);
     return {
         id,
-        shabadId: text(v.shabadid),
+        shabadId: idText(v.shabadid),
         gurmukhi,
-        translation: text(english) || text(obj(english).default),
-        transliteration: text(roman) || text(obj(roman).text),
+        translation,
+        transliteration,
         writer: text(writer.english),
         writerGurmukhi: text(writer.unicode),
         raag: text(raag.english),
@@ -113,6 +126,49 @@ export function parseSearchPayload(data: unknown): GurbaniLine[] | null {
         return d.shabads.map(item => toLine(obj(item).shabad)).filter((l): l is GurbaniLine => l !== null);
     }
     return typeof d.error === 'string' && /^nothing found/i.test(d.error.trim()) ? [] : null;
+}
+
+// A whole shabad. Its writer, raag, source, first Ang and neighbours come
+// once, in shabadinfo; each line brings only its text, its kind and its place
+// on the page, from which its Ang follows (assignAngs). null for anything
+// that is not a usable shabad.
+export function parseShabadPayload(data: unknown): Shabad | null {
+    const d = obj(data);
+    const info = obj(d.shabadinfo);
+    const id = idText(info.shabadid);
+    if (d.error || !isGurbaniId(id) || !Array.isArray(d.shabad)) return null;
+    const raw = d.shabad.map(item => obj(obj(item).line));
+    const lineNos = raw.map(v => num(v.linenum) ?? num(v.lineno));
+    const start = num(info.pageno);
+    const angs = assignAngs(start, lineNos);
+    const lines: ShabadLine[] = [];
+    raw.forEach((v, i) => {
+        const { gurmukhi, translation, transliteration } = lineText(v);
+        const lineId = idText(v.id);
+        if (!gurmukhi || !lineId) return;
+        lines.push({ id: lineId, kind: lineKind(v.type), gurmukhi, transliteration, translation, ang: angs[i], lineNo: lineNos[i] });
+    });
+    if (lines.length === 0) return null;
+    const writer = obj(info.writer);
+    const raag = obj(info.raag);
+    const navigation = obj(info.navigation);
+    const neighbour = (v: unknown): string | null => {
+        const next = idText(obj(v).id);
+        return isGurbaniId(next) ? next : null;
+    };
+    return {
+        id,
+        source: toSource(info.source),
+        writer: text(writer.english),
+        writerGurmukhi: text(writer.unicode),
+        raag: text(raag.english),
+        raagGurmukhi: text(raag.unicode),
+        ang: start,
+        angEnd: angs.at(-1) ?? start,
+        previousId: neighbour(navigation.previous),
+        nextId: neighbour(navigation.next),
+        lines,
+    };
 }
 
 // A day's allowance of calls. take() spends one, or says there is none left;
@@ -203,18 +259,28 @@ export const gurbaniNow = gurbaniNowClient({ meter: meters.quoteCheck });
 // Shabad Search: Sri Guru Granth Sahib Ji only, on its own daily count.
 export const verseSearchClient = gurbaniNowClient({ meter: meters.verseSearch, source: SGGS_SOURCE_ID });
 
-// The raw payloads the site's pages already parse: /api/shabad's (the Ang
-// reader and the chat's links to an Ang), /api/hukamnama's and the Hukamnama
-// page's. They skip the quote checker's daily meter. Each view makes at most
-// one call and the data cache answers repeats, so there is no loop to guard
-// against. The meter is charged before the cache is consulted, so it would
-// count those cache hits too, and a busy day of page views could switch off
-// quote checking. null means no usable answer.
+// What the site's pages read: the raw payloads /api/shabad (the Ang reader
+// and the chat's links to an Ang), /api/hukamnama and the Hukamnama page
+// parse, and the shabad page's shabad. They skip the daily meters. Each view
+// makes at most one call and the data cache answers repeats, so there is no
+// loop to guard against. A meter is charged before the cache is consulted,
+// so it would count those cache hits too, and a busy day of page views could
+// switch off quote checking. null means no usable answer.
 
 export async function fetchAngPayload(ang: number): Promise<unknown | null> {
     if (!Number.isInteger(ang) || ang < 1 || ang > MAX_ANG) return null;
     const data = await request(`${BASE}/ang/${ang}`, REVALIDATE_SECONDS);
     return data !== null && parseAngPayload(data) ? data : null;
+}
+
+// One whole shabad, for its page. GurbaniNow answers an id it doesn't know
+// with the same HTTP 500 as a fault, so the two can't be told apart: both are
+// null, and the page reports an outage rather than caching a verdict.
+export async function fetchShabad(id: string): Promise<Shabad | null> {
+    if (!isGurbaniId(id)) return null;
+    const data = await request(`${BASE}/shabad/${id}`, REVALIDATE_SECONDS);
+    const shabad = data === null ? null : parseShabadPayload(data);
+    return shabad?.id === id ? shabad : null;
 }
 
 export async function fetchHukamnamaPayload(): Promise<unknown | null> {
