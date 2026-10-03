@@ -3,15 +3,19 @@ import assert from 'node:assert/strict';
 import {
     MAX_BATCH_OPS,
     chunk,
+    ERASE_PAGE,
+    UNLINK_BATCH,
     planCitations,
     planCreate,
     planDelete,
+    planErasePage,
     planEvictions,
     planImport,
     planMeta,
     planPutEntries,
     planPutReply,
     planShare,
+    planUnlinkShares,
     planUnshare,
     type Op,
 } from '@/lib/chat/store/firestorePlans';
@@ -115,4 +119,14 @@ test('past the cap, every unpinned chat goes, except one in use here', () => {
     const inUse = (id: string) => id === meta(3).id;
     assert.deepEqual(planEvictions(overflow, inUse).map((m) => m.id), [meta(1).id, meta(4).id]);
     assert.deepEqual(planEvictions([], inUse), []);
+});
+
+test('when the account goes, its links end a few to a batch, each with its note, and a chat goes after its entries', () => {
+    const ids = Array.from({ length: 12 }, (_, i) => `share-${String(i).padStart(5, '0')}`);
+    const batches = planUnlinkShares(UID, ids);
+    assert.deepEqual(batches.map((b) => b.length), [2 * UNLINK_BATCH, 2 * UNLINK_BATCH, 4]);
+    assert.deepEqual(batches[0].slice(0, 2).map(at), ['delete shared_chats/share-00000', 'delete users/user-1/shares/share-00000']);
+    assert.deepEqual(planErasePage(UID, 'chat-123456', ['a'], false).map(at), ['delete users/user-1/chats/chat-123456/entries/a']);
+    assert.deepEqual(planErasePage(UID, 'chat-123456', ['a'], true).map(at).at(-1), 'delete users/user-1/chats/chat-123456');
+    assert.ok(ERASE_PAGE + 1 <= MAX_BATCH_OPS, 'a full page and the chat fit one batch');
 });

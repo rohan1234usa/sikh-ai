@@ -103,6 +103,29 @@ function planEndLink(uid: string, shareId: string): Op[] {
     ];
 }
 
+// Links ended per batch when the account goes (lib/account/deletion.ts): each
+// one's two deletes read a document each, and a batch may read 20.
+export const UNLINK_BATCH = 5;
+
+export function planUnlinkShares(uid: string, shareIds: readonly string[]): Op[][] {
+    const batches: Op[][] = [];
+    for (let i = 0; i < shareIds.length; i += UNLINK_BATCH)
+        batches.push(shareIds.slice(i, i + UNLINK_BATCH).flatMap((id) => planEndLink(uid, id)));
+    return batches;
+}
+
+// Entries erased per batch when the account goes, the chat's meta in the last.
+export const ERASE_PAGE = MAX_BATCH_OPS - 1;
+
+// Unlike planDelete, the chat goes last: an erase cut short leaves it in the
+// list, with what's left of its entries under it, for the next run to find.
+export function planErasePage(uid: string, chatId: string, entryIds: readonly string[], last: boolean): Op[] {
+    return [
+        ...entryIds.map((id): Op => ({ type: 'delete', path: entryPath(uid, chatId, id) })),
+        ...(last ? [{ type: 'delete' as const, path: chatPath(uid, chatId) }] : []),
+    ];
+}
+
 // A whole chat, e.g. moved from this browser: entries in as many batches as
 // they need, the meta in the last one, so it shows in the list only once
 // everything it holds has arrived. Rerunning it rewrites the same documents.
