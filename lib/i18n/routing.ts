@@ -46,12 +46,17 @@ export function languageRedirects(): Redirect[] {
         destination: `/${lang}`,
         permanent: false,
     }));
-    const pages: Redirect[] = PREFIXED.map((lang) => ({
-        source: `/:first(${REDIRECTABLE_SEGMENT})/:rest*`,
-        has: [{ type: 'cookie', key: LANG_COOKIE, value: lang }],
-        destination: `/${lang}/:first/:rest*`,
-        permanent: false,
-    }));
+    // A page one segment deep and a deeper one each have a rule. A single
+    // `/:first/:rest*` would leave the host filling an empty :rest with '', so
+    // /about went to /pa/about/ and then, with one more (permanent) redirect,
+    // to /pa/about (#44).
+    const pages: Redirect[] = PREFIXED.flatMap((lang) => {
+        const has = [{ type: 'cookie' as const, key: LANG_COOKIE, value: lang }];
+        return [
+            { source: `/:first(${REDIRECTABLE_SEGMENT})`, has, destination: `/${lang}/:first`, permanent: false },
+            { source: `/:first(${REDIRECTABLE_SEGMENT})/:rest+`, has, destination: `/${lang}/:first/:rest+`, permanent: false },
+        ];
+    });
     return [
         { source: `/${DEFAULT_LANG}`, destination: '/', permanent: false },
         { source: `/${DEFAULT_LANG}/:rest*`, destination: '/:rest*', permanent: false },
