@@ -47,6 +47,7 @@ const ENTRIES = [
     join('app', 'components', 'AccountMenu.tsx'),
     join('app', 'components', 'account', 'AccountDialogHost.tsx'),
     join('app', 'components', 'account', 'DeleteAccountPanel.tsx'),
+    join('app', 'components', 'ClearBrowserControl.tsx'),
     join('app', 'components', 'account', 'accountDeletion.ts'),
     join('lib', 'account', 'prepare.ts'),
 ];
@@ -64,6 +65,15 @@ test("the dialog's code comes with import(), when it's wanted", () => {
     const dynamic = importsOf(host).filter((i) => i.dynamic).map((i) => i.target);
     assert.deepEqual([...new Set(dynamic)], [join('app', 'components', 'account', 'DeleteAccountDialog')]);
     assert.ok(!staticReach(ENTRIES).has(join('app', 'components', 'account', 'DeleteAccountDialog')));
+});
+
+test("the dialog's own code leaves the deletion, and what it needs, for later", () => {
+    const reached = staticReach([join('app', 'components', 'account', 'DeleteAccountDialog.tsx')]);
+    assert.ok(reached.has(join('lib', 'account', 'steps')), 'followed the imports');
+    for (const [target, from] of reached) {
+        for (const path of [...DELETION_ONLY, join('lib', 'chat', 'store', 'firestorePlans'), join('lib', 'seva', 'plans')])
+            assert.ok(!reaches(target, path), `${from} reaches ${target}`);
+    }
 });
 
 test('the deletion and Firestore come with import(), once someone confirms', () => {

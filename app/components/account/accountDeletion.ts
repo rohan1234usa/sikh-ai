@@ -1,6 +1,6 @@
 'use client';
 
-import type { DeletionStep } from '@/lib/account/deletion';
+import type { DeletionStep } from '@/lib/account/steps';
 import { refreshPages } from '../seva/sevaClient';
 
 // The account deletion (lib/account/deletion.ts) and Firestore Lite, fetched

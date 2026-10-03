@@ -8,11 +8,12 @@ import { DANGER_BUTTON, PRIMARY_BUTTON, SECONDARY_BUTTON } from '@/app/component
 import { ERROR_TEXT } from '@/app/components/form/Field';
 import { useAnnouncer } from '@/app/components/useAnnouncer';
 import { MODAL_DIALOG, useModalDialog } from '@/app/components/useModalDialog';
-import { DELETION_STEPS, problemOf, type DeletionProblem, type DeletionStep } from '@/lib/account/deletion';
+import { DELETION_STEPS, problemOf, type DeletionProblem, type DeletionStep } from '@/lib/account/steps';
 import { prepareAccountDeletion } from '@/lib/account/prepare';
 import { clearThisBrowser } from '@/lib/browserData';
 import { cloudChatsEnabled } from '@/lib/firebase/config';
 import { getAccountCopy, type AccountCopy } from '@/lib/i18n/account';
+import { localePath } from '@/lib/i18n/paths';
 import { splitTemplate } from '@/lib/i18n/fmt';
 import { CONTACT_EMAIL } from '@/lib/site';
 import { deleteAccountData, loadAccountDeletion } from './accountDeletion';
@@ -46,10 +47,26 @@ export default function DeleteAccountDialog({ open, onClose }: { open: boolean; 
     const close = () => { if (!busyRef.current) onClose(); };
     const { ref, onCancel, onClick } = useModalDialog(open, close);
     const onDialogClose = () => {
-        if (!open) return;
-        if (busyRef.current) ref.current?.showModal();
-        else onClose();
+        if (open && busyRef.current) ref.current?.showModal();
+        else if (open) onClose();
     };
+
+    // Whatever opened it may be gone by now (the account deleted, or signed
+    // out): once it has closed and the browser has handed focus back, focus
+    // goes to Sign in rather than the top of the page.
+    const wasOpen = useRef(false);
+    useEffect(() => {
+        if (open) {
+            wasOpen.current = true;
+            return;
+        }
+        if (!wasOpen.current) return;
+        wasOpen.current = false;
+        const timer = setTimeout(() => {
+            if (document.activeElement === document.body) document.querySelector<HTMLElement>('[data-sign-in]')?.focus();
+        });
+        return () => clearTimeout(timer);
+    }, [open]);
     return (
         <dialog
             ref={ref}
@@ -124,13 +141,6 @@ function Body({ busyRef, onClose }: { busyRef: RefObject<boolean>; onClose: () =
         void run(user.uid, confirmed);
     };
 
-    // Once the account is gone, so is whatever opened this: focus goes to
-    // the navbar's Sign in, rather than to the top of the page.
-    const finish = () => {
-        onClose();
-        requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-sign-in]')?.focus());
-    };
-
     if (phase.kind === 'done') {
         return (
             <div className="p-5">
@@ -139,8 +149,10 @@ function Body({ busyRef, onClose }: { busyRef: RefObject<boolean>; onClose: () =
                     <p className="mt-2 text-ink">{copy.doneBody}</p>
                 </div>
                 <div className="mt-5 flex flex-wrap justify-end gap-3">
-                    <button type="button" onClick={clearThisBrowser} className={SECONDARY_BUTTON}>{copy.clearToo}</button>
-                    <button type="button" onClick={finish} className={PRIMARY_BUTTON}>{copy.close}</button>
+                    <button type="button" onClick={() => clearThisBrowser(localePath(lang, '/privacy'))} className={SECONDARY_BUTTON}>
+                        {copy.clearToo}
+                    </button>
+                    <button type="button" onClick={onClose} className={PRIMARY_BUTTON}>{copy.close}</button>
                 </div>
             </div>
         );

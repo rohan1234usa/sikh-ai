@@ -20,6 +20,7 @@
 
 import type { DocPath, Op } from '@/lib/firebase/ops';
 import { ERASE_PAGE, chatPath, planErasePage, planUnlinkShares } from '@/lib/chat/store/firestorePlans';
+import { DELETION_STEPS, type DeletionStep } from './steps';
 import { toMillis } from '@/lib/seva/event';
 import { errorKind } from '@/lib/seva/errors';
 import {
@@ -46,8 +47,7 @@ export type AccountIO = {
     sentinels: Sentinels;
 };
 
-export const DELETION_STEPS = ['links', 'events', 'signups', 'chats'] as const;
-export type DeletionStep = (typeof DELETION_STEPS)[number];
+export { DELETION_STEPS, problemOf, type DeletionProblem, type DeletionStep } from './steps';
 
 export type DeletionOptions = {
     // Each step as it starts, in the first round.
@@ -173,8 +173,8 @@ const STEPS: Record<DeletionStep, (io: AccountIO, uid: string, opts: DeletionOpt
 };
 
 async function anythingLeft(io: AccountIO, uid: string): Promise<boolean> {
-    for (const step of DELETION_STEPS) if ((await io.list(users(uid, COLLECTIONS[step]), 1)).length > 0) return true;
-    return false;
+    const pages = await Promise.all(DELETION_STEPS.map((step) => io.list(users(uid, COLLECTIONS[step]), 1)));
+    return pages.some((page) => page.length > 0);
 }
 
 export async function deleteAccountData(io: AccountIO, uid: string, opts: DeletionOptions = {}): Promise<void> {
@@ -191,24 +191,3 @@ export async function deleteAccountData(io: AccountIO, uid: string, opts: Deleti
     }
 }
 
-// What went wrong, for the person deleting their account: Google's window,
-// the connection, or anything else (where trying again is still safe).
-export type DeletionProblem = 'cancelled' | 'blocked' | 'wrong-account' | 'recent-login' | 'offline' | 'failed';
-
-const PROBLEMS: Record<string, DeletionProblem> = {
-    'auth/popup-closed-by-user': 'cancelled',
-    'auth/cancelled-popup-request': 'cancelled',
-    'auth/user-cancelled': 'cancelled',
-    'auth/popup-blocked': 'blocked',
-    'auth/user-mismatch': 'wrong-account',
-    'auth/requires-recent-login': 'recent-login',
-    'auth/network-request-failed': 'offline',
-    unavailable: 'offline',
-    'deadline-exceeded': 'offline',
-};
-
-export function problemOf(error: unknown, online = true): DeletionProblem {
-    if (!online) return 'offline';
-    const code = (error as { code?: unknown } | null)?.code;
-    return typeof code === 'string' && Object.hasOwn(PROBLEMS, code) ? PROBLEMS[code] : 'failed';
-}

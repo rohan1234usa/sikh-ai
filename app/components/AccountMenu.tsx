@@ -22,7 +22,7 @@ export default function AccountMenu({ user }: { user: User }) {
 
     // Signed out, this menu is gone: focus goes to the Sign in that takes its place.
     const signOut = () => choose(() => {
-        void logOut().then(() => requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-sign-in]')?.focus()));
+        void logOut().then(() => setTimeout(() => document.querySelector<HTMLElement>('[data-sign-in]')?.focus()));
     });
 
     return (
