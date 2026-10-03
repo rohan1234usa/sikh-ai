@@ -62,3 +62,6 @@ firebase-debug.log
 firestore-debug.log
 ui-debug.log
 database-debug.log
+
+# axe-core, copied for checking pages under next dev (npm run a11y:prepare).
+/public/__dev/

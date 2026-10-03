@@ -21,6 +21,7 @@ export type CspOptions = {
     dev: boolean;               // next dev: eval for Fast Refresh, and its websocket
     preview: boolean;           // a Vercel preview deployment, which adds its toolbar
     firebaseAuthDomain?: string; // where Google sign-in's helper iframe lives
+    emulators?: boolean;        // next dev against the local Firebase emulators
 };
 
 // Visit counts and page speed (app/components/SiteAnalytics.tsx) are
@@ -33,6 +34,10 @@ const FIREBASE = {
     script: ['https://apis.google.com'],
     connect: ['https://*.googleapis.com'],
 };
+
+// The Firebase emulators (lib/firebase/config.ts), for local testing under
+// next dev only: Auth's sign-in page and helper iframe, and both APIs.
+const EMULATORS = ['http://127.0.0.1:9099', 'http://127.0.0.1:8080'];
 
 // Vercel's toolbar and comments, on preview deployments only.
 const VERCEL_TOOLBAR = {
@@ -49,8 +54,9 @@ const VERCEL_TOOLBAR = {
 export const CSP_REPORT_PATH = '/api/csp-report';
 export const CSP_REPORT_GROUP = 'csp';
 
-export function contentSecurityPolicy({ dev, preview, firebaseAuthDomain }: CspOptions): string {
+export function contentSecurityPolicy({ dev, preview, firebaseAuthDomain, emulators = false }: CspOptions): string {
     const when = (on: boolean, sources: string[]) => (on ? sources : []);
+    const local = dev && emulators;
     const directives: Record<string, string[]> = {
         'default-src': ["'self'"],
         'script-src': [
@@ -69,10 +75,12 @@ export function contentSecurityPolicy({ dev, preview, firebaseAuthDomain }: CspO
             "'self'",
             ...FIREBASE.connect,
             ...when(dev, ['ws:', 'https://va.vercel-scripts.com']),
+            ...when(local, EMULATORS),
             ...when(preview, VERCEL_TOOLBAR.connect),
         ],
         'frame-src': [
             ...(firebaseAuthDomain ? [`https://${firebaseAuthDomain}`] : []),
+            ...when(local, EMULATORS.slice(0, 1)),
             ...when(preview, VERCEL_TOOLBAR.frame),
         ],
         'worker-src': ["'self'", 'blob:'],

@@ -41,3 +41,16 @@ test('next dev and previews get only what they need on top', () => {
     assert.ok(preview.get('frame-src')!.includes('https://vercel.live'));
     assert.ok(!preview.get('script-src')!.includes("'unsafe-eval'"));
 });
+
+test('the Firebase emulators are reachable only under next dev, and only when asked for', () => {
+    const local = parsePolicy(contentSecurityPolicy({ dev: true, preview: false, emulators: true }));
+    assert.ok(local.get('connect-src')!.includes('http://127.0.0.1:8080'));
+    assert.ok(local.get('connect-src')!.includes('http://127.0.0.1:9099'));
+    assert.deepEqual(local.get('frame-src'), ['http://127.0.0.1:9099']);
+    for (const p of [
+        contentSecurityPolicy({ dev: false, preview: false, emulators: true }),
+        contentSecurityPolicy({ dev: true, preview: false }),
+    ]) {
+        assert.ok(!p.includes('127.0.0.1'));
+    }
+});
