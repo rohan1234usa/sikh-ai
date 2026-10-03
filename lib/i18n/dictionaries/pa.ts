@@ -512,6 +512,15 @@ const pa: Dictionary = {
         granth: 'ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ',
         gurmukhiUnavailable: 'ਗੁਰਮੁਖੀ ਉਪਲਬਧ ਨਹੀਂ',
         translationUnavailable: 'ਅਨੁਵਾਦ ਉਪਲਬਧ ਨਹੀਂ',
+        page: {
+            label: 'ਸ਼ਬਦ',
+            angSpan: 'ਅੰਗ {from}–{to}',
+            title: '{line} · ਅੰਗ {n}',
+            previous: 'ਪਿਛਲਾ ਸ਼ਬਦ',
+            next: 'ਅਗਲਾ ਸ਼ਬਦ',
+            navAria: 'ਇਸ ਤੋਂ ਪਹਿਲਾਂ ਅਤੇ ਬਾਅਦ ਦੇ ਸ਼ਬਦ',
+            sourceNote: 'ਗੁਰਬਾਣੀ, ਲਿਪੀਅੰਤਰ ਅਤੇ ਅਨੁਵਾਦ {source} ਤੋਂ, CC BY-NC-ND 4.0 ਅਧੀਨ।',
+        },
     },
 
     translate: {
@@ -891,6 +900,7 @@ const pa: Dictionary = {
         },
         // An Ang's page: {line} is its opening line, {n} its number.
         angDescription: '{line} — ਸ੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ ਦਾ ਅੰਗ {n}, ਗੁਰਮੁਖੀ ਵਿੱਚ ਅੰਗਰੇਜ਼ੀ ਅਨੁਵਾਦ ਸਮੇਤ।',
+        shabadDescription: '{line} — ਸ੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ ਦੇ ਅੰਗ {n} ਤੋਂ ਪੂਰਾ ਸ਼ਬਦ, ਲਿਪੀਅੰਤਰ ਅਤੇ ਅੰਗਰੇਜ਼ੀ ਅਨੁਵਾਦ ਸਮੇਤ।',
     },
 
     errors: {

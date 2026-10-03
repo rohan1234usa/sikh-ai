@@ -522,6 +522,18 @@ const en = {
         granth: 'Guru Granth Sahib Ji',
         gurmukhiUnavailable: 'Gurmukhi Unavailable',
         translationUnavailable: 'Translation unavailable',
+        // A whole shabad's page (/shabad/s/{id}).
+        page: {
+            label: 'Shabad',
+            angSpan: 'Angs {from}–{to}',
+            // The page's title: {line} is its first line, {n} the Ang it starts on.
+            title: '{line} · Ang {n}',
+            previous: 'Previous shabad',
+            next: 'Next shabad',
+            navAria: 'The shabads before and after this one',
+            // {source} becomes a link to GurbaniNow.
+            sourceNote: 'Gurbani, transliteration and translation from {source}, under CC BY-NC-ND 4.0.',
+        },
     },
 
     translate: {
@@ -904,6 +916,8 @@ const en = {
         },
         // An Ang's page: {line} is its opening line, {n} its number.
         angDescription: '{line} — Ang {n} of Sri Guru Granth Sahib Ji, in Gurmukhi with an English translation.',
+        // A shabad's page: {line} is its first line, {n} the Ang it starts on.
+        shabadDescription: '{line} — the whole shabad from Ang {n} of Sri Guru Granth Sahib Ji, with transliteration and an English translation.',
     },
 
     // Keys matching the `code` field on API error responses, plus client-local

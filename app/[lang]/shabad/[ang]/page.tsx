@@ -97,7 +97,7 @@ export default async function AngPage({ params }: PageProps<'/[lang]/shabad/[ang
   return (
     <main className="flex-1 flex flex-col">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <ShabadHeader t={t} ang={ang} />
+      <ShabadHeader t={t} page="ang" ang={ang} />
 
       <div className="max-w-4xl mx-auto w-full p-6 flex-1 space-y-6">
         <div className="flex flex-wrap items-center gap-2 mb-4 pb-2 border-b border-edge">

@@ -9,7 +9,7 @@ export default async function ShabadSearchPage() {
   return (
     <main className="flex-1 flex flex-col">
       <LegacyAngLink />
-      <ShabadHeader t={t} />
+      <ShabadHeader t={t} page="search" />
     </main>
   );
 }

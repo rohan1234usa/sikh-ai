@@ -512,6 +512,15 @@ const paLatn: Dictionary = {
         granth: 'Guru Granth Sahib Ji',
         gurmukhiUnavailable: 'Gurmukhi uplabdh nahi',
         translationUnavailable: 'Anuvaad uplabdh nahi',
+        page: {
+            label: 'Shabad',
+            angSpan: 'Ang {from}–{to}',
+            title: '{line} · Ang {n}',
+            previous: 'Pichhla shabad',
+            next: 'Agla shabad',
+            navAria: 'Is ton pehlan ate baad de shabad',
+            sourceNote: 'Gurbani, Roman lipi ate anuvaad {source} ton, CC BY-NC-ND 4.0 adheen.',
+        },
     },
 
     translate: {
@@ -891,6 +900,7 @@ const paLatn: Dictionary = {
         },
         // An Ang's page: {line} is its opening line, {n} its number.
         angDescription: '{line} — Sri Guru Granth Sahib Ji da Ang {n}, Gurmukhi vich English anuvad samet.',
+        shabadDescription: '{line} — Sri Guru Granth Sahib Ji de Ang {n} ton poora shabad, Roman lipi ate English anuvad samet.',
     },
 
     errors: {
