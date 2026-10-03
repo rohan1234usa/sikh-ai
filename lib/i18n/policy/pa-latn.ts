@@ -46,6 +46,7 @@ const policy: PolicyDictionary = {
                     'Site sirf tuhada pehla naam vartdi hai, jo navbar vich disda hai, ate tuhade khaate di ID, ik betarteeb code jo Firebase tuhade khaate nu dinda hai. Ih tuhada email pata jaan photo kade nahi dikhaundi jaan vartdi.',
                     'Firebase tuhada khaata (tuhada naam, email pata, photo da pata, ate tusi kadon jude ate aakhri vaar kadon sign in kita) mitaye jaan tak rakhda hai. Ih us IP pate nu vi kujh hafteyan layi darj karda hai jis ton tusi sign in karde ho.',
                     'Jadon khaatian layi sambhalian gallbaatan chaalu hon, tuhadian gallbaatan browser di thaan tuhade khaate vich rakhian jaandian han: {maxAccountChats} tak, naal hi jo tusi pin karo. Is ton vadh hon utte, jis gallbaat da aakhri sawal sabh ton purana hai oh apne saanjhe link samet mit jaandi hai. Jo gallbaatan tusi is browser ton uthe lijaande ho, oh sambhale jaan utte browser vichon hat jaandian han.',
+                    'Tuhada khaata niji taur utte ih vi rakhda hai ki kehre seva samagaman de prabandhak tusi ho ate kehrian vich tuhada naam shamil hai, taan jo tusi unhan nu sambhal sako. Ih note hor koi nahi parh sakda.',
                 ],
             },
             public: {
@@ -53,7 +54,9 @@ const policy: PolicyDictionary = {
                 items: [
                     'Jo gallbaat tusi saanjhi karde ho, oh sirf-parhan vali copy ban jaandi hai jisnu link vala koi vi khol sakda hai, jadon tak tusi saanjha karna band nahi karde jaan gallbaat nahi mitaunde. Copy vich tuhada naam jaan email pata nahi disda, par us vich tuhade khaate di ID hundi hai.',
                     'Link kholan vala koi vi gallbaat agge tor sakda hai, jis naal oh usde apne browser jaan khaate vich nakal ho jaandi hai. Tuhade saanjha karna band karan ton baad vi unhan di copy rehndi hai.',
-                    'Tuhade paaye seva samagam sarian nu disde han, ate unhan vich ih nahi likhia hunda ki kisne paaye. Kise samagam vich shamil hon naal tuhade khaate di ID us vich jud jaandi hai. Seva panna sirf ih dikhaunda hai ki kinne shamil hoye han, par isnu kholan vala koi vi oh IDs parh sakda hai.',
+                    'Tuhade paaye seva samagam sarian nu disde han, har ik apne panne utte, jisnu koi vi khol jaan saanjha kar sakda hai ate khoj engine dikha sakde han: naam, vervaa, samaan, thaan, “Prabandhak” vala naam ate tuhada ditta koi sampark. Samagam vich tuhade khaate di ID nahi hundi, ate na hi tuhada Google vala naam, jadon tak oh tusi aap na likho.',
+                    'Jadon kise seva samagam vich tuhada naam shamil hunda hai, taan usde prabandhak nu tuhada ditta naam disda hai, ate tuhada email pata jaan phone number sirf taan, je tusi oh saanjha karna chuno. Baki sarian nu sirf ih disda hai ki kinne naam shamil han. Prabandhak nu tuhade khaate di ID kade nahi disdi.',
+                    'Je tusi kise seva samagam di shikayat karde ho, taan shikayat vich tuhade khaate di ID, samagam, kaaran ate tuhada likhia jo vi hove, oh hunda hai. Isnu sirf site de admin parh sakde han, samagam da prabandhak kade nahi, ate karvai hon utte ih mita ditti jaandi hai. Admin kise samagam nu luka vi sakde han: oh rakhia rehnda hai, ate usde prabandhak nu disda rehnda hai.',
                 ],
             },
             services: {
@@ -65,7 +68,8 @@ const policy: PolicyDictionary = {
                     'SikhAI Gemini di adaigi vali seva vartda hai. Us layi Google dian shartan heth, Google site da bhejia apne utpaad sudharan layi nahi vartda. Ih usnu 55 dinan tak rakhda hai, sirf durvarton phadan layi ate kanoon valon lorhinde khulasian layi.',
                     'Jadon Gemini rujhia hove, taan English jaan Gurmukhi likhat layi Google Cloud Translation usdi thaan kamm karda hai, ate “Google Translate naal tulna karo” usnu dikhaya gaya anuvaad bhejda hai. Google oh likhat sirf anuvaad karan de samen tak rakhda hai.',
                     'GurbaniNow ton Hukamnama ate Ang aunde han. Jawab vichli Gurbani jaanchan layi, site da server oh tukkan uthe labbhda hai. Tuhada sawal kade nahi bhejia jaanda.',
-                    'Google da app platform Firebase sign-in chalaunda hai ate khaate, sambhalian gallbaatan, saanjhe link ate seva samagam rakhda hai. Sign in karan layi ate sign in rehndian, seva panne utte ate saanjhe link utte tuhada browser sidha is naal judda hai, is layi odon Google tuhada IP pata dekhda hai. Nahi taan tuhada browser sirf is site naal judda hai.',
+                    'Google da app platform Firebase sign-in chalaunda hai ate khaate, sambhalian gallbaatan, saanjhe link, ate seva samagam unhan vich shamil naaman ate shikayatan samet rakhda hai. Sign in karan layi, sign in rehndian, ate saanjhe link utte tuhada browser sidha is naal judda hai, is layi odon Google tuhada IP pata dekhda hai. Seva de panne is site de server utte bande han, is layi samagam dekhan naal tuhada browser Firebase naal nahi judda. Nahi taan tuhada browser sirf is site naal judda hai.',
+                    'Kise samagam tak pahunchan de raah ate calendar vale link Google Maps jaan Google Calendar kholde han, ate isnu WhatsApp utte saanjha karan naal WhatsApp khulda hai, samagam de vervian samet. Phir oh sevavan ih verve ate tuhada IP pata apnian nijjta nitian heth laindian han. Hor calendaran layi calendar file isse site ton aundi hai.',
                     'Vercel site nu chalaunda hai. Isde log thorhe samay layi tuhada IP pata ate mange panne darj karde han. Site de apne logan vich tuhada likhia kade nahi hunda, bhaven unhan vich kise panne da pata ho sakda hai.',
                 ],
             },
@@ -99,7 +103,7 @@ const policy: PolicyDictionary = {
                     'Apni “Punjabi Sikho” tarakki “Punjabi Sikho” panne utte “Tarakki mitao” naal mitao.',
                     'Gallbaat de saanjha karan vale dabbe vichon saanjha karna band karo: link usse vele kamm karna band kar dinda hai.',
                     'Sign out karan naal is browser vich tuhada session khatam hunda hai, par tuhadian gallbaatan, anuvaad ate settings rehndian han. Unhan nu vi hataun layi (jiven kise saanjhe computer utte), apne browser dian settings vich is site da data saaf karo.',
-                    'Apna khaata mitaun jaan kise seva samagam vichon niklan da koi button nahi hai. Jis pate naal tusi sign in karde ho us ton {email} utte email karo, ate tuhada khaata usdian gallbaatan ate saanjhe linkan samet, jaan seva layi tuhada naam likhauna, 30 dinan de andar mita ditta jaavega. Kamm hon utte tuhanu jawab milega.',
+                    'Kise seva samagam vichon apna naam, samagam ton pehlan jaan baad, usde panne ton vapas lao; jis samagam de prabandhak tusi ho, usnu vi usde panne ton radd karo. Apna khaata jaan koi samagam mitaun da aje koi button nahi hai: jis pate naal tusi sign in karde ho us ton {email} utte email karo, ate tuhada khaata usdian gallbaatan, saanjhe linkan ate seva vich likhaye naaman samet, jaan tuhada karvaya samagam, 30 dinan de andar mita ditta jaavega. Kamm hon utte tuhanu jawab milega.',
                     'Google nu mitaye data nu apne backupan vichon saaf karan layi 180 din hor lag sakde han.',
                 ],
             },
@@ -159,6 +163,9 @@ const policy: PolicyDictionary = {
                     'Saanjhe kite link ate seva samagam sarian nu disde han. Jo tusi saanjha karde jaan paunde ho, us de tusi zimmevar ho, ate usnu saanjha karan da haq tuhade kol hona chahida hai.',
                     'Gallbaat saanjhi karke jaan samagam pa ke, tusi SikhAI nu usnu sarian nu dikhaun di ijazat dinde ho, jadon tak tusi saanjha karna band nahi karde jaan oh hataya nahi jaanda.',
                     'Seva samagam seva de asal mauke hone chahide han. Hor samagam hataye ja sakde han.',
+                    'Je tusi koi samagam karvaunde ho, taan sevadaran valon ditte naam ate sampark sirf us samagam de prabandh layi varto, ate agge kise nu na deo.',
+                    'SikhAI samagaman jaan unhan de prabandhakan di jaanch nahi karda. Anjaan lokan nu milan ton pehlan apni soojh varto.',
+                    'Kise samagam di shikayat sirf nek niyat naal karo. Inhan shartan nu torhan vale samagam admin luka sakde han.',
                 ],
             },
             gurbani: {

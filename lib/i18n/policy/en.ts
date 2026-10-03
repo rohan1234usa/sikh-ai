@@ -44,6 +44,7 @@ const policy = {
                     'The site uses only your first name, which the navbar shows, and your account ID, a random code Firebase gives your account. It never shows or uses your email address or photo.',
                     'Firebase keeps your account (your name, email address, photo address, and when you signed up and last signed in) until it is deleted. It also logs the IP address you sign in from, for a few weeks.',
                     'Once saved chats are switched on for accounts, your chats are kept in your account instead of the browser: up to {maxAccountChats}, plus any you pin. Past that, the chat whose last question is oldest is deleted, with its share link. Chats you move there from this browser are removed from the browser once saved.',
+                    'Your account also keeps, privately, which Seva events you host and which you\'ve joined, so you can manage them. No one else can read these notes.',
                 ],
             },
             public: {
@@ -51,7 +52,9 @@ const policy = {
                 items: [
                     'A chat you share becomes a read-only copy that anyone with the link can open, until you stop sharing it or delete the chat. The copy doesn\'t show your name or email address, but it does hold your account ID.',
                     'Anyone who opens the link can continue the conversation, which copies it into their own browser or account. Their copy stays after you stop sharing.',
-                    'Seva events you post are public, and don\'t say who posted them. Joining an event adds your account ID to it. The Seva page shows only how many have joined, but anyone who loads it can read the IDs.',
+                    'Seva events you post are public, each on a page of its own that anyone can open or share and search engines can list: the title, description, time, place, the “Hosted by” name and any contact you add. An event doesn\'t hold your account ID, or your Google name unless you type it in.',
+                    'When you join a Seva event, its host sees the name you give and, only if you choose to share them, your email address or phone number. Everyone else sees only how many have joined. The host never sees your account ID.',
+                    'If you report a Seva event, the report holds your account ID, the event, the reason and anything you add. Only the site\'s admins can read it, never the event\'s host, and it\'s deleted once dealt with. Admins can also hide an event: it stays stored, and its host still sees it.',
                 ],
             },
             services: {
@@ -63,7 +66,8 @@ const policy = {
                     'SikhAI uses Gemini\'s paid service. Under Google\'s terms for it, Google doesn\'t use what the site sends to improve its products. It keeps it for up to 55 days, only to detect misuse and for disclosures the law requires.',
                     'Google Cloud Translation stands in when Gemini is busy, for English or Gurmukhi text, and “Compare with Google Translate” sends it the translation shown. Google holds that text only while translating it.',
                     'GurbaniNow supplies the Hukamnama and the Angs. To check the Gurbani a reply quotes, the site\'s server looks up the quoted lines there. Your question is never sent.',
-                    'Firebase, Google\'s app platform, runs sign-in and keeps accounts, saved chats, share links and Seva events. Your browser connects to it directly for signing in and while you\'re signed in, on the Seva page and on a share link, so Google sees your IP address then. Otherwise your browser connects only to this site.',
+                    'Firebase, Google\'s app platform, runs sign-in and keeps accounts, saved chats, share links, and Seva events with their sign-ups and reports. Your browser connects to it directly for signing in, while you\'re signed in, and on a share link, so Google sees your IP address then. The Seva pages are built on this site\'s server, so looking at events doesn\'t connect your browser to Firebase. Otherwise your browser connects only to this site.',
+                    'An event\'s directions and calendar links open Google Maps or Google Calendar, and sharing it on WhatsApp opens WhatsApp, with the event\'s details. Those services then get the details, and your IP address, under their own privacy policies. The calendar file for other calendars comes from this site.',
                     'Vercel hosts the site. Its logs record your IP address and the pages you request, for a short time. The site\'s own logs never contain what you write, though they can contain a page\'s address.',
                 ],
             },
@@ -97,7 +101,7 @@ const policy = {
                     'Clear your Learn Punjabi progress with Reset progress on the Learn Punjabi page.',
                     'Stop sharing a chat from its share dialog: the link stops working at once.',
                     'Signing out ends your session in this browser but leaves your chats, translations and settings. To remove those too (on a shared computer, say), clear this site\'s data in your browser\'s settings.',
-                    'There is no button to delete your account or leave a Seva event. Email {email} from the address you sign in with, and your account with its chats and share links, or your Seva sign-up, will be deleted within 30 days. You\'ll get a reply when it\'s done.',
+                    'Leave a Seva event, or remove your sign-up once it\'s over, from the event\'s page; cancel an event you host from its page too. There is no button yet to delete your account or an event: email {email} from the address you sign in with, and your account with its chats, share links and Seva sign-ups, or an event you host, will be deleted within 30 days. You\'ll get a reply when it\'s done.',
                     'Google can take up to 180 days more to clear deleted data from its backups.',
                 ],
             },
@@ -157,6 +161,9 @@ const policy = {
                     'Share links and Seva events are public. You are responsible for what you share and post, and it must be yours to share.',
                     'By sharing a chat or posting an event, you let SikhAI show it publicly until you stop sharing it or it is removed.',
                     'Seva events must be real chances to serve. Others may be removed.',
+                    'If you host an event, use the names and contacts volunteers share with you only to organise that event, and don\'t pass them on.',
+                    'SikhAI doesn\'t check events or the people who host them. Use your own judgement before meeting people you don\'t know.',
+                    'Report an event only in good faith. Admins may hide an event that breaks these terms.',
                 ],
             },
             gurbani: {

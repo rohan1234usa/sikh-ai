@@ -14,8 +14,8 @@ import { CONTACT_EMAIL } from './site';
 
 // The day each page last changed what it says, in any language (not for a
 // typo), shown at its top.
-export const PRIVACY_UPDATED = '2026-09-29';
-export const TERMS_UPDATED = '2026-09-29';
+export const PRIVACY_UPDATED = '2026-10-03';
+export const TERMS_UPDATED = '2026-10-03';
 
 export const POLICY_VARS = {
     maxLocalChats: MAX_LOCAL_CHATS,
