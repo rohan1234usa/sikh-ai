@@ -6,9 +6,9 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import ShabadVerse from '@/app/components/shabad/ShabadVerse';
 import { parseShabadPayload } from '@/lib/gurbani/gurbaninow';
-import type { Shabad } from '@/lib/gurbani/shabad';
+import { localName, type Shabad } from '@/lib/gurbani/shabad';
 import {
-    firstVerse, jsonLdText, localName, shabadAngList, shabadAngs, shabadDescription, shabadStructuredData, shabadTitle,
+    firstVerse, jsonLdText, shabadAngList, shabadAngs, shabadDescription, shabadStructuredData, shabadTitle,
 } from '@/lib/gurbani/shabadPage';
 import { getDictionary } from '@/lib/i18n';
 import { LANGS } from '@/lib/i18n/config';

@@ -307,7 +307,7 @@ const paLatn: Dictionary = {
             },
             shabad: {
                 title: 'Shabad Khoj',
-                desc: 'Guru Granth Sahib Ji da koi vi Ang (1–1430) dekho.',
+                desc: 'Koi vi shabad usdi kise tukk, usde pehle akkhran, jaan Ang (1–1430) naal labbho.',
                 cta: 'Gurbani khojo',
             },
             seva: {
@@ -498,14 +498,41 @@ const paLatn: Dictionary = {
     },
 
     shabad: {
-        title: '{ang} rahin labbho',
-        angWord: 'Ang',
-        angNumberAria: 'Ang number',
-        placeholder: 'Ang number darj karo (1-1430)',
+        title: '{word} khojo',
+        titleWord: 'Gurbani',
+        searchAria: 'Gurbani nu kise tukk, usde pehle akkhran, jaan Ang number naal khojo',
+        placeholder: 'Gurbani di tukk, jaan Ang number',
         searchButton: 'Khojo',
-        helpText: 'Us Ang di Gurbani parhan layi Ang number darj karo.',
-        invalidDigits: 'Kirpa karke sahi Ang number darj karo (sirf ank).',
+        helpText: 'Gurmukhi jaan English akkhran vich koi tukk likho, jaan har shabad da pehla akkhar ({example}). 1 ton 1430 tak da number oh Ang kholhda hai.',
         angRange: 'Ang number 1 ton 1430 vichkar hona chahida hai.',
+        invalid: {
+            tooShort: 'Thorha hor likho: tukk de ghatto-ghatt do shabad, jaan usde tinn pehle akkhar.',
+            tooLong: 'Ih kise vi tukk ton lamma hai. Ikk tukk, jaan usda kujh hissa likho.',
+            noLetters: 'Gurbani di koi tukk, usde pehle akkhar, jaan Ang number likho.',
+            english: 'Shabad Khoj tukk nu usde shabdan naal labbhdi hai, arthan naal nahi. Tukk aap likho, Gurmukhi jaan English akkhran vich.',
+            otherScript: 'Tukk Gurmukhi vich, jaan English akkhran vich likho.',
+            searchWord: 'Phir vi ih shabad khojo',
+            searchLetters: 'Inhan nu pehle akkhran vajon khojo',
+        },
+        results: {
+            searching: 'Khoj ho rahi hai…',
+            found: 'Mile shabad: {n}',
+            none: 'Sri Guru Granth Sahib Ji di koi tukk nahi mili.',
+            noneTips: 'Spelling jaancho, tukk da hor hissa likho, jaan har shabad da pehla akkhar varat ke vekho.',
+            truncated: 'Bahut saarian tukkan mildian han. Ginti ghataun layi tukk da hor hissa likho.',
+            incomplete: 'Gurbani sarot ne har khoj da jawab nahi dita, is layi kujh tukkan reh gaian ho sakdian han.',
+            retry: 'Dubara koshish karo',
+            sameLine: 'Hor shabdan vich ihi tukk: {n}',
+            searchedAs: {
+                gurmukhi: 'Inhan shabdan di khoj kiti',
+                'gurmukhi-letters': 'Pehle akkhran naal khoj kiti',
+                roman: 'English akkhran vich inhan shabdan di khoj kiti',
+                'roman-letters': 'English akkhran vich pehle akkhran naal khoj kiti',
+            },
+            wordsInstead: 'Isdi thaan shabdan di khoj karo',
+            lettersInstead: 'Isdi thaan pehle akkhran naal khoj karo',
+            examples: 'Ih varat ke vekho',
+        },
         angLabel: 'Ang {n}',
         askAboutAng: 'Is Ang baare puchho',
         lineN: 'Tukk {n}',
@@ -820,7 +847,7 @@ const paLatn: Dictionary = {
     // what it sends to other services, and how to remove it. Owner-reviewed text.
     privacy: {
         title: 'Nijjta',
-        updated: 'Aakhri vaar badleya: 29 September 2026.',
+        updated: 'Aakhri vaar badleya: 2 October 2026.',
         intro: 'SikhAI ik chhoti, sutantar site hai. Eh panna dassda hai ki eh tuhade baare ki rakhdi hai, kithe ate kinne samay layi; hor sevavan nu ki bhejdi hai; ate isnu kiven hatauna hai.',
         sections: [
             {
@@ -849,7 +876,7 @@ const paLatn: Dictionary = {
                     'Google Gemini jawab likhda hai. Tuhada har suneha gallbaat de 10 tak pichhle sunehian, tuhade jode kise paath, ate tuhadian settings samet usnu jaanda hai. Jis likhat da tusin anuvad karde ho, oh vi usnu jaandi hai.',
                     'Punjabi tutor nu bheje sunehe vi usnu jaande han, gallbaat de 8 tak pichhle sunehian ate us sabak samet jithon tusi tutor kholia.',
                     'Jadon Gemini rujhia hove taan Google Cloud Translation usdi thaan kamm karda hai, ate Google Translate naal tulna vi ohi karda hai.',
-                    'GurbaniNow ton Hukamnama ate Ang aunde han. Jawab vichlian Gurbani dian tukkan jaanchan layi oh tukkan uthe labbhian jaandian han; tuhada sawal nahi bhejia jaanda.',
+                    'GurbaniNow ton Hukamnama, Ang ate shabad aunde han. Jawab vichlian Gurbani dian tukkan jaanchan layi oh tukkan uthe labbhian jaandian han; tuhada sawal nahi bhejia jaanda. Shabad Khoj vich jo tusi likhde ho, oh vi tukk labbhan layi uthe bhejia jaanda hai. Ih khoj panne de pate da hissa vi hunda hai, jisnu hethlian sevavan tuhade khole kise vi panne vaang darj kardian han.',
                     'Google Analytics pheriaan ginda hai: tuhade khole panne, tuhada device ate browser, ate tuhada lagbhag tikana, cookies raahin.',
                     'Vercel site nu chalaunda hai. Isde log thorhe samay layi tuhada IP pata ate mange panne darj karde han. Site de apne logan vich tuhada likhia kade nahi hunda.',
                     'Vercel Speed Insights mapda hai ki asal pathakan layi panne kinni tezi naal khulhde han, bina cookies de.',
@@ -895,7 +922,7 @@ const paLatn: Dictionary = {
             chat: 'Sikhi, Gurbani ate Sikh itihas baare SikhAI nu puchho. Jawaban vich Gurbani de hawale hunde han, ate har hawala asal sarot naal mila ke jaanchiya janda hai.',
             translate: 'English, Gurmukhi ate Roman Punjabi vichkar anuvad karo, shabad-dar-shabad arth, aukhiyan gallan di vyakhya ate uchaaran de sujhavan samet.',
             learn: 'Punjabi Amriki vajon Punjabi sikho: Gurmukhi parho, viakaran samjho, flashcardan naal rozana de shabad sikho, ate tutor naal abhiaas karo.',
-            shabad: 'Sri Guru Granth Sahib Ji da koi vi Ang, 1 ton 1430 tak, Gurmukhi vich English anuvad samet parho.',
+            shabad: 'Sri Guru Granth Sahib Ji da koi vi shabad usdi kise tukk ton, Gurmukhi jaan English akkhran vich, jaan usde pehle akkhran ton labbho, ate Roman lipi te anuvad samet poora parho. Jaan 1 ton 1430 tak koi vi Ang kholho.',
             seva: 'Langar ton lai ke sikhya tak, apne nede de seva samagam labbho ate unhan vich shamil hovo, ja apna samagam pao.',
         },
         // An Ang's page: {line} is its opening line, {n} its number.

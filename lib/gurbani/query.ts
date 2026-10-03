@@ -16,6 +16,7 @@ import { MAX_ANG } from './citations';
 import { skeletonToken, tokens } from './gurmukhi';
 import { romanTokens } from './roman';
 import { lineKeys, toSearchLetters } from './score';
+import { isGurbaniId } from './shabad';
 
 export const MAX_QUERY_CHARS = 200;
 // Fewer first letters than this match far too many lines to be a search.
@@ -213,4 +214,57 @@ function classifyRoman(text: string, as?: SearchAs): ShabadQuery | null {
 function shortAlternatives(text: string): SearchAs[] {
     const words = romanTokens(text);
     return words.length === 1 && words[0].length >= MIN_LETTERS && words[0].length <= 6 ? ['letters'] : [];
+}
+
+// Searches shown to try under the box: ਆਦਿ ਸਚੁ ਜੁਗਾਦਿ ਸਚੁ (Japji, Ang 1) in its
+// words and by its first letters, and So Purakh (Ang 10) in English letters.
+// A test holds each to the recorded source.
+export const SEARCH_EXAMPLES = {
+    words: 'ਆਦਿ ਸਚੁ ਜੁਗਾਦਿ ਸਚੁ',
+    letters: 'ਅਸਜਸ',
+    roman: 'so purakh niranjan',
+} as const;
+
+const KINDS: readonly SearchKind[] = ['gurmukhi', 'gurmukhi-letters', 'roman', 'roman-letters'];
+const MATCHES: readonly MatchKind[] = ['exact', 'contained', 'close', 'letters', 'roman'];
+const MAX_SHOWN = 50;
+
+// An answer from /api/shabad/search, read as untrusted: the shape checked,
+// every hit's ids ones we'd link to, anything else dropped. null when it
+// isn't an answer at all.
+export function sanitizeVerseSearch(raw: unknown): VerseSearchResponse | null {
+    if (!raw || typeof raw !== 'object') return null;
+    const r = raw as Record<string, unknown>;
+    if (!KINDS.includes(r.kind as SearchKind) || !Array.isArray(r.hits)) return null;
+    if (typeof r.complete !== 'boolean' || typeof r.truncated !== 'boolean') return null;
+    const str = (v: unknown) => (typeof v === 'string' ? v : '');
+    const int = (v: unknown) => (typeof v === 'number' && Number.isInteger(v) && v >= 0 ? v : null);
+    const hits: VerseHit[] = [];
+    for (const item of r.hits.slice(0, MAX_SHOWN)) {
+        if (!item || typeof item !== 'object') continue;
+        const h = item as Record<string, unknown>;
+        const lineId = str(h.lineId);
+        const shabadId = str(h.shabadId);
+        const gurmukhi = str(h.gurmukhi);
+        if (!isGurbaniId(lineId) || !isGurbaniId(shabadId) || !gurmukhi) continue;
+        hits.push({
+            lineId,
+            shabadId,
+            gurmukhi,
+            transliteration: str(h.transliteration),
+            translation: str(h.translation),
+            ang: int(h.ang),
+            lineNo: int(h.lineNo),
+            writer: str(h.writer),
+            writerGurmukhi: str(h.writerGurmukhi),
+            raag: str(h.raag),
+            raagGurmukhi: str(h.raagGurmukhi),
+            match: MATCHES.includes(h.match as MatchKind) ? h.match as MatchKind : 'letters',
+            sameLineIn: int(h.sameLineIn) ?? 0,
+        });
+    }
+    const alternatives = Array.isArray(r.alternatives)
+        ? [...new Set(r.alternatives.map(parseSearchAs).filter((as): as is SearchAs => as !== undefined))]
+        : [];
+    return { kind: r.kind as SearchKind, hits, complete: r.complete, truncated: r.truncated, alternatives };
 }

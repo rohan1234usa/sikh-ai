@@ -5,7 +5,8 @@ import { resolve } from 'node:path';
 import type { GurbaniLine } from '@/lib/gurbani/gurbaninow';
 import { firstLetters, skeletonToken } from '@/lib/gurbani/gurmukhi';
 import {
-    alternativesOf, canonicalQuery, classifyQuery, ENGLISH_ONLY_WORDS, isSearchable, MAX_QUERY_CHARS, parseSearchAs, type ShabadQuery,
+    alternativesOf, canonicalQuery, classifyQuery, ENGLISH_ONLY_WORDS, isSearchable, MAX_QUERY_CHARS, parseSearchAs,
+    sanitizeVerseSearch, SEARCH_EXAMPLES, type ShabadQuery,
 } from '@/lib/gurbani/query';
 import { IK_ONKAR, romanTokens } from '@/lib/gurbani/roman';
 import { lineKeys, toSearchLetters } from '@/lib/gurbani/score';
@@ -178,4 +179,34 @@ test('the search-as parameter takes only its two values', () => {
     assert.equal(parseSearchAs('words'), 'words');
     assert.equal(parseSearchAs('letters'), 'letters');
     for (const bad of [null, undefined, '', 'WORDS', 'auto', 7]) assert.equal(parseSearchAs(bad), undefined, String(bad));
+});
+
+test('the examples under the box are real searches of the recorded source', () => {
+    const japji = LINES.find(l => l.id === 'J92N')!;
+    assert.deepEqual(lineKeys(SEARCH_EXAMPLES.words).raw, lineKeys(japji.gurmukhi).raw, 'the words of ਆਦਿ ਸਚੁ ਜੁਗਾਦਿ ਸਚੁ, letter for letter');
+    assert.equal(SEARCH_EXAMPLES.letters, toSearchLetters(firstLetters(japji.gurmukhi)), 'and its first letters');
+    assert.equal(classifyQuery(SEARCH_EXAMPLES.words).kind, 'gurmukhi');
+    assert.equal(classifyQuery(SEARCH_EXAMPLES.letters).kind, 'gurmukhi-letters');
+    assert.equal(classifyQuery(SEARCH_EXAMPLES.roman).kind, 'roman');
+});
+
+test("an answer from the network is checked before it's shown", () => {
+    const hit = {
+        lineId: '546S', shabadId: '823', gurmukhi: 'ਗੁਰਮੁਖੀ', transliteration: 'roman', translation: 'English',
+        ang: 10, lineNo: 17, writer: 'W', writerGurmukhi: 'ਲ', raag: 'R', raagGurmukhi: 'ਰ', match: 'roman', sameLineIn: 1,
+    };
+    const good = { kind: 'roman', hits: [hit], complete: true, truncated: false, alternatives: ['words'] };
+    assert.deepEqual(sanitizeVerseSearch(good), good);
+    for (const bad of [null, 'text', [], { ...good, kind: 'ang' }, { ...good, hits: 'x' }, { ...good, complete: 'yes' }, { ...good, truncated: undefined }])
+        assert.equal(sanitizeVerseSearch(bad), null, JSON.stringify(bad));
+    const cleaned = sanitizeVerseSearch({
+        ...good,
+        hits: [hit, { ...hit, lineId: '../x' }, { ...hit, shabadId: 'javascript:' }, { ...hit, gurmukhi: '' }, null, 'x',
+            { ...hit, lineId: 'B1', match: 'magic', ang: -4, sameLineIn: 'many', writer: 7 }],
+        alternatives: ['words', 'words', 'everything', 3],
+    })!;
+    assert.deepEqual(cleaned.hits.map(h => h.lineId), ['546S', 'B1'], 'hits we could not link to are dropped');
+    assert.deepEqual([cleaned.hits[1].match, cleaned.hits[1].ang, cleaned.hits[1].sameLineIn, cleaned.hits[1].writer], ['letters', null, 0, '']);
+    assert.deepEqual(cleaned.alternatives, ['words']);
+    assert.equal(sanitizeVerseSearch({ ...good, hits: Array(80).fill(hit) })!.hits.length, 50, 'a bounded list');
 });

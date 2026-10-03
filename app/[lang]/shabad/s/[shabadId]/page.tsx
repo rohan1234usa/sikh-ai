@@ -8,9 +8,9 @@ import SourceNote from '@/app/components/shabad/SourceNote';
 import ShabadVerse from '@/app/components/shabad/ShabadVerse';
 import { SGGS_SOURCE_ID } from '@/lib/gurbani/citations';
 import { fetchShabad } from '@/lib/gurbani/gurbaninow';
-import { parseShabadIdParam, shabadPath, shabadSections } from '@/lib/gurbani/shabad';
+import { localName, parseShabadIdParam, shabadPath, shabadSections } from '@/lib/gurbani/shabad';
 import {
-  jsonLdText, localName, shabadAngList, shabadAngs, shabadDescription, shabadStructuredData, shabadTitle,
+  jsonLdText, shabadAngList, shabadAngs, shabadDescription, shabadStructuredData, shabadTitle,
 } from '@/lib/gurbani/shabadPage';
 import { fmt } from '@/lib/i18n/fmt';
 import { localePath } from '@/lib/i18n/paths';

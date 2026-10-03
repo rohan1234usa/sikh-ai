@@ -312,7 +312,7 @@ const en = {
             },
             shabad: {
                 title: 'Shabad Search',
-                desc: 'Look up any Ang (1–1430) of the Guru Granth Sahib.',
+                desc: 'Find any shabad by a line, its first letters, or an Ang (1–1430).',
                 cta: 'Search Gurbani',
             },
             seva: {
@@ -508,14 +508,44 @@ const en = {
     },
 
     shabad: {
-        title: 'Find by {ang}',
-        angWord: 'Ang',
-        angNumberAria: 'Ang number',
-        placeholder: 'Enter Ang Number (1-1430)',
+        title: 'Search {word}',
+        titleWord: 'Gurbani',
+        searchAria: 'Search Gurbani by a line, its first letters, or an Ang number',
+        placeholder: 'A line of Gurbani, or an Ang number',
         searchButton: 'Search',
-        helpText: 'Enter a page number to read the Gurbani from that Ang.',
-        invalidDigits: 'Please enter a valid Ang number (digits only).',
+        // {example} is the first letters of a line, in Gurmukhi.
+        helpText: 'Type a line in Gurmukhi or English letters, or the first letter of each word ({example}). A number from 1 to 1430 opens that Ang.',
         angRange: 'Ang number must be between 1 and 1430.',
+        // What can't be searched, said as soon as it's typed.
+        invalid: {
+            tooShort: 'Type a little more: at least two words of the line, or three of its first letters.',
+            tooLong: 'That is longer than any line. Type one line, or part of it.',
+            noLetters: 'Type a line of Gurbani, its first letters, or an Ang number.',
+            english: 'Shabad Search finds a line by its words, not its meaning. Type the line itself, in Gurmukhi or English letters.',
+            otherScript: 'Type the line in Gurmukhi, or in English letters.',
+            searchWord: 'Search for this word anyway',
+            searchLetters: 'Search these as first letters',
+        },
+        results: {
+            searching: 'Searching…',
+            found: 'Shabads found: {n}',
+            none: 'No line of Sri Guru Granth Sahib Ji matched.',
+            noneTips: 'Check the spelling, type more of the line, or try the first letter of each word.',
+            truncated: 'Many lines match. Type more of the line to narrow it down.',
+            incomplete: "The Gurbani source didn't answer every search, so some lines may be missing.",
+            retry: 'Try again',
+            sameLine: 'Same line in other shabads: {n}',
+            // How the search read what was typed.
+            searchedAs: {
+                gurmukhi: 'Searched for these words',
+                'gurmukhi-letters': 'Searched by first letters',
+                roman: 'Searched for these words, in English letters',
+                'roman-letters': 'Searched by first letters, in English letters',
+            },
+            wordsInstead: 'Search for the words instead',
+            lettersInstead: 'Search by first letters instead',
+            examples: 'Try',
+        },
         angLabel: 'Ang {n}',
         askAboutAng: 'Ask about this Ang',
         lineN: 'Line {n}',
@@ -837,7 +867,7 @@ const en = {
     // what it sends to other services, and how to remove it. Owner-reviewed text.
     privacy: {
         title: 'Privacy',
-        updated: 'Last updated 29 September 2026.',
+        updated: 'Last updated 2 October 2026.',
         intro: 'SikhAI is a small, independent site. This page says what it keeps about you, where, and for how long; what it sends to other services; and how to remove it.',
         sections: [
             {
@@ -866,7 +896,7 @@ const en = {
                     'Google Gemini writes the answers. Each message you send goes to it with up to 10 earlier messages from the chat, any passage you attached, and your settings. Text you translate goes to it too.',
                     'Messages to the Punjabi tutor go to it too, with up to 8 earlier messages from the conversation and the lesson you opened the tutor from.',
                     'Google Cloud Translation stands in when Gemini is busy, and does the comparison with Google Translate.',
-                    'GurbaniNow supplies the Hukamnama and the Angs. To check a reply\'s Gurbani quotes, the quoted lines are looked up there; your question is not sent.',
+                    'GurbaniNow supplies the Hukamnama, the Angs and the shabads. To check a reply\'s Gurbani quotes, the quoted lines are looked up there; your question is not sent. What you type into Shabad Search is sent there too, to find the line. It is also part of the search page\'s address, which the services below record like any page you open.',
                     'Google Analytics counts visits: the pages you open, your device and browser, and your approximate location, using cookies.',
                     'Vercel hosts the site. Its logs record your IP address and the pages you request, for a short time. The site\'s own logs never contain what you write.',
                     'Vercel Speed Insights measures how fast pages load for real visitors, without cookies.',
@@ -912,7 +942,7 @@ const en = {
             chat: 'Ask SikhAI about Sikhi, Gurbani and Sikh history. Answers quote Gurbani, and every quote is checked against the source.',
             translate: 'Translate between English, Gurmukhi and romanized Punjabi, with a word-by-word breakdown, tricky parts explained, and pronunciation tips.',
             learn: 'Learn Punjabi as a Punjabi American: read Gurmukhi, understand the grammar, build everyday vocabulary with flashcards, and practice with a tutor.',
-            shabad: 'Read any Ang of Sri Guru Granth Sahib Ji, 1 to 1430, in Gurmukhi with an English translation.',
+            shabad: 'Find any shabad of Sri Guru Granth Sahib Ji from one of its lines, in Gurmukhi or English letters, or its first letters, and read it whole with transliteration and translation. Or open any Ang, 1 to 1430.',
             seva: 'Find and join seva events near you, from langar to education, or post your own.',
         },
         // An Ang's page: {line} is its opening line, {n} its number.

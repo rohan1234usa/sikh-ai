@@ -2,6 +2,8 @@
 // helpers around it that the Ang page and Shabad Search share. Reading the
 // upstream payload is ./gurbaninow's job (parseShabadPayload, server-only).
 
+import type { Lang } from '../i18n/config';
+
 export type LineKind = 'mangal' | 'header' | 'verse';
 
 export type ShabadLine = {
@@ -104,4 +106,10 @@ export function opening(text: string, max = 90): string {
     const cut = text.slice(0, max);
     const space = cut.lastIndexOf(' ');
     return `${space > (max * 4) / 9 ? cut.slice(0, space) : cut}…`;
+}
+
+// A writer's or raag's name: in Gurmukhi on the Gurmukhi site, in English
+// letters elsewhere, and whichever there is when only one is given.
+export function localName(lang: Lang, english: string, gurmukhi: string): string {
+    return (lang === 'pa' && gurmukhi) || english || gurmukhi;
 }

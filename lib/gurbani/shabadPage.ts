@@ -10,12 +10,6 @@ import { SITE_URL } from '@/lib/metadata';
 import { MAX_ANG } from './citations';
 import { opening, shabadPath, type Shabad } from './shabad';
 
-// A writer's or raag's name: in Gurmukhi on the Gurmukhi site, in English
-// letters elsewhere, and whichever there is when only one is given.
-export function localName(lang: Lang, english: string, gurmukhi: string): string {
-    return (lang === 'pa' && gurmukhi) || english || gurmukhi;
-}
-
 // The line a shabad is known by: its first verse, past the headings, without
 // the closing dandas and verse number.
 export function firstVerse(shabad: Shabad): string {
