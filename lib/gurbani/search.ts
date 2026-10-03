@@ -39,6 +39,18 @@ export type VerseSearch = {
     calls: number;
 };
 
+// "॥੧॥ ਰਹਾਉ ॥" closes a refrain, and GurbaniNow's index keeps the verse
+// number between the line and ਰਹਾਉ, so neither its words nor its first
+// letters match across it. Lookups leave a closing ਰਹਾਉ out; the ranking,
+// which reads the whole line, keeps it.
+const RAHAO = looseKey('ਰਹਾਉ');
+const ROMAN_RAHAO = /^rah?a{0,2}(?:o|u|au|ao|aau|aao)$/;
+const withoutRahao = <T>(words: T[], isRahao: (word: T) => boolean): T[] => {
+    let end = words.length;
+    while (end > 1 && isRahao(words[end - 1])) end--;
+    return words.slice(0, end);
+};
+
 const anywhere = (letters: string, results = 30): Lookup => ({ query: letters, type: SEARCH_TYPES.firstLettersAnywhere, results });
 const start = (letters: string, results = 30): Lookup => ({ query: letters, type: SEARCH_TYPES.firstLettersStart, results });
 const take = (letters: string, from: number, count?: number) => [...letters].slice(from, count === undefined ? undefined : from + count).join('');
@@ -88,7 +100,7 @@ function dedupe(lookups: Lookup[]): Lookup[] {
 export function planSearch(query: SearchableQuery): Lookup[][] {
     switch (query.kind) {
         case 'gurmukhi': {
-            const keys = lineKeys(query.words.join(' '));
+            const keys = lineKeys(withoutRahao(query.words, word => looseKey(word) === RAHAO).join(' '));
             const letters = toSearchLetters(keys.first);
             const n = count(letters);
             const phrase: Lookup = { query: keys.folded.slice(0, PHRASE_WORDS).join(' '), type: SEARCH_TYPES.phrase, results: 30 };
@@ -110,7 +122,7 @@ export function planSearch(query: SearchableQuery): Lookup[][] {
             return n >= 6 ? [first, [start(take(letters, 0, 4)), anywhere(take(letters, n - 5))]] : [first];
         }
         case 'roman':
-            return romanLookups(query.words.map(wordInitials));
+            return romanLookups(withoutRahao(query.words, word => ROMAN_RAHAO.test(word)).map(wordInitials));
         case 'roman-letters':
             return romanLookups([...query.letters].map(letterInitials));
     }

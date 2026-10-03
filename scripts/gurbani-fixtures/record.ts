@@ -5,6 +5,7 @@
 //   npm run fixtures:gurbani                   everything
 //   npm run fixtures:gurbani -- --only verify  the quote checker's lookups
 //   npm run fixtures:gurbani -- --only shabad  whole shabads
+//   npm run fixtures:gurbani -- --only search  Shabad Search's lookups
 //
 // verify: runs the real verifier over tests/gurbani/fixtures/replies.json
 // with a client that saves every response (gurbaninow.json). Rerun after
@@ -15,15 +16,24 @@
 // the fields the site never reads, plus the source's own Ang for the lines
 // around each change of Ang, so the tests can hold the parser's Angs to it.
 //
+// search: runs every search in tests/gurbani/search-fixtures.ts through the
+// real verse search, Sri Guru Granth Sahib Ji only, and saves each lookup it
+// makes (search.json). Its top hits are printed for review. Rerun after
+// changing the search plan or the fixtures.
+//
 // GurbaniNow turns away bursts (about 36 quick calls bring "503 No available
-// server" for a minute), so the shabad calls are paced and retried once.
-// A file is saved only when every lookup in it was answered.
+// server" for a minute), so the shabad and search calls are paced and
+// retried once. A file is saved only when every lookup in it was answered.
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { gurbaniNow, type GurbaniClient, type GurbaniLine } from '../../lib/gurbani/gurbaninow';
+import { SGGS_SOURCE_ID } from '../../lib/gurbani/citations';
+import { dailyMeter, gurbaniNow, gurbaniNowClient, type GurbaniClient, type GurbaniLine } from '../../lib/gurbani/gurbaninow';
+import { classifyQuery, isSearchable } from '../../lib/gurbani/query';
+import { searchVerses } from '../../lib/gurbani/search';
 import { verifyReply } from '../../lib/gurbani/verify';
 import { angKey, searchKey } from '../../tests/gurbani/keys';
+import { inputOf, SEARCHES } from '../../tests/gurbani/search-fixtures';
 
 const DIR = resolve(import.meta.dirname, '../../tests/gurbani/fixtures');
 const BASE = 'https://api.gurbaninow.com/v2';
@@ -33,7 +43,7 @@ const BASE = 'https://api.gurbaninow.com/v2';
 // and runs onto 395.
 const SHABADS = ['823', 'DMP', '4Z1', 'Q5K'];
 
-const MODES = ['verify', 'shabad'] as const;
+const MODES = ['verify', 'shabad', 'search'] as const;
 type Mode = (typeof MODES)[number];
 
 function chosenModes(): Mode[] {
@@ -171,9 +181,61 @@ async function recordShabads(): Promise<boolean> {
     return true;
 }
 
+// The live search client's calls, one at a time, a second apart, each tried
+// again after five seconds if it went unanswered.
+let queue: Promise<unknown> = Promise.resolve();
+function pacedLookup(lookup: () => Promise<GurbaniLine[] | null>): Promise<GurbaniLine[] | null> {
+    const next = queue.then(async () => {
+        for (let attempt = 0; attempt < 2; attempt++) {
+            const wait = lastCall + (attempt ? 5000 : 1000) - Date.now();
+            if (wait > 0) await sleep(wait);
+            lastCall = Date.now();
+            const lines = await lookup();
+            if (lines !== null) return lines;
+        }
+        return null;
+    });
+    queue = next;
+    return next;
+}
+
+async function recordSearches(): Promise<boolean> {
+    const live = gurbaniNowClient({ meter: dailyMeter(Infinity), source: SGGS_SOURCE_ID });
+    const recorded: Record<string, GurbaniLine[] | null> = {};
+    const recorder: GurbaniClient = {
+        async fetchAng() {
+            throw new Error('a verse search reads no Angs');
+        },
+        async searchLines(query, type, results, signal) {
+            const lines = await pacedLookup(() => live.searchLines(query, type, results, signal));
+            recorded[searchKey(query, type, results, SGGS_SOURCE_ID)] = lines;
+            return lines;
+        },
+    };
+    for (const fixture of SEARCHES) {
+        const input = inputOf(fixture);
+        const query = classifyQuery(input, fixture.as);
+        if (!isSearchable(query)) {
+            console.log(`${fixture.id}: ${JSON.stringify(input)} is not searchable (${query.kind})`);
+            continue;
+        }
+        const found = await searchVerses(query, { client: recorder });
+        const notes = found ? [`${found.calls} lookups`, found.complete ? '' : 'incomplete', found.truncated ? 'truncated' : ''].filter(Boolean) : ['no answer'];
+        console.log(`${fixture.id}: ${JSON.stringify(input)} (${query.kind}) — ${notes.join(', ')}`);
+        for (const hit of found?.hits.slice(0, 3) ?? []) console.log(`   ${hit.match}  Ang ${hit.ang}  ${hit.lineId}  ${hit.gurmukhi}`);
+    }
+    const failed = Object.entries(recorded).filter(([, lines]) => lines === null).map(([key]) => key);
+    if (failed.length) {
+        console.error(`\nGurbaniNow did not answer: ${failed.join(', ')}. Nothing saved; try again.`);
+        return false;
+    }
+    save('search.json', recorded);
+    return true;
+}
+
 async function main(): Promise<void> {
     for (const mode of chosenModes()) {
-        const ok = mode === 'verify' ? await recordVerify() : await recordShabads();
+        const ok = mode === 'verify' ? await recordVerify() : mode === 'shabad' ? await recordShabads() : await recordSearches();
         if (!ok) process.exitCode = 1;
     }
 }

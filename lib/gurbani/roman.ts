@@ -20,8 +20,10 @@ const ONKAR = /^o+a?[nm]g?kaa?r$/;
 const IKONKAR = /^(?:ik|ikk|ek|eik|1)o+a?[nm]g?kaa?r$/;
 export const IK_ONKAR = 'ikonkar';
 
-// Words readers run together that Gurbani writes apart, which would throw
-// the first letters off by one.
+// Words readers run together that Gurbani writes apart, and words they split
+// that Gurbani writes as one (ਰਾਮਦਾਸ, ਵਾਹਿਗੁਰੂ, ਪਾਰਬ੍ਰਹਮ). Either throws
+// the first letters off by one, and a first-letter lookup needs them in
+// step.
 const SPLITS: Record<string, string[]> = {
     satnam: ['sat', 'nam'],
     satnaam: ['sat', 'naam'],
@@ -30,6 +32,14 @@ const SPLITS: Record<string, string[]> = {
     gurprasaad: ['gur', 'prasaad'],
     akalpurakh: ['akal', 'purakh'],
 };
+const JOINS: [RegExp, RegExp][] = [
+    [/^raa?m$/, /^daa?s$/],
+    [/^(?:w|v)aa?he?$/, /^guru?$/],
+    [/^paa?r$/, /^bra?h?a?m$/],
+    [/^gurr?$/, /^dev$/],
+    [/^sat$/, /^guru?$/],
+    [/^nir$/, /^(?:bhau|bhao|vair|vaair|wair)$/],
+];
 
 // Lowercase English letters, accents and other marks gone (so "nirañjan"
 // reads as "niranjan"), split into words, with ੴ joined and the common
@@ -39,8 +49,12 @@ export function romanTokens(text: string): string[] {
     const out: string[] = [];
     for (let i = 0; i < raw.length; i++) {
         const word = raw[i];
-        if (IK.test(word) && i + 1 < raw.length && ONKAR.test(raw[i + 1])) {
+        const next = raw[i + 1];
+        if (IK.test(word) && next !== undefined && ONKAR.test(next)) {
             out.push(IK_ONKAR);
+            i++;
+        } else if (next !== undefined && JOINS.some(([a, b]) => a.test(word) && b.test(next))) {
+            out.push(word + next);
             i++;
         } else if (IKONKAR.test(word)) out.push(IK_ONKAR);
         else if (SPLITS[word]) out.push(...SPLITS[word]);

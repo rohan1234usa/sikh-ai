@@ -36,11 +36,16 @@ test('every spelling of ੴ is one word, as it is in Gurmukhi', () => {
     assert.deepEqual(romanTokens('onkar'), ['onkar']);
 });
 
-test('words readers run together are split where Gurbani writes them apart', () => {
+test('words readers run together or split up are written as Gurbani writes them', () => {
     assert.deepEqual(romanTokens('ik onkar satnam karta purakh'), [IK_ONKAR, 'sat', 'nam', 'karta', 'purakh']);
     assert.deepEqual(romanTokens('gurprasad'), ['gur', 'prasad']);
     assert.deepEqual(romanTokens('akalpurakh'), ['akal', 'purakh']);
     assert.deepEqual(romanTokens('waheguru'), ['waheguru'], 'one word in Gurbani too');
+    assert.deepEqual(romanTokens('dhan dhan ram das gur'), ['dhan', 'dhan', 'ramdas', 'gur']);
+    assert.deepEqual(romanTokens('wahe guru ji'), ['waheguru', 'ji']);
+    assert.deepEqual(romanTokens('paar brahm parmesar'), ['paarbrahm', 'parmesar']);
+    assert.deepEqual(romanTokens('sat guru nir bhau'), ['satguru', 'nirbhau']);
+    assert.deepEqual(romanTokens('ram naam'), ['ram', 'naam'], 'only the compounds');
 });
 
 const guesses = (word: string) => wordInitials(word).map(a => a.letter).join('');

@@ -11,7 +11,12 @@ const DIR = resolve(import.meta.dirname, 'fixtures');
 export type Reply = { id: string; source: string; text: string };
 
 export const replies: Reply[] = JSON.parse(readFileSync(`${DIR}/replies.json`, 'utf8'));
-const recorded: Record<string, GurbaniLine[]> = JSON.parse(readFileSync(`${DIR}/gurbaninow.json`, 'utf8'));
+// The quote checker's lookups and Shabad Search's, recorded separately: the
+// score and extract tests read gurbaninow.json alone as their corpus.
+const recorded: Record<string, GurbaniLine[]> = {
+    ...JSON.parse(readFileSync(`${DIR}/gurbaninow.json`, 'utf8')),
+    ...JSON.parse(readFileSync(`${DIR}/search.json`, 'utf8')),
+};
 
 export function reply(id: string): string {
     const found = replies.find(r => r.id === id);
