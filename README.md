@@ -175,8 +175,9 @@ Four settings outside the code keep a public deployment affordable and safe, a f
 4.  **Restrict the Gemini key** to the Generative Language API, but only after `GOOGLE_TRANSLATE_API_KEY` is set on its own. Until then Cloud Translation borrows the Gemini key, and restricting it would quietly break the translator's fallback.
 5.  **Saved chats in the account, and share links** (off until you do this; chats stay in the browser meanwhile):
     1.  Deploy [`firestore.rules`](firestore.rules) and its indexes, as in step 6. Rules are OR-ed, so a catch-all left in the console (`match /{document=**}`, `allow read, write: if true`, or a test-mode `request.time < …` rule) would expose every saved chat; deploying the whole file replaces them.
-    2.  Check it in the Rules Playground: a user can read their own chats but not another's; anyone can `get` a `shared_chats` document but no one can `list` them.
-    3.  Set `NEXT_PUBLIC_CHAT_CLOUD=1` in Vercel (try a preview first, with its domain added to Firebase Auth's authorized domains) and redeploy. Add a Firestore budget alert: rules can't cap how much a signed-in user stores.
+    2.  Check it in the Rules Playground: a user can read their own chats but not another's; anyone can `get` a `shared_chats` document but no one can `list` them; no one can read another account's `users/{uid}/shares`.
+    3.  `shared_chats` should be empty. Anything there came from trying share links on a preview with an earlier build, in a shape that names the account, and its owner can no longer end it. Delete it all: `npx firebase-tools@15.32.0 firestore:delete shared_chats --recursive --project <project-id>`.
+    4.  Set `NEXT_PUBLIC_CHAT_CLOUD=1` in Vercel (try a preview first, with its domain added to Firebase Auth's authorized domains) and redeploy. Add a Firestore budget alert: rules can't cap how much a signed-in user stores.
 
 6.  **Seva events** (the new board and pages need these before they can write):
     1.  Export the console's Firestore rules and compare them with [`firestore.rules`](firestore.rules): anything they allow that the file doesn't would stop working once it's deployed.
@@ -200,8 +201,8 @@ Four settings outside the code keep a public deployment affordable and safe, a f
 1.  Reply to confirm the request came from the account's own email address.
 2.  Firebase console → Authentication → Users: search for the address and copy the User UID.
 3.  Seva first, while the account's own notes still say what it did: for each `users/<uid>/seva_signups/<eventId>`, its `volunteerId` names the sign-up; delete `seva_events/<eventId>/volunteers/<volunteerId>` and subtract 1 from that event's `volunteerCount` (unless the event is gone). For each `users/<uid>/seva_hosting/<eventId>`, delete the event with `npx firebase-tools firestore:delete seva_events/<eventId> --recursive --project <project-id>`. In `seva_reports`, delete the documents whose ID ends `_<uid>`. For a request about one event only, delete just that event, recursively, and stop here.
-4.  Delete the account's chats and notes with `npx firebase-tools firestore:delete users/<uid> --recursive --project <project-id>` (each chat's `entries` go with it), then check in Firestore that `users/<uid>` is gone.
-5.  Firestore → `shared_chats`: filter `ownerUid == <uid>` and delete every match. A share that's left still opens by its link.
+4.  Share links next, while the account's notes still name them: each document in `users/<uid>/shares` is named after one of its links; delete `shared_chats/<that id>`. A link that's left still opens.
+5.  Delete the account's chats and notes with `npx firebase-tools firestore:delete users/<uid> --recursive --project <project-id>` (each chat's `entries` go with it), then check in Firestore that `users/<uid>` is gone.
 6.  Authentication → Users: delete the user, last, since the UID is how everything else is found.
 7.  Reply that it's done. Mention that chats, translations and settings in their own browser stay until they clear the site's data there, and that Google clears its backups within 180 days.
 

@@ -4,6 +4,8 @@
 //
 //   users/{uid}/chats/{chatId}               the chat's meta and passage
 //   users/{uid}/chats/{chatId}/entries/{id}  one exchange or notice each
+//   users/{uid}/shares/{shareId}             the owner's note of a link: its chat
+//   shared_chats/{shareId}                   the link's public copy, naming no one
 //
 // One document per exchange keeps a long Punjabi chat far from the 1 MiB
 // document limit, and a reply can never be stored without its question.
@@ -24,6 +26,7 @@ export const META_VERSION = 1;
 export const chatPath = (uid: string, chatId: string): DocPath => ['users', uid, 'chats', chatId];
 export const entryPath = (uid: string, chatId: string, entryId: string): DocPath => [...chatPath(uid, chatId), 'entries', entryId];
 export const sharePath = (shareId: string): DocPath => ['shared_chats', shareId];
+export const shareNotePath = (uid: string, shareId: string): DocPath => ['users', uid, 'shares', shareId];
 
 export function metaDoc(meta: ChatMeta, context: ChatContext | null): Record<string, unknown> {
     return {
@@ -81,14 +84,22 @@ export function planMeta(uid: string, chatId: string, patch: MetaPatch & { conte
     return [{ type: 'update', path: chatPath(uid, chatId), data }];
 }
 
-// The meta (and a shared link) first: the chat leaves the list at once, and a
-// delete cut short between batches leaves only entries nothing points to,
-// which no later write can bring back (see planPutEntries).
-export function planDelete(uid: string, chatId: string, entryIds: string[], shareId?: string | null): Op[] {
+// The meta (and its shared links) first: the chat leaves the list at once,
+// and a delete cut short between batches leaves only entries nothing points
+// to, which no later write can bring back (see planPutEntries).
+export function planDelete(uid: string, chatId: string, entryIds: string[], shareIds: readonly string[] = []): Op[] {
     return [
         { type: 'delete', path: chatPath(uid, chatId) },
-        ...(shareId ? [{ type: 'delete' as const, path: sharePath(shareId) }] : []),
+        ...shareIds.flatMap((id) => planEndLink(uid, id)),
         ...entryIds.map((id): Op => ({ type: 'delete', path: entryPath(uid, chatId, id) })),
+    ];
+}
+
+// A link's public copy and the owner's note of it, which go together.
+function planEndLink(uid: string, shareId: string): Op[] {
+    return [
+        { type: 'delete', path: sharePath(shareId) },
+        { type: 'delete', path: shareNotePath(uid, shareId) },
     ];
 }
 
@@ -112,18 +123,22 @@ export function planEvictions(overflow: ChatMeta[], inUse: (chatId: string) => b
     return overflow.filter((m) => !m.pinned && !inUse(m.id));
 }
 
-// A link made or refreshed: the public snapshot, and the chat's note of it,
-// in one batch, so neither exists without the other.
+// A link made or refreshed: the public snapshot, the owner's note of it, and
+// the chat's, in one batch, so none exists without the others. A refresh
+// writes the owner's note again as it was (the rules allow nothing else), so
+// one plan both makes a link and refreshes it, even one ended meanwhile on
+// another device.
 export function planShare(uid: string, chatId: string, shareId: string, doc: ShareDoc, ref: ShareRef): Op[] {
     return [
         { type: 'set', path: sharePath(shareId), data: { ...doc } },
+        { type: 'set', path: shareNotePath(uid, shareId), data: { chatId } },
         { type: 'update', path: chatPath(uid, chatId), data: { share: ref } },
     ];
 }
 
 export function planUnshare(uid: string, chatId: string, shareId: string): Op[] {
     return [
-        { type: 'delete', path: sharePath(shareId) },
+        ...planEndLink(uid, shareId),
         { type: 'update', path: chatPath(uid, chatId), data: { share: null } },
     ];
 }

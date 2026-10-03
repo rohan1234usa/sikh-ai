@@ -3,22 +3,26 @@
 //
 // The snapshot is taken when the link is made (or updated); what the chat
 // says afterwards stays private until the owner updates the link. It holds
-// the answered exchanges and nothing about who shared it.
+// the answered exchanges, a title and two times: nothing about who shared it,
+// or from which chat. Whose link it is lives in the owner's private note of
+// it, users/{uid}/shares/{shareId} (store/firestorePlans.ts): that's how the
+// rules know who may refresh or end it, and how the account finds its links
+// when it's deleted.
 
 import { sanitizeChatContext, type ChatContext } from './config';
 import { sanitizeTitle, type ChatMeta, type ShareRef } from './chatMeta';
 import { hasText, normalizeTranscript, toStoredEntry, type Entry, type Exchange, type Notice, type Transcript } from './transcript';
 import type { ChatRecord } from './store/types';
 
-export const SHARE_VERSION = 1;
+// 2: nothing about the account. 1 also held the owner's account ID and the
+// chat's id; none was made in production (README, Running in production).
+export const SHARE_VERSION = 2;
 // Firestore holds at most 1 MiB per document. Measured in UTF-8, where a
 // Gurmukhi letter takes 3 bytes, and kept well clear of the limit.
 export const MAX_SHARE_BYTES = 900_000;
 
 export type ShareDoc = {
     v: number;
-    ownerUid: string;
-    chatId: string;
     title: string;
     // JSON of SharePayload: one string field keeps the document (and its
     // rules) simple however long the chat is.
@@ -87,6 +91,12 @@ export function buildShareSnapshot(record: ChatRecord, maxBytes = MAX_SHARE_BYTE
 
     const exchanges = entries.filter((e): e is Exchange => e.kind === 'exchange');
     return { payload, lastOrder: Math.max(...exchanges.map((e) => e.order)), count: exchanges.length, truncated };
+}
+
+// The public document for a snapshot: everything it holds, and so all a
+// reader of the link can learn.
+export function shareDocFor(title: string, snapshot: Snapshot, times: { createdAt: number; updatedAt: number }): ShareDoc {
+    return { v: SHARE_VERSION, title, payload: snapshot.payload, createdAt: times.createdAt, updatedAt: times.updatedAt };
 }
 
 // Answered exchanges the chat has gained since its link was made or updated.

@@ -62,11 +62,12 @@ test('a meta change writes only what changed', () => {
     assert.deepEqual((op as { data: object }).data, { pinned: true });
 });
 
-test('deleting a chat removes it from the list first, its shared link with it, then every entry', () => {
-    const ops = planDelete(UID, 'chat-123456', ['a', 'b'], 'share-12345');
+test('deleting a chat removes it from the list first, its shared link and the note of it with it, then every entry', () => {
+    const ops = planDelete(UID, 'chat-123456', ['a', 'b'], ['share-12345']);
     assert.deepEqual(ops.map(at), [
         'delete users/user-1/chats/chat-123456',
         'delete shared_chats/share-12345',
+        'delete users/user-1/shares/share-12345',
         'delete users/user-1/chats/chat-123456/entries/a',
         'delete users/user-1/chats/chat-123456/entries/b',
     ]);
@@ -86,16 +87,27 @@ test('moving a long chat splits into batches, with the meta written last', () =>
     assert.deepEqual(chunk(entries.map(() => ({ type: 'delete', path: ['x'] }) as Op)).map((b) => b.length), [MAX_BATCH_OPS, 5]);
 });
 
-test('a link and the chat\'s note of it are written together, and ended together', () => {
+test("a link, the owner's note of it and the chat's are written together, and ended together", () => {
     const ref = { id: 'share-12345', createdAt: 1, updatedAt: 2, lastOrder: 9 };
-    const doc = { v: 1, ownerUid: UID, chatId: 'chat-123456', title: 'Seva', payload: '{}', createdAt: 1, updatedAt: 2 };
-    assert.deepEqual(planShare(UID, 'chat-123456', 'share-12345', doc, ref).map(at), [
+    const doc = { v: 2, title: 'Seva', payload: '{}', createdAt: 1, updatedAt: 2 };
+    const share = planShare(UID, 'chat-123456', 'share-12345', doc, ref);
+    assert.deepEqual(share.map(at), [
         'set shared_chats/share-12345',
+        'set users/user-1/shares/share-12345',
         'update users/user-1/chats/chat-123456',
     ]);
+    // Who shared it, and from which chat, only in the owner's own documents.
+    const [published, note] = share as { data: object }[];
+    assert.ok(!JSON.stringify(published.data).includes(UID) && !JSON.stringify(published.data).includes('chat-123456'));
+    assert.deepEqual(note.data, { chatId: 'chat-123456' });
+
     const unshare = planUnshare(UID, 'chat-123456', 'share-12345');
-    assert.deepEqual(unshare.map(at), ['delete shared_chats/share-12345', 'update users/user-1/chats/chat-123456']);
-    assert.deepEqual((unshare[1] as { data: object }).data, { share: null });
+    assert.deepEqual(unshare.map(at), [
+        'delete shared_chats/share-12345',
+        'delete users/user-1/shares/share-12345',
+        'update users/user-1/chats/chat-123456',
+    ]);
+    assert.deepEqual((unshare[2] as { data: object }).data, { share: null });
 });
 
 test('past the cap, every unpinned chat goes, except one in use here', () => {

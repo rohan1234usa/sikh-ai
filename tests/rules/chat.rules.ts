@@ -3,8 +3,9 @@
 // (lib/chat/store/firestorePlans.ts). See ./env.ts.
 
 import { test } from 'node:test';
+import assert from 'node:assert/strict';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { collection, deleteDoc, doc, getDoc, getDocs, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import {
     planCreate,
     planDelete,
@@ -15,11 +16,12 @@ import {
     planUnshare,
 } from '@/lib/chat/store/firestorePlans';
 import { SHARE_VERSION, type ShareDoc } from '@/lib/chat/share';
+import type { Op } from '@/lib/firebase/ops';
 import { exchange, reply } from '../chat/helpers';
 import { meta } from '../chat/store-helpers';
 import { commit, rulesEnv } from './env';
 
-const { as, anon } = rulesEnv();
+const { as, anon, peek } = rulesEnv();
 
 // ─── Saved chats ────────────────────────────────────────────────────────────
 
@@ -66,16 +68,33 @@ test('a late write from an older reply attempt cannot replace a newer one', asyn
 // ─── Shared links ───────────────────────────────────────────────────────────
 
 const SHARE_ID = 'Ab3dEf6hIj9lMn2pQr5t'; // a Firestore auto id
-const shareDoc = (over: Partial<ShareDoc> = {}): ShareDoc => ({
-    v: SHARE_VERSION, ownerUid: 'alice', chatId: CHAT.id, title: CHAT.title,
-    payload: JSON.stringify({ transcript: [] }), createdAt: 1_000, updatedAt: 1_000, ...over,
-});
-const shareRef = { id: SHARE_ID, createdAt: 1_000, updatedAt: 1_000, lastOrder: 10 };
+const OTHER_ID = 'Zz9yXw8vUt7sRq6pOn5m';
+const shareDoc = (over: Record<string, unknown> = {}) => ({
+    v: SHARE_VERSION, title: CHAT.title, payload: JSON.stringify({ transcript: [] }), createdAt: 1_000, updatedAt: 1_000, ...over,
+}) as ShareDoc;
+const shareRef = (id = SHARE_ID, updatedAt = 1_000) => ({ id, createdAt: 1_000, updatedAt, lastOrder: 10 });
+const share = (id = SHARE_ID, updatedAt = 1_000) => planShare('alice', CHAT.id, id, shareDoc({ updatedAt }), shareRef(id, updatedAt));
+
+async function aliceHasAChat(chat = CHAT) {
+    await assertSucceeds(commit(as('alice'), planCreate('alice', chat, null, [exchange('Share me', { id: 'ex-1' })])));
+}
 
 async function aliceSharesHerChat() {
-    await assertSucceeds(commit(as('alice'), planCreate('alice', CHAT, null, [exchange('Share me', { id: 'ex-1' })])));
-    await assertSucceeds(commit(as('alice'), planShare('alice', CHAT.id, SHARE_ID, shareDoc(), shareRef)));
+    await aliceHasAChat();
+    await assertSucceeds(commit(as('alice'), share()));
 }
+
+test('a link names no account, nor the chat it copies', async () => {
+    await aliceSharesHerChat();
+    const published = await peek(`shared_chats/${SHARE_ID}`);
+    assert.deepEqual(Object.keys(published!).sort(), ['createdAt', 'payload', 'title', 'updatedAt', 'v']);
+    assert.ok(!JSON.stringify(published).includes('alice') && !JSON.stringify(published).includes(CHAT.id));
+    // The old shape, which did, is refused.
+    const second = meta(2);
+    await aliceHasAChat(second);
+    for (const old of [shareDoc({ ownerUid: 'alice' }), shareDoc({ chatId: second.id }), shareDoc({ v: 1 })])
+        await assertFails(commit(as('alice'), planShare('alice', second.id, OTHER_ID, old, shareRef(OTHER_ID))));
+});
 
 test('anyone with a shared link can read it, but no one can list them', async () => {
     await aliceSharesHerChat();
@@ -84,17 +103,70 @@ test('anyone with a shared link can read it, but no one can list them', async ()
     await assertFails(getDocs(collection(as('alice'), 'shared_chats')));
 });
 
+test("a link's note is its owner's alone", async () => {
+    await aliceSharesHerChat();
+    await assertSucceeds(getDoc(doc(as('alice'), `users/alice/shares/${SHARE_ID}`)));
+    await assertSucceeds(getDocs(collection(as('alice'), 'users/alice/shares')));
+    await assertSucceeds(getDocs(query(collection(as('alice'), 'users/alice/shares'), where('chatId', '==', CHAT.id))));
+    await assertFails(getDoc(doc(as('bob'), `users/alice/shares/${SHARE_ID}`)));
+    await assertFails(getDocs(collection(as('bob'), 'users/alice/shares')));
+    await assertFails(getDoc(doc(anon(), `users/alice/shares/${SHARE_ID}`)));
+});
+
 test("only a chat's owner can share it, refresh the link or end it", async () => {
     await aliceSharesHerChat();
-    // Bob can't publish a snapshot of a chat he doesn't have, or pass one off as Alice's.
-    await assertFails(setDoc(doc(as('bob'), 'shared_chats/Zz9yXw8vUt7sRq6pOn5m'), shareDoc({ ownerUid: 'bob' })));
-    await assertFails(setDoc(doc(as('bob'), 'shared_chats/Zz9yXw8vUt7sRq6pOn5m'), shareDoc()));
+    const bobs = meta(3);
+    await assertSucceeds(commit(as('bob'), planCreate('bob', bobs, null, [exchange('Mine', { id: 'ex-1' })])));
+    // Bob can't take Alice's link over, with his own chat or a note alone.
+    await assertFails(commit(as('bob'), planShare('bob', bobs.id, SHARE_ID, shareDoc(), shareRef())));
+    await assertFails(setDoc(doc(as('bob'), `users/bob/shares/${SHARE_ID}`), { chatId: bobs.id }));
     await assertFails(updateDoc(doc(as('bob'), `shared_chats/${SHARE_ID}`), { title: 'Mine' }));
     await assertFails(deleteDoc(doc(as('bob'), `shared_chats/${SHARE_ID}`)));
-    // A refresh keeps its chat and its creation time.
-    await assertSucceeds(commit(as('alice'), planShare('alice', CHAT.id, SHARE_ID, shareDoc({ updatedAt: 2_000 }), { ...shareRef, updatedAt: 2_000 })));
+    await assertFails(deleteDoc(doc(as('bob'), `users/alice/shares/${SHARE_ID}`)));
+    // Nor publish a snapshot with no note of his own.
+    await assertFails(setDoc(doc(as('bob'), `shared_chats/${OTHER_ID}`), shareDoc()));
+    // A refresh keeps its creation time.
+    await assertSucceeds(commit(as('alice'), share(SHARE_ID, 2_000)));
     await assertFails(setDoc(doc(as('alice'), `shared_chats/${SHARE_ID}`), shareDoc({ createdAt: 5 })));
     // Ending it, and ending it again from another device, both go through.
     await assertSucceeds(commit(as('alice'), planUnshare('alice', CHAT.id, SHARE_ID)));
+    await assertSucceeds(commit(as('alice'), planUnshare('alice', CHAT.id, SHARE_ID)));
     await assertSucceeds(deleteDoc(doc(as('alice'), `shared_chats/${SHARE_ID}`)));
+});
+
+test("a link and its owner's note can't be written apart, or bent", async () => {
+    await aliceHasAChat();
+    const [link, note, ref] = share();
+    const noteOf = (data: Record<string, unknown>): Op => ({ type: 'set', path: note.path, data });
+    for (const part of [[link], [note], [link, ref], [note, ref]])
+        await assertFails(commit(as('alice'), part));
+    await assertFails(commit(as('alice'), [link, noteOf({ chatId: CHAT.id, extra: 1 }), ref]));
+    // A note for a chat she doesn't have.
+    await assertFails(commit(as('alice'), [link, noteOf({ chatId: meta(9).id })]));
+    await assertSucceeds(commit(as('alice'), [link, note, ref]));
+    // The note stays while the link does, and keeps its chat.
+    await assertFails(deleteDoc(doc(as('alice'), `users/alice/shares/${SHARE_ID}`)));
+    await assertFails(updateDoc(doc(as('alice'), `users/alice/shares/${SHARE_ID}`), { chatId: meta(2).id }));
+});
+
+test('a device with an old copy can make an ended link again, but not give a chat a second', async () => {
+    await aliceSharesHerChat();
+    await assertSucceeds(commit(as('alice'), planUnshare('alice', CHAT.id, SHARE_ID)));
+    // Its copy still says the chat is shared: refreshing makes the link again.
+    await assertSucceeds(commit(as('alice'), share(SHARE_ID, 2_000)));
+    // Ended, and a new link made elsewhere: the old copy can't bring back its own.
+    await assertSucceeds(commit(as('alice'), planUnshare('alice', CHAT.id, SHARE_ID)));
+    await assertSucceeds(commit(as('alice'), share(OTHER_ID, 3_000)));
+    await assertFails(commit(as('alice'), share(SHARE_ID, 4_000)));
+});
+
+test('deleting a chat takes its link and the note of it, even a link already ended', async () => {
+    await aliceSharesHerChat();
+    await assertSucceeds(commit(as('alice'), planDelete('alice', CHAT.id, ['ex-1'], [SHARE_ID])));
+    assert.equal(await peek(`shared_chats/${SHARE_ID}`), null);
+    assert.equal(await peek(`users/alice/shares/${SHARE_ID}`), null);
+
+    await aliceSharesHerChat();
+    await assertSucceeds(commit(as('alice'), planUnshare('alice', CHAT.id, SHARE_ID)));
+    await assertSucceeds(commit(as('alice'), planDelete('alice', CHAT.id, ['ex-1'], [SHARE_ID])));
 });

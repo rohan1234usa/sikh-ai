@@ -277,6 +277,15 @@ service cloud.firestore {
 
     // ─── Saved chats and shared links (lib/chat/store/firestorePlans.ts) ──────
     // Only used once NEXT_PUBLIC_CHAT_CLOUD is on.
+    //
+    //   users/{uid}/chats/{chatId}               a chat: its meta, and its link's id
+    //   users/{uid}/chats/{chatId}/entries/{id}  one exchange or notice each
+    //   users/{uid}/shares/{shareId}             the owner's note of a link: its chat
+    //   shared_chats/{shareId}                   the link's public copy, naming no one
+    //
+    // A link and its owner's note are made, refreshed and ended in one batch,
+    // which existsAfter() holds together. The note is how the rules know whose
+    // link it is, and how the account finds all its links when it's deleted.
 
     // ─── BEGIN SikhAI chat rules ─────────────────────────────────────────────────
 
@@ -368,29 +377,61 @@ service cloud.firestore {
       }
     }
 
+    function chatSharedPath(shareId) {
+      return /databases/$(database)/documents/shared_chats/$(shareId);
+    }
+
+    // The signed-in account's note of a link. Callers check request.auth first.
+    function chatShareNotePath(shareId) {
+      return /databases/$(database)/documents/users/$(request.auth.uid)/shares/$(shareId);
+    }
+
+    // The chat a new link copies: one of the account's, noting no other link,
+    // so a device with an old copy can't give it a second link beside the
+    // first. A chat that doesn't exist fails the read, and the rule.
+    function chatLinkFree(uid, chatId, shareId) {
+      let noted = get(/databases/$(database)/documents/users/$(uid)/chats/$(chatId)).data.get('share', null);
+      return noted == null || noted.id == shareId;
+    }
+
+    // The public copy: the snapshot, its title and its times. Nothing about who
+    // shared it, or from which chat (lib/chat/share.ts, SHARE_VERSION).
     function chatShareOk(d) {
-      return d.keys().hasOnly(['v', 'ownerUid', 'chatId', 'title', 'payload', 'createdAt', 'updatedAt'])
-        && d.v is int && d.ownerUid == request.auth.uid
-        && chatIdOk(d.chatId) && chatStr(d.title, 200)
+      return d.keys().hasOnly(['v', 'title', 'payload', 'createdAt', 'updatedAt'])
+        && d.v == 2 && chatStr(d.title, 200)
         && d.payload is string && d.payload.size() <= 1000000
         && d.createdAt is number && d.updatedAt is number;
     }
 
     // A shared link: anyone holding it can read that one snapshot, but no one can
-    // list them. Only the owner of the chat it copies can make, refresh or end it;
-    // a refresh keeps its chat and its creation time.
+    // list them. Only the account whose note names it can make, refresh or end
+    // it; a refresh keeps its creation time, and the note its chat.
     match /shared_chats/{shareId} {
       allow get: if true;
       allow list: if false;
       allow create: if request.auth != null && chatIdOk(shareId) && chatShareOk(request.resource.data)
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid)/chats/$(request.resource.data.chatId));
-      allow update: if request.auth != null && resource.data.ownerUid == request.auth.uid
-        && chatShareOk(request.resource.data)
-        && request.resource.data.chatId == resource.data.chatId
-        && request.resource.data.createdAt == resource.data.createdAt;
+        && existsAfter(chatShareNotePath(shareId));
+      allow update: if request.auth != null && chatShareOk(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && exists(chatShareNotePath(shareId));
       // A link already gone (ended on another device) may be deleted again, so
       // deleting its chat still goes through.
-      allow delete: if request.auth != null && (resource == null || resource.data.ownerUid == request.auth.uid);
+      allow delete: if request.auth != null && (resource == null || exists(chatShareNotePath(shareId)));
+    }
+
+    // The owner's note of a link, theirs alone: the chat it copies. Made with
+    // the link, written again unchanged with each refresh, and removed only
+    // once the link is gone. So every link has one, even a link whose chat was
+    // deleted where the link wasn't known, and the account can find them all.
+    match /users/{uid}/shares/{shareId} {
+      allow read: if chatAuthIs(uid);
+      allow create: if chatAuthIs(uid) && chatIdOk(shareId)
+        && request.resource.data.keys().hasOnly(['chatId'])
+        && chatIdOk(request.resource.data.chatId)
+        && !exists(chatSharedPath(shareId)) && existsAfter(chatSharedPath(shareId))
+        && chatLinkFree(uid, request.resource.data.chatId, shareId);
+      allow update: if chatAuthIs(uid) && request.resource.data == resource.data;
+      allow delete: if chatAuthIs(uid) && !existsAfter(chatSharedPath(shareId));
     }
 
     // ─── END SikhAI chat rules ───────────────────────────────────────────────────
