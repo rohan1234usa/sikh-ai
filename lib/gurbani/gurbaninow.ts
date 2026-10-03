@@ -11,7 +11,7 @@
 // Ang text never changes, so responses are cached for a month in the host's
 // data cache (the `next` option; ignored outside Next, e.g. in tests).
 
-import { MAX_ANG } from './citations';
+import { MAX_ANG, SGGS_SOURCE_ID } from './citations';
 import { describeError, logEvent } from '../log';
 
 const BASE = 'https://api.gurbaninow.com/v2';
@@ -20,12 +20,18 @@ const REVALIDATE_SECONDS = 30 * 24 * 60 * 60;
 // Today's Hukamnama changes once a day; ten minutes keeps a new one late by
 // at most that.
 const HUKAMNAMA_REVALIDATE_SECONDS = 10 * 60;
-// Best-effort ceiling per warm instance, charged before the request, so a
-// loop on a failing source cannot hammer a free public API.
-const DAILY_CALL_CEILING = 3000;
+// Best-effort ceilings per warm instance, each charged before its request, so
+// a loop on a failing source cannot hammer a free public API. The quote
+// checker and Shabad Search count separately: a busy day of searches must
+// not switch off quote checking, nor the reverse. A search makes at most four
+// calls, and the CDN answers repeated searches without any.
+export const QUOTE_CHECK_DAILY_CEILING = 3000;
+export const VERSE_SEARCH_DAILY_CEILING = 5000;
 const HEADER_LINE_TYPE = 2; // "ਸਿਰੀਰਾਗੁ ਮਹਲਾ ੩ ॥" and the like
 
-export const SEARCH_TYPES = { firstLettersStart: 0, firstLettersAnywhere: 1, allWords: 4 } as const;
+// GurbaniNow's search types. phrase matches the words exactly as written, in
+// order; allWords wants every word, in any order, each anywhere in a word.
+export const SEARCH_TYPES = { firstLettersStart: 0, firstLettersAnywhere: 1, phrase: 2, allWords: 4 } as const;
 export type SearchType = (typeof SEARCH_TYPES)[keyof typeof SEARCH_TYPES];
 
 export type GurbaniLine = {
@@ -109,19 +115,38 @@ export function parseSearchPayload(data: unknown): GurbaniLine[] | null {
     return typeof d.error === 'string' && /^nothing found/i.test(d.error.trim()) ? [] : null;
 }
 
-let counterDate = '';
-let callsToday = 0;
+// A day's allowance of calls. take() spends one, or says there is none left;
+// the count starts again with each new UTC date.
+export type Meter = { take(): boolean; remaining(): number };
 
-function overBudget(): boolean {
-    const today = new Date().toISOString().slice(0, 10);
-    if (today !== counterDate) {
-        counterDate = today;
-        callsToday = 0;
-    }
-    if (callsToday >= DAILY_CALL_CEILING) return true;
-    callsToday++;
-    return false;
+export function dailyMeter(ceiling: number, today = () => new Date().toISOString().slice(0, 10)): Meter {
+    let day = '';
+    let used = 0;
+    const roll = () => {
+        const now = today();
+        if (now !== day) {
+            day = now;
+            used = 0;
+        }
+    };
+    return {
+        take() {
+            roll();
+            if (used >= ceiling) return false;
+            used++;
+            return true;
+        },
+        remaining() {
+            roll();
+            return Math.max(0, ceiling - used);
+        },
+    };
 }
+
+export const meters = {
+    quoteCheck: dailyMeter(QUOTE_CHECK_DAILY_CEILING),
+    verseSearch: dailyMeter(VERSE_SEARCH_DAILY_CEILING),
+} as const;
 
 // One GET, kept in the host's data cache for `revalidate` seconds. That cache
 // stores only 200 responses, so an HTTP error or a timeout is never kept. A
@@ -147,26 +172,36 @@ async function request(url: string, revalidate: number, signal?: AbortSignal): P
     }
 }
 
-async function getJson(url: string, signal?: AbortSignal): Promise<unknown | null> {
-    if (overBudget()) return null;
-    return request(url, REVALIDATE_SECONDS, signal);
+// A client whose calls spend `meter`, its searches limited to one `source`
+// when given (Sri Guru Granth Sahib Ji is 1; the letter codes in GurbaniNow's
+// README return nothing).
+export function gurbaniNowClient({ meter, source }: { meter: Meter; source?: number }): GurbaniClient {
+    const getJson = (url: string, signal?: AbortSignal): Promise<unknown | null> =>
+        meter.take() ? request(url, REVALIDATE_SECONDS, signal) : Promise.resolve(null);
+    return {
+        async fetchAng(ang, signal) {
+            if (!Number.isInteger(ang) || ang < 1 || ang > MAX_ANG) return null;
+            const data = await getJson(`${BASE}/ang/${ang}`, signal);
+            return data === null ? null : parseAngPayload(data);
+        },
+        async searchLines(query, searchtype, results, signal) {
+            // Only Gurmukhi reaches the upstream URL: no Latin, and none of
+            // the _ and % its first-letter search reads as wildcards.
+            const clean = query.replace(/[^਀-੿ ]/g, '').replace(/ +/g, ' ').trim();
+            if (!clean) return [];
+            const filter = source === undefined ? '' : `&source=${source}`;
+            const url = `${BASE}/search/${encodeURIComponent(clean)}?searchtype=${searchtype}&results=${results}${filter}`;
+            const data = await getJson(url, signal);
+            return data === null ? null : parseSearchPayload(data);
+        },
+    };
 }
 
-export const gurbaniNow: GurbaniClient = {
-    async fetchAng(ang, signal) {
-        if (!Number.isInteger(ang) || ang < 1 || ang > MAX_ANG) return null;
-        const data = await getJson(`${BASE}/ang/${ang}`, signal);
-        return data === null ? null : parseAngPayload(data);
-    },
-    async searchLines(query, searchtype, results, signal) {
-        // Only Gurmukhi reaches the upstream URL.
-        const clean = query.replace(/[^਀-੿ ]/g, '').trim();
-        if (!clean) return [];
-        const url = `${BASE}/search/${encodeURIComponent(clean)}?searchtype=${searchtype}&results=${results}`;
-        const data = await getJson(url, signal);
-        return data === null ? null : parseSearchPayload(data);
-    },
-};
+// The chat's quote checker, which reads every source.
+export const gurbaniNow = gurbaniNowClient({ meter: meters.quoteCheck });
+
+// Shabad Search: Sri Guru Granth Sahib Ji only, on its own daily count.
+export const verseSearchClient = gurbaniNowClient({ meter: meters.verseSearch, source: SGGS_SOURCE_ID });
 
 // The raw payloads the site's pages already parse: /api/shabad's (the Ang
 // reader and the chat's links to an Ang), /api/hukamnama's and the Hukamnama

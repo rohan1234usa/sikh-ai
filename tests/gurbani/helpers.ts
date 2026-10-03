@@ -4,6 +4,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { GurbaniClient, GurbaniLine } from '@/lib/gurbani/gurbaninow';
+import { angKey, searchKey } from './keys';
 
 const DIR = resolve(import.meta.dirname, 'fixtures');
 
@@ -18,18 +19,20 @@ export function reply(id: string): string {
     return found.text;
 }
 
-// `down` makes every lookup fail, the way an unreachable source does.
-export function fakeClient(opts: { down?: boolean } = {}) {
+// `down` makes every lookup fail, the way an unreachable source does; `fail`
+// fails only the lookups it picks. `source` limits searches to one source, as
+// the live Shabad Search client does.
+export function fakeClient(opts: { down?: boolean; fail?: (key: string) => boolean; source?: number } = {}) {
     const calls: string[] = [];
     const answer = (key: string) => {
         calls.push(key);
-        if (opts.down) return null;
+        if (opts.down || opts.fail?.(key)) return null;
         if (!(key in recorded)) throw new Error(`no recorded GurbaniNow answer for "${key}" — run npm run fixtures:gurbani`);
         return recorded[key];
     };
     const client: GurbaniClient = {
-        async fetchAng(ang) { return answer(`ang:${ang}`); },
-        async searchLines(query, type, results) { return answer(`search:${type}:${results}:${query}`); },
+        async fetchAng(ang) { return answer(angKey(ang)); },
+        async searchLines(query, type, results) { return answer(searchKey(query, type, results, opts.source)); },
     };
     return { client, calls };
 }

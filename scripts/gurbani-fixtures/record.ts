@@ -12,6 +12,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { gurbaniNow, type GurbaniClient, type GurbaniLine } from '../../lib/gurbani/gurbaninow';
 import { verifyReply } from '../../lib/gurbani/verify';
+import { angKey, searchKey } from '../../tests/gurbani/keys';
 
 const DIR = resolve(import.meta.dirname, '../../tests/gurbani/fixtures');
 
@@ -21,12 +22,12 @@ async function main(): Promise<void> {
     const recorder: GurbaniClient = {
         async fetchAng(ang, signal) {
             const lines = await gurbaniNow.fetchAng(ang, signal);
-            recorded[`ang:${ang}`] = lines;
+            recorded[angKey(ang)] = lines;
             return lines;
         },
         async searchLines(query, type, results, signal) {
             const lines = await gurbaniNow.searchLines(query, type, results, signal);
-            recorded[`search:${type}:${results}:${query}`] = lines;
+            recorded[searchKey(query, type, results)] = lines;
             return lines;
         },
     };
