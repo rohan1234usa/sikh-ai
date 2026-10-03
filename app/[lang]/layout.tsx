@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { notFound } from "next/navigation";
 import "@/app/globals.css";
 import { FONT_VARIABLES } from "@/app/fonts";
 import { AuthProvider } from "@/app/context/AuthContext";
@@ -6,7 +7,7 @@ import { LanguageProvider } from "@/app/context/LanguageContext";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import SiteAnalytics from "@/app/components/SiteAnalytics";
-import { LANGS, LANG_META, parseLang } from "@/lib/i18n/config";
+import { LANGS, LANG_META, isLang } from "@/lib/i18n/config";
 import { getServerT } from "@/lib/i18n/server";
 import { SITE_URL, openGraph } from "@/lib/metadata";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
@@ -48,8 +49,12 @@ export function generateStaticParams() {
 
 export default async function RootLayout({ children, params }: LayoutProps<"/[lang]">) {
   // From the URL, so <html lang> and every word are right in the built HTML,
-  // and the client provider is seeded with the same value.
-  const lang = parseLang((await params).lang);
+  // and the client provider is seeded with the same value. Only a prefix in
+  // the wrong case (/PA/…) reaches here as anything else: the host matches the
+  // routing rules regardless of case, so it skips the rewrite. That address
+  // is a 404, not the English page under a name of its own.
+  const lang = (await params).lang;
+  if (!isLang(lang)) notFound();
 
   return (
     <html
