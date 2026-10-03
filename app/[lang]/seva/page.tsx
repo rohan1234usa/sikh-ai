@@ -4,11 +4,12 @@ import { PRIMARY_BUTTON } from '@/app/components/buttons';
 import EventCard from '@/app/components/seva/EventCard';
 import SevaBoard, { type BoardGroup } from '@/app/components/seva/SevaBoard';
 import SevaHero from '@/app/components/seva/SevaHero';
+import YourSevaPanel from '@/app/components/seva/YourSevaPanel';
 import { localePath } from '@/lib/i18n/paths';
 import { getSevaCopy } from '@/lib/i18n/seva';
 import { getServerT } from '@/lib/i18n/server';
 import { pageMetadata } from '@/lib/metadata';
-import { CREATE_HREF, eventHref } from '@/lib/seva/config';
+import { ADMIN_HREF, CREATE_HREF, eventHref } from '@/lib/seva/config';
 import { countryName } from '@/lib/seva/countries';
 import { describeEvent } from '@/lib/seva/display';
 import { facetsOf, groupByDay, upcoming } from '@/lib/seva/listing';
@@ -65,6 +66,13 @@ export default async function SevaBoardPage() {
       <SevaHero lang={lang} copy={copy.board} hostHref={to(CREATE_HREF)} angHref={to('/shabad/26')} />
 
       <div className="mx-auto w-full max-w-4xl space-y-8 px-4 py-8 sm:px-6">
+        <YourSevaPanel
+          lang={lang}
+          copy={copy.mine}
+          labels={{ cancelled: copy.common.cancelled, hidden: copy.common.hidden, full: copy.common.full, retry: copy.common.retry }}
+          eventBase={to('/seva/')}
+          adminHref={to(ADMIN_HREF)}
+        />
         {events === null ? (
           <div className="rounded-xl border border-edge bg-surface-raised p-6 text-center shadow-sm">
             <h2 className="text-lg font-bold text-ink">{copy.board.unavailableTitle}</h2>

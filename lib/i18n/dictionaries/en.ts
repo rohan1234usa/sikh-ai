@@ -317,8 +317,8 @@ const en = {
             },
             seva: {
                 title: 'Seva Events',
-                desc: 'Find and join local Sangat seva opportunities.',
-                cta: 'Browse events',
+                desc: 'Find a seva near you, add it to your calendar, or host one for your sangat.',
+                cta: 'Find a seva',
             },
         },
     },
@@ -759,49 +759,6 @@ const en = {
         },
     },
 
-    seva: {
-        heroTitle: 'Serve with {word}',
-        heroWord: 'Humility',
-        // Gurbani (Ang 26) — quoted per language: romanized here, Gurmukhi in pa.
-        quote: '“Vich duniya sev kamaiye, ta dargah baisan paiye.”',
-        postEvent: '+ Post Event',
-        signInPrompt: 'You must be signed in to join a Seva event.',
-        joinError: 'Something went wrong joining the event. Please try again.',
-        dismissAria: 'Dismiss notice',
-        loading: 'Loading...',
-        spotsLeft: '{n} spots left',
-        joined: 'Joined! Waheguru',
-        full: 'Full - Waheguru',
-        join: 'Join Seva',
-        // Display labels only — the raw category value stays the data/style key.
-        categories: {
-            Langar: 'Langar',
-            Service: 'Service',
-            Education: 'Education',
-            Other: 'Other',
-        },
-    },
-
-    sevaCreate: {
-        title: 'Post New Seva',
-        cancel: 'Cancel',
-        eventTitle: 'Event Title',
-        eventTitlePlaceholder: 'e.g. Weekend Langar Prep',
-        category: 'Category',
-        volunteersNeeded: 'Volunteers Needed',
-        neededPlaceholder: 'e.g. 5',
-        location: 'Location (Gurdwara)',
-        locationPlaceholder: 'e.g. Gurdwara Singh Sabha',
-        dateTime: 'Date & Time',
-        datePlaceholder: 'e.g. Sat, Jan 20 • 4:00 AM',
-        description: 'Description',
-        optional: '(optional)',
-        descriptionPlaceholder: 'What will volunteers be doing?',
-        createError: 'Something went wrong creating the event. Please try again.',
-        posting: 'Posting...',
-        submit: 'Create Seva Event',
-    },
-
     notFound: {
         heading: 'Page not found',
         body: "The page you're looking for doesn't exist or may have moved.",
@@ -841,8 +798,6 @@ const en = {
         chatTitle: 'Ask SikhAI',
         shareTitle: 'Shared conversation',
         shabadTitle: 'Shabad Search',
-        sevaTitle: 'Seva Events',
-        sevaCreateTitle: 'Post a Seva Event',
         hukamnamaTitle: "Today's Hukamnama",
         translateTitle: 'Punjabi Translator',
         learnTitle: 'Learn Punjabi',
@@ -855,7 +810,6 @@ const en = {
             translate: 'Translate between English, Gurmukhi and romanized Punjabi, with a word-by-word breakdown, tricky parts explained, and pronunciation tips.',
             learn: 'Learn Punjabi as a Punjabi American: read Gurmukhi, understand the grammar, build everyday vocabulary with flashcards, and practice with a tutor.',
             shabad: 'Read any Ang of Sri Guru Granth Sahib Ji, 1 to 1430, in Gurmukhi with an English translation.',
-            seva: 'Find and join seva events near you, from langar to education, or post your own.',
         },
         // An Ang's page: {line} is its opening line, {n} its number.
         angDescription: '{line} — Ang {n} of Sri Guru Granth Sahib Ji, in Gurmukhi with an English translation.',

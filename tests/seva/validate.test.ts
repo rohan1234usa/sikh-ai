@@ -87,3 +87,22 @@ test('a report needs a reason, and a word for "something else"; a cancel note ha
     assert.deepEqual(validateCancelNote(' Moved to Sunday '), { ok: true, note: 'Moved to Sunday' });
     assert.deepEqual(validateCancelNote('x'.repeat(301)), { ok: false, error: 'tooLong' });
 });
+
+test('an event goes back into the form as it was typed, and a week later for Post again', async () => {
+    const { draftFromEvent, postAgainDraft, parseDraft } = await import('@/lib/seva/draft');
+    const r = validateEventDraft(draft(), { now: NOW });
+    assert.ok(r.ok);
+    assert.deepEqual(draftFromEvent(r.fields), draft());
+    const again = postAgainDraft(r.fields);
+    assert.deepEqual([again.date, again.startTime, again.endTime], ['2026-10-17', '18:00', '21:00']);
+    // Across the end of summer time in Los Angeles (1 November): still 6 pm.
+    const late = validateEventDraft(draft({ date: '2026-10-31' }), { now: NOW });
+    assert.ok(late.ok);
+    assert.deepEqual([postAgainDraft(late.fields).date, postAgainDraft(late.fields).startTime], ['2026-11-07', '18:00']);
+    // Overnight comes back as a later end day.
+    const overnight = validateEventDraft(draft({ multiDay: true, endDate: '2026-10-11', endTime: '02:00' }), { now: NOW });
+    assert.ok(overnight.ok);
+    assert.deepEqual([draftFromEvent(overnight.fields).multiDay, draftFromEvent(overnight.fields).endDate], [true, '2026-10-11']);
+    // A kept draft keeps only the form's fields.
+    assert.deepEqual(parseDraft({ title: 'x', multiDay: 'yes', extra: 1 }), { ...parseDraft({}), title: 'x' });
+});

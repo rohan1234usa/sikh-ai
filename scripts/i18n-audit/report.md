@@ -11,7 +11,7 @@
 | metric | value |
 | --- | --- |
 | mode | **dry run** — back-translation not yet run |
-| strings enumerated (en / pa / pa-latn) | 708 / 708 / 708 |
+| strings enumerated (en / pa / pa-latn) | 1016 / 1016 / 1016 |
 | phrasebook entries | 50 |
 | findings (errors) | 0 (0) |
 | characters billed this run | 0 (dry run) |
@@ -19,7 +19,7 @@
 | cumulative characters billed | 0 |
 | cache entries | 0 |
 
-> **Dry run** — no API calls were made. A full run would translate roughly **31395 characters** that are not yet cached.
+> **Dry run** — no API calls were made. A full run would translate roughly **40606 characters** that are not yet cached.
 
 ## Free checks
 
@@ -50,4 +50,4 @@ _Skipped in this dry run._
 - **Back-translation is not ground truth.** A low score compares one machine translation against a human-facing string; it flags *where to look*, not what is wrong. Idiomatic translations legitimately score low.
 - The Fateh (`Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh`) is stripped from both sides before scoring — it appears verbatim in every lens greeting and would otherwise drag them all to the bottom.
 - **`pa-latn.ts` cannot be machine-audited.** Cloud Translation neither romanizes Punjabi nor reliably reads romanized Punjabi, so its coverage here is the free checks only — placeholder parity, script bleed, length ratios, and spelling drift.
-- Skipped from back-translation: `fateh`. Allowed to be Latin in `pa.ts`: `chat.config.lenses.sikhai.name`, `about.bio1School`, `meta.titleTemplate`, `translate.crosscheckLabel`.
+- Skipped from back-translation: `fateh`. Allowed to be Latin in `pa.ts`: `chat.config.lenses.sikhai.name`, `about.bio1School`, `meta.titleTemplate`, `translate.crosscheckLabel`, `seva.event.googleCalendar`.
