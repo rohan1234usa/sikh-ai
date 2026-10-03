@@ -4,13 +4,19 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { GurbaniClient, GurbaniLine } from '@/lib/gurbani/gurbaninow';
+import { angKey, searchKey } from './keys';
 
 const DIR = resolve(import.meta.dirname, 'fixtures');
 
 export type Reply = { id: string; source: string; text: string };
 
 export const replies: Reply[] = JSON.parse(readFileSync(`${DIR}/replies.json`, 'utf8'));
-const recorded: Record<string, GurbaniLine[]> = JSON.parse(readFileSync(`${DIR}/gurbaninow.json`, 'utf8'));
+// The quote checker's lookups and Shabad Search's, recorded separately: the
+// score and extract tests read gurbaninow.json alone as their corpus.
+const recorded: Record<string, GurbaniLine[]> = {
+    ...JSON.parse(readFileSync(`${DIR}/gurbaninow.json`, 'utf8')),
+    ...JSON.parse(readFileSync(`${DIR}/search.json`, 'utf8')),
+};
 
 export function reply(id: string): string {
     const found = replies.find(r => r.id === id);
@@ -18,18 +24,20 @@ export function reply(id: string): string {
     return found.text;
 }
 
-// `down` makes every lookup fail, the way an unreachable source does.
-export function fakeClient(opts: { down?: boolean } = {}) {
+// `down` makes every lookup fail, the way an unreachable source does; `fail`
+// fails only the lookups it picks. `source` limits searches to one source, as
+// the live Shabad Search client does.
+export function fakeClient(opts: { down?: boolean; fail?: (key: string) => boolean; source?: number } = {}) {
     const calls: string[] = [];
     const answer = (key: string) => {
         calls.push(key);
-        if (opts.down) return null;
+        if (opts.down || opts.fail?.(key)) return null;
         if (!(key in recorded)) throw new Error(`no recorded GurbaniNow answer for "${key}" — run npm run fixtures:gurbani`);
         return recorded[key];
     };
     const client: GurbaniClient = {
-        async fetchAng(ang) { return answer(`ang:${ang}`); },
-        async searchLines(query, type, results) { return answer(`search:${type}:${results}:${query}`); },
+        async fetchAng(ang) { return answer(angKey(ang)); },
+        async searchLines(query, type, results) { return answer(searchKey(query, type, results, opts.source)); },
     };
     return { client, calls };
 }

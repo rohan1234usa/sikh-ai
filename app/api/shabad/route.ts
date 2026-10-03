@@ -3,10 +3,10 @@ import { MAX_ANG } from '@/lib/gurbani/citations';
 import { fetchAngPayload } from '@/lib/gurbani/gurbaninow';
 import { withRequestLog } from '@/lib/log';
 
-// One Ang from GurbaniNow, passed through as-is for the Ang reader and the
-// chat's links to an Ang. An Ang's text never changes, so a good answer is
-// cached for a month at the CDN (Vercel empties that cache on every deploy)
-// and for a day in the browser. Errors are never cached.
+// One Ang from GurbaniNow, passed through as-is for the chat's links to an
+// Ang. An Ang's text never changes, so a good answer is cached for a month at
+// the CDN (Vercel empties that cache on every deploy) and for a day in the
+// browser. Errors are never cached.
 const ANG_CACHE = 'public, max-age=86400, s-maxage=2592000, stale-while-revalidate=86400';
 const NO_STORE = { 'Cache-Control': 'no-store' };
 

@@ -312,7 +312,7 @@ const en = {
             },
             shabad: {
                 title: 'Shabad Search',
-                desc: 'Look up any Ang (1–1430) of the Guru Granth Sahib.',
+                desc: 'Find any shabad by a line, its first letters, or an Ang (1–1430).',
                 cta: 'Search Gurbani',
             },
             seva: {
@@ -508,20 +508,65 @@ const en = {
     },
 
     shabad: {
-        title: 'Find by {ang}',
-        angWord: 'Ang',
-        angNumberAria: 'Ang number',
-        placeholder: 'Enter Ang Number (1-1430)',
+        title: 'Search {word}',
+        titleWord: 'Gurbani',
+        searchAria: 'Search Gurbani by a line, its first letters, or an Ang number',
+        placeholder: 'A line of Gurbani, or an Ang number',
         searchButton: 'Search',
-        helpText: 'Enter a page number to read the Gurbani from that Ang.',
-        invalidDigits: 'Please enter a valid Ang number (digits only).',
+        // {example} is the first letters of a line, in Gurmukhi.
+        helpText: 'Type a line in Gurmukhi or English letters, or the first letter of each word ({example}). A number from 1 to 1430 opens that Ang.',
         angRange: 'Ang number must be between 1 and 1430.',
+        // What can't be searched, said as soon as it's typed.
+        invalid: {
+            tooShort: 'Type a little more: at least two words of the line (three in English letters), or three of its first letters.',
+            tooLong: 'That is longer than any line. Type one line, or part of it.',
+            noLetters: 'Type a line of Gurbani, its first letters, or an Ang number.',
+            english: 'Shabad Search finds a line by its words, not its meaning. Type the line itself, in Gurmukhi or English letters.',
+            otherScript: 'Type the line in Gurmukhi, or in English letters.',
+            searchWord: 'Search for this word anyway',
+            searchLetters: 'Search these as first letters',
+        },
+        results: {
+            searching: 'Searching…',
+            found: 'Shabads found: {n}',
+            none: 'No line of Sri Guru Granth Sahib Ji matched.',
+            // Some lookups went unanswered, so "nothing matched" can't be said.
+            unfinished: "The search didn't finish.",
+            noneTips: 'Check the spelling, type more of the line, or try the first letter of each word.',
+            truncated: 'Many lines match. Type more of the line to narrow it down.',
+            incomplete: "The Gurbani source didn't answer every search, so some lines may be missing.",
+            retry: 'Try again',
+            sameLine: 'Same line in other shabads: {n}',
+            // How the search read what was typed.
+            searchedAs: {
+                gurmukhi: 'Searched for these words',
+                'gurmukhi-letters': 'Searched by first letters',
+                roman: 'Searched for these words, in English letters',
+                'roman-letters': 'Searched by first letters, in English letters',
+            },
+            wordsInstead: 'Search for the words instead',
+            lettersInstead: 'Search by first letters instead',
+            examples: 'Try',
+        },
         angLabel: 'Ang {n}',
         askAboutAng: 'Ask about this Ang',
         lineN: 'Line {n}',
         granth: 'Guru Granth Sahib Ji',
-        gurmukhiUnavailable: 'Gurmukhi Unavailable',
         translationUnavailable: 'Translation unavailable',
+        // A whole shabad's page (/shabad/s/{id}).
+        page: {
+            label: 'Shabad',
+            angSpan: 'Angs {from}–{to}',
+            // The page's title: {line} is its first line, {n} the Ang it starts on.
+            title: '{line} · Ang {n}',
+            previous: 'Previous shabad',
+            next: 'Next shabad',
+            // On an Ang's page, above each shabad's lines.
+            fullShabad: 'Read the full shabad',
+            navAria: 'The shabads before and after this one',
+            // {source} becomes a link to GurbaniNow.
+            sourceNote: 'Gurbani, transliteration and translation from {source}, under CC BY-NC-ND 4.0.',
+        },
     },
 
     translate: {
@@ -809,10 +854,12 @@ const en = {
             chat: 'Ask SikhAI about Sikhi, Gurbani and Sikh history. Answers quote Gurbani, and every quote is checked against the source.',
             translate: 'Translate between English, Gurmukhi and romanized Punjabi, with a word-by-word breakdown, tricky parts explained, and pronunciation tips.',
             learn: 'Learn Punjabi as a Punjabi American: read Gurmukhi, understand the grammar, build everyday vocabulary with flashcards, and practice with a tutor.',
-            shabad: 'Read any Ang of Sri Guru Granth Sahib Ji, 1 to 1430, in Gurmukhi with an English translation.',
+            shabad: 'Find any shabad of Sri Guru Granth Sahib Ji from one of its lines, in Gurmukhi or English letters, or its first letters, and read it whole with transliteration and translation. Or open any Ang, 1 to 1430.',
         },
         // An Ang's page: {line} is its opening line, {n} its number.
         angDescription: '{line} — Ang {n} of Sri Guru Granth Sahib Ji, in Gurmukhi with an English translation.',
+        // A shabad's page: {line} is its first line, {n} the Ang it starts on.
+        shabadDescription: '{line} — the whole shabad from Ang {n} of Sri Guru Granth Sahib Ji, with transliteration and an English translation.',
     },
 
     // Keys matching the `code` field on API error responses, plus client-local
@@ -829,6 +876,9 @@ const en = {
         invalid_ang: 'Invalid Ang number',
         source_error: 'Could not reach the Gurbani source. Please try again.',
         hukamnama_unavailable: 'Unable to load the Hukamnama right now.',
+        invalid_query: "Shabad Search can't look that up. Type a line of Gurbani, the first letter of each of its words, or an Ang number.",
+        search_busy: 'Shabad Search is very busy right now. Please try again in a minute.',
+        search_failed: 'Sorry, the search failed. Please try again.',
         translate_empty: 'Please enter some text to translate.',
         translate_too_long: 'That text is too long. Please try up to 1,000 characters.',
         translate_failed: 'Sorry, the translation failed. Please try again.',

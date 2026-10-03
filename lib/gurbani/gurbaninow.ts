@@ -1,17 +1,19 @@
-// SERVER-ONLY: GurbaniNow client for checking quoted lines, and the fetches
-// behind the Hukamnama page and the Ang reader. Same posture as
-// lib/translate/cloud.ts: never throws, and times out fast. The quote checker
-// also meters itself.
+// SERVER-ONLY: GurbaniNow client for the chat's quote checker and Shabad
+// Search, and the fetches behind the Hukamnama, Ang and shabad pages. Same
+// posture as lib/translate/cloud.ts: never throws, and times out fast. The
+// quote checker and Shabad Search each meter themselves.
 //
 // The difference between null and [] is load-bearing. [] means the source
 // answered and nothing matched — evidence a line is not in Gurbani. null
 // means the source did not answer, which is no evidence at all, and must
 // never turn into an "unverified" verdict.
 //
-// Ang text never changes, so responses are cached for a month in the host's
-// data cache (the `next` option; ignored outside Next, e.g. in tests).
+// Gurbani's text never changes, so responses are cached for a month in the
+// host's data cache (the `next` option; ignored outside Next, e.g. in tests).
+// Only the Hukamnama, which changes daily, is kept for less.
 
-import { MAX_ANG } from './citations';
+import { MAX_ANG, SGGS_SOURCE_ID } from './citations';
+import { assignAngs, isGurbaniId, lineKind, type Shabad, type ShabadLine } from './shabad';
 import { describeError, logEvent } from '../log';
 
 const BASE = 'https://api.gurbaninow.com/v2';
@@ -20,12 +22,23 @@ const REVALIDATE_SECONDS = 30 * 24 * 60 * 60;
 // Today's Hukamnama changes once a day; ten minutes keeps a new one late by
 // at most that.
 const HUKAMNAMA_REVALIDATE_SECONDS = 10 * 60;
-// Best-effort ceiling per warm instance, charged before the request, so a
-// loop on a failing source cannot hammer a free public API.
-const DAILY_CALL_CEILING = 3000;
+// Best-effort ceilings per warm instance, each charged before its request, so
+// a loop on a failing source cannot hammer a free public API. The quote
+// checker and Shabad Search count separately: a busy day of searches must
+// not switch off quote checking, nor the reverse. A search makes at most four
+// calls, and the CDN answers repeated searches without any.
+export const QUOTE_CHECK_DAILY_CEILING = 3000;
+export const VERSE_SEARCH_DAILY_CEILING = 5000;
+// A shabad's page asks GurbaniNow only while it is being built, but a
+// made-up id is asked for afresh on every visit (see the page reads below).
+// The ceiling is above the Granth's roughly six thousand shabads, so a crawl
+// of every page fits in a day.
+export const SHABAD_PAGE_DAILY_CEILING = 8000;
 const HEADER_LINE_TYPE = 2; // "ਸਿਰੀਰਾਗੁ ਮਹਲਾ ੩ ॥" and the like
 
-export const SEARCH_TYPES = { firstLettersStart: 0, firstLettersAnywhere: 1, allWords: 4 } as const;
+// GurbaniNow's search types. phrase matches the words exactly as written, in
+// order; allWords wants every word, in any order, each anywhere in a word.
+export const SEARCH_TYPES = { firstLettersStart: 0, firstLettersAnywhere: 1, phrase: 2, allWords: 4 } as const;
 export type SearchType = (typeof SEARCH_TYPES)[keyof typeof SEARCH_TYPES];
 
 export type GurbaniLine = {
@@ -33,6 +46,7 @@ export type GurbaniLine = {
     shabadId: string;
     gurmukhi: string;
     translation: string;
+    transliteration: string; // GurbaniNow's romanization, '' when it gives none
     writer: string;
     writerGurmukhi: string;
     raag: string;
@@ -53,25 +67,39 @@ type Json = Record<string, unknown>;
 const obj = (v: unknown): Json => (v && typeof v === 'object' ? v as Json : {});
 const text = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+// Ids are strings upstream; one sent as a number would otherwise be lost.
+const idText = (v: unknown): string => (typeof v === 'number' && Number.isFinite(v) ? String(v) : text(v));
 
 function toSource(v: unknown): GurbaniLine['source'] {
     const s = obj(v);
     return { id: num(s.id) ?? 0, name: text(s.english), nameGurmukhi: text(s.unicode) };
 }
 
+// The text fields a line has wherever it comes from: an Ang, a search, or a
+// whole shabad.
+function lineText(v: Json) {
+    const english = obj(v.translation).english;
+    const roman = obj(v.transliteration).english;
+    return {
+        gurmukhi: text(obj(v.gurmukhi).unicode) || text(v.gurmukhi),
+        translation: text(english) || text(obj(english).default),
+        transliteration: text(roman) || text(obj(roman).text),
+    };
+}
+
 function toLine(raw: unknown, source?: GurbaniLine['source']): GurbaniLine | null {
     const v = obj(raw);
-    const gurmukhi = text(obj(v.gurmukhi).unicode) || text(v.gurmukhi);
-    const id = text(v.id);
+    const { gurmukhi, translation, transliteration } = lineText(v);
+    const id = idText(v.id);
     if (!gurmukhi || !id) return null;
-    const english = obj(v.translation).english;
     const writer = obj(v.writer);
     const raag = obj(v.raag);
     return {
         id,
-        shabadId: text(v.shabadid),
+        shabadId: idText(v.shabadid),
         gurmukhi,
-        translation: text(english) || text(obj(english).default),
+        translation,
+        transliteration,
         writer: text(writer.english),
         writerGurmukhi: text(writer.unicode),
         raag: text(raag.english),
@@ -106,19 +134,82 @@ export function parseSearchPayload(data: unknown): GurbaniLine[] | null {
     return typeof d.error === 'string' && /^nothing found/i.test(d.error.trim()) ? [] : null;
 }
 
-let counterDate = '';
-let callsToday = 0;
-
-function overBudget(): boolean {
-    const today = new Date().toISOString().slice(0, 10);
-    if (today !== counterDate) {
-        counterDate = today;
-        callsToday = 0;
-    }
-    if (callsToday >= DAILY_CALL_CEILING) return true;
-    callsToday++;
-    return false;
+// A whole shabad. Its writer, raag, source, first Ang and neighbours come
+// once, in shabadinfo; each line brings only its text, its kind and its place
+// on the page, from which its Ang follows (assignAngs). null for anything
+// that is not a usable shabad.
+export function parseShabadPayload(data: unknown): Shabad | null {
+    const d = obj(data);
+    const info = obj(d.shabadinfo);
+    const id = idText(info.shabadid);
+    if (d.error || !isGurbaniId(id) || !Array.isArray(d.shabad)) return null;
+    const raw = d.shabad.map(item => obj(obj(item).line));
+    const lineNos = raw.map(v => num(v.linenum) ?? num(v.lineno));
+    const start = num(info.pageno);
+    const angs = assignAngs(start, lineNos);
+    const lines: ShabadLine[] = [];
+    raw.forEach((v, i) => {
+        const { gurmukhi, translation, transliteration } = lineText(v);
+        const lineId = idText(v.id);
+        if (!gurmukhi || !lineId) return;
+        lines.push({ id: lineId, kind: lineKind(v.type), gurmukhi, transliteration, translation, ang: angs[i], lineNo: lineNos[i] });
+    });
+    if (lines.length === 0) return null;
+    const writer = obj(info.writer);
+    const raag = obj(info.raag);
+    const navigation = obj(info.navigation);
+    const neighbour = (v: unknown): string | null => {
+        const next = idText(obj(v).id);
+        return isGurbaniId(next) ? next : null;
+    };
+    return {
+        id,
+        source: toSource(info.source),
+        writer: text(writer.english),
+        writerGurmukhi: text(writer.unicode),
+        raag: text(raag.english),
+        raagGurmukhi: text(raag.unicode),
+        ang: start,
+        angEnd: angs.at(-1) ?? start,
+        previousId: neighbour(navigation.previous),
+        nextId: neighbour(navigation.next),
+        lines,
+    };
 }
+
+// A day's allowance of calls. take() spends one, or says there is none left;
+// the count starts again with each new UTC date.
+export type Meter = { take(): boolean; remaining(): number };
+
+export function dailyMeter(ceiling: number, today = () => new Date().toISOString().slice(0, 10)): Meter {
+    let day = '';
+    let used = 0;
+    const roll = () => {
+        const now = today();
+        if (now !== day) {
+            day = now;
+            used = 0;
+        }
+    };
+    return {
+        take() {
+            roll();
+            if (used >= ceiling) return false;
+            used++;
+            return true;
+        },
+        remaining() {
+            roll();
+            return Math.max(0, ceiling - used);
+        },
+    };
+}
+
+export const meters = {
+    quoteCheck: dailyMeter(QUOTE_CHECK_DAILY_CEILING),
+    verseSearch: dailyMeter(VERSE_SEARCH_DAILY_CEILING),
+    shabadPage: dailyMeter(SHABAD_PAGE_DAILY_CEILING),
+} as const;
 
 // One GET, kept in the host's data cache for `revalidate` seconds. That cache
 // stores only 200 responses, so an HTTP error or a timeout is never kept. A
@@ -144,39 +235,63 @@ async function request(url: string, revalidate: number, signal?: AbortSignal): P
     }
 }
 
-async function getJson(url: string, signal?: AbortSignal): Promise<unknown | null> {
-    if (overBudget()) return null;
-    return request(url, REVALIDATE_SECONDS, signal);
+// A client whose calls spend `meter`, its searches limited to one `source`
+// when given (Sri Guru Granth Sahib Ji is 1; the letter codes in GurbaniNow's
+// README return nothing).
+export function gurbaniNowClient({ meter, source }: { meter: Meter; source?: number }): GurbaniClient {
+    const getJson = (url: string, signal?: AbortSignal): Promise<unknown | null> =>
+        meter.take() ? request(url, REVALIDATE_SECONDS, signal) : Promise.resolve(null);
+    return {
+        async fetchAng(ang, signal) {
+            if (!Number.isInteger(ang) || ang < 1 || ang > MAX_ANG) return null;
+            const data = await getJson(`${BASE}/ang/${ang}`, signal);
+            return data === null ? null : parseAngPayload(data);
+        },
+        async searchLines(query, searchtype, results, signal) {
+            // Only Gurmukhi reaches the upstream URL: no Latin, and none of
+            // the _ and % its first-letter search reads as wildcards.
+            const clean = query.replace(/[^਀-੿ ]/g, '').replace(/ +/g, ' ').trim();
+            if (!clean) return [];
+            const filter = source === undefined ? '' : `&source=${source}`;
+            const url = `${BASE}/search/${encodeURIComponent(clean)}?searchtype=${searchtype}&results=${results}${filter}`;
+            const data = await getJson(url, signal);
+            return data === null ? null : parseSearchPayload(data);
+        },
+    };
 }
 
-export const gurbaniNow: GurbaniClient = {
-    async fetchAng(ang, signal) {
-        if (!Number.isInteger(ang) || ang < 1 || ang > MAX_ANG) return null;
-        const data = await getJson(`${BASE}/ang/${ang}`, signal);
-        return data === null ? null : parseAngPayload(data);
-    },
-    async searchLines(query, searchtype, results, signal) {
-        // Only Gurmukhi reaches the upstream URL.
-        const clean = query.replace(/[^਀-੿ ]/g, '').trim();
-        if (!clean) return [];
-        const url = `${BASE}/search/${encodeURIComponent(clean)}?searchtype=${searchtype}&results=${results}`;
-        const data = await getJson(url, signal);
-        return data === null ? null : parseSearchPayload(data);
-    },
-};
+// The chat's quote checker, which reads every source.
+export const gurbaniNow = gurbaniNowClient({ meter: meters.quoteCheck });
 
-// The raw payloads the site's pages already parse: /api/shabad's (the Ang
-// reader and the chat's links to an Ang), /api/hukamnama's and the Hukamnama
-// page's. They skip the quote checker's daily meter. Each view makes at most
-// one call and the data cache answers repeats, so there is no loop to guard
-// against. The meter is charged before the cache is consulted, so it would
-// count those cache hits too, and a busy day of page views could switch off
-// quote checking. null means no usable answer.
+// Shabad Search: Sri Guru Granth Sahib Ji only, on its own daily count.
+export const verseSearchClient = gurbaniNowClient({ meter: meters.verseSearch, source: SGGS_SOURCE_ID });
+
+// What the site's pages read: an Ang for its page and for /api/shabad (the
+// chat's links to an Ang), a shabad for its page, and the Hukamnama for its
+// page and /api/hukamnama. They skip the quote checker's and the search's
+// meters: a meter is charged before the cache is consulted, so it would count
+// cache hits too, and a busy day of page views could switch off quote
+// checking or search. Each view makes at most one call, and the data cache
+// answers repeats, so there is no loop to guard against. The exception is a
+// shabad id GurbaniNow doesn't know: its HTTP 500 is never cached, so each
+// visit to a made-up id asks again. Shabad pages therefore spend an
+// allowance of their own (SHABAD_PAGE_DAILY_CEILING). null means no usable
+// answer.
 
 export async function fetchAngPayload(ang: number): Promise<unknown | null> {
     if (!Number.isInteger(ang) || ang < 1 || ang > MAX_ANG) return null;
     const data = await request(`${BASE}/ang/${ang}`, REVALIDATE_SECONDS);
     return data !== null && parseAngPayload(data) ? data : null;
+}
+
+// One whole shabad, for its page. GurbaniNow answers an id it doesn't know
+// with the same HTTP 500 as a fault, so the two can't be told apart: both are
+// null, and the page reports an outage rather than caching a verdict.
+export async function fetchShabad(id: string): Promise<Shabad | null> {
+    if (!isGurbaniId(id) || !meters.shabadPage.take()) return null;
+    const data = await request(`${BASE}/shabad/${id}`, REVALIDATE_SECONDS);
+    const shabad = data === null ? null : parseShabadPayload(data);
+    return shabad?.id === id ? shabad : null;
 }
 
 export async function fetchHukamnamaPayload(): Promise<unknown | null> {

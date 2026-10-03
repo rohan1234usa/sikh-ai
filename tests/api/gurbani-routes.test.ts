@@ -1,5 +1,7 @@
 import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 // GurbaniNow is stubbed: each test says what it answers, and every URL asked
 // for is recorded.
@@ -96,6 +98,43 @@ test('a missing Hukamnama is a 502 hukamnama_unavailable, never cached', async (
     assert.equal(res.status, 502);
     assert.equal((await res.json()).code, 'hukamnama_unavailable');
     assert.equal(res.headers.get('cache-control'), 'no-store');
+});
+
+test("a whole shabad spends the shabad pages' own allowance, and anything unusable is no answer", async () => {
+    const { fetchShabad, meters } = await import('@/lib/gurbani/gurbaninow');
+    const recorded = JSON.parse(readFileSync(resolve(import.meta.dirname, '../gurbani/fixtures/shabads.json'), 'utf8'));
+    upstream = async () => Response.json(recorded['shabad:823']);
+    const allowances = () => [meters.quoteCheck.remaining(), meters.verseSearch.remaining()];
+    const before = allowances();
+    const pages = meters.shabadPage.remaining();
+    assert.equal((await fetchShabad('823'))?.id, '823');
+    assert.deepEqual(asked, ['https://api.gurbaninow.com/v2/shabad/823']);
+    assert.deepEqual(allowances(), before, "a page view leaves quote checking's and the search's allowances alone");
+    assert.equal(meters.shabadPage.remaining(), pages - 1);
+
+    asked = [];
+    for (const bad of ['../ang/1', 'a6s', '', '823?x=1']) assert.equal(await fetchShabad(bad), null, bad);
+    assert.deepEqual(asked, [], 'something that is not an id is never sent');
+
+    assert.equal(await fetchShabad('8GT'), null, 'an answer about another shabad is not this one');
+
+    // What GurbaniNow says for an id it doesn't know, and for a fault.
+    upstream = async () => Response.json(
+        { error: { code: 'INTERNAL_SERVER_ERROR', status_code: 500, message: "Cannot read properties of undefined (reading 'orderId')" } },
+        { status: 500 });
+    assert.equal(await fetchShabad('ZZZ'), null);
+    upstream = async () => { throw new DOMException('The operation was aborted due to timeout', 'TimeoutError'); };
+    assert.equal(await fetchShabad('823'), null);
+});
+
+// Last of the shabad tests: it spends this process's shabad-page allowance.
+test('made-up shabad ids stop reaching GurbaniNow once the day\'s allowance is spent', async () => {
+    const { fetchShabad, meters } = await import('@/lib/gurbani/gurbaninow');
+    upstream = async () => Response.json({ error: { code: 'INTERNAL_SERVER_ERROR', status_code: 500 } }, { status: 500 });
+    while (meters.shabadPage.remaining() > 3) meters.shabadPage.take();
+    asked = [];
+    for (const id of ['ZZ1', 'ZZ2', 'ZZ3', 'ZZ4', 'ZZ5']) assert.equal(await fetchShabad(id), null, id);
+    assert.equal(asked.length, 3, 'an unknown id is asked for until the allowance runs out, then not at all');
 });
 
 test("page traffic never spends the quote checker's daily allowance", async () => {

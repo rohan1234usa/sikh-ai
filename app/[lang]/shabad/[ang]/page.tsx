@@ -3,11 +3,16 @@ import Link from 'next/link';
 import { cache } from 'react';
 import { redirect } from 'next/navigation';
 import { BookOpenIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import IntentLink from '@/app/components/IntentLink';
+import LineHighlight from '@/app/components/shabad/LineHighlight';
 import ShabadHeader from '@/app/components/shabad/ShabadHeader';
+import SourceNote from '@/app/components/shabad/SourceNote';
+import { LINE_TARGET_STYLE } from '@/app/components/shabad/ShabadVerse';
 import { parseAngParam } from '@/lib/gurbani/ang';
 import { MAX_ANG } from '@/lib/gurbani/citations';
-import { fetchAngPayload } from '@/lib/gurbani/gurbaninow';
-import { normalizeVerse, type AngItem } from '@/lib/gurbani/verse';
+import { fetchAngPayload, parseAngPayload, type GurbaniLine } from '@/lib/gurbani/gurbaninow';
+import { groupByShabad, isGurbaniId, lineAnchor, localName, opening, shabadPath } from '@/lib/gurbani/shabad';
+import { jsonLdText } from '@/lib/gurbani/shabadPage';
 import type { Dictionary } from '@/lib/i18n';
 import { LANG_META, type Lang } from '@/lib/i18n/config';
 import { fmt } from '@/lib/i18n/fmt';
@@ -25,32 +30,22 @@ export function generateStaticParams() {
 }
 export const dynamicParams = true;
 
-type Line = { gurmukhi: string; translation: string };
-
-// The Ang's lines, or null when the source gave no usable answer. Wrapped in
-// cache() so generateMetadata and the page share one request per render.
-const angLines = cache(async (ang: number): Promise<Line[] | null> => {
-  const data = (await fetchAngPayload(ang)) as { page?: unknown } | null;
-  if (!Array.isArray(data?.page) || data.page.length === 0) return null;
-  return (data.page as AngItem[]).map(normalizeVerse);
+// The Ang's lines, each with its id and its shabad's, or null when the
+// source gave no usable answer. Wrapped in cache() so generateMetadata and
+// the page share one request per render.
+const angLines = cache(async (ang: number): Promise<GurbaniLine[] | null> => {
+  const data = await fetchAngPayload(ang);
+  return data === null ? null : parseAngPayload(data);
 });
 
 const angTitle = (t: Dictionary, ang: number) => `${fmt(t.shabad.angLabel, { n: ang })} · ${t.shabad.granth}`;
-
-// The opening line, cut at a word, for the description.
-function opening(lines: Line[]): string {
-  const first = lines.find((l) => l.gurmukhi)?.gurmukhi ?? '';
-  if (first.length <= 90) return first;
-  const cut = first.slice(0, 90);
-  return `${cut.slice(0, cut.lastIndexOf(' ') > 40 ? cut.lastIndexOf(' ') : 90)}…`;
-}
 
 export async function generateMetadata({ params }: PageProps<'/[lang]/shabad/[ang]'>): Promise<Metadata> {
   const ang = parseAngParam((await params).ang);
   if (ang === null) return {};
   const { lang, t } = await getServerT();
   const lines = await angLines(ang);
-  const description = lines ? fmt(t.meta.angDescription, { line: opening(lines), n: ang }) : t.meta.descriptions.shabad;
+  const description = lines ? fmt(t.meta.angDescription, { line: opening(lines[0].gurmukhi), n: ang }) : t.meta.descriptions.shabad;
   return pageMetadata(lang, t, `/shabad/${ang}`, angTitle(t, ang), description);
 }
 
@@ -80,7 +75,7 @@ function structuredData(lang: Lang, t: Dictionary, ang: number, description: str
 export default async function AngPage({ params }: PageProps<'/[lang]/shabad/[ang]'>) {
   const { lang, t } = await getServerT();
   const ang = parseAngParam((await params).ang);
-  // Not an Ang (/shabad/1431, /shabad/abc): the Ang search. A notFound() here,
+  // Not an Ang (/shabad/1431, /shabad/abc): the search page. A notFound() here,
   // on a page built at its first visit, would get Next's bare 404 rather than
   // the site's (app/global-not-found.tsx only covers unmatched addresses).
   if (ang === null) redirect(localePath(lang, '/shabad'));
@@ -89,15 +84,16 @@ export default async function AngPage({ params }: PageProps<'/[lang]/shabad/[ang
   // page: the error page offers Try again, and the next visit asks afresh.
   if (!lines) throw new Error(`GurbaniNow gave no usable answer for Ang ${ang}`);
 
-  const description = fmt(t.meta.angDescription, { line: opening(lines), n: ang });
+  const description = fmt(t.meta.angDescription, { line: opening(lines[0].gurmukhi), n: ang });
   const to = (path: string) => localePath(lang, path);
-  // Escaped so a line of text can never close the script tag.
-  const jsonLd = JSON.stringify(structuredData(lang, t, ang, description)).replace(/</g, '\\u003c');
+  // Lines are numbered down the whole Ang, across its shabads.
+  const number = new Map(lines.map((line, index) => [line.id, index + 1]));
 
   return (
     <main className="flex-1 flex flex-col">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <ShabadHeader t={t} ang={ang} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdText(structuredData(lang, t, ang, description)) }} />
+      <LineHighlight />
+      <ShabadHeader t={t} page="ang" ang={ang} />
 
       <div className="max-w-4xl mx-auto w-full p-6 flex-1 space-y-6">
         <div className="flex flex-wrap items-center gap-2 mb-4 pb-2 border-b border-edge">
@@ -112,20 +108,44 @@ export default async function AngPage({ params }: PageProps<'/[lang]/shabad/[ang
           </Link>
         </div>
 
-        {lines.map((line, index) => (
-          <div key={index} className="bg-surface-raised p-4 sm:p-6 rounded-xl shadow-sm border border-edge">
-            <p lang="pa" className="text-2xl md:text-3xl text-ink font-bold text-center leading-relaxed mb-4 font-gurmukhi">
-              {line.gurmukhi || t.shabad.gurmukhiUnavailable}
-            </p>
-            <p lang="en" className="text-ink-muted text-center italic text-lg mb-4">
-              {line.translation || t.shabad.translationUnavailable}
-            </p>
-            <div className="flex justify-between items-center text-xs text-ink-faint border-t border-edge pt-4 mt-2">
-              <span>{fmt(t.shabad.lineN, { n: index + 1 })}</span>
-              <span className="uppercase tracking-widest text-accent-text font-bold">{t.shabad.granth}</span>
-            </div>
-          </div>
-        ))}
+        {/* One group per shabad. Most Angs begin or end partway through one,
+            so each group leads to its whole shabad. */}
+        {groupByShabad(lines).map((group, g) => {
+          const first = group.lines[0];
+          const about = [localName(lang, first.writer, first.writerGurmukhi), localName(lang, first.raag, first.raagGurmukhi)]
+            .filter(Boolean).join(' · ');
+          return (
+            <section key={`${group.shabadId}-${g}`} className="space-y-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-edge pb-2">
+                <p lang={lang === 'pa' ? 'pa' : undefined} className="text-xs font-bold uppercase tracking-wider text-ink-muted">{about}</p>
+                {isGurbaniId(group.shabadId) && (
+                  <IntentLink href={to(shabadPath(group.shabadId))} className="ml-auto text-sm font-semibold text-accent-text hover:underline">
+                    {t.shabad.page.fullShabad} →
+                  </IntentLink>
+                )}
+              </div>
+              {group.lines.map((line) => (
+                <div
+                  key={line.id}
+                  id={lineAnchor(line.id)}
+                  tabIndex={-1}
+                  className={`bg-surface-raised p-4 sm:p-6 rounded-xl shadow-sm border border-edge transition-colors ${LINE_TARGET_STYLE}`}
+                >
+                  <p lang="pa" className="text-2xl md:text-3xl text-ink font-bold text-center leading-relaxed mb-4 font-gurmukhi">
+                    {line.gurmukhi}
+                  </p>
+                  <p lang="en" className="text-ink-muted text-center italic text-lg mb-4">
+                    {line.translation || t.shabad.translationUnavailable}
+                  </p>
+                  <div className="flex justify-between items-center text-xs text-ink-faint border-t border-edge pt-4 mt-2">
+                    <span>{fmt(t.shabad.lineN, { n: number.get(line.id) ?? 0 })}</span>
+                    <span className="uppercase tracking-widest text-accent-text font-bold">{t.shabad.granth}</span>
+                  </div>
+                </div>
+              ))}
+            </section>
+          );
+        })}
 
         <div className="flex justify-between gap-4 pt-2 text-sm font-semibold">
           {ang > 1 ? (
@@ -139,6 +159,7 @@ export default async function AngPage({ params }: PageProps<'/[lang]/shabad/[ang
             </Link>
           )}
         </div>
+        <SourceNote t={t} />
       </div>
     </main>
   );

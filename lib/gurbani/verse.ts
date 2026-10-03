@@ -1,6 +1,6 @@
-// Shared normalization for the loosely-shaped verse objects the GurbaniNow
-// API returns. Used by both the Shabad search page and the chat deep-link
-// capture so the two cannot drift when the upstream shape changes.
+// Normalization for the loosely-shaped verse objects the GurbaniNow API
+// returns, as the chat's deep link to an Ang reads them from /api/shabad.
+// The Ang and shabad pages read the source through ./gurbaninow's parsers.
 
 export type VerseContent = {
     gurmukhi?: string | { unicode?: string };

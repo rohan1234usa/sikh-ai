@@ -11,7 +11,7 @@
 | metric | value |
 | --- | --- |
 | mode | **dry run** — back-translation not yet run |
-| strings enumerated (en / pa / pa-latn) | 1023 / 1023 / 1023 |
+| strings enumerated (en / pa / pa-latn) | 1056 / 1056 / 1056 |
 | phrasebook entries | 50 |
 | findings (errors) | 0 (0) |
 | characters billed this run | 0 (dry run) |
@@ -19,7 +19,7 @@
 | cumulative characters billed | 0 |
 | cache entries | 0 |
 
-> **Dry run** — no API calls were made. A full run would translate roughly **42449 characters** that are not yet cached.
+> **Dry run** — no API calls were made. A full run would translate roughly **44294 characters** that are not yet cached.
 
 ## Free checks
 

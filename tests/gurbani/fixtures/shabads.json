@@ -1,0 +1,1303 @@
+{
+ "line:0NVY": {
+  "id": "0NVY",
+  "shabadid": "DMP",
+  "pageno": 1,
+  "lineno": 1
+ },
+ "line:0V3Z": {
+  "id": "0V3Z",
+  "shabadid": "Q5K",
+  "pageno": 395,
+  "lineno": 1
+ },
+ "line:19B9": {
+  "id": "19B9",
+  "shabadid": "823",
+  "pageno": 11,
+  "lineno": 1
+ },
+ "line:5Z1H": {
+  "id": "5Z1H",
+  "shabadid": "823",
+  "pageno": 10,
+  "lineno": 16
+ },
+ "line:AAB6": {
+  "id": "AAB6",
+  "shabadid": "4Z1",
+  "pageno": 394,
+  "lineno": 4
+ },
+ "line:GMYB": {
+  "id": "GMYB",
+  "shabadid": "823",
+  "pageno": 11,
+  "lineno": 13
+ },
+ "line:H0PC": {
+  "id": "H0PC",
+  "shabadid": "DMP",
+  "pageno": 1,
+  "lineno": 7
+ },
+ "line:HE0D": {
+  "id": "HE0D",
+  "shabadid": "Q5K",
+  "pageno": 395,
+  "lineno": 3
+ },
+ "line:QRS3": {
+  "id": "QRS3",
+  "shabadid": "Q5K",
+  "pageno": 394,
+  "lineno": 19
+ },
+ "line:RSG2": {
+  "id": "RSG2",
+  "shabadid": "823",
+  "pageno": 10,
+  "lineno": 19
+ },
+ "line:XRQS": {
+  "id": "XRQS",
+  "shabadid": "Q5K",
+  "pageno": 394,
+  "lineno": 19
+ },
+ "line:ZSLW": {
+  "id": "ZSLW",
+  "shabadid": "4Z1",
+  "pageno": 394,
+  "lineno": 2
+ },
+ "shabad:4Z1": {
+  "shabadinfo": {
+   "shabadid": "4Z1",
+   "pageno": 394,
+   "count": 7,
+   "navigation": {
+    "previous": {
+     "id": "K8R"
+    },
+    "next": {
+     "id": "BDU"
+    }
+   },
+   "source": {
+    "id": 1,
+    "english": "Sri Guru Granth Sahib Ji",
+    "unicode": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+   },
+   "writer": {
+    "id": 5,
+    "english": "Guru Arjan Dev Ji",
+    "unicode": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ"
+   },
+   "raag": {
+    "id": 8,
+    "english": "Raag Aasaa",
+    "unicode": "ਰਾਗੁ ਆਸਾ"
+   }
+  },
+  "shabad": [
+   {
+    "line": {
+     "id": "ZSLW",
+     "type": 2,
+     "linenum": 2,
+     "gurmukhi": {
+      "unicode": "ਆਸਾ ਘਰੁ ੭ ਮਹਲਾ ੫ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Aasaa, Seventh House, Fifth Mehl:"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "aasaa ghar 7 mahalaa 5 |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "L7HP",
+     "type": 4,
+     "linenum": 2,
+     "gurmukhi": {
+      "unicode": "ਹਰਿ ਕਾ ਨਾਮੁ ਰਿਦੈ ਨਿਤ ਧਿਆਈ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Meditate continually on the Name of the Lord within your heart."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "har kaa naam ridai nit dhiaaee |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "B5BZ",
+     "type": 4,
+     "linenum": 2,
+     "gurmukhi": {
+      "unicode": "ਸੰਗੀ ਸਾਥੀ ਸਗਲ ਤਰਾਂਈ ॥੧॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Thus you shall save all your companions and associates. ||1||"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "sangee saathee sagal taraanee |1|"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "EHEH",
+     "type": 3,
+     "linenum": 3,
+     "gurmukhi": {
+      "unicode": "ਗੁਰੁ ਮੇਰੈ ਸੰਗਿ ਸਦਾ ਹੈ ਨਾਲੇ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "My Guru is always with me, near at hand."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "gur merai sang sadaa hai naale |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "4ZD2",
+     "type": 3,
+     "linenum": 3,
+     "gurmukhi": {
+      "unicode": "ਸਿਮਰਿ ਸਿਮਰਿ ਤਿਸੁ ਸਦਾ ਸਮੑਾਲੇ ॥੧॥ ਰਹਾਉ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Meditating, meditating in remembrance on Him, I cherish Him forever. ||1||Pause||"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "simar simar tis sadaa samaale |1| rahaau |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "2GYN",
+     "type": 4,
+     "linenum": 4,
+     "gurmukhi": {
+      "unicode": "ਤੇਰਾ ਕੀਆ ਮੀਠਾ ਲਾਗੈ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Your actions seem so sweet to me."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "teraa keea meetthaa laagai |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "AAB6",
+     "type": 4,
+     "linenum": 4,
+     "gurmukhi": {
+      "unicode": "ਹਰਿ ਨਾਮੁ ਪਦਾਰਥੁ ਨਾਨਕੁ ਮਾਂਗੈ ॥੨॥੪੨॥੯੩॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Nanak begs for the treasure of the Naam, the Name of the Lord. ||2||42||93||"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "har naam padaarath naanak maangai |2|42|93|"
+      }
+     }
+    }
+   }
+  ],
+  "error": false
+ },
+ "shabad:823": {
+  "shabadinfo": {
+   "shabadid": "823",
+   "pageno": 10,
+   "count": 27,
+   "navigation": {
+    "previous": {
+     "id": "38V"
+    },
+    "next": {
+     "id": "8GT"
+    }
+   },
+   "source": {
+    "id": 1,
+    "english": "Sri Guru Granth Sahib Ji",
+    "unicode": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+   },
+   "writer": {
+    "id": 4,
+    "english": "Guru Ramdas Ji",
+    "unicode": "ਗੁਰੂ ਰਾਮਦਾਸ ਜੀ"
+   },
+   "raag": {
+    "id": 3,
+    "english": "So Purakh",
+    "unicode": "ਸੋ ਪੁਰਖੁ"
+   }
+  },
+  "shabad": [
+   {
+    "line": {
+     "id": "5Z1H",
+     "type": 2,
+     "linenum": 16,
+     "gurmukhi": {
+      "unicode": "ਰਾਗੁ ਆਸਾ ਮਹਲਾ ੪ ਸੋ ਪੁਰਖੁ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Raag Aasaa, Fourth Mehl, So Purakh ~ That Primal Being:"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "raag aasaa mahalaa 4 so purakh |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "XLBA",
+     "type": 1,
+     "linenum": 17,
+     "gurmukhi": {
+      "unicode": "ੴ ਸਤਿਗੁਰ ਪ੍ਰਸਾਦਿ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "One Universal Creator God. By The Grace Of The True Guru:"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "ik oankaar satigur prasaad |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "546S",
+     "type": 4,
+     "linenum": 17,
+     "gurmukhi": {
+      "unicode": "ਸੋ ਪੁਰਖੁ ਨਿਰੰਜਨੁ ਹਰਿ ਪੁਰਖੁ ਨਿਰੰਜਨੁ ਹਰਿ ਅਗਮਾ ਅਗਮ ਅਪਾਰਾ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "That Primal Being is Immaculate and Pure. The Lord, the Primal Being, is Immaculate and Pure. The Lord is Inaccessible, Unreachable and Unrivalled."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "so purakh niranjan har purakh niranjan har agamaa agam apaaraa |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "7A3W",
+     "type": 4,
+     "linenum": 18,
+     "gurmukhi": {
+      "unicode": "ਸਭਿ ਧਿਆਵਹਿ ਸਭਿ ਧਿਆਵਹਿ ਤੁਧੁ ਜੀ ਹਰਿ ਸਚੇ ਸਿਰਜਣਹਾਰਾ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "All meditate, all meditate on You, Dear Lord, O True Creator Lord."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "sabh dhiaaveh sabh dhiaaveh tudh jee har sache sirajanahaaraa |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "R0RP",
+     "type": 4,
+     "linenum": 18,
+     "gurmukhi": {
+      "unicode": "ਸਭਿ ਜੀਅ ਤੁਮਾਰੇ ਜੀ ਤੂੰ ਜੀਆ ਕਾ ਦਾਤਾਰਾ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "All living beings are Yours-You are the Giver of all souls."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "sabh jeea tumaare jee toon jeea kaa daataaraa |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "Y4GD",
+     "type": 4,
+     "linenum": 19,
+     "gurmukhi": {
+      "unicode": "ਹਰਿ ਧਿਆਵਹੁ ਸੰਤਹੁ ਜੀ ਸਭਿ ਦੂਖ ਵਿਸਾਰਣਹਾਰਾ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Meditate on the Lord, O Saints; He is the Dispeller of all sorrow."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "har dhiaavahu santahu jee sabh dookh visaaranahaaraa |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "RSG2",
+     "type": 4,
+     "linenum": 19,
+     "gurmukhi": {
+      "unicode": "ਹਰਿ ਆਪੇ ਠਾਕੁਰੁ ਹਰਿ ਆਪੇ ਸੇਵਕੁ ਜੀ ਕਿਆ ਨਾਨਕ ਜੰਤ ਵਿਚਾਰਾ ॥੧॥"
+     },
+     "translation": {
+      "english": {
+       "default": "The Lord Himself is the Master, the Lord Himself is the Servant. O Nanak, the poor beings are wretched and miserable! ||1||"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "har aape tthaakur har aape sevak jee kiaa naanak jant vichaaraa |1|"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "19B9",
+     "type": 4,
+     "linenum": 1,
+     "gurmukhi": {
+      "unicode": "ਤੂੰ ਘਟ ਘਟ ਅੰਤਰਿ ਸਰਬ ਨਿਰੰਤਰਿ ਜੀ ਹਰਿ ਏਕੋ ਪੁਰਖੁ ਸਮਾਣਾ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "You are constant in each and every heart, and in all things. O Dear Lord, you are the One."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "toon ghatt ghatt antar sarab nirantar jee har eko purakh samaanaa |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "L2H2",
+     "type": 4,
+     "linenum": 1,
+     "gurmukhi": {
+      "unicode": "ਇਕਿ ਦਾਤੇ ਇਕਿ ਭੇਖਾਰੀ ਜੀ ਸਭਿ ਤੇਰੇ ਚੋਜ ਵਿਡਾਣਾ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Some are givers, and some are beggars. This is all Your Wondrous Play."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "eik daate ik bhekhaaree jee sabh tere choj viddaanaa |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "VYNS",
+     "type": 4,
+     "linenum": 2,
+     "gurmukhi": {
+      "unicode": "ਤੂੰ ਆਪੇ ਦਾਤਾ ਆਪੇ ਭੁਗਤਾ ਜੀ ਹਉ ਤੁਧੁ ਬਿਨੁ ਅਵਰੁ ਨ ਜਾਣਾ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "You Yourself are the Giver, and You Yourself are the Enjoyer. I know no other than You."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "toon aape daataa aape bhugataa jee hau tudh bin avar na jaanaa |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "RBRY",
+     "type": 4,
+     "linenum": 3,
+     "gurmukhi": {
+      "unicode": "ਤੂੰ ਪਾਰਬ੍ਰਹਮੁ ਬੇਅੰਤੁ ਬੇਅੰਤੁ ਜੀ ਤੇਰੇ ਕਿਆ ਗੁਣ ਆਖਿ ਵਖਾਣਾ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "You are the Supreme Lord God, Limitless and Infinite. What Virtues of Yours can I speak of and describe?"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "toon paarabraham beant beant jee tere kiaa gun aakh vakhaanaa |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "J3TN",
+     "type": 4,
+     "linenum": 3,
+     "gurmukhi": {
+      "unicode": "ਜੋ ਸੇਵਹਿ ਜੋ ਸੇਵਹਿ ਤੁਧੁ ਜੀ ਜਨੁ ਨਾਨਕੁ ਤਿਨ ਕੁਰਬਾਣਾ ॥੨॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Unto those who serve You, unto those who serve You, Dear Lord, servant Nanak is a sacrifice. ||2||"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "jo seveh jo seveh tudh jee jan naanak tin kurabaanaa |2|"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "WA39",
+     "type": 4,
+     "linenum": 4,
+     "gurmukhi": {
+      "unicode": "ਹਰਿ ਧਿਆਵਹਿ ਹਰਿ ਧਿਆਵਹਿ ਤੁਧੁ ਜੀ ਸੇ ਜਨ ਜੁਗ ਮਹਿ ਸੁਖਵਾਸੀ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Those who meditate on You, Lord, those who meditate on You-those humble beings dwell in peace in this world."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "har dhiaaveh har dhiaaveh tudh jee se jan jug meh sukhavaasee |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "WXAW",
+     "type": 4,
+     "linenum": 4,
+     "gurmukhi": {
+      "unicode": "ਸੇ ਮੁਕਤੁ ਸੇ ਮੁਕਤੁ ਭਏ ਜਿਨ ਹਰਿ ਧਿਆਇਆ ਜੀ ਤਿਨ ਤੂਟੀ ਜਮ ਕੀ ਫਾਸੀ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "They are liberated, they are liberated-those who meditate on the Lord. For them, the noose of death is cut away."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "se mukat se mukat bhe jin har dhiaaeaa jee tin toottee jam kee faasee |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "E68A",
+     "type": 4,
+     "linenum": 5,
+     "gurmukhi": {
+      "unicode": "ਜਿਨ ਨਿਰਭਉ ਜਿਨ ਹਰਿ ਨਿਰਭਉ ਧਿਆਇਆ ਜੀ ਤਿਨ ਕਾ ਭਉ ਸਭੁ ਗਵਾਸੀ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Those who meditate on the Fearless One, on the Fearless Lord-all their fears are dispelled."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "jin nirbhau jin har nirbhau dhiaaeaa jee tin kaa bhau sabh gavaasee |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "AZ2A",
+     "type": 4,
+     "linenum": 6,
+     "gurmukhi": {
+      "unicode": "ਜਿਨ ਸੇਵਿਆ ਜਿਨ ਸੇਵਿਆ ਮੇਰਾ ਹਰਿ ਜੀ ਤੇ ਹਰਿ ਹਰਿ ਰੂਪਿ ਸਮਾਸੀ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Those who serve, those who serve my Dear Lord, are absorbed into the Being of the Lord, Har, Har."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "jin seviaa jin seviaa meraa har jee te har har roop samaasee |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "ZPJH",
+     "type": 4,
+     "linenum": 7,
+     "gurmukhi": {
+      "unicode": "ਸੇ ਧੰਨੁ ਸੇ ਧੰਨੁ ਜਿਨ ਹਰਿ ਧਿਆਇਆ ਜੀ ਜਨੁ ਨਾਨਕੁ ਤਿਨ ਬਲਿ ਜਾਸੀ ॥੩॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Blessed are they, blessed are they, who meditate on their Dear Lord. Servant Nanak is a sacrifice to them. ||3||"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "se dhan se dhan jin har dhiaaeaa jee jan naanak tin bal jaasee |3|"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "BWH4",
+     "type": 4,
+     "linenum": 7,
+     "gurmukhi": {
+      "unicode": "ਤੇਰੀ ਭਗਤਿ ਤੇਰੀ ਭਗਤਿ ਭੰਡਾਰ ਜੀ ਭਰੇ ਬਿਅੰਤ ਬੇਅੰਤਾ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Devotion to You, devotion to You, is a treasure overflowing, infinite and beyond measure."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "teree bhagat teree bhagat bhanddaar jee bhare biant beantaa |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "BZ3S",
+     "type": 4,
+     "linenum": 8,
+     "gurmukhi": {
+      "unicode": "ਤੇਰੇ ਭਗਤ ਤੇਰੇ ਭਗਤ ਸਲਾਹਨਿ ਤੁਧੁ ਜੀ ਹਰਿ ਅਨਿਕ ਅਨੇਕ ਅਨੰਤਾ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Your devotees, Your devotees praise You, Dear Lord, in many and various and countless ways."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "tere bhagat tere bhagat salaahan tudh jee har anik anek anantaa |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "20JR",
+     "type": 4,
+     "linenum": 9,
+     "gurmukhi": {
+      "unicode": "ਤੇਰੀ ਅਨਿਕ ਤੇਰੀ ਅਨਿਕ ਕਰਹਿ ਹਰਿ ਪੂਜਾ ਜੀ ਤਪੁ ਤਾਪਹਿ ਜਪਹਿ ਬੇਅੰਤਾ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "For You, many, for You, so very many perform worship services, O Dear Infinite Lord; they practice disciplined meditation and chant endlessly."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "teree anik teree anik kareh har poojaa jee tap taapeh japeh beantaa |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "VPRV",
+     "type": 4,
+     "linenum": 10,
+     "gurmukhi": {
+      "unicode": "ਤੇਰੇ ਅਨੇਕ ਤੇਰੇ ਅਨੇਕ ਪੜਹਿ ਬਹੁ ਸਿਮ੍ਰਿਤਿ ਸਾਸਤ ਜੀ ਕਰਿ ਕਿਰਿਆ ਖਟੁ ਕਰਮ ਕਰੰਤਾ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "For You, many, for You, so very many read the various Simritees and Shaastras. They perform rituals and religious rites."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "tere anek tere anek parreh bahu simrit saasat jee kar kiriaa khatt karam karantaa |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "EG5N",
+     "type": 4,
+     "linenum": 10,
+     "gurmukhi": {
+      "unicode": "ਸੇ ਭਗਤ ਸੇ ਭਗਤ ਭਲੇ ਜਨ ਨਾਨਕ ਜੀ ਜੋ ਭਾਵਹਿ ਮੇਰੇ ਹਰਿ ਭਗਵੰਤਾ ॥੪॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Those devotees, those devotees are sublime, O servant Nanak, who are pleasing to my Dear Lord God. ||4||"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "se bhagat se bhagat bhale jan naanak jee jo bhaaveh mere har bhagavantaa |4|"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "DREX",
+     "type": 4,
+     "linenum": 11,
+     "gurmukhi": {
+      "unicode": "ਤੂੰ ਆਦਿ ਪੁਰਖੁ ਅਪਰੰਪਰੁ ਕਰਤਾ ਜੀ ਤੁਧੁ ਜੇਵਡੁ ਅਵਰੁ ਨ ਕੋਈ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "You are the Primal Being, the Most Wonderful Creator. There is no other as Great as You."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "toon aad purakh aparanpar karataa jee tudh jevadd avar na koee |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "X5GM",
+     "type": 4,
+     "linenum": 12,
+     "gurmukhi": {
+      "unicode": "ਤੂੰ ਜੁਗੁ ਜੁਗੁ ਏਕੋ ਸਦਾ ਸਦਾ ਤੂੰ ਏਕੋ ਜੀ ਤੂੰ ਨਿਹਚਲੁ ਕਰਤਾ ਸੋਈ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Age after age, You are the One. Forever and ever, You are the One. You never change, O Creator Lord."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "toon jug jug eko sadaa sadaa toon eko jee toon nihachal karataa soee |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "XMW3",
+     "type": 4,
+     "linenum": 12,
+     "gurmukhi": {
+      "unicode": "ਤੁਧੁ ਆਪੇ ਭਾਵੈ ਸੋਈ ਵਰਤੈ ਜੀ ਤੂੰ ਆਪੇ ਕਰਹਿ ਸੁ ਹੋਈ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Everything happens according to Your Will. You Yourself accomplish all that occurs."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "tudh aape bhaavai soee varatai jee toon aape kareh su hoee |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "Z23M",
+     "type": 4,
+     "linenum": 13,
+     "gurmukhi": {
+      "unicode": "ਤੁਧੁ ਆਪੇ ਸ੍ਰਿਸਟਿ ਸਭ ਉਪਾਈ ਜੀ ਤੁਧੁ ਆਪੇ ਸਿਰਜਿ ਸਭ ਗੋਈ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "You Yourself created the entire universe, and having fashioned it, You Yourself shall destroy it all."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "tudh aape srisatt sabh upaaee jee tudh aape siraj sabh goee |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "GMYB",
+     "type": 4,
+     "linenum": 13,
+     "gurmukhi": {
+      "unicode": "ਜਨੁ ਨਾਨਕੁ ਗੁਣ ਗਾਵੈ ਕਰਤੇ ਕੇ ਜੀ ਜੋ ਸਭਸੈ ਕਾ ਜਾਣੋਈ ॥੫॥੧॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Servant Nanak sings the Glorious Praises of the Dear Creator, the Knower of all. ||5||1||"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "jan naanak gun gaavai karate ke jee jo sabhasai kaa jaanoee |5|1|"
+      }
+     }
+    }
+   }
+  ],
+  "error": false
+ },
+ "shabad:DMP": {
+  "shabadinfo": {
+   "shabadid": "DMP",
+   "pageno": 1,
+   "count": 10,
+   "navigation": {
+    "next": {
+     "id": "LLL"
+    }
+   },
+   "source": {
+    "id": 1,
+    "english": "Sri Guru Granth Sahib Ji",
+    "unicode": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+   },
+   "writer": {
+    "id": 1,
+    "english": "Guru Nanak Dev Ji",
+    "unicode": "ਗੁਰੂ ਨਾਨਕ ਦੇਵ ਜੀ"
+   },
+   "raag": {
+    "id": 1,
+    "english": "Jap",
+    "unicode": "ਜਪੁ"
+   }
+  },
+  "shabad": [
+   {
+    "line": {
+     "id": "0NVY",
+     "type": 1,
+     "linenum": 1,
+     "gurmukhi": {
+      "unicode": "ੴ ਸਤਿ ਨਾਮੁ ਕਰਤਾ ਪੁਰਖੁ ਨਿਰਭਉ ਨਿਰਵੈਰੁ ਅਕਾਲ ਮੂਰਤਿ ਅਜੂਨੀ ਸੈਭੰ ਗੁਰ ਪ੍ਰਸਾਦਿ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "One Universal Creator God. The Name Is Truth. Creative Being Personified. No Fear. No Hatred. Image Of The Undying, Beyond Birth, Self-Existent. By Guru's Grace ~"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "ik oankaar sat naam karataa purakh nirbhau niravair akaal moorat ajoonee saibhan gur prasaad |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "RBP6",
+     "type": 2,
+     "linenum": 3,
+     "gurmukhi": {
+      "unicode": "॥ ਜਪੁ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Chant And Meditate:"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "| jap |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "J92N",
+     "type": 4,
+     "linenum": 4,
+     "gurmukhi": {
+      "unicode": "ਆਦਿ ਸਚੁ ਜੁਗਾਦਿ ਸਚੁ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "True In The Primal Beginning. True Throughout The Ages."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "aad sach jugaad sach |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "K0U6",
+     "type": 4,
+     "linenum": 4,
+     "gurmukhi": {
+      "unicode": "ਹੈ ਭੀ ਸਚੁ ਨਾਨਕ ਹੋਸੀ ਭੀ ਸਚੁ ॥੧॥"
+     },
+     "translation": {
+      "english": {
+       "default": "True Here And Now. O Nanak, Forever And Ever True. ||1||"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "hai bhee sach naanak hosee bhee sach |1|"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "BL70",
+     "type": 4,
+     "linenum": 5,
+     "gurmukhi": {
+      "unicode": "ਸੋਚੈ ਸੋਚਿ ਨ ਹੋਵਈ ਜੇ ਸੋਚੀ ਲਖ ਵਾਰ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "By thinking, He cannot be reduced to thought, even by thinking hundreds of thousands of times."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "sochai soch na hovee je sochee lakh vaar |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "GJW9",
+     "type": 4,
+     "linenum": 5,
+     "gurmukhi": {
+      "unicode": "ਚੁਪੈ ਚੁਪ ਨ ਹੋਵਈ ਜੇ ਲਾਇ ਰਹਾ ਲਿਵ ਤਾਰ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "By remaining silent, inner silence is not obtained, even by remaining lovingly absorbed deep within."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "chupai chup na hovee je laae rahaa liv taar |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "ZERL",
+     "type": 4,
+     "linenum": 5,
+     "gurmukhi": {
+      "unicode": "ਭੁਖਿਆ ਭੁਖ ਨ ਉਤਰੀ ਜੇ ਬੰਨਾ ਪੁਰੀਆ ਭਾਰ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "The hunger of the hungry is not appeased, even by piling up loads of worldly goods."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "bhukhiaa bhukh na utaree je banaa pureea bhaar |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "9MN2",
+     "type": 4,
+     "linenum": 6,
+     "gurmukhi": {
+      "unicode": "ਸਹਸ ਸਿਆਣਪਾ ਲਖ ਹੋਹਿ ਤ ਇਕ ਨ ਚਲੈ ਨਾਲਿ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Hundreds of thousands of clever tricks, but not even one of them will go along with you in the end."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "sehas siaanapaa lakh hohi ta ik na chalai naal |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "MK1Q",
+     "type": 4,
+     "linenum": 6,
+     "gurmukhi": {
+      "unicode": "ਕਿਵ ਸਚਿਆਰਾ ਹੋਈਐ ਕਿਵ ਕੂੜੈ ਤੁਟੈ ਪਾਲਿ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "So how can you become truthful? And how can the veil of illusion be torn away?"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "kiv sachiaaraa hoeeai kiv koorrai tuttai paal |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "H0PC",
+     "type": 4,
+     "linenum": 7,
+     "gurmukhi": {
+      "unicode": "ਹੁਕਮਿ ਰਜਾਈ ਚਲਣਾ ਨਾਨਕ ਲਿਖਿਆ ਨਾਲਿ ॥੧॥"
+     },
+     "translation": {
+      "english": {
+       "default": "O Nanak, it is written that you shall obey the Hukam of His Command, and walk in the Way of His Will. ||1||"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "hukam rajaaee chalanaa naanak likhiaa naal |1|"
+      }
+     }
+    }
+   }
+  ],
+  "error": false
+ },
+ "shabad:Q5K": {
+  "shabadinfo": {
+   "shabadid": "Q5K",
+   "pageno": 394,
+   "count": 11,
+   "navigation": {
+    "previous": {
+     "id": "VFD"
+    },
+    "next": {
+     "id": "21F"
+    }
+   },
+   "source": {
+    "id": 1,
+    "english": "Sri Guru Granth Sahib Ji",
+    "unicode": "ਸ਼੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ"
+   },
+   "writer": {
+    "id": 5,
+    "english": "Guru Arjan Dev Ji",
+    "unicode": "ਗੁਰੂ ਅਰਜਨ ਦੇਵ ਜੀ"
+   },
+   "raag": {
+    "id": 8,
+    "english": "Raag Aasaa",
+    "unicode": "ਰਾਗੁ ਆਸਾ"
+   }
+  },
+  "shabad": [
+   {
+    "line": {
+     "id": "QRS3",
+     "type": 2,
+     "linenum": 19,
+     "gurmukhi": {
+      "unicode": "ਆਸਾ ਮਹਲਾ ੫ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Aasaa, Fifth Mehl:"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "aasaa mahalaa 5 |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "GQY3",
+     "type": 4,
+     "linenum": 19,
+     "gurmukhi": {
+      "unicode": "ਸਰਬ ਦੂਖ ਜਬ ਬਿਸਰਹਿ ਸੁਆਮੀ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Everything is painful, when one forgets the Lord Master."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "sarab dookh jab bisareh suaamee |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "21BY",
+     "type": 4,
+     "linenum": 19,
+     "gurmukhi": {
+      "unicode": "ਈਹਾ ਊਹਾ ਕਾਮਿ ਨ ਪ੍ਰਾਨੀ ॥੧॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Here and hereafter, such a mortal is useless. ||1||"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "eehaa aoohaa kaam na praanee |1|"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "XRQS",
+     "type": 3,
+     "linenum": 19,
+     "gurmukhi": {
+      "unicode": "ਸੰਤ ਤ੍ਰਿਪਤਾਸੇ ਹਰਿ ਹਰਿ ਧੵਾਇ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "The Saints are satisfied, meditating on the Lord, Har, Har."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "sant tripataase har har dhayaae |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "0V3Z",
+     "type": 3,
+     "linenum": 1,
+     "gurmukhi": {
+      "unicode": "ਕਰਿ ਕਿਰਪਾ ਅਪੁਨੈ ਨਾਇ ਲਾਏ ਸਰਬ ਸੂਖ ਪ੍ਰਭ ਤੁਮਰੀ ਰਜਾਇ ॥ ਰਹਾਉ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Bestowing Your Mercy, God, You attach us to Your Name; all peace comes by Your Will. ||Pause||"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "kar kirapaa apunai naae laae sarab sookh prabh tumaree rajaae | rahaau |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "P3WY",
+     "type": 4,
+     "linenum": 1,
+     "gurmukhi": {
+      "unicode": "ਸੰਗਿ ਹੋਵਤ ਕਉ ਜਾਨਤ ਦੂਰਿ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "The Lord is Ever-present; one who deems Him to be far away,"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "sang hovat kau jaanat door |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "FGS8",
+     "type": 4,
+     "linenum": 2,
+     "gurmukhi": {
+      "unicode": "ਸੋ ਜਨੁ ਮਰਤਾ ਨਿਤ ਨਿਤ ਝੂਰਿ ॥੨॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Dies again and again, repenting. ||2||"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "so jan marataa nit nit jhoor |2|"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "9JAP",
+     "type": 4,
+     "linenum": 2,
+     "gurmukhi": {
+      "unicode": "ਜਿਨਿ ਸਭੁ ਕਿਛੁ ਦੀਆ ਤਿਸੁ ਚਿਤਵਤ ਨਾਹਿ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "The mortals do not remember the One, who has given them everything."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "jin sabh kichh deea tis chitavat naeh |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "PX2B",
+     "type": 4,
+     "linenum": 2,
+     "gurmukhi": {
+      "unicode": "ਮਹਾ ਬਿਖਿਆ ਮਹਿ ਦਿਨੁ ਰੈਨਿ ਜਾਹਿ ॥੩॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Engrossed in such terrible corruption, their days and nights waste away. ||3||"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "mahaa bikhiaa meh din rain jaeh |3|"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "NNLK",
+     "type": 4,
+     "linenum": 3,
+     "gurmukhi": {
+      "unicode": "ਕਹੁ ਨਾਨਕ ਪ੍ਰਭੁ ਸਿਮਰਹੁ ਏਕ ॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Says Nanak, meditate in remembrance of the One Lord God."
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "kahu naanak prabh simarahu ek |"
+      }
+     }
+    }
+   },
+   {
+    "line": {
+     "id": "HE0D",
+     "type": 4,
+     "linenum": 3,
+     "gurmukhi": {
+      "unicode": "ਗਤਿ ਪਾਈਐ ਗੁਰ ਪੂਰੇ ਟੇਕ ॥੪॥੩॥੯੭॥"
+     },
+     "translation": {
+      "english": {
+       "default": "Salvation is obtained, in the Shelter of the Perfect Guru. ||4||3||97||"
+      }
+     },
+     "transliteration": {
+      "english": {
+       "text": "gat paaeeai gur poore ttek |4|3|97|"
+      }
+     }
+    }
+   }
+  ],
+  "error": false
+ }
+}

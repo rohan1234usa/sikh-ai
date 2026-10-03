@@ -57,6 +57,10 @@ scripts/i18n-audit/notes-pa.generated.json
 # one rule, for every script that uses it.
 scripts/**/*.json.tmp
 
+# The search eval's cache of GurbaniNow answers: megabytes, and free to
+# rebuild (npm run eval:search), so not committed. Its report is.
+scripts/search-eval/cache.json
+
 # The Firebase emulators' logs (npm run test:rules, npm run emulators).
 firebase-debug.log
 firestore-debug.log
