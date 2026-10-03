@@ -30,6 +30,7 @@ import {
     hostingPath,
     planCreateEvent,
     planDismissReports,
+    planDropNote,
     planForget,
     planJoin,
     planLeave,
@@ -132,13 +133,16 @@ export function sevaClient(db: Firestore) {
 
         updateSignup: (eventId: string, key: string, v: VolunteerFields) => commit(planUpdateSignup(eventId, key, v)),
 
-        // Leaving gives the spot back; if the event is gone, there's no count
-        // to give it back to, so the sign-up is just removed.
+        // Leaving gives the spot back. A sign-up its host has already cleared
+        // (winding the event down) leaves only this account's note of it; if
+        // the event is gone, there's no count to give the spot back to, so the
+        // sign-up is just removed.
         async leave(uid: string, eventId: string, key: string): Promise<void> {
             try {
                 await commit(planLeave(uid, eventId, key, S));
             } catch (error) {
                 if (errorKind(error) === 'unavailable') throw error;
+                if (await tryGet(volunteerPath(eventId, key)) === null) return commit(planDropNote(uid, eventId));
                 if (await tryGet(eventPath(eventId)) !== null) throw error;
                 await commit(planForget(uid, eventId, key));
             }
