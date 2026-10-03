@@ -81,14 +81,18 @@ export default function DeleteAccountDialog({ open, onClose }: { open: boolean; 
     );
 }
 
+// Accounts this tab has started deleting: a problem after that, in this
+// dialog or one opened later, can't say "nothing was deleted".
+const started = new Set<string>();
+
 function Body({ busyRef, onClose }: { busyRef: RefObject<boolean>; onClose: () => void }) {
     const { lang } = useLanguage();
-    const copy = getAccountCopy(lang).deleteAccount;
+    const { deleteAccount: copy, clearBrowser } = getAccountCopy(lang);
     const { user, reauthenticate, deleteAccount } = useAuth();
     const [phase, setPhase] = useState<Phase>({ kind: 'confirm' });
-    // Whether anything may have been deleted: a problem after that can't
-    // say "nothing was deleted".
-    const [started, setStarted] = useState(false);
+    // Each try, so the same problem twice is read out twice.
+    const [attempt, setAttempt] = useState(0);
+    const [askingToClear, setAskingToClear] = useState(false);
     const { announce, announcer } = useAnnouncer();
     const working = isBusy(phase);
 
@@ -107,16 +111,25 @@ function Body({ busyRef, onClose }: { busyRef: RefObject<boolean>; onClose: () =
     const outcomeRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         if (phase.kind === 'problem' || phase.kind === 'done') outcomeRef.current?.focus();
-    }, [phase.kind]);
+    }, [phase.kind, attempt]);
+
+    // Asking before clearing this browser too swaps the buttons, so focus
+    // moves with them: to Cancel when the question appears, then back.
+    const clearTooRef = useRef<HTMLButtonElement>(null);
+    const askedToClear = useRef(false);
+    useEffect(() => {
+        if (askingToClear) askedToClear.current = true;
+        else if (askedToClear.current) clearTooRef.current?.focus();
+    }, [askingToClear]);
 
     const run = async (uid: string, confirmed: Promise<void>) => {
         try {
             await confirmed;
             prepareAccountDeletion(uid);
             await deleteAccountData(uid, (step) => {
-                setStarted(true);
+                started.add(uid);
                 setPhase({ kind: 'deleting', step });
-                announce(copy.goes[step]);
+                if (SHOWN.includes(step)) announce(copy.goes[step]);
             });
             setPhase({ kind: 'deleting', step: 'account' });
             announce(copy.goes.account);
@@ -129,6 +142,7 @@ function Body({ busyRef, onClose }: { busyRef: RefObject<boolean>; onClose: () =
 
     const start = () => {
         if (working || !user) return;
+        setAttempt((n) => n + 1);
         if (!navigator.onLine) {
             setPhase({ kind: 'problem', problem: 'offline' });
             return;
@@ -148,12 +162,28 @@ function Body({ busyRef, onClose }: { busyRef: RefObject<boolean>; onClose: () =
                     <h2 id="delete-account-title" className="text-lg font-bold text-ink">{copy.doneTitle}</h2>
                     <p className="mt-2 text-ink">{copy.doneBody}</p>
                 </div>
-                <div className="mt-5 flex flex-wrap justify-end gap-3">
-                    <button type="button" onClick={() => clearThisBrowser(localePath(lang, '/privacy'))} className={SECONDARY_BUTTON}>
-                        {copy.clearToo}
-                    </button>
-                    <button type="button" onClick={onClose} className={PRIMARY_BUTTON}>{copy.close}</button>
-                </div>
+                {askingToClear ? (
+                    // As /privacy asks: chats kept only here can't come back.
+                    <div role="group" aria-labelledby="clear-too-prompt" className="mt-5 space-y-3">
+                        <p id="clear-too-prompt" className="text-sm text-ink">{clearBrowser.prompt}</p>
+                        <div className="flex flex-wrap justify-end gap-3">
+                            {/* autoFocus: it takes the place of the button just pressed. */}
+                            <button type="button" autoFocus onClick={() => setAskingToClear(false)} className={SECONDARY_BUTTON}>
+                                {clearBrowser.cancel}
+                            </button>
+                            <button type="button" onClick={() => clearThisBrowser(localePath(lang, '/privacy'))} className={DANGER_BUTTON}>
+                                {clearBrowser.confirm}
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="mt-5 flex flex-wrap justify-end gap-3">
+                        <button ref={clearTooRef} type="button" onClick={() => setAskingToClear(true)} className={SECONDARY_BUTTON}>
+                            {copy.clearToo}
+                        </button>
+                        <button type="button" onClick={onClose} className={PRIMARY_BUTTON}>{copy.close}</button>
+                    </div>
+                )}
             </div>
         );
     }
@@ -195,9 +225,12 @@ function Body({ busyRef, onClose }: { busyRef: RefObject<boolean>; onClose: () =
             </ul>
 
             {phase.kind === 'problem' ? (
-                <div ref={outcomeRef} tabIndex={-1} role="alert" className="mt-4 space-y-1 outline-none">
+                <div key={attempt} ref={outcomeRef} tabIndex={-1} role="alert" className="mt-4 space-y-1 outline-none">
                     <p className={ERROR_TEXT}><Problem text={copy.problems[phase.problem]} /></p>
-                    <p className="text-sm text-ink-muted">{started ? copy.partlyDeleted : copy.nothingDeleted}</p>
+                    {/* Asked to sign in again, everything else is already gone. */}
+                    {phase.problem !== 'recent-login' && (
+                        <p className="text-sm text-ink-muted">{started.has(user.uid) ? copy.partlyDeleted : copy.nothingDeleted}</p>
+                    )}
                 </div>
             ) : (
                 <p className="mt-4 text-sm text-ink-muted">{phase.kind === 'deleting' ? copy.deleting : copy.reauth}</p>
@@ -213,8 +246,9 @@ function Body({ busyRef, onClose }: { busyRef: RefObject<boolean>; onClose: () =
                 )}
                 <button type="button" onClick={start} aria-disabled={working || undefined} className={DANGER_BUTTON}>
                     {phase.kind === 'reauth' ? copy.waiting
-                        : phase.kind === 'problem' ? (phase.problem === 'recent-login' ? copy.signInAgain : copy.retry)
-                            : copy.confirm}
+                        : phase.kind === 'deleting' ? copy.deletingNow
+                            : phase.kind === 'problem' ? (phase.problem === 'recent-login' ? copy.signInAgain : copy.retry)
+                                : copy.confirm}
                 </button>
             </div>
             {announcer}

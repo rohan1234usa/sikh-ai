@@ -29,6 +29,12 @@ class FakeStorage {
     toJSON() { return Object.fromEntries(this.map); }
 }
 
+// Emptied at once, localStorage tells every other tab to reload again; the
+// pre-paint pass removes keys one at a time instead.
+class NoClear extends FakeStorage {
+    clear() { throw new Error('emptied at once'); }
+}
+
 // The pre-paint pass, as the page runs it, on fakes.
 function prePaint(session: FakeStorage, local: FakeStorage) {
     const deleted: string[] = [];
@@ -58,7 +64,7 @@ test('a page loaded for no reason of this kind is left alone', () => {
 test('after a clear here, the page empties both storages again, all but a choice not to be counted, and Firebase\'s databases', () => {
     for (const choice of ['off', 'on', null]) {
         const session = new FakeStorage({ [CLEAR_FLAG_KEY]: 'all', 'sikhai.learn.tutor.v1': '[]' });
-        const local = new FakeStorage({ ...LOCAL, ...(choice ? { [ANALYTICS_CHOICE_KEY]: choice } : {}) });
+        const local = new NoClear({ ...LOCAL, ...(choice ? { [ANALYTICS_CHOICE_KEY]: choice } : {}) });
         assert.deepEqual(prePaint(session, local), { deleted: [...FIREBASE_DATABASES], cleared: 'all' });
         assert.equal(session.length, 0);
         assert.deepEqual(local.toJSON(), choice === 'off' ? { [ANALYTICS_CHOICE_KEY]: 'off' } : {}, String(choice));

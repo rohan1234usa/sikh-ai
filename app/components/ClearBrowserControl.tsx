@@ -32,10 +32,13 @@ export default function ClearBrowserControl({ copy }: { copy: AccountCopy['clear
     }, [mode]);
 
     // Arriving from a clear: the news, above the button (which stays, for
-    // whatever this visit adds).
+    // whatever this visit adds). Said once: <html> outlives this page, and a
+    // later visit to it in the same tab isn't a clear.
     const doneRef = useRef<HTMLParagraphElement>(null);
     useEffect(() => {
-        if (cleared) doneRef.current?.focus();
+        if (!cleared) return;
+        doneRef.current?.focus();
+        return () => { delete document.documentElement.dataset.cleared; };
     }, [cleared]);
 
     const clear = async () => {

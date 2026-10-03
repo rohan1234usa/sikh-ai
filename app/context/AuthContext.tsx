@@ -44,8 +44,8 @@ const AuthContext = createContext<AuthContextType | null>(null);
 let authModule: AuthModule | null = null;
 let authLoad: Promise<AuthModule> | null = null;
 
-// Firebase's own code for an action that needs someone signed in.
-const signedOut = () => Object.assign(new Error('No one is signed in'), { code: 'auth/no-current-user' });
+// Firebase's code for an action that needs someone signed in.
+const signedOut = () => Object.assign(new Error('No one is signed in'), { code: 'auth/null-user' });
 
 function loadAuth(): Promise<AuthModule> {
   if (!authLoad) {
