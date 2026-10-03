@@ -530,6 +530,8 @@ const en = {
             searching: 'Searching…',
             found: 'Shabads found: {n}',
             none: 'No line of Sri Guru Granth Sahib Ji matched.',
+            // Some lookups went unanswered, so "nothing matched" can't be said.
+            unfinished: "The search didn't finish.",
             noneTips: 'Check the spelling, type more of the line, or try the first letter of each word.',
             truncated: 'Many lines match. Type more of the line to narrow it down.',
             incomplete: "The Gurbani source didn't answer every search, so some lines may be missing.",

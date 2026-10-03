@@ -115,7 +115,9 @@ export function planSearch(query: SearchableQuery): Lookup[][] {
         case 'gurmukhi-letters': {
             const letters = query.letters;
             const n = count(letters);
-            if (n <= 3) return [[start(letters, 50)]];
+            // Three letters from the start of a line first, then anywhere in
+            // one, for words typed from its middle.
+            if (n <= 3) return [[start(letters, 50)], [anywhere(letters, 50)]];
             if (n === 4) return [[start(letters), anywhere(letters)]];
             const first = [anywhere(take(letters, 0, MAX_QUERY_LETTERS))];
             // A mistyped letter breaks the run; its two ends still find the line.
@@ -130,7 +132,8 @@ export function planSearch(query: SearchableQuery): Lookup[][] {
 
 // --- Ranking ----------------------------------------------------------------
 
-type Ranked = { line: GurbaniLine; match: MatchKind; tier: number; score: number; whole: number };
+// `settles`: a match good enough that more lookups would only find others.
+type Ranked = { line: GurbaniLine; match: MatchKind; tier: number; score: number; whole: number; settles: boolean };
 
 // Each candidate line scored against the query, or null when it doesn't
 // match closely enough to show.
@@ -143,12 +146,12 @@ function scorer(query: SearchableQuery, tuning: Tuning): (line: GurbaniLine) => 
                 const cmp = compare(keys, lineKeys(line.gurmukhi));
                 const whole = cmp.lettersQ / Math.max(1, cmp.lettersV);
                 const score = closeness(cmp);
-                if (cmp.exact) return { line, match: 'exact', tier: 4, score, whole };
-                if (cmp.contained) return { line, match: 'contained', tier: 3, score, whole };
-                if (isClose(cmp)) return { line, match: 'close', tier: 2, score, whole };
+                if (cmp.exact) return { line, match: 'exact', tier: 4, score, whole, settles: true };
+                if (cmp.contained) return { line, match: 'contained', tier: 3, score, whole, settles: true };
+                if (isClose(cmp)) return { line, match: 'close', tier: 2, score, whole, settles: false };
                 // The first letters agree, in order, though the words don't.
                 const run = Math.max(3, cmp.firstQ - 1);
-                return cmp.orderRun >= run ? { line, match: 'letters', tier: 1, score: cmp.orderRun / Math.max(1, cmp.firstQ), whole } : null;
+                return cmp.orderRun >= run ? { line, match: 'letters', tier: 1, score: cmp.orderRun / Math.max(1, cmp.firstQ), whole, settles: false } : null;
             };
         }
         case 'gurmukhi-letters': {
@@ -156,9 +159,9 @@ function scorer(query: SearchableQuery, tuning: Tuning): (line: GurbaniLine) => 
             return (line) => {
                 const letters = lineLetters(line);
                 const whole = count(typed) / Math.max(1, count(letters));
-                if (letters.startsWith(typed)) return { line, match: 'letters', tier: 1, score: 1, whole };
-                if (letters.includes(typed)) return { line, match: 'letters', tier: 1, score: 0.8, whole };
-                return count(typed) >= 6 && nearRun(typed, letters) ? { line, match: 'letters', tier: 1, score: 0.6, whole } : null;
+                if (letters.startsWith(typed)) return { line, match: 'letters', tier: 1, score: 1, whole, settles: true };
+                if (letters.includes(typed)) return { line, match: 'letters', tier: 1, score: 0.8, whole, settles: true };
+                return count(typed) >= 6 && nearRun(typed, letters) ? { line, match: 'letters', tier: 1, score: 0.6, whole, settles: false } : null;
             };
         }
         case 'roman': {
@@ -166,15 +169,18 @@ function scorer(query: SearchableQuery, tuning: Tuning): (line: GurbaniLine) => 
                 if (!line.transliteration) return null;
                 const m: RomanMatch = alignRoman(query.words, line.transliteration);
                 return acceptsRoman(m, query.words.length, tuning)
-                    ? { line, match: 'roman', tier: 1, score: m.coverage, whole: m.precision }
+                    ? { line, match: 'roman', tier: 1, score: m.coverage, whole: m.precision, settles: m.coverage >= tuning.satisfied }
                     : null;
             };
         }
         case 'roman-letters': {
             const positions = [...query.letters].map(letterInitials);
             return (line) => {
-                const found = bestLetterRun(positions, lineLetters(line));
-                return found ? { line, match: 'letters', tier: 1, score: found.score, whole: positions.length / Math.max(1, count(lineLetters(line))) } : null;
+                const letters = lineLetters(line);
+                const found = bestLetterRun(positions, letters);
+                return found
+                    ? { line, match: 'letters', tier: 1, score: found.score, whole: positions.length / Math.max(1, count(letters)), settles: found.misses === 0 }
+                    : null;
             };
         }
     }
@@ -195,9 +201,9 @@ function nearRun(typed: string, letters: string): boolean {
 // Where a run of romanized first letters sits in a line's own: each letter
 // must be one its guesses allow, with one miss forgiven in six or more. The
 // likelier the guesses that fit, and the nearer the start, the better.
-function bestLetterRun(positions: Alt[][], letters: string): { score: number } | null {
+function bestLetterRun(positions: Alt[][], letters: string): { score: number; misses: number } | null {
     const l = [...letters];
-    let best: number | null = null;
+    let best: { score: number; misses: number } | null = null;
     for (let offset = 0; offset + positions.length <= l.length; offset++) {
         let misses = 0;
         let p = 1;
@@ -208,9 +214,9 @@ function bestLetterRun(positions: Alt[][], letters: string): { score: number } |
         }
         if (misses > (positions.length >= 6 ? 1 : 0)) continue;
         const score = p * (offset === 0 ? 1 : 0.8) * (misses ? 0.5 : 1);
-        if (best === null || score > best) best = score;
+        if (best === null || score > best.score) best = { score, misses };
     }
-    return best === null ? null : { score: best };
+    return best;
 }
 
 const band = (score: number) => Math.round(score * 20);
@@ -228,10 +234,10 @@ function byRank(a: Ranked, b: Ranked): number {
 
 const sameLineKey = (line: GurbaniLine) => lineKeys(line.gurmukhi).raw.map(looseKey).join(' ');
 
-// One hit per shabad, its best line; a line repeated in other shabads
-// appears at most MAX_SAME_LINE times, each saying how many others there are.
-export function rankLines(query: SearchableQuery, lines: GurbaniLine[], opts: { maxHits?: number; tuning?: Tuning } = {}): { hits: VerseHit[]; more: boolean } {
-    const score = scorer(query, opts.tuning ?? TUNING);
+// The lines that match, best first, one per shabad (its best line).
+// Headings, other sources and unusable ids never count.
+function rankPool(query: SearchableQuery, lines: GurbaniLine[], tuning: Tuning): Ranked[] {
+    const score = scorer(query, tuning);
     const unique = new Map<string, GurbaniLine>();
     for (const line of lines) {
         if (line.isHeader || line.source.id !== SGGS_SOURCE_ID || !isGurbaniId(line.id) || !isGurbaniId(line.shabadId)) continue;
@@ -250,6 +256,12 @@ export function rankLines(query: SearchableQuery, lines: GurbaniLine[], opts: { 
         shabads.add(r.line.shabadId);
         perShabad.push(r);
     }
+    return perShabad;
+}
+
+// The hits shown: a line repeated in other shabads appears at most
+// MAX_SAME_LINE times, each saying how many others there are.
+function toHits(perShabad: Ranked[], maxHits = MAX_HITS): { hits: VerseHit[]; more: boolean } {
     const shabadsWith = new Map<string, number>();
     for (const r of perShabad) shabadsWith.set(sameLineKey(r.line), (shabadsWith.get(sameLineKey(r.line)) ?? 0) + 1);
     const shown = new Map<string, number>();
@@ -261,8 +273,11 @@ export function rankLines(query: SearchableQuery, lines: GurbaniLine[], opts: { 
         shown.set(key, already + 1);
         hits.push(toHit(r.line, r.match, (shabadsWith.get(key) ?? 1) - 1));
     }
-    const max = opts.maxHits ?? MAX_HITS;
-    return { hits: hits.slice(0, max), more: hits.length > max };
+    return { hits: hits.slice(0, maxHits), more: hits.length > maxHits };
+}
+
+export function rankLines(query: SearchableQuery, lines: GurbaniLine[], opts: { maxHits?: number; tuning?: Tuning } = {}): { hits: VerseHit[]; more: boolean } {
+    return toHits(rankPool(query, lines, opts.tuning ?? TUNING), opts.maxHits);
 }
 
 function toHit(line: GurbaniLine, match: MatchKind, sameLineIn: number): VerseHit {
@@ -283,29 +298,6 @@ function toHit(line: GurbaniLine, match: MatchKind, sameLineIn: number): VerseHi
     };
 }
 
-// Whether what has been found so far settles the search: the second wave
-// only runs when it hasn't.
-function settled(query: SearchableQuery, hits: VerseHit[], lines: GurbaniLine[], tuning: Tuning): boolean {
-    switch (query.kind) {
-        case 'gurmukhi':
-            return hits.some(h => h.match === 'exact' || h.match === 'contained');
-        case 'gurmukhi-letters':
-            return lines.some(line => toSearchLetters(firstLetters(line.gurmukhi)).includes(query.letters));
-        case 'roman':
-            return lines.some(line => line.transliteration && alignRoman(query.words, line.transliteration).coverage >= tuning.satisfied);
-        case 'roman-letters': {
-            const positions = [...query.letters].map(letterInitials);
-            return lines.some(line => {
-                const letters = [...toSearchLetters(firstLetters(line.gurmukhi))];
-                for (let offset = 0; offset + positions.length <= letters.length; offset++) {
-                    if (positions.every((alts, i) => alts.some(a => a.letter === letters[offset + i]))) return true;
-                }
-                return false;
-            });
-        }
-    }
-}
-
 export async function searchVerses(query: SearchableQuery, opts: {
     client: GurbaniClient;
     signal?: AbortSignal;
@@ -316,6 +308,7 @@ export async function searchVerses(query: SearchableQuery, opts: {
     const tuning = opts.tuning ?? TUNING;
     const budget = opts.maxCalls ?? MAX_SEARCH_CALLS;
     const pool: GurbaniLine[] = [];
+    let ranked: Ranked[] = [];
     let calls = 0;
     let answered = 0;
     let complete = true;
@@ -342,10 +335,13 @@ export async function searchVerses(query: SearchableQuery, opts: {
         // Nothing answered: the source is down, and more lookups would only
         // add to its load.
         if (answered === 0) break;
-        if (settled(query, rankLines(query, pool, { tuning }).hits, pool, tuning)) break;
+        // The second wave runs only when the first found nothing that settles
+        // the search.
+        ranked = rankPool(query, pool, tuning);
+        if (ranked.some(r => r.settles)) break;
     }
 
     if (answered === 0) return null;
-    const { hits, more } = rankLines(query, pool, { maxHits: opts.maxHits, tuning });
+    const { hits, more } = toHits(ranked, opts.maxHits);
     return { hits, complete, truncated: truncated || more, calls };
 }

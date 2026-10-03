@@ -21,6 +21,7 @@ export type Make =
     | 'swap'            // …with a typo: its longest word's last letter changed
     | `words:${number}-${number}` // a run of its words
     | 'letters'         // its first letters, run together
+    | 'letters-raw'     // …with vowels typed as themselves (ਇ, not ੲ)
     | 'spaced-letters'  // …spaced out
     | 'roman'           // GurbaniNow's transliteration
     | 'roman-casual'    // …spelled the way readers do: long vowels once, retroflex letters single
@@ -95,8 +96,12 @@ function swap(line: GurbaniLine): string {
 
 export function inputOf(fixture: SearchFixture): string {
     if (fixture.input !== undefined) return fixture.input;
-    const line = sourceLine(fixture)!;
-    const make = fixture.make ?? 'line';
+    return makeInput(sourceLine(fixture)!, fixture.make ?? 'line');
+}
+
+// A line, typed by one of the rules above. npm run eval:search uses these
+// too, on lines from the live source.
+export function makeInput(line: GurbaniLine, make: Make): string {
     if (make.startsWith('words:')) {
         const [from, to] = make.slice('words:'.length).split('-').map(Number);
         return lineKeys(line.gurmukhi).raw.slice(from, to).join(' ');
@@ -107,6 +112,7 @@ export function inputOf(fixture: SearchFixture): string {
         case 'loose': return loose(lineKeys(line.gurmukhi).raw.join(' '));
         case 'swap': return swap(line);
         case 'letters': return toSearchLetters(firstLetters(line.gurmukhi));
+        case 'letters-raw': return firstLetters(line.gurmukhi);
         case 'spaced-letters': return [...toSearchLetters(firstLetters(line.gurmukhi))].join(' ');
         case 'roman': return line.transliteration;
         case 'roman-casual': return casual(line.transliteration);

@@ -518,6 +518,7 @@ const paLatn: Dictionary = {
             searching: 'Khoj ho rahi hai…',
             found: 'Mile shabad: {n}',
             none: 'Sri Guru Granth Sahib Ji di koi tukk nahi mili.',
+            unfinished: 'Khoj poori nahi ho saki.',
             noneTips: 'Spelling jaancho, tukk da hor hissa likho, jaan har shabad da pehla akkhar varat ke vekho.',
             truncated: 'Bahut saarian tukkan mildian han. Ginti ghataun layi tukk da hor hissa likho.',
             incomplete: 'Gurbani sarot ne har khoj da jawab nahi dita, is layi kujh tukkan reh gaian ho sakdian han.',

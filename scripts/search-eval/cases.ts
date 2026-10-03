@@ -16,7 +16,7 @@ export type Tag =
     | 'negative'       // nothing in Sri Guru Granth Sahib Ji to find
     | 'ang';           // an Ang number
 
-export type Make = 'line' | 'loose' | 'words:0-3' | 'swap' | 'letters' | 'spaced-letters' | 'letters-raw' | 'roman';
+import type { Make } from '../../tests/gurbani/search-fixtures';
 
 export type EvalCase = {
     id: string;

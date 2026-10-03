@@ -36,10 +36,13 @@ export default function VerseResults() {
     const query = url?.q ? classifyQuery(url.q, url.as) : null;
     // One spelling per search, so the CDN keeps one copy of each answer.
     const key = url && query && isSearchable(query) ? `/api/shabad/search${searchString({ q: canonicalQuery(url.q), as: url.as })}` : null;
-    const [latest, setLatest] = useState<{ key: string; answer: Answer } | null>(null);
+    // One asking of that search: searching again, or Try again, asks afresh
+    // unless a complete answer is already in hand.
     const [attempt, setAttempt] = useState(0);
+    const asking = key && url ? `${key} ${url.submission} ${attempt}` : null;
+    const [latest, setLatest] = useState<{ asking: string; answer: Answer } | null>(null);
     const remembered = key ? answered.get(key) : undefined;
-    const answer: Answer | undefined = remembered ? { ok: true, data: remembered } : latest?.key === key ? latest.answer : undefined;
+    const answer: Answer | undefined = remembered ? { ok: true, data: remembered } : latest?.asking === asking ? latest.answer : undefined;
 
     // /shabad?q=10, from the search box without JavaScript: that Ang's page.
     const ang = query?.kind === 'ang' ? query.ang : null;
@@ -48,7 +51,7 @@ export default function VerseResults() {
     }, [ang, router, to]);
 
     useEffect(() => {
-        if (!key || answered.has(key)) return;
+        if (!key || !asking || answered.has(key)) return;
         const controller = new AbortController();
         fetch(key, { signal: controller.signal })
             .then(async (res) => {
@@ -57,21 +60,18 @@ export default function VerseResults() {
                 if (found) {
                     // An incomplete answer is asked for afresh next time.
                     if (found.complete) remember(key, found);
-                    setLatest({ key, answer: { ok: true, data: found } });
+                    setLatest({ asking, answer: { ok: true, data: found } });
                 } else {
-                    setLatest({ key, answer: { ok: false, message: res.ok ? t.errors.generic : responseErrorText(t, res, data, 'search_busy') } });
+                    setLatest({ asking, answer: { ok: false, message: res.ok ? t.errors.generic : responseErrorText(t, res, data, 'search_busy') } });
                 }
             })
             .catch(() => {
-                if (!controller.signal.aborted) setLatest({ key, answer: { ok: false, message: t.errors.source_error } });
+                if (!controller.signal.aborted) setLatest({ asking, answer: { ok: false, message: t.errors.source_error } });
             });
         return () => controller.abort();
-    }, [key, attempt, t]);
+    }, [key, asking, t]);
 
-    const retry = () => {
-        setLatest(null);
-        setAttempt((n) => n + 1);
-    };
+    const retry = () => setAttempt((n) => n + 1);
     const searchAs = (as: 'words' | 'letters') => url && showSearch(to('/shabad'), { q: url.q, as });
 
     // Before the page knows its address, and on its way to an Ang.
@@ -113,10 +113,12 @@ export default function VerseResults() {
     }
 
     const data = answer?.ok ? answer.data : null;
+    // "Nothing matched" only when every lookup was answered.
     const status = !answer ? t.shabad.results.searching
         : !answer.ok ? answer.message
         : data && data.hits.length > 0 ? fmt(t.shabad.results.found, { n: data.hits.length })
-        : t.shabad.results.none;
+        : data?.complete ? t.shabad.results.none
+        : t.shabad.results.unfinished;
 
     return (
         <section aria-labelledby="verse-results-heading" aria-busy={!answer} className={`${PANEL} space-y-4`}>

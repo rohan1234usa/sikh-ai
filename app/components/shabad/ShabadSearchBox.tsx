@@ -36,12 +36,13 @@ export default function ShabadSearchBox({ initial, inline }: { initial?: string;
     // that changes (an example, a "search … instead").
     const shown = inline ? url?.q : undefined;
     const [edited, setEdited] = useState<string | null>(null);
+    const [problem, setProblem] = useState<Problem | null>(null);
     const [seen, setSeen] = useState(shown);
     if (shown !== seen) {
         setSeen(shown);
         setEdited(null);
+        setProblem(null);
     }
-    const [problem, setProblem] = useState<Problem | null>(null);
     const value = edited ?? shown ?? initial ?? '';
 
     const search = (q: string, as?: SearchAs) => {

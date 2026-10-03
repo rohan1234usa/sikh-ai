@@ -34,6 +34,7 @@ import { searchVerses } from '../../lib/gurbani/search';
 import { verifyReply } from '../../lib/gurbani/verify';
 import { angKey, searchKey } from '../../tests/gurbani/keys';
 import { inputOf, SEARCHES } from '../../tests/gurbani/search-fixtures';
+import { pacedCalls } from './pace';
 
 const DIR = resolve(import.meta.dirname, '../../tests/gurbani/fixtures');
 const BASE = 'https://api.gurbaninow.com/v2';
@@ -98,23 +99,15 @@ async function recordVerify(): Promise<boolean> {
 
 type Json = Record<string, unknown>;
 const obj = (v: unknown): Json => (v && typeof v === 'object' ? v as Json : {});
-const sleep = (ms: number) => new Promise(done => setTimeout(done, ms));
 
-// One GET at least 400 ms after the last, tried a second time two seconds
-// later. null when it went unanswered both times.
-let lastCall = 0;
-async function paced(url: string): Promise<Json | null> {
-    for (let attempt = 0; attempt < 2; attempt++) {
-        const wait = lastCall + (attempt ? 2000 : 400) - Date.now();
-        if (wait > 0) await sleep(wait);
-        lastCall = Date.now();
-        try {
-            const res = await fetch(url, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(10_000) });
-            if (res.ok) return obj(await res.json());
-            console.error(`   ${res.status} for ${url}`);
-        } catch (error) {
-            console.error(`   ${error instanceof Error ? error.name : 'error'} for ${url}`);
-        }
+// One GET of GurbaniNow's JSON, or null when it went unanswered.
+async function fetchJson(url: string): Promise<Json | null> {
+    try {
+        const res = await fetch(url, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(10_000) });
+        if (res.ok) return obj(await res.json());
+        console.error(`   ${res.status} for ${url}`);
+    } catch (error) {
+        console.error(`   ${error instanceof Error ? error.name : 'error'} for ${url}`);
     }
     return null;
 }
@@ -148,6 +141,8 @@ function slimShabad(data: Json): Json {
 }
 
 async function recordShabads(): Promise<boolean> {
+    const pace = pacedCalls({ gapMs: 400, retryMs: 2000 });
+    const paced = (url: string) => pace(() => fetchJson(url));
     const recorded: Record<string, unknown> = {};
     for (const id of SHABADS) {
         const data = await paced(`${BASE}/shabad/${id}`);
@@ -181,25 +176,8 @@ async function recordShabads(): Promise<boolean> {
     return true;
 }
 
-// The live search client's calls, one at a time, a second apart, each tried
-// again after five seconds if it went unanswered.
-let queue: Promise<unknown> = Promise.resolve();
-function pacedLookup(lookup: () => Promise<GurbaniLine[] | null>): Promise<GurbaniLine[] | null> {
-    const next = queue.then(async () => {
-        for (let attempt = 0; attempt < 2; attempt++) {
-            const wait = lastCall + (attempt ? 5000 : 1000) - Date.now();
-            if (wait > 0) await sleep(wait);
-            lastCall = Date.now();
-            const lines = await lookup();
-            if (lines !== null) return lines;
-        }
-        return null;
-    });
-    queue = next;
-    return next;
-}
-
 async function recordSearches(): Promise<boolean> {
+    const pace = pacedCalls({ gapMs: 1000, retryMs: 5000 });
     const live = gurbaniNowClient({ meter: dailyMeter(Infinity), source: SGGS_SOURCE_ID });
     const recorded: Record<string, GurbaniLine[] | null> = {};
     const recorder: GurbaniClient = {
@@ -207,7 +185,7 @@ async function recordSearches(): Promise<boolean> {
             throw new Error('a verse search reads no Angs');
         },
         async searchLines(query, type, results, signal) {
-            const lines = await pacedLookup(() => live.searchLines(query, type, results, signal));
+            const lines = await pace(() => live.searchLines(query, type, results, signal));
             recorded[searchKey(query, type, results, SGGS_SOURCE_ID)] = lines;
             return lines;
         },

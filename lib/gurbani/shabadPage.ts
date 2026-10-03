@@ -31,6 +31,14 @@ export function shabadAngList(shabad: Shabad): number[] {
     return Array.from({ length: last - shabad.ang + 1 }, (_, i) => (shabad.ang as number) + i);
 }
 
+// The shabads before and after this one, to link to. GurbaniNow numbers
+// shabads across all its sources, so the last shabad of Sri Guru Granth
+// Sahib Ji, on its last Ang, is followed by the Dasam Granth's first, which
+// this site doesn't show: its page would only send the reader to the search.
+export function neighbours(shabad: Shabad): { previousId: string | null; nextId: string | null } {
+    return { previousId: shabad.previousId, nextId: shabad.angEnd === MAX_ANG ? null : shabad.nextId };
+}
+
 export function shabadTitle(t: Dictionary, shabad: Shabad): string {
     const line = opening(firstVerse(shabad), 60);
     return shabad.ang === null ? line : fmt(t.shabad.page.title, { line, n: shabad.ang });

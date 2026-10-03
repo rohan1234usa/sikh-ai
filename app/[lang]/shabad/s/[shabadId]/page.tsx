@@ -10,7 +10,7 @@ import { SGGS_SOURCE_ID } from '@/lib/gurbani/citations';
 import { fetchShabad } from '@/lib/gurbani/gurbaninow';
 import { localName, parseShabadIdParam, shabadPath, shabadSections } from '@/lib/gurbani/shabad';
 import {
-  jsonLdText, shabadAngList, shabadAngs, shabadDescription, shabadStructuredData, shabadTitle,
+  jsonLdText, neighbours, shabadAngList, shabadAngs, shabadDescription, shabadStructuredData, shabadTitle,
 } from '@/lib/gurbani/shabadPage';
 import { fmt } from '@/lib/i18n/fmt';
 import { localePath } from '@/lib/i18n/paths';
@@ -59,6 +59,7 @@ export default async function ShabadPage({ params }: PageProps<'/[lang]/shabad/s
 
   const to = (path: string) => localePath(lang, path);
   const sections = shabadSections(shabad.lines);
+  const { previousId, nextId } = neighbours(shabad);
   const title = shabadTitle(t, shabad);
   const about = [localName(lang, shabad.writer, shabad.writerGurmukhi), localName(lang, shabad.raag, shabad.raagGurmukhi)]
     .filter(Boolean).join(' · ');
@@ -106,15 +107,15 @@ export default async function ShabadPage({ params }: PageProps<'/[lang]/shabad/s
           </div>
 
           <footer className="border-t border-edge bg-surface px-6 py-5 space-y-4">
-            {(shabad.previousId || shabad.nextId) && (
+            {(previousId || nextId) && (
               <nav aria-label={t.shabad.page.navAria} className="flex justify-between gap-4 text-sm font-semibold">
-                {shabad.previousId ? (
-                  <IntentLink rel="prev" href={to(shabadPath(shabad.previousId))} className="text-accent-text hover:underline">
+                {previousId ? (
+                  <IntentLink rel="prev" href={to(shabadPath(previousId))} className="text-accent-text hover:underline">
                     ← {t.shabad.page.previous}
                   </IntentLink>
                 ) : <span />}
-                {shabad.nextId && (
-                  <IntentLink rel="next" href={to(shabadPath(shabad.nextId))} className="text-accent-text hover:underline">
+                {nextId && (
+                  <IntentLink rel="next" href={to(shabadPath(nextId))} className="text-accent-text hover:underline">
                     {t.shabad.page.next} →
                   </IntentLink>
                 )}

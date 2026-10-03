@@ -35,15 +35,24 @@ export function searchString({ q, as }: SearchState): string {
     return `?${params}`;
 }
 
-export function useSearchQuery(): SearchState | null {
-    const search = useSyncExternalStore(subscribe, () => window.location.search, () => null);
-    return useMemo(() => (search === null ? null : readSearch(search)), [search]);
+// Every search asked for is counted, so asking for the same one again (after
+// a failure, say) is news even though the address stays the same.
+let submissions = 0;
+
+export function useSearchQuery(): (SearchState & { submission: number }) | null {
+    const snapshot = useSyncExternalStore(subscribe, () => `${submissions}\n${window.location.search}`, () => null);
+    return useMemo(() => {
+        if (snapshot === null) return null;
+        const cut = snapshot.indexOf('\n');
+        return { ...readSearch(snapshot.slice(cut + 1)), submission: Number(snapshot.slice(0, cut)) };
+    }, [snapshot]);
 }
 
 // Shows a search on /shabad: the address changes in place (no new history
 // entry, no request for the page; Next's router follows replaceState), and
 // everything reading it hears.
 export function showSearch(path: string, state: SearchState): void {
+    submissions++;
     window.history.replaceState(null, '', path + searchString(state));
     window.dispatchEvent(new Event(CHANGE));
 }

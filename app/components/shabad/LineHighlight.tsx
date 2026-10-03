@@ -13,7 +13,9 @@ export default function LineHighlight() {
         const show = () => {
             marked?.removeAttribute('data-highlighted');
             marked = null;
-            const id = decodeURIComponent(window.location.hash.slice(1));
+            // Line ids are plain letters and digits, so nothing to decode
+            // (and no stray % to throw on).
+            const id = window.location.hash.slice(1);
             const line = id.startsWith('line-') ? document.getElementById(id) : null;
             if (!line) return;
             line.setAttribute('data-highlighted', '');

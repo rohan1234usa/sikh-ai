@@ -61,10 +61,11 @@ test("the exact-words lookup uses GurbaniNow's spelling of a subjoined ha", () =
     assert.ok(phrase.query.includes('ੑ') && !phrase.query.includes('੍ਹ'), phrase.query);
 });
 
-test('first letters: three from the start, four both ways, more anywhere, six or more checked at both ends', () => {
+test('first letters: three from the start then anywhere, four both ways, more anywhere, six or more checked at both ends', () => {
     const l = [...letters(LINES.find(x => [...letters(x)].length >= 9)!)];
     const typed = (n: number) => l.slice(0, n).join('');
-    assert.deepEqual(plan(typed(3)), [[{ query: typed(3), type: START, results: 50 }]]);
+    assert.deepEqual(plan(typed(3)), [[{ query: typed(3), type: START, results: 50 }], [{ query: typed(3), type: ANYWHERE, results: 50 }]],
+        'three letters typed from the middle of a line are found too, as in English letters');
     assert.deepEqual(plan(typed(4)), [[{ query: typed(4), type: START, results: 30 }, { query: typed(4), type: ANYWHERE, results: 30 }]]);
     assert.deepEqual(plan(typed(5)), [[{ query: typed(5), type: ANYWHERE, results: 30 }]]);
     assert.deepEqual(plan(typed(9)), [

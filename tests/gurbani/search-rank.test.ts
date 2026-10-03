@@ -7,7 +7,8 @@ import { firstLetters } from '@/lib/gurbani/gurmukhi';
 import { classifyQuery, isSearchable, type SearchableQuery } from '@/lib/gurbani/query';
 import { romanTokens } from '@/lib/gurbani/roman';
 import { lineKeys, looseKey, toSearchLetters } from '@/lib/gurbani/score';
-import { rankLines } from '@/lib/gurbani/search';
+import type { GurbaniClient } from '@/lib/gurbani/gurbaninow';
+import { rankLines, searchVerses } from '@/lib/gurbani/search';
 
 // Ranking, with no lookups: candidates are recorded lines, or mechanical
 // variants of them (vowel signs stripped, a word swapped), filed under
@@ -134,4 +135,23 @@ test('the same candidates in any order rank the same', () => {
         const shuffled = [...pool].sort(() => random() - 0.5);
         assert.deepEqual(rankLines(query(typed), shuffled).hits, expected);
     }
+});
+
+test("a heading that matches doesn't end the search: only lines that would be shown do", async () => {
+    const typed = toSearchLetters(firstLetters(A.gurmukhi));
+    assert.ok([...typed].length >= 6, 'enough letters for a second wave');
+    const heading = variant(A, { isHeader: true });
+    const asked: number[] = [];
+    // The first wave finds only a heading with the same letters; the second, the line.
+    const client: GurbaniClient = {
+        fetchAng: async () => null,
+        searchLines: async () => {
+            asked.push(asked.length);
+            return asked.length === 1 ? [heading] : [A];
+        },
+    };
+    const found = await searchVerses(query(typed), { client });
+    assert.equal(asked.length, 3, 'the second wave ran');
+    assert.deepEqual(found?.hits.map(h => h.lineId), [A.id]);
+    assert.equal(found?.complete, true);
 });

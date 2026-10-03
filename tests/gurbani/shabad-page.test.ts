@@ -8,7 +8,7 @@ import ShabadVerse from '@/app/components/shabad/ShabadVerse';
 import { parseShabadPayload } from '@/lib/gurbani/gurbaninow';
 import { localName, type Shabad } from '@/lib/gurbani/shabad';
 import {
-    firstVerse, jsonLdText, shabadAngList, shabadAngs, shabadDescription, shabadStructuredData, shabadTitle,
+    firstVerse, jsonLdText, neighbours, shabadAngList, shabadAngs, shabadDescription, shabadStructuredData, shabadTitle,
 } from '@/lib/gurbani/shabadPage';
 import { getDictionary } from '@/lib/i18n';
 import { LANGS } from '@/lib/i18n/config';
@@ -101,4 +101,15 @@ test('each line of a shabad can be pointed at, and says which script it is in', 
     const [heading, verse] = [shabad('823').lines.find(l => l.kind === 'header')!, shabad('823').lines.find(l => l.kind === 'verse')!];
     assert.match(renderToStaticMarkup(createElement(ShabadVerse, { line: verse })), /text-2xl/, 'verses are set large');
     assert.doesNotMatch(renderToStaticMarkup(createElement(ShabadVerse, { line: heading })), /text-2xl/, 'headings smaller');
+});
+
+test("a shabad links to its neighbours, but never past the Granth's last Ang", () => {
+    const middle = shabad('823');
+    assert.deepEqual(neighbours(middle), { previousId: middle.previousId, nextId: middle.nextId });
+    assert.ok(middle.previousId && middle.nextId);
+    assert.equal(neighbours(shabad('DMP')).previousId, null, 'nothing before the first');
+    // GurbaniNow follows the last shabad, on Ang 1430, with the Dasam Granth's first.
+    const last = { ...middle, ang: 1430, angEnd: 1430, nextId: 'KKH' };
+    assert.equal(neighbours(last).nextId, null);
+    assert.equal(neighbours(last).previousId, middle.previousId);
 });

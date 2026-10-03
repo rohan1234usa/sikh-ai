@@ -18,13 +18,14 @@ import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { SGGS_SOURCE_ID } from '../../lib/gurbani/citations';
 import { dailyMeter, gurbaniNowClient, type GurbaniClient, type GurbaniLine } from '../../lib/gurbani/gurbaninow';
-import { firstLetters } from '../../lib/gurbani/gurmukhi';
 import { classifyQuery, isSearchable, type ShabadQuery } from '../../lib/gurbani/query';
 import { TUNING, type Tuning } from '../../lib/gurbani/roman';
-import { lineKeys, looseKey, toSearchLetters } from '../../lib/gurbani/score';
+import { lineKeys, looseKey } from '../../lib/gurbani/score';
 import { planSearch, searchVerses, type VerseSearch } from '../../lib/gurbani/search';
 import { angKey, searchKey } from '../../tests/gurbani/keys';
-import { CASES, type EvalCase, type Make, type Tag } from './cases';
+import { makeInput } from '../../tests/gurbani/search-fixtures';
+import { pacedCalls } from '../gurbani-fixtures/pace';
+import { CASES, type EvalCase, type Tag } from './cases';
 import { writeReport, type Outcome } from './report';
 
 const CACHE_PATH = resolve(import.meta.dirname, 'cache.json');
@@ -80,36 +81,20 @@ function saveCache(cache: Cache): void {
     renameSync(tmp, CACHE_PATH);
 }
 
-const sleep = (ms: number) => new Promise(done => setTimeout(done, ms));
-
-// GurbaniNow through the cache. Live calls go one at a time, a second
-// apart, each tried once more after five seconds; an unanswered call is not
-// cached, so the next run asks again.
+// GurbaniNow through the cache. Live calls are paced (../gurbani-fixtures/
+// pace.ts); an unanswered call is not cached, so the next run asks again.
 function cachedClients(cache: Cache, offline: boolean): { search: GurbaniClient; angs: GurbaniClient; live: () => number; times: number[] } {
     let liveCalls = 0;
-    let last = 0;
     // How long GurbaniNow took to answer each live lookup, the pacing aside.
     const times: number[] = [];
-    let queue: Promise<unknown> = Promise.resolve();
-    const paced = (lookup: () => Promise<GurbaniLine[] | null>) => {
-        const next = queue.then(async () => {
-            for (let attempt = 0; attempt < 2; attempt++) {
-                const wait = last + (attempt ? RETRY_MS : PACE_MS) - Date.now();
-                if (wait > 0) await sleep(wait);
-                last = Date.now();
-                liveCalls++;
-                const started = performance.now();
-                const lines = await lookup();
-                if (lines !== null) {
-                    times.push(performance.now() - started);
-                    return lines;
-                }
-            }
-            return null;
-        });
-        queue = next;
-        return next;
-    };
+    const pace = pacedCalls({ gapMs: PACE_MS, retryMs: RETRY_MS });
+    const paced = (lookup: () => Promise<GurbaniLine[] | null>) => pace(async () => {
+        liveCalls++;
+        const started = performance.now();
+        const lines = await lookup();
+        if (lines !== null) times.push(performance.now() - started);
+        return lines;
+    });
     const through = (key: string, lookup: () => Promise<GurbaniLine[] | null>): Promise<GurbaniLine[] | null> => {
         if (key in cache.entries) return Promise.resolve(cache.entries[key]);
         if (offline) throw new Error(`not in the cache: ${key} (run without --offline)`);
@@ -138,37 +123,13 @@ function cachedClients(cache: Cache, offline: boolean): { search: GurbaniClient;
 
 // --- Inputs -----------------------------------------------------------------
 
-const loose = (text: string) => text.replace(/[ਁਂ਼ਾ-੍ੑੰੱੵ]/g, '');
-
-function swap(text: string): string {
-    const words = lineKeys(text).raw;
-    const longest = words.reduce((best, w, i) => ([...w].length > [...words[best]].length ? i : best), 0);
-    const word = [...words[longest]];
-    const at = word.findLastIndex(ch => /[ਕ-ਹ]/.test(ch));
-    word[at] = String.fromCharCode(word[at].charCodeAt(0) - 1);
-    return words.map((w, i) => (i === longest ? word.join('') : w)).join(' ');
-}
-
-function make(line: GurbaniLine, rule: Make): string {
-    switch (rule) {
-        case 'line': return line.gurmukhi;
-        case 'loose': return loose(lineKeys(line.gurmukhi).raw.join(' '));
-        case 'words:0-3': return lineKeys(line.gurmukhi).raw.slice(0, 3).join(' ');
-        case 'swap': return swap(line.gurmukhi);
-        case 'letters': return toSearchLetters(firstLetters(line.gurmukhi));
-        case 'spaced-letters': return [...toSearchLetters(firstLetters(line.gurmukhi))].join(' ');
-        case 'letters-raw': return firstLetters(line.gurmukhi);
-        case 'roman': return line.transliteration;
-    }
-}
-
 async function inputOf(c: EvalCase, angs: GurbaniClient): Promise<{ input: string; source?: GurbaniLine }> {
     if (c.input !== undefined) return { input: c.input };
     const { ang, lineId, make: rule } = c.from!;
     const lines = await angs.fetchAng(ang);
     const source = lines?.find(l => l.id === lineId);
     if (!source) throw new Error(`${c.id}: line ${lineId} is not on Ang ${ang} (or the Ang went unanswered)`);
-    return { input: make(source, rule), source };
+    return { input: makeInput(source, rule), source };
 }
 
 // --- Scoring ----------------------------------------------------------------
