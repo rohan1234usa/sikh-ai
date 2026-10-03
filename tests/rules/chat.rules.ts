@@ -16,6 +16,7 @@ import {
     planUnshare,
 } from '@/lib/chat/store/firestorePlans';
 import { SHARE_VERSION, type ShareDoc } from '@/lib/chat/share';
+import { FirestoreChatStore } from '@/lib/chat/store/firestore';
 import type { Op } from '@/lib/firebase/ops';
 import { exchange, reply } from '../chat/helpers';
 import { meta } from '../chat/store-helpers';
@@ -129,8 +130,8 @@ test("only a chat's owner can share it, refresh the link or end it", async () =>
     await assertSucceeds(commit(as('alice'), share(SHARE_ID, 2_000)));
     await assertFails(setDoc(doc(as('alice'), `shared_chats/${SHARE_ID}`), shareDoc({ createdAt: 5 })));
     // Ending it, and ending it again from another device, both go through.
-    await assertSucceeds(commit(as('alice'), planUnshare('alice', CHAT.id, SHARE_ID)));
-    await assertSucceeds(commit(as('alice'), planUnshare('alice', CHAT.id, SHARE_ID)));
+    await assertSucceeds(commit(as('alice'), planUnshare('alice', CHAT.id, [SHARE_ID])));
+    await assertSucceeds(commit(as('alice'), planUnshare('alice', CHAT.id, [SHARE_ID])));
     await assertSucceeds(deleteDoc(doc(as('alice'), `shared_chats/${SHARE_ID}`)));
 });
 
@@ -138,7 +139,10 @@ test("a link and its owner's note can't be written apart, or bent", async () => 
     await aliceHasAChat();
     const [link, note, ref] = share();
     const noteOf = (data: Record<string, unknown>): Op => ({ type: 'set', path: note.path, data });
-    for (const part of [[link], [note], [link, ref], [note, ref]])
+    // The chat must name the new link in the same batch: a link with its note
+    // alone, or with the chat naming another, is refused.
+    const [, , refToOther] = share(OTHER_ID);
+    for (const part of [[link], [note], [link, ref], [note, ref], [link, note], [link, note, refToOther]])
         await assertFails(commit(as('alice'), part));
     await assertFails(commit(as('alice'), [link, noteOf({ chatId: CHAT.id, extra: 1 }), ref]));
     // A note for a chat she doesn't have.
@@ -149,13 +153,31 @@ test("a link and its owner's note can't be written apart, or bent", async () => 
     await assertFails(updateDoc(doc(as('alice'), `users/alice/shares/${SHARE_ID}`), { chatId: meta(2).id }));
 });
 
+test('a link goes only with the note of it, so no one keeps a note of a link to take back over', async () => {
+    await aliceSharesHerChat();
+    // Alone, neither the link nor the note can go.
+    await assertFails(deleteDoc(doc(as('alice'), `shared_chats/${SHARE_ID}`)));
+    await assertFails(deleteDoc(doc(as('alice'), `users/alice/shares/${SHARE_ID}`)));
+    // Alice ends her link. Bob, who had its address, makes a link of his own
+    // under it, and can't then end it while keeping his note: if he could,
+    // a device of Alice's bringing her link back under that id would hand
+    // him a link of hers to rewrite.
+    await assertSucceeds(commit(as('alice'), planUnshare('alice', CHAT.id, [SHARE_ID])));
+    const bobs = meta(4);
+    await assertSucceeds(commit(as('bob'), planCreate('bob', bobs, null, [exchange('Mine', { id: 'ex-1' })])));
+    await assertSucceeds(commit(as('bob'), planShare('bob', bobs.id, SHARE_ID, shareDoc(), shareRef())));
+    await assertFails(deleteDoc(doc(as('bob'), `shared_chats/${SHARE_ID}`)));
+    await assertSucceeds(commit(as('bob'), planUnshare('bob', bobs.id, [SHARE_ID])));
+    assert.equal(await peek(`users/bob/shares/${SHARE_ID}`), null);
+});
+
 test('a device with an old copy can make an ended link again, but not give a chat a second', async () => {
     await aliceSharesHerChat();
-    await assertSucceeds(commit(as('alice'), planUnshare('alice', CHAT.id, SHARE_ID)));
+    await assertSucceeds(commit(as('alice'), planUnshare('alice', CHAT.id, [SHARE_ID])));
     // Its copy still says the chat is shared: refreshing makes the link again.
     await assertSucceeds(commit(as('alice'), share(SHARE_ID, 2_000)));
     // Ended, and a new link made elsewhere: the old copy can't bring back its own.
-    await assertSucceeds(commit(as('alice'), planUnshare('alice', CHAT.id, SHARE_ID)));
+    await assertSucceeds(commit(as('alice'), planUnshare('alice', CHAT.id, [SHARE_ID])));
     await assertSucceeds(commit(as('alice'), share(OTHER_ID, 3_000)));
     await assertFails(commit(as('alice'), share(SHARE_ID, 4_000)));
 });
@@ -167,6 +189,37 @@ test('deleting a chat takes its link and the note of it, even a link already end
     assert.equal(await peek(`users/alice/shares/${SHARE_ID}`), null);
 
     await aliceSharesHerChat();
-    await assertSucceeds(commit(as('alice'), planUnshare('alice', CHAT.id, SHARE_ID)));
+    await assertSucceeds(commit(as('alice'), planUnshare('alice', CHAT.id, [SHARE_ID])));
     await assertSucceeds(commit(as('alice'), planDelete('alice', CHAT.id, ['ex-1'], [SHARE_ID])));
+});
+
+// ─── The account store, on the emulator ─────────────────────────────────────
+
+// Until a write the store sends without waiting has landed.
+async function until(check: () => Promise<boolean>) {
+    for (let i = 0; i < 50; i++) {
+        if (await check()) return;
+        await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    assert.fail('the write never landed');
+}
+
+test('a device showing an older link that stops sharing ends the newer one too', async () => {
+    await aliceSharesHerChat();
+    // Another device ends that link and makes a new one.
+    await assertSucceeds(commit(as('alice'), planUnshare('alice', CHAT.id, [SHARE_ID])));
+    await assertSucceeds(commit(as('alice'), share(OTHER_ID, 2_000)));
+    // This one still shows the first, and stops sharing.
+    await new FirestoreChatStore(as('alice'), 'alice').unshare(CHAT.id, SHARE_ID);
+    assert.equal(await peek(`shared_chats/${OTHER_ID}`), null);
+    assert.equal(await peek(`users/alice/shares/${OTHER_ID}`), null);
+    assert.equal((await peek(`users/alice/chats/${CHAT.id}`))?.share, null);
+});
+
+test("deleting a chat this tab doesn't hold ends its links too", async () => {
+    await aliceSharesHerChat();
+    await new FirestoreChatStore(as('alice'), 'alice').deleteChat(CHAT.id);
+    await until(async () => (await peek(`users/alice/chats/${CHAT.id}`)) === null);
+    assert.equal(await peek(`shared_chats/${SHARE_ID}`), null);
+    assert.equal(await peek(`users/alice/shares/${SHARE_ID}`), null);
 });

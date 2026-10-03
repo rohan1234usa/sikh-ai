@@ -91,7 +91,7 @@ test('moving a long chat splits into batches, with the meta written last', () =>
     assert.deepEqual(chunk(entries.map(() => ({ type: 'delete', path: ['x'] }) as Op)).map((b) => b.length), [MAX_BATCH_OPS, 5]);
 });
 
-test("a link, the owner's note of it and the chat's are written together, and ended together", () => {
+test("a link, the owner's note of it and the chat's are written together, and every link of the chat ends together", () => {
     const ref = { id: 'share-12345', createdAt: 1, updatedAt: 2, lastOrder: 9 };
     const doc = { v: 2, title: 'Seva', payload: '{}', createdAt: 1, updatedAt: 2 };
     const share = planShare(UID, 'chat-123456', 'share-12345', doc, ref);
@@ -105,13 +105,15 @@ test("a link, the owner's note of it and the chat's are written together, and en
     assert.ok(!JSON.stringify(published.data).includes(UID) && !JSON.stringify(published.data).includes('chat-123456'));
     assert.deepEqual(note.data, { chatId: 'chat-123456' });
 
-    const unshare = planUnshare(UID, 'chat-123456', 'share-12345');
+    const unshare = planUnshare(UID, 'chat-123456', ['share-12345', 'share-67890']);
     assert.deepEqual(unshare.map(at), [
         'delete shared_chats/share-12345',
         'delete users/user-1/shares/share-12345',
+        'delete shared_chats/share-67890',
+        'delete users/user-1/shares/share-67890',
         'update users/user-1/chats/chat-123456',
     ]);
-    assert.deepEqual((unshare[2] as { data: object }).data, { share: null });
+    assert.deepEqual((unshare[4] as { data: object }).data, { share: null });
 });
 
 test('past the cap, every unpinned chat goes, except one in use here', () => {

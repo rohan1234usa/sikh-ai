@@ -1,6 +1,8 @@
 // Pure: the Firestore writes for each change to an account chat, as plain
-// operations the adapter (firestore.ts) carries out in batches. Kept apart so
-// the paths, the shapes and the ordering are tested without Firestore.
+// operations carried out in batches: by the adapter (firestore.ts), and, when
+// the account goes, by lib/account/deletion.ts (planUnlinkShares,
+// planErasePage). Kept apart so the paths, the shapes and the ordering are
+// tested without Firestore.
 //
 //   users/{uid}/chats/{chatId}               the chat's meta and passage
 //   users/{uid}/chats/{chatId}/entries/{id}  one exchange or notice each
@@ -103,8 +105,9 @@ function planEndLink(uid: string, shareId: string): Op[] {
     ];
 }
 
-// Links ended per batch when the account goes (lib/account/deletion.ts): each
-// one's two deletes read a document each, and a batch may read 20.
+// Links ended per batch when the account goes (lib/account/deletion.ts): the
+// two deletes of each read three documents between them, and a batch may
+// read 20.
 export const UNLINK_BATCH = 5;
 
 export function planUnlinkShares(uid: string, shareIds: readonly string[]): Op[][] {
@@ -159,9 +162,12 @@ export function planShare(uid: string, chatId: string, shareId: string, doc: Sha
     ];
 }
 
-export function planUnshare(uid: string, chatId: string, shareId: string): Op[] {
+// Every link of the chat ends, not only the one this device knows: one made
+// meanwhile on another device stays public otherwise, with nothing left
+// naming it.
+export function planUnshare(uid: string, chatId: string, shareIds: readonly string[]): Op[] {
     return [
-        ...planEndLink(uid, shareId),
+        ...shareIds.flatMap((id) => planEndLink(uid, id)),
         { type: 'update', path: chatPath(uid, chatId), data: { share: null } },
     ];
 }

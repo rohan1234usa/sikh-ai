@@ -48,8 +48,9 @@ service cloud.firestore {
     // with its host's note; a sign-up with its note and one more on the count;
     // leaving takes all three back. Events are cancelled rather than deleted
     // while they matter: only their host deletes one, once it's cancelled or
-    // over, after clearing its sign-ups (as when they delete their account).
-    // The limits are lib/seva/limits.ts's (tests/seva/limits.test.ts checks).
+    // over (the app clears its sign-ups first, as when the host deletes their
+    // account; rules can't count them). The limits are lib/seva/limits.ts's
+    // (tests/seva/limits.test.ts checks).
 
     function sevaText(v, min, max) {
       return v is string && v.size() >= min && v.size() <= max && v == v.trim();
@@ -181,8 +182,8 @@ service cloud.firestore {
 
     // The host clearing an event's sign-ups on the way to deleting it: once
     // it's done with, or already gone (deleted in the console). The app clears
-    // them before the event goes (lib/seva/plans.ts): once it's gone, anyone
-    // may post under its id, and list what's under it.
+    // them before the event goes (lib/account/deletion.ts): once it's gone,
+    // anyone may post under its id, and list what's under it.
     function sevaHostClears(eventId) {
       return sevaIsHost(eventId)
         && (!exists(sevaEventPath(eventId)) || sevaDone(get(sevaEventPath(eventId)).data));
@@ -230,9 +231,11 @@ service cloud.firestore {
         || sevaJoinOk(eventId, resource.data, request.resource.data)
         || sevaLeaveOk(eventId, resource.data, request.resource.data));
       // Cancelled rather than deleted while it matters (README: "Moderating
-      // Seva events"). Its host deletes it once it's done with, its sign-ups
-      // cleared first, and their note goes in the same batch. Deleting one
-      // already gone is allowed too, so the note can always go that way.
+      // Seva events"). Its host may delete it once it's done with. The rules
+      // can't check its sign-ups are gone: the app clears them first
+      // (sevaHostClears), and the host's note goes in the same batch
+      // (planDeleteEvent). Deleting one already gone is allowed too, so the
+      // note can always go that way.
       allow delete: if request.auth != null && sevaIsHost(eventId)
         && (resource == null || sevaDone(resource.data));
 
@@ -259,7 +262,8 @@ service cloud.firestore {
     }
 
     // A volunteer's note: made only with the new sign-up it points to, and
-    // removed only with it, so no one can point theirs at someone else's.
+    // removed with it, or once it's gone (its host cleared it, or the event
+    // went), so no one can point theirs at someone else's.
     match /users/{uid}/seva_signups/{eventId} {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow create: if request.auth != null && request.auth.uid == uid
@@ -299,16 +303,18 @@ service cloud.firestore {
     }
 
     // ─── Saved chats and shared links (lib/chat/store/firestorePlans.ts) ──────
-    // Only used once NEXT_PUBLIC_CHAT_CLOUD is on.
+    // Written only once NEXT_PUBLIC_CHAT_CLOUD is on; deleting an account lists
+    // them, and removes any, either way.
     //
     //   users/{uid}/chats/{chatId}               a chat: its meta, and its link's id
     //   users/{uid}/chats/{chatId}/entries/{id}  one exchange or notice each
     //   users/{uid}/shares/{shareId}             the owner's note of a link: its chat
     //   shared_chats/{shareId}                   the link's public copy, naming no one
     //
-    // A link and its owner's note are made, refreshed and ended in one batch,
-    // which existsAfter() holds together. The note is how the rules know whose
-    // link it is, and how the account finds all its links when it's deleted.
+    // A link, its owner's note and its chat's record of it are made in one
+    // batch, and a link and its note are ended in one: existsAfter() and
+    // getAfter() hold them together. The note is how the rules know whose link
+    // it is, and how the account finds all its links when it's deleted.
 
     // ─── BEGIN SikhAI chat rules ─────────────────────────────────────────────────
 
@@ -409,12 +415,16 @@ service cloud.firestore {
       return /databases/$(database)/documents/users/$(request.auth.uid)/shares/$(shareId);
     }
 
-    // The chat a new link copies: one of the account's, noting no other link,
-    // so a device with an old copy can't give it a second link beside the
-    // first. A chat that doesn't exist fails the read, and the rule.
-    function chatLinkFree(uid, chatId, shareId) {
-      let noted = get(/databases/$(database)/documents/users/$(uid)/chats/$(chatId)).data.get('share', null);
-      return noted == null || noted.id == shareId;
+    // The chat a new link copies: one of the account's, noting no other link
+    // before the batch, and this one after it. So a device with an old copy
+    // can't give a chat a second link beside the first, and no link is made
+    // that its chat doesn't name. A chat that doesn't exist fails the read,
+    // and the rule.
+    function chatLinkOk(uid, chatId, shareId) {
+      let chat = /databases/$(database)/documents/users/$(uid)/chats/$(chatId);
+      let before = get(chat).data.get('share', null);
+      let after = getAfter(chat).data.get('share', null);
+      return (before == null || before.id == shareId) && after != null && after.id == shareId;
     }
 
     // The public copy: the snapshot, its title and its times. Nothing about who
@@ -437,22 +447,26 @@ service cloud.firestore {
       allow update: if request.auth != null && chatShareOk(request.resource.data)
         && request.resource.data.createdAt == resource.data.createdAt
         && exists(chatShareNotePath(shareId));
-      // A link already gone (ended on another device) may be deleted again, so
+      // Deleted only with the note of it: an account left holding a note of a
+      // link that's gone could rewrite the link if it ever came back. A link
+      // already gone (ended on another device) may be deleted again, so
       // deleting its chat still goes through.
-      allow delete: if request.auth != null && (resource == null || exists(chatShareNotePath(shareId)));
+      allow delete: if request.auth != null && (resource == null
+        || (exists(chatShareNotePath(shareId)) && !existsAfter(chatShareNotePath(shareId))));
     }
 
     // The owner's note of a link, theirs alone: the chat it copies. Made with
-    // the link, written again unchanged with each refresh, and removed only
-    // once the link is gone. So every link has one, even a link whose chat was
-    // deleted where the link wasn't known, and the account can find them all.
+    // the link, written again unchanged with each refresh, and removed with
+    // the link (or once it's gone). So every link has one, even a link whose
+    // chat was deleted where the link wasn't known, and the account can find
+    // them all.
     match /users/{uid}/shares/{shareId} {
       allow read: if chatAuthIs(uid);
       allow create: if chatAuthIs(uid) && chatIdOk(shareId)
         && request.resource.data.keys().hasOnly(['chatId'])
         && chatIdOk(request.resource.data.chatId)
         && !exists(chatSharedPath(shareId)) && existsAfter(chatSharedPath(shareId))
-        && chatLinkFree(uid, request.resource.data.chatId, shareId);
+        && chatLinkOk(uid, request.resource.data.chatId, shareId);
       allow update: if chatAuthIs(uid) && request.resource.data == resource.data;
       allow delete: if chatAuthIs(uid) && !existsAfter(chatSharedPath(shareId));
     }
