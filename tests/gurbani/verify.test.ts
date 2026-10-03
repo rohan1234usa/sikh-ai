@@ -140,6 +140,23 @@ test('payload parsers: null means no answer, [] means no match', () => {
     }) ?? [];
     assert.equal(line.isHeader, true);
     assert.equal(line.source.id, 1);
+    assert.equal(line.transliteration, '', 'no transliteration given, none made up');
+});
+
+test("a line keeps GurbaniNow's transliteration", () => {
+    const [line] = parseSearchPayload({
+        count: 1,
+        shabads: [{ shabad: {
+            id: 'X2', type: 4, shabadid: 'S2', pageno: 9, lineno: 3, gurmukhi: { unicode: 'ਸਬਦੁ ॥' },
+            transliteration: { english: { text: 'sabad |', larivaar: 'sabad|' }, devanagari: { text: 'सबदु ॥' } },
+        } }],
+    }) ?? [];
+    assert.equal(line.transliteration, 'sabad |');
+    const [plain] = parseSearchPayload({
+        count: 1,
+        shabads: [{ shabad: { id: 'X3', type: 4, gurmukhi: { unicode: 'ਸਬਦੁ ॥' }, transliteration: { english: 'sabad |' } } }],
+    }) ?? [];
+    assert.equal(plain.transliteration, 'sabad |', 'a plain string is read too');
 });
 
 test('stored citations are re-validated before rendering', () => {

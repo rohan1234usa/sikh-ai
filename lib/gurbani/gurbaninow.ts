@@ -33,6 +33,7 @@ export type GurbaniLine = {
     shabadId: string;
     gurmukhi: string;
     translation: string;
+    transliteration: string; // GurbaniNow's romanization, '' when it gives none
     writer: string;
     writerGurmukhi: string;
     raag: string;
@@ -65,6 +66,7 @@ function toLine(raw: unknown, source?: GurbaniLine['source']): GurbaniLine | nul
     const id = text(v.id);
     if (!gurmukhi || !id) return null;
     const english = obj(v.translation).english;
+    const roman = obj(v.transliteration).english;
     const writer = obj(v.writer);
     const raag = obj(v.raag);
     return {
@@ -72,6 +74,7 @@ function toLine(raw: unknown, source?: GurbaniLine['source']): GurbaniLine | nul
         shabadId: text(v.shabadid),
         gurmukhi,
         translation: text(english) || text(obj(english).default),
+        transliteration: text(roman) || text(obj(roman).text),
         writer: text(writer.english),
         writerGurmukhi: text(writer.unicode),
         raag: text(raag.english),
