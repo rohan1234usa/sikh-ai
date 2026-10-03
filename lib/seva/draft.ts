@@ -64,12 +64,16 @@ export function draftFromEvent(e: EventFields): EventDraft {
     };
 }
 
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
 // "Post again": the same event a week later, at the same clock time there,
-// whatever the clocks did meanwhile.
-export function postAgainDraft(e: EventFields): EventDraft {
+// whatever the clocks did meanwhile; or, for one from weeks ago, as many weeks
+// on as it takes to be still to come.
+export function postAgainDraft(e: EventFields, now: number): EventDraft {
+    const days = 7 * Math.max(1, Math.floor((now - e.startsAt) / WEEK_MS) + 1);
     return draftFromEvent({
         ...e,
-        startsAt: shiftLocalDays(e.startsAt, e.timeZone, 7),
-        endsAt: shiftLocalDays(e.endsAt, e.timeZone, 7),
+        startsAt: shiftLocalDays(e.startsAt, e.timeZone, days),
+        endsAt: shiftLocalDays(e.endsAt, e.timeZone, days),
     });
 }

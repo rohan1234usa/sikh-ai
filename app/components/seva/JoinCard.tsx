@@ -41,6 +41,7 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
     const nameRef = useRef<HTMLInputElement>(null);
     const joinedRef = useRef<HTMLHeadingElement>(null);
     const stayRef = useRef<HTMLButtonElement>(null);
+    const headingRef = useRef<HTMLHeadingElement>(null);
     const focusNext = useRef<'join' | 'name' | 'joined' | 'stay' | null>(null);
     const ids = useId();
 
@@ -53,7 +54,9 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
     useEffect(() => {
         const target = focusNext.current;
         focusNext.current = null;
-        if (target === 'join') joinRef.current?.focus();
+        // After leaving an event that's over or off, there's no Join to
+        // return to: the card's heading takes the focus instead.
+        if (target === 'join') (joinRef.current ?? headingRef.current)?.focus();
         if (target === 'name') nameRef.current?.focus();
         if (target === 'joined') joinedRef.current?.focus();
         if (target === 'stay') stayRef.current?.focus();
@@ -338,7 +341,7 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
 
     return (
         <section aria-labelledby={`${ids}-heading`} className="rounded-xl border border-edge bg-surface-raised p-5 shadow-sm">
-            <h2 id={`${ids}-heading`} className="text-lg font-bold text-ink">{copy.joinHeading}</h2>
+            <h2 ref={headingRef} id={`${ids}-heading`} tabIndex={-1} className="text-lg font-bold text-ink">{copy.joinHeading}</h2>
             <div className="mt-3">{body}</div>
             <p role="status" className={note ? 'mt-3 text-sm font-semibold text-ink' : undefined}>{note}</p>
             {announcer}

@@ -36,10 +36,20 @@ export function countryTimeZones(country: string): string[] {
     }
 }
 
+const labels = new Map<string, string>();
+
 // "Pacific Time (Los Angeles)": the zone in words, and the place its name
-// comes from, so two zones with the same words stay apart.
-export function zoneLabel(tz: string, lang: Lang, now = Date.now()): string {
-    const place = tz.split('/').pop()?.replace(/_/g, ' ') ?? tz;
-    const name = zoneName(now, tz, lang);
-    return name === tz ? place : `${name} (${place})`;
+// comes from, so two zones with the same words stay apart. The generic name
+// doesn't change with the season, so each is worked out once: the form lists
+// over 400.
+export function zoneLabel(tz: string, lang: Lang): string {
+    const key = `${lang}|${tz}`;
+    let label = labels.get(key);
+    if (label === undefined) {
+        const place = tz.split('/').pop()?.replace(/_/g, ' ') ?? tz;
+        const name = zoneName(Date.now(), tz, lang);
+        label = name === tz ? place : `${name} (${place})`;
+        labels.set(key, label);
+    }
+    return label;
 }

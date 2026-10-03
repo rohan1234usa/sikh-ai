@@ -39,7 +39,8 @@ A **Next.js 16 App Router** application (React 19, Tailwind CSS v4) that talks d
 graph TD
     User([User]) --> Next[Next.js 16 App Router]
     Next --> Auth[Firebase Auth]
-    Next --> DB[Firestore Real-time DB]
+    Next --> DB[Firestore]
+    Next --> SevaPages["Seva pages: Firestore REST,<br/>read on the server and cached"]
     Next --> Hukam[GurbaniNow / Darbar Sahib API]
 
     subgraph "AI Core"

@@ -35,7 +35,7 @@ export function eventJsonLd(e: SevaEvent, { url, image, description, inLanguage 
                 addressCountry: e.country,
             },
         },
-        organizer: { '@type': 'Organization', name: e.organizer, url },
+        organizer: { '@type': 'Organization', name: e.organizer },
     };
 }
 

@@ -5,6 +5,7 @@ import IntentLink from '@/app/components/IntentLink';
 import { INPUT } from '@/app/components/form/Field';
 import { useAnnouncer } from '@/app/components/useAnnouncer';
 import { fmt } from '@/lib/i18n/fmt';
+import type { Lang } from '@/lib/i18n/config';
 import type { SevaCopy } from '@/lib/i18n/seva';
 import type { SevaCategory } from '@/lib/seva/config';
 import { SEVA_CATEGORIES } from '@/lib/seva/limits';
@@ -19,7 +20,8 @@ export type BoardGroup = { key: string; heading: string; dateTime?: string; item
 // The filters live in the address, so a filtered list can be shared, and
 // Back from an event comes back to it; with none there, the country chosen
 // last time. Until the page is interactive, every card shows.
-export default function SevaBoard({ groups, totalTemplate, timesLocal, copy, countryNames, categoryNames, createHref }: {
+export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, copy, countryNames, categoryNames, createHref }: {
+    lang: Lang;
     groups: BoardGroup[];
     // "Upcoming events: {n}"
     totalTemplate: string;
@@ -51,7 +53,7 @@ export default function SevaBoard({ groups, totalTemplate, timesLocal, copy, cou
     const active = !!(filters.country || filters.city || filters.category);
 
     const options = filterOptions(liveFacets, filters);
-    const collator = new Intl.Collator();
+    const collator = new Intl.Collator(lang === 'pa' ? 'pa' : 'en');
     const countries = [...options.countries].sort((a, b) => collator.compare(countryNames[a.value] ?? a.value, countryNames[b.value] ?? b.value));
     const cities = [...options.cities].sort((a, b) => collator.compare(a.label, b.label));
     const categories = SEVA_CATEGORIES.flatMap((id) => options.categories.find((o) => o.value === id) ?? []);
@@ -75,7 +77,10 @@ export default function SevaBoard({ groups, totalTemplate, timesLocal, copy, cou
     const place = filters.city
         ? cities.find((c) => c.value === filters.city)?.label ?? ''
         : filters.country ? countryNames[filters.country] ?? '' : '';
-    const hostHere = `${createHref}${filtersToSearch({ country: filters.country, city: '', category: '' })}`;
+    // The form starts in the place the board was narrowed to.
+    const hostParams = new URLSearchParams({ ...(filters.country && { country: filters.country }), ...(filters.city && place && { city: place }) });
+    const hostQuery = hostParams.toString();
+    const hostHere = hostQuery ? `${createHref}?${hostQuery}` : createHref;
 
     return (
         <div className="space-y-6">

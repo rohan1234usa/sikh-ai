@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useRef, useState } from 'react';
+import { useId, useState } from 'react';
 import { FlagIcon } from '@heroicons/react/24/outline';
 import IntentLink from '@/app/components/IntentLink';
 import { PRIMARY_BUTTON, SECONDARY_BUTTON } from '@/app/components/buttons';
@@ -23,17 +23,27 @@ const DIALOG = 'm-auto w-[min(32rem,calc(100vw-2rem))] max-h-[calc(100dvh-2rem)]
 // the host never sees who reported.
 export function ReportControl({ copy }: { copy: SevaCopy['report'] }) {
     const { signIn, signInIntent, user } = useAuth();
-    const { viewer, setIs } = useEvent();
+    const { viewer, setIs, whenViewer } = useEvent();
     const [open, setOpen] = useState(false);
     const [note, setNote] = useState('');
-    const triggerRef = useRef<HTMLButtonElement>(null);
 
     if (viewer.kind === 'ready' && viewer.is.isHost) return null;
     const reported = viewer.kind === 'ready' && viewer.is.reported;
 
+    // Signed in first if need be (with no await before signIn(), for
+    // Safari's popup); then the form, unless it turns out this account hosts
+    // the event or has already reported it, which the page then shows.
     const start = async () => {
         setNote('');
-        if (!user && !(await signIn())) return;
+        const account = user ?? await signIn();
+        if (!account) return;
+        let is = viewer.kind === 'ready' && viewer.user.uid === account.uid ? viewer.is : null;
+        if (!is) {
+            try {
+                is = await whenViewer(account);
+            } catch { /* not known: the form says so if sending fails */ }
+        }
+        if (is?.isHost || is?.reported) return;
         setOpen(true);
     };
 
@@ -45,7 +55,7 @@ export function ReportControl({ copy }: { copy: SevaCopy['report'] }) {
             ) : (
                 <>
                     <span>{copy.prompt}</span>
-                    <button ref={triggerRef} type="button" onClick={start} {...(user ? {} : signInIntent)} className="min-h-6 font-semibold text-accent-text underline">
+                    <button type="button" onClick={start} {...(user ? {} : signInIntent)} className="min-h-6 font-semibold text-accent-text underline">
                         {copy.open}
                     </button>
                 </>

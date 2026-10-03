@@ -93,12 +93,15 @@ test('an event goes back into the form as it was typed, and a week later for Pos
     const r = validateEventDraft(draft(), { now: NOW });
     assert.ok(r.ok);
     assert.deepEqual(draftFromEvent(r.fields), draft());
-    const again = postAgainDraft(r.fields);
+    const again = postAgainDraft(r.fields, NOW);
     assert.deepEqual([again.date, again.startTime, again.endTime], ['2026-10-17', '18:00', '21:00']);
     // Across the end of summer time in Los Angeles (1 November): still 6 pm.
     const late = validateEventDraft(draft({ date: '2026-10-31' }), { now: NOW });
     assert.ok(late.ok);
-    assert.deepEqual([postAgainDraft(late.fields).date, postAgainDraft(late.fields).startTime], ['2026-11-07', '18:00']);
+    assert.deepEqual([postAgainDraft(late.fields, NOW).date, postAgainDraft(late.fields, NOW).startTime], ['2026-11-07', '18:00']);
+    // One from weeks ago comes forward whole weeks, to the first still to come.
+    const weeksLater = postAgainDraft(r.fields, Date.UTC(2026, 9, 30));
+    assert.deepEqual([weeksLater.date, weeksLater.startTime], ['2026-10-31', '18:00']);
     // Overnight comes back as a later end day.
     const overnight = validateEventDraft(draft({ multiDay: true, endDate: '2026-10-11', endTime: '02:00' }), { now: NOW });
     assert.ok(overnight.ok);

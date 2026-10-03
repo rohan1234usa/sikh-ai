@@ -107,22 +107,25 @@ function FormLoader(props: EventFormProps) {
 
 type Start = { draft: EventDraft; origin: 'restored' | 'copied' | 'fresh' };
 
-function startingDraft(props: EventFormProps, route: string, source: SevaEvent | null, name: string): Start {
+// The time, for handlers and the form's first state; render reads it
+// through useMinute().
+const clock = () => Date.now();
+
+function startingDraft(mode: EventFormProps['mode'], route: string, source: SevaEvent | null, name: string): Start {
     const kept = readDraft(route);
     if (kept) return { draft: kept, origin: 'restored' };
-    if (source && props.mode === 'edit') return { draft: draftFromEvent(source), origin: 'fresh' };
-    if (source) return { draft: postAgainDraft(source), origin: 'copied' };
+    if (source && mode === 'edit') return { draft: draftFromEvent(source), origin: 'fresh' };
+    if (source) return { draft: postAgainDraft(source, clock()), origin: 'copied' };
     return { draft: freshDraft(name), origin: 'fresh' };
 }
 
 function freshDraft(name: string): EventDraft {
-    // "Host one in {place}" on the board passes its country.
-    const country = new URLSearchParams(window.location.search).get('country')?.toUpperCase() ?? '';
-    return { ...EMPTY_DRAFT, timeZone: deviceTimeZone(), country: isCountryCode(country) ? country : '', organizer: name };
+    // "Host one in {place}" on the board passes its country, and its city.
+    const params = new URLSearchParams(window.location.search);
+    const country = params.get('country')?.toUpperCase() ?? '';
+    const city = (params.get('city') ?? '').trim().slice(0, SEVA_TEXT.city[1]);
+    return { ...EMPTY_DRAFT, timeZone: deviceTimeZone(), country: isCountryCode(country) ? country : '', city, organizer: name };
 }
-
-// The time, for handlers; render reads it through useMinute().
-const clock = () => Date.now();
 
 // The order fields appear in, for the error summary.
 const FIELD_ORDER: (keyof EventDraft)[] = [
@@ -134,7 +137,7 @@ const fieldId = (key: keyof EventDraft) => `seva-${key}`;
 
 function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whenWords, countries, commonCountries, hrefs, route, source }: EventFormProps & { route: string; source: SevaEvent | null }) {
     const { user, signIn, signInIntent } = useAuth();
-    const [start] = useState(() => startingDraft({ mode, eventId, lang, copy, categories, optional, newTab, whenWords, countries, commonCountries, hrefs }, route, source, user?.displayName ?? ''));
+    const [start] = useState(() => startingDraft(mode, route, source, user?.displayName ?? ''));
     const [draft, setDraft] = useState(start.draft);
     const [notice, setNotice] = useState(start.origin);
     const [errors, setErrors] = useState<DraftErrors>({});
@@ -248,8 +251,13 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
             let id: string;
             if (mode === 'edit' && eventId && source) {
                 id = eventId;
-                await seva.update(id, eventPatch(source, result.fields));
-                setFlash(id, 'saved');
+                const patch = eventPatch(source, result.fields);
+                // Saved with nothing changed: back to the event, with no
+                // "changes saved" to tell volunteers about.
+                if (Object.keys(patch).length > 0) {
+                    await seva.update(id, patch);
+                    setFlash(id, 'saved');
+                }
             } else {
                 id = await seva.create(account.uid, result.fields);
                 setFlash(id, 'posted');

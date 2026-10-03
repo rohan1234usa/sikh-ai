@@ -87,6 +87,7 @@ export default async function SevaBoardPage() {
           </div>
         ) : (
           <SevaBoard
+            lang={lang}
             groups={groups}
             totalTemplate={copy.board.total}
             timesLocal={copy.board.timesLocal}

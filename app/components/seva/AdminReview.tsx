@@ -7,11 +7,11 @@ import { ERROR_TEXT } from '@/app/components/form/Field';
 import { useAuth } from '@/app/context/AuthContext';
 import { useT } from '@/app/context/LanguageContext';
 import type { Lang } from '@/lib/i18n/config';
-import { formatDate as formatDay } from '@/lib/i18n/date';
+import { formatDate } from '@/lib/i18n/date';
 import { fmt } from '@/lib/i18n/fmt';
 import type { SevaCopy } from '@/lib/i18n/seva';
 import type { Report, SevaEvent } from '@/lib/seva/model';
-import { formatDate } from '@/lib/seva/time';
+import { formatDate as formatEventDate } from '@/lib/seva/time';
 import { loadSeva, refreshPages } from './sevaClient';
 
 type Row = { eventId: string; event: SevaEvent | null; reports: Report[] };
@@ -153,7 +153,7 @@ function AdminRow({ row, lang, copy, reasons, hostedBy, eventBase, onChange }: {
             {event && (
                 <>
                     <p className="mt-1 text-sm text-ink-muted [overflow-wrap:anywhere]">
-                        {fmt(hostedBy, { name: event.organizer })} · {formatDate(event.startsAt, event.timeZone, lang)} · {event.city}
+                        {fmt(hostedBy, { name: event.organizer })} · {formatEventDate(event.startsAt, event.timeZone, lang)} · {event.city}
                     </p>
                     <p className="mt-1 text-sm text-ink">{fmt(copy.status, { status: event.hidden ? copy.hiddenStatus : copy.visible })}</p>
                 </>
@@ -166,7 +166,7 @@ function AdminRow({ row, lang, copy, reasons, hostedBy, eventBase, onChange }: {
                             <li key={r.id} className="rounded-lg border border-edge p-2">
                                 <p className="font-semibold text-ink">{reasons[r.reason]}</p>
                                 <p className="text-ink [overflow-wrap:anywhere]">{r.note || copy.noNote}</p>
-                                <p className="text-ink-muted">{fmt(copy.reportedOn, { date: formatDay(r.createdAt, lang) })}</p>
+                                <p className="text-ink-muted">{fmt(copy.reportedOn, { date: formatDate(r.createdAt, lang) })}</p>
                             </li>
                         ))}
                     </ul>
