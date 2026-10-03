@@ -53,6 +53,28 @@ export const isSearchable = (query: ShabadQuery): query is SearchableQuery =>
 
 export const alternativesOf = (query: ShabadQuery): SearchAs[] => ('alternatives' in query ? query.alternatives : []);
 
+// How a found line matched what was typed, best first: word for word as
+// GurbaniNow spells it; every word, spelled a little differently; most of
+// the words; its first letters; or its transliteration.
+export type MatchKind = 'exact' | 'contained' | 'close' | 'letters' | 'roman';
+
+// One line found, standing for its shabad.
+export type VerseHit = {
+    lineId: string;
+    shabadId: string;
+    gurmukhi: string;
+    transliteration: string;
+    translation: string;
+    ang: number | null;
+    lineNo: number | null;
+    writer: string;
+    writerGurmukhi: string;
+    raag: string;
+    raagGurmukhi: string;
+    match: MatchKind;
+    sameLineIn: number; // other shabads found with this same line
+};
+
 // One spelling of a query, for the address and the CDN's cache key: NFC,
 // invisible characters gone (a zero-width space breaks words in larivaar
 // text), spaces collapsed, English letters lowercased.
