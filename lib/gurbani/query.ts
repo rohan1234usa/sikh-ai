@@ -75,6 +75,15 @@ export type VerseHit = {
     sameLineIn: number; // other shabads found with this same line
 };
 
+// What /api/shabad/search answers.
+export type VerseSearchResponse = {
+    kind: SearchKind;
+    hits: VerseHit[];
+    complete: boolean;       // every lookup answered: no hits means nothing matched
+    truncated: boolean;      // more matched than shown; more words would narrow it
+    alternatives: SearchAs[]; // other readings of the same text worth offering
+};
+
 // One spelling of a query, for the address and the CDN's cache key: NFC,
 // invisible characters gone (a zero-width space breaks words in larivaar
 // text), spaces collapsed, English letters lowercased.
