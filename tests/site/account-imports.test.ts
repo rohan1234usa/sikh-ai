@@ -39,9 +39,12 @@ const DELETION_ONLY = [
     join('app', 'components', 'account', 'accountFirebase'),
 ];
 
-// Every page's, and the account's own way in.
+// Every page's, and the account's own ways in.
 const ENTRIES = [
+    join('app', '[lang]', 'layout.tsx'),
     join('app', 'context', 'AuthContext.tsx'),
+    join('app', 'components', 'account', 'AccountDialogHost.tsx'),
+    join('app', 'components', 'account', 'DeleteAccountPanel.tsx'),
     join('app', 'components', 'account', 'accountDeletion.ts'),
     join('lib', 'account', 'prepare.ts'),
 ];
@@ -52,6 +55,13 @@ test('nothing a page loads at the start reaches the account deletion or Firestor
     for (const [target, from] of reached) {
         for (const path of DELETION_ONLY) assert.ok(!reaches(target, path), `${from} reaches ${target}`);
     }
+});
+
+test("the dialog's code comes with import(), when it's wanted", () => {
+    const host = join('app', 'components', 'account', 'AccountDialogHost.tsx');
+    const dynamic = importsOf(host).filter((i) => i.dynamic).map((i) => i.target);
+    assert.deepEqual([...new Set(dynamic)], [join('app', 'components', 'account', 'DeleteAccountDialog')]);
+    assert.ok(!staticReach(ENTRIES).has(join('app', 'components', 'account', 'DeleteAccountDialog')));
 });
 
 test('the deletion and Firestore come with import(), once someone confirms', () => {

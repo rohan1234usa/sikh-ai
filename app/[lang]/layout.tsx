@@ -6,6 +6,7 @@ import { AuthProvider } from "@/app/context/AuthContext";
 import { LanguageProvider } from "@/app/context/LanguageContext";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
+import AccountDialogHost from "@/app/components/account/AccountDialogHost";
 import SiteAnalytics from "@/app/components/SiteAnalytics";
 import SiteDataGuard from "@/app/components/SiteDataGuard";
 import { LANGS, LANG_META, isLang } from "@/lib/i18n/config";
@@ -77,6 +78,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
             <Navbar />
             {children}
             <Footer />
+            <AccountDialogHost />
           </LanguageProvider>
         </AuthProvider>
         <SiteDataGuard />

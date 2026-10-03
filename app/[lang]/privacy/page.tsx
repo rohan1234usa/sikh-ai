@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import AnalyticsSwitch from '@/app/components/AnalyticsSwitch';
 import ClearBrowserControl from '@/app/components/ClearBrowserControl';
+import DeleteAccountPanel from '@/app/components/account/DeleteAccountPanel';
 import PolicyPage from '@/app/components/PolicyPage';
 import { getAccountCopy } from '@/lib/i18n/account';
 import { formatDay } from '@/lib/i18n/date';
@@ -34,7 +35,12 @@ export default async function PrivacyPage() {
       links={policyLinks(lang, copy)}
       after={{
         analytics: <AnalyticsSwitch />,
-        removing: <ClearBrowserControl copy={account.clearBrowser} />,
+        removing: (
+          <>
+            <DeleteAccountPanel copy={account.deletePanel} />
+            <ClearBrowserControl copy={account.clearBrowser} />
+          </>
+        ),
       }}
       related={[
         { href: localePath(lang, '/terms'), label: copy.terms.title },
