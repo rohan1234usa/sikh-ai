@@ -8,7 +8,8 @@ import type { PolicyLink } from '@/lib/policy';
 // (/privacy#analytics). The words live in lib/i18n/policy as sections keyed
 // by id, so every language has the same ones in the same order; a {placeholder}
 // in an item becomes a figure from lib/policy.ts or a link. `after` puts
-// something that isn't words (a switch) at the end of a section. A server
+// something that isn't words at the end of a section (the counting switch,
+// the controls under #removing). A server
 // component: the words stay on the server, and only the page's HTML ships.
 
 export type PolicySection = { heading: string; items: readonly string[] };

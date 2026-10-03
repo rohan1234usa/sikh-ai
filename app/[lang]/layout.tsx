@@ -43,9 +43,10 @@ export const viewport: Viewport = {
 // Every page is built once per language, ahead of time, and served from the
 // CDN. The language comes from the URL (lib/i18n/paths.ts): English at the
 // root, Punjabi under /pa and /pa-latn. The routing rules (lib/i18n/routing.ts)
-// let no other value reach this segment. There's no dynamicParams = false
-// here: it would also refuse the Angs (shabad/[ang]), which are built as
-// they're first visited.
+// let no other value reach this segment but a prefix in the wrong case, which
+// the layout answers with a 404. There's no dynamicParams = false here: it
+// would also refuse the Angs (shabad/[ang]), which are built as they're first
+// visited.
 export function generateStaticParams() {
   return LANGS.map((lang) => ({ lang }));
 }

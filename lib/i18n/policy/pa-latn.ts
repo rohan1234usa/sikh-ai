@@ -37,7 +37,7 @@ const policy: PolicyDictionary = {
                     'Tuhadian chat settings (Drishtikon, Jawab di shaili ate Jawab di bhasha), tuhadi theme, ki tusi pheriaan di ginti band kiti hai, ate ki tusi sign in si, taan jo tuhada session chheti vapas aa jave.',
                     'Seva samagaman vale panne utte tuhada aakhri chuniaa desh; ate jo samagam tusi likhna shuru kita par paaya nahi, tab band hon tak.',
                     'Ik cookie, {langCookie}, jo sirf bhasha badlan vele lagdi hai. Ih tuhadi chon ik saal layi rakhdi hai, taan jo link tuhadi bhasha vich khulle.',
-                    'Jadon tusi sign in hunde ho, Google di sign-in seva Firebase tuhada session ithe rakhdi hai: tuhade khaate di ID, naam, email pata, tuhadi profile photo da pata, ate sign-in token. Sign out karan naal ih hat jaanda hai.',
+                    'Jadon tusi sign in hunde ho, Google di sign-in seva Firebase tuhada session ithe rakhdi hai: tuhade khaate di ID, naam, email pata, tuhadi profile photo da pata, ate sign-in token. Sign out karan naal ih hat jaanda hai. Firebase ih vi darj karda hai ki usda code is browser vich kehre din chaliaa, apni varton di ginti layi.',
                 ],
             },
             account: {
@@ -53,7 +53,7 @@ const policy: PolicyDictionary = {
             public: {
                 heading: 'Duje ki dekh sakde han',
                 items: [
-                    'Jo gallbaat tusi saanjhi karde ho, oh sirf-parhan vali copy ban jaandi hai jisnu link vala koi vi khol sakda hai, jadon tak tusi saanjha karna band nahi karde, jaan gallbaat jaan apna khaata nahi mitaunde. Copy vich ajiha kujh nahi jo dasse ki tusi kaun ho: na tuhada naam, na email pata, na tuhade khaate di ID.',
+                    'Jo gallbaat tusi saanjhi karde ho, oh sirf-parhan vali copy ban jaandi hai jisnu link vala koi vi khol sakda hai, jadon tak tusi saanjha karna band nahi karde, jaan gallbaat jaan apna khaata nahi mitaunde. Copy vich gallbaat da naam ate usde jawab mile sunehe hunde han, jiven tusi likhe, ate tuhade baare hor kujh nahi: na tuhada naam, na email pata, na tuhade khaate di ID.',
                     'Link kholan vala koi vi gallbaat agge tor sakda hai, jis naal oh usde apne browser jaan khaate vich nakal ho jaandi hai. Tuhade saanjha karna band karan ton baad vi unhan di copy rehndi hai.',
                     'Tuhade paaye seva samagam sarian nu disde han, har ik apne panne utte, jisnu koi vi khol jaan saanjha kar sakda hai ate khoj engine dikha sakde han: naam, vervaa, samaan, thaan, “Prabandhak” vala naam ate tuhada ditta koi sampark. Samagam vich tuhade khaate di ID nahi hundi, ate na hi tuhada Google vala naam, jadon tak oh tusi aap na likho.',
                     'Jadon kise seva samagam vich tuhada naam shamil hunda hai, taan usde prabandhak nu tuhada ditta naam disda hai, ate tuhada email pata jaan phone number sirf taan, je tusi oh saanjha karna chuno. Baki sarian nu sirf ih disda hai ki kinne naam shamil han. Prabandhak nu tuhade khaate di ID kade nahi disdi.',
@@ -104,7 +104,7 @@ const policy: PolicyDictionary = {
                     'Apni “Punjabi Sikho” tarakki “Punjabi Sikho” panne utte “Tarakki mitao” naal mitao.',
                     'Gallbaat de saanjha karan vale dabbe vichon saanjha karna band karo: link usse vele kamm karna band kar dinda hai.',
                     'Kise seva samagam vichon apna naam, samagam ton pehlan jaan baad, usde panne ton vapas lao; jis samagam de prabandhak tusi ho, usnu vi usde panne ton radd karo.',
-                    'Apna khaata har panne de sikhar utte vyakti vale nishaan hethle menu ton, jaan hethle button naal mitao. Pehlan Google tuhanu dubara sign in karan layi kehnda hai. Ih tuhade saanjhe link, jinhan seva samagaman de prabandhak tusi ho (pehlan radd, phir sevadaran de naavan samet mitaye jaande han), seva samagaman vich tuhade naam ate tuhade khaate vich sambhalian gallbaatan mitaunda hai, phir khaata aap. Kise samagam baare tuhadi bheji shikayat admin di karvai tak rehndi hai.',
+                    'Apna khaata har panne de sikhar utte vyakti vale nishaan hethle menu ton, jaan, sign in hon vele, hethle button naal mitao. Pehlan Google tuhanu dubara sign in karan layi kehnda hai. Ih tuhade saanjhe link, jinhan seva samagaman de prabandhak tusi ho (pehlan radd, phir sevadaran de naavan samet mitaye jaande han), seva samagaman vich tuhade naam ate tuhade khaate vich sambhalian gallbaatan mitaunda hai, phir khaata aap. Kise samagam baare tuhadi bheji shikayat admin di karvai tak rehndi hai.',
                     'Sign out karan jaan khaata mitaun naal is browser vich tuhadian gallbaatan, anuvaad ate settings rehndian han. Unhan nu vi hataun layi (jiven kise saanjhe computer utte), hethan “Ih browser saaf karo” varto: ih tuhanu sign out karda hai ate site vallon is browser vich rakhi har cheez mita dinda hai, sivaaye tuhadian pheriaan na ginan di chon de.',
                     'Je tusi sign in nahi kar sakde, jaan sirf apna karvaya koi ik samagam mitvauna chahunde ho, taan jis pate naal tusi sign in karde ho us ton {email} utte email karo, ate ih 30 dinan de andar mita ditta jaavega. Kamm hon utte tuhanu jawab milega.',
                     'Google nu mitaye data nu apne backupan vichon saaf karan layi 180 din hor lag sakde han.',

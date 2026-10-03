@@ -18,7 +18,8 @@ export const firebaseConfig = {
 
 // Chats saved to the signed-in account (and shared links) need the chat
 // section of firestore.rules live first; until the owner turns this on, every
-// chat stays in the browser. Needs a real Firebase project too.
+// chat stays in the browser. Needs a real Firebase project too, or the
+// emulators (README, "Testing Seva locally").
 export const cloudChatsEnabled =
   process.env.NEXT_PUBLIC_CHAT_CLOUD === '1' && !!firebaseConfig.apiKey && !!firebaseConfig.projectId;
 

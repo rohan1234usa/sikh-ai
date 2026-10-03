@@ -35,7 +35,7 @@ const policy = {
                     'Your chat settings (perspective, response style and reply language), your theme, whether you turned off visit counting, and whether you were signed in, so your session comes back quickly.',
                     'On the Seva board, the country you last chose; and an event you\'ve started writing but not posted, until you close the tab.',
                     'One cookie, {langCookie}, set only when you change the language. It keeps your choice for a year, so a link opens in your language.',
-                    'While you are signed in, Firebase, Google\'s sign-in service, keeps your session here: your account ID, name, email address, the address of your profile photo, and sign-in tokens. Signing out removes it.',
+                    'While you are signed in, Firebase, Google\'s sign-in service, keeps your session here: your account ID, name, email address, the address of your profile photo, and sign-in tokens. Signing out removes it. Firebase also notes which days its code ran in this browser, for its own usage counts.',
                 ],
             },
             account: {
@@ -51,7 +51,7 @@ const policy = {
             public: {
                 heading: 'What others can see',
                 items: [
-                    'A chat you share becomes a read-only copy that anyone with the link can open, until you stop sharing it, or delete the chat or your account. The copy holds nothing that says who you are: not your name, email address or account ID.',
+                    'A chat you share becomes a read-only copy that anyone with the link can open, until you stop sharing it, or delete the chat or your account. The copy holds the chat\'s name and its answered messages, as you wrote them, and nothing else about you: not your name, email address or account ID.',
                     'Anyone who opens the link can continue the conversation, which copies it into their own browser or account. Their copy stays after you stop sharing.',
                     'Seva events you post are public, each on a page of its own that anyone can open or share and search engines can list: the title, description, time, place, the “Hosted by” name and any contact you add. An event doesn\'t hold your account ID, or your Google name unless you type it in.',
                     'When you join a Seva event, its host sees the name you give and, only if you choose to share them, your email address or phone number. Everyone else sees only how many have joined. The host never sees your account ID.',
@@ -102,7 +102,7 @@ const policy = {
                     'Clear your Learn Punjabi progress with Reset progress on the Learn Punjabi page.',
                     'Stop sharing a chat from its share dialog: the link stops working at once.',
                     'Leave a Seva event, or remove your sign-up once it\'s over, from the event\'s page; cancel an event you host from its page too.',
-                    'Delete your account from the menu under the person icon at the top of every page, or with the button below. Google asks you to sign in again first. It deletes your share links, the Seva events you host (cancelled first, then deleted with their volunteers\' sign-ups), your Seva sign-ups and the chats saved in your account, then the account itself. A report you sent about an event stays until the admins deal with it.',
+                    'Delete your account from the menu under the person icon at the top of every page, or, while you\'re signed in, with the button below. Google asks you to sign in again first. It deletes your share links, the Seva events you host (cancelled first, then deleted with their volunteers\' sign-ups), your Seva sign-ups and the chats saved in your account, then the account itself. A report you sent about an event stays until the admins deal with it.',
                     'Signing out, or deleting your account, leaves your chats, translations and settings in this browser. To remove those too (on a shared computer, say), use Clear this browser below: it signs you out and removes everything the site keeps in this browser, except a choice not to count your visits.',
                     'If you can\'t sign in, or want only an event you host deleted, email {email} from the address you sign in with, and it will be deleted within 30 days. You\'ll get a reply when it\'s done.',
                     'Google can take up to 180 days more to clear deleted data from its backups.',
