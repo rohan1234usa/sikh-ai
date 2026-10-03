@@ -1,6 +1,7 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
+import { useT } from '@/app/context/LanguageContext';
 
 // The Delete account dialog, for whatever opens it: the account menu, on every
 // page, and /privacy. It's mounted once, outside the navbar (whose focus ring
@@ -11,8 +12,9 @@ import { useSyncExternalStore } from 'react';
 // Firestore, come later still: once someone confirms (./accountDeletion.ts).
 
 type Dialog = typeof import('./DeleteAccountDialog').default;
-type State = { open: boolean; Dialog: Dialog | null };
-const INITIAL: State = { open: false, Dialog: null };
+// `failed`: the dialog's code couldn't be fetched when it was asked for.
+type State = { open: boolean; failed: boolean; Dialog: Dialog | null };
+const INITIAL: State = { open: false, failed: false, Dialog: null };
 let state = INITIAL;
 const listeners = new Set<() => void>();
 
@@ -40,15 +42,30 @@ function loadDialog(): Promise<void> {
 // it opens at once.
 export const preloadDeleteAccount = () => { void loadDialog().catch(() => {}); };
 
-// Offline, nothing opens, rather than the dialog appearing later, whenever
-// its code next arrives.
+// Offline, nothing opens (rather than the dialog appearing later, whenever
+// its code next arrives), and a short notice says why.
+let notice: ReturnType<typeof setTimeout> | undefined;
 export const openDeleteAccount = () => {
-    set({ open: true });
-    loadDialog().catch(() => set({ open: false }));
+    clearTimeout(notice);
+    set({ open: true, failed: false });
+    loadDialog().catch(() => {
+        set({ open: false, failed: true });
+        notice = setTimeout(() => set({ failed: false }), 6000);
+    });
 };
 const closeDeleteAccount = () => set({ open: false });
 
 export default function AccountDialogHost() {
-    const { open, Dialog } = useSyncExternalStore(subscribe, () => state, () => INITIAL);
-    return Dialog ? <Dialog open={open} onClose={closeDeleteAccount} /> : null;
+    const t = useT();
+    const { open, failed, Dialog } = useSyncExternalStore(subscribe, () => state, () => INITIAL);
+    return (
+        <>
+            {Dialog && <Dialog open={open} onClose={closeDeleteAccount} />}
+            <p role="status" className={failed
+                ? 'fixed bottom-4 left-1/2 z-50 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-edge bg-surface-raised px-4 py-3 text-sm text-ink shadow-lg'
+                : 'sr-only'}>
+                {failed ? t.nav.deleteAccountUnavailable : ''}
+            </p>
+        </>
+    );
 }

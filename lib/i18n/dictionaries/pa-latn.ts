@@ -263,6 +263,7 @@ const paLatn: Dictionary = {
         signOut: 'Sign Out',
         account: 'Tuhada khaata',
         deleteAccount: 'Khaata mitao…',
+        deleteAccountUnavailable: 'Khaata mitaun vala dabba khul nahi sakia. Apna connection jaancho ate dubara koshish karo.',
         toggleMenu: 'Navigation menu kholo jaan band karo',
         changeTheme: 'Theme badlo',
         themes: {

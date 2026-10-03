@@ -263,6 +263,7 @@ const pa: Dictionary = {
         signOut: 'ਸਾਈਨ ਆਊਟ',
         account: 'ਤੁਹਾਡਾ ਖਾਤਾ',
         deleteAccount: 'ਖਾਤਾ ਮਿਟਾਓ…',
+        deleteAccountUnavailable: 'ਖਾਤਾ ਮਿਟਾਉਣ ਵਾਲਾ ਡੱਬਾ ਖੁੱਲ੍ਹ ਨਹੀਂ ਸਕਿਆ। ਆਪਣਾ ਕਨੈਕਸ਼ਨ ਜਾਂਚੋ ਅਤੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।',
         toggleMenu: 'ਨੈਵੀਗੇਸ਼ਨ ਮੀਨੂ ਖੋਲ੍ਹੋ ਜਾਂ ਬੰਦ ਕਰੋ',
         changeTheme: 'ਥੀਮ ਬਦਲੋ',
         themes: {

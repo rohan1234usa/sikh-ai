@@ -42,6 +42,7 @@ import {
     planPutEntries,
     planPutReply,
     planShare,
+    planUnlinkShares,
     planUnshare,
     type Op,
 } from './firestorePlans';
@@ -366,35 +367,34 @@ export class FirestoreChatStore implements ChatStore {
     }
 
     async deleteChat(chatId: string): Promise<void> {
-        // The link from what is being listened to now (the open chat, else the
-        // list), for when the account can't be asked (offline).
+        // The link from what is being listened to now: the open chat, else the list.
         const state = this.watches.has(chatId) ? this.chats.get(chatId) : undefined;
         const meta = state?.status === 'ready' ? state.record.meta : this.list.chats.find((c) => c.id === chatId);
         return this.remove(chatId, meta?.share ? [meta.share.id] : []);
     }
 
-    // The account's notes of its links say which copy a chat: one read, and
-    // they're right where this tab's copy of the chat may not be (a link ended
-    // or made on another device, or a chat this tab doesn't hold). Offline,
-    // the links this tab knows of.
-    private async linksOf(chatId: string, known: readonly string[]): Promise<string[]> {
-        try {
-            const snap = await getDocs(query(collection(this.db, 'users', this.uid, 'shares'), where('chatId', '==', chatId)));
-            return [...new Set([...snap.docs.map((d) => d.id), ...known])];
-        } catch {
-            return [...known];
-        }
+    // The links the account's notes name for a chat: right where this tab's
+    // copy of it may not be (a link ended or made on another device, or a
+    // chat this tab doesn't hold). One read.
+    private async linksOf(chatId: string): Promise<string[]> {
+        const snap = await getDocs(query(collection(this.db, 'users', this.uid, 'shares'), where('chatId', '==', chatId)));
+        return snap.docs.map((d) => d.id);
     }
 
+    // The chat goes at once, with the links this tab knows of; then any other
+    // link the account's notes name for it. If they can't be asked (offline),
+    // those wait for the account's deletion, which finds them all.
     private async remove(chatId: string, knownLinks: readonly string[]): Promise<void> {
-        const [entryIds, links] = await Promise.all([
-            // Every entry document, including any the transcript repair set aside.
-            this.watches.get(chatId)?.entryIds
-                ?? getDocs(collection(this.db, 'users', this.uid, 'chats', chatId, 'entries')).then((snap) => snap.docs.map((d) => d.id)),
-            this.linksOf(chatId, knownLinks),
-        ]);
+        // Every entry document, including any the transcript repair set aside.
+        const entryIds = this.watches.get(chatId)?.entryIds
+            ?? (await getDocs(collection(this.db, 'users', this.uid, 'chats', chatId, 'entries'))).docs.map((d) => d.id);
         this.setChat(chatId, MISSING);
-        return this.send(chunk(planDelete(this.uid, chatId, entryIds, links)), { chatId, kind: 'write' });
+        const sent = this.send(chunk(planDelete(this.uid, chatId, entryIds, knownLinks)), { chatId, kind: 'write' });
+        void this.linksOf(chatId).then((links) => {
+            const more = links.filter((id) => !knownLinks.includes(id));
+            if (more.length > 0) void this.send(planUnlinkShares(this.uid, more), { chatId, kind: 'write' });
+        }, () => {});
+        return sent;
     }
 
     async importChat(record: ChatRecord): Promise<void> {
@@ -465,7 +465,8 @@ export class FirestoreChatStore implements ChatStore {
     // Every link of the chat ends, so a device showing an older one can't
     // leave a newer one public with nothing naming it.
     async unshare(chatId: string, shareId: string): Promise<void> {
-        await this.sendAndWait([planUnshare(this.uid, chatId, await this.linksOf(chatId, [shareId]))]);
+        const links = await this.linksOf(chatId).catch((): string[] => []);
+        await this.sendAndWait([planUnshare(this.uid, chatId, [...new Set([shareId, ...links])])]);
         this.apply(chatId, (r) => withMeta(r, { share: null }));
     }
 }

@@ -267,6 +267,7 @@ const en = {
         signOut: 'Sign Out',
         account: 'Your account',
         deleteAccount: 'Delete account…',
+        deleteAccountUnavailable: "Couldn't open Delete account. Check your connection and try again.",
         toggleMenu: 'Toggle navigation menu',
         changeTheme: 'Change theme',
         themes: {

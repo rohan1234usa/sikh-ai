@@ -220,6 +220,6 @@ test("deleting a chat this tab doesn't hold ends its links too", async () => {
     await aliceSharesHerChat();
     await new FirestoreChatStore(as('alice'), 'alice').deleteChat(CHAT.id);
     await until(async () => (await peek(`users/alice/chats/${CHAT.id}`)) === null);
-    assert.equal(await peek(`shared_chats/${SHARE_ID}`), null);
+    await until(async () => (await peek(`shared_chats/${SHARE_ID}`)) === null);
     assert.equal(await peek(`users/alice/shares/${SHARE_ID}`), null);
 });
