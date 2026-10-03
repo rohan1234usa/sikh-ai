@@ -3,12 +3,25 @@
 // those imports and the modules execute standalone — but the `@/*` alias is a
 // Next-bundler feature, so everything here must use relative paths.
 
-import en from '../../lib/i18n/dictionaries/en';
-import pa from '../../lib/i18n/dictionaries/pa';
-import paLatn from '../../lib/i18n/dictionaries/pa-latn';
+import enDictionary from '../../lib/i18n/dictionaries/en';
+import paDictionary from '../../lib/i18n/dictionaries/pa';
+import paLatnDictionary from '../../lib/i18n/dictionaries/pa-latn';
+import enPolicy from '../../lib/i18n/policy/en';
+import paPolicy from '../../lib/i18n/policy/pa';
+import paLatnPolicy from '../../lib/i18n/policy/pa-latn';
+import enSeva from '../../lib/i18n/seva/en';
+import paSeva from '../../lib/i18n/seva/pa';
+import paLatnSeva from '../../lib/i18n/seva/pa-latn';
 import { PHRASES } from '../../lib/translate/phrasebook';
 
-export { en, pa, paLatn, PHRASES };
+// The words of /privacy and /terms, and of the Seva pages, live apart from the
+// dictionaries, so only those pages ship them (lib/i18n/policy,
+// lib/i18n/seva); they're audited as one with the rest, under `policy.` and
+// `seva.`
+export const en = { ...enDictionary, policy: enPolicy, seva: enSeva };
+export const pa = { ...paDictionary, policy: paPolicy, seva: paSeva };
+export const paLatn = { ...paLatnDictionary, policy: paLatnPolicy, seva: paLatnSeva };
+export { PHRASES };
 
 export type Leaf = { path: string; value: string };
 
@@ -44,6 +57,7 @@ export const LATIN_OK_PATHS = new Set([
     'about.bio1School',               // 'UC Irvine'
     'meta.titleTemplate',             // '%s | SikhAI'
     'translate.crosscheckLabel',      // 'Google Translate' — product name
+    'seva.event.googleCalendar',      // 'Google Calendar' — product name
 ]);
 
 // A value carrying no letters at all (pure placeholders, digits, punctuation)

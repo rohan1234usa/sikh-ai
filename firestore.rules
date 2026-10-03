@@ -3,56 +3,276 @@ rules_version = '2';
 // SikhAI's Firestore rules: the whole file, reviewed here and tested on the
 // emulator (tests/rules; `npm run test:rules`, which CI runs).
 //
-// `firebase deploy --only firestore:rules` replaces every rule in the console
-// with this file. Before the first deploy, export the console's rules and
-// compare them with this file: anything they allow that isn't here would stop
-// working. Until then, keep changing the rules in the console. The chat section,
-// between its BEGIN and END lines, can be pasted there on its own.
+// `firebase deploy --only firestore:rules,firestore:indexes` replaces every
+// rule in the console with this file, and adds the indexes the queries need.
+// Deploy the whole file, never a part of it pasted into the console: rules
+// are OR-ed, so an older rule left there could still allow what this file
+// refuses. Before the first deploy, export the console's rules and compare
+// them with this file: anything they allow that isn't here would stop
+// working (README, "Running in production").
 //
 // Anything not matched below is denied.
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ─── Seva events (app/seva) ──────────────────────────────────────────────
-    // Anyone can read the board. A signed-in visitor can post an event, in
-    // the shape the create page writes, and sign up for one: adding only
-    // themselves, once, while it has room. Nothing edits or deletes an event
-    // otherwise.
+    // ─── Admins ──────────────────────────────────────────────────────────────
+    // The site's moderators: a document per account in admins/, made by hand
+    // in the Firebase console (README, "Moderating Seva events"). Nothing here
+    // writes one. Each admin can read their own, so the app knows to show them
+    // the moderation page.
 
-    function sevaStr(v, min, max) {
-      return v is string && v.size() >= min && v.size() <= max;
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
+    match /admins/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // ─── Seva events (lib/seva/plans.ts) ─────────────────────────────────────
+    // An event is public and names no account: not who posted it, nor who
+    // joined. Who did is kept where only they, and for a sign-up the event's
+    // host, can read it:
+    //
+    //   seva_events/{eventId}                    the event, and how many joined
+    //   seva_events/{eventId}/volunteers/{key}   a sign-up: the name given, and
+    //                                            an email or phone if shared
+    //   users/{uid}/seva_hosting/{eventId}       the host's note of their event
+    //   users/{uid}/seva_signups/{eventId}       a volunteer's note: their key
+    //   seva_reports/{eventId}_{uid}             a report, for admins
+    //
+    // A sign-up's key is random, so not even the host sees an account ID.
+    // Each change is one batch whose parts getAfter() holds together: an event
+    // with its host's note; a sign-up with its note and one more on the count;
+    // leaving takes all three back. Events are cancelled, never deleted. The
+    // limits are lib/seva/limits.ts's (tests/seva/limits.test.ts checks).
+
+    function sevaText(v, min, max) {
+      return v is string && v.size() >= min && v.size() <= max && v == v.trim();
+    }
+
+    // An id the SDK makes (doc().id). Event ids are in public addresses.
+    function sevaId(id) {
+      return id is string && id.matches('^[A-Za-z0-9]{20}$');
+    }
+
+    function sevaEventPath(eventId) {
+      return /databases/$(database)/documents/seva_events/$(eventId);
+    }
+
+    function sevaVolunteerPath(eventId, key) {
+      return /databases/$(database)/documents/seva_events/$(eventId)/volunteers/$(key);
+    }
+
+    // The signed-in visitor's own notes. Callers check request.auth first.
+    function sevaSignupPath(eventId) {
+      return /databases/$(database)/documents/users/$(request.auth.uid)/seva_signups/$(eventId);
+    }
+
+    function sevaHostingPath(eventId) {
+      return /databases/$(database)/documents/users/$(request.auth.uid)/seva_hosting/$(eventId);
+    }
+
+    function sevaIsHost(eventId) {
+      return request.auth != null && exists(sevaHostingPath(eventId));
+    }
+
+    // A sign-up is yours when your note holds its key. Without a note, the
+    // read fails, and so does the rule.
+    function sevaIsMine(eventId, key) {
+      return get(sevaSignupPath(eventId)).data.volunteerId == key;
+    }
+
+    // Every field, every time (a blank one is ''); reading a missing one fails
+    // the rule.
     function sevaEventOk(d) {
-      return d.keys().hasOnly(['title', 'location', 'date', 'needed', 'attendees', 'category', 'description', 'createdAt'])
-        && sevaStr(d.title, 1, 200)
-        && sevaStr(d.location, 1, 300)
-        && sevaStr(d.date, 1, 100)
-        && d.needed is int && d.needed >= 1 && d.needed <= 10000
-        && d.attendees == []
-        && d.category in ['Langar', 'Service', 'Education', 'Other']
-        && (!('description' in d) || sevaStr(d.description, 0, 5000))
-        && d.createdAt is timestamp;
+      return d.keys().hasOnly(['v', 'title', 'category', 'description', 'startsAt', 'endsAt',
+          'timeZone', 'venue', 'address', 'city', 'region', 'country', 'organizer', 'contact',
+          'spots', 'volunteerCount', 'status', 'cancelNote', 'hidden', 'createdAt', 'updatedAt'])
+        && d.v == 1
+        && sevaText(d.title, 3, 100)
+        && d.category in ['langar', 'gurdwara', 'gurpurab', 'kirtan', 'teaching', 'community', 'other']
+        && sevaText(d.description, 0, 2000)
+        && d.startsAt is timestamp && d.endsAt is timestamp
+        && d.endsAt > d.startsAt && d.endsAt <= d.startsAt + duration.value(7, 'd')
+        && sevaText(d.timeZone, 1, 64) && d.timeZone.matches('^[A-Za-z0-9_+-]+(/[A-Za-z0-9_+-]+)*$')
+        && sevaText(d.venue, 2, 120) && sevaText(d.address, 0, 200)
+        && sevaText(d.city, 1, 80) && sevaText(d.region, 0, 80)
+        && d.country is string && d.country.matches('^[A-Z]{2}$')
+        && sevaText(d.organizer, 2, 80) && sevaText(d.contact, 0, 200)
+        && d.spots is int && d.spots >= 1 && d.spots <= 500
+        && d.volunteerCount is int && d.volunteerCount >= 0 && d.volunteerCount <= d.spots
+        && d.status in ['open', 'cancelled']
+        && sevaText(d.cancelNote, 0, 300)
+        && d.hidden is bool
+        && d.createdAt is timestamp && d.updatedAt is timestamp;
     }
 
-    // Events from before `attendees` existed have none yet.
-    function sevaJoinOk(before, after) {
-      let joined = before.get('attendees', []);
-      return after.diff(before).affectedKeys().hasOnly(['attendees'])
-        && !(request.auth.uid in joined)
-        && after.attendees is list
-        && after.attendees.size() == joined.size() + 1
-        && after.attendees.hasAll(joined)
-        && request.auth.uid in after.attendees
-        && joined.size() < before.needed;
+    // A new or moved event hasn't ended, and starts within the year.
+    function sevaWhenOk(d) {
+      return d.endsAt > request.time && d.startsAt <= request.time + duration.value(366, 'd');
+    }
+
+    function sevaNewEventOk(d) {
+      return sevaEventOk(d) && sevaWhenOk(d)
+        && d.volunteerCount == 0 && d.status == 'open' && d.cancelNote == '' && d.hidden == false
+        && d.createdAt == request.time && d.updatedAt == request.time;
+    }
+
+    // The host changes what the form edits, cancels or reopens, and the change
+    // is stamped. The count, the moderators' flag and the creation time aren't
+    // theirs. A past event can be corrected, but not moved into the past.
+    function sevaHostEditOk(before, after) {
+      let changed = after.diff(before).affectedKeys();
+      return changed.hasOnly(['title', 'category', 'description', 'startsAt', 'endsAt', 'timeZone',
+          'venue', 'address', 'city', 'region', 'country', 'organizer', 'contact', 'spots',
+          'status', 'cancelNote', 'updatedAt'])
+        && after.updatedAt == request.time
+        && sevaEventOk(after)
+        && (!changed.hasAny(['startsAt', 'endsAt']) || sevaWhenOk(after));
+    }
+
+    function sevaModerateOk(before, after) {
+      return after.diff(before).affectedKeys().hasOnly(['hidden']) && after.hidden is bool;
+    }
+
+    // One more: a new sign-up of yours (your note is new in this batch), while
+    // the event is open, visible, not over, and has room.
+    function sevaJoinOk(eventId, before, after) {
+      return after.diff(before).affectedKeys().hasOnly(['volunteerCount'])
+        && after.volunteerCount == before.volunteerCount + 1
+        && after.volunteerCount <= before.spots
+        && before.status == 'open' && before.hidden == false
+        && request.time < before.endsAt
+        && !exists(sevaSignupPath(eventId)) && existsAfter(sevaSignupPath(eventId));
+    }
+
+    // One fewer: your sign-up and your note both go in this batch. Whatever
+    // the event's state, even after it: anyone can take their details back.
+    function sevaLeaveOk(eventId, before, after) {
+      let key = get(sevaSignupPath(eventId)).data.volunteerId;
+      return after.diff(before).affectedKeys().hasOnly(['volunteerCount'])
+        && after.volunteerCount == before.volunteerCount - 1
+        && after.volunteerCount >= 0
+        && !existsAfter(sevaSignupPath(eventId))
+        && exists(sevaVolunteerPath(eventId, key))
+        && !existsAfter(sevaVolunteerPath(eventId, key));
+    }
+
+    // What this batch does to the event's count.
+    function sevaCountStep(eventId) {
+      return getAfter(sevaEventPath(eventId)).data.volunteerCount
+        - get(sevaEventPath(eventId)).data.volunteerCount;
+    }
+
+    // A sign-up goes with one off the count, or once its event is gone.
+    function sevaLeftOrGone(eventId) {
+      return !exists(sevaEventPath(eventId)) || sevaCountStep(eventId) == -1;
+    }
+
+    // A name, and an email or phone only if the volunteer shared one. The
+    // email can only be the account's own.
+    function sevaVolunteerOk(d) {
+      return d.keys().hasOnly(['name', 'email', 'phone', 'joinedAt'])
+        && sevaText(d.name, 1, 80) && sevaText(d.email, 0, 120) && sevaText(d.phone, 0, 40)
+        && (d.email == '' || d.email == request.auth.token.email)
+        && d.joinedAt is timestamp;
+    }
+
+    // Only what visitors can see can be reported.
+    function sevaVisible(eventId) {
+      return exists(sevaEventPath(eventId))
+        && get(sevaEventPath(eventId)).data.get('hidden', true) == false;
+    }
+
+    function sevaReportOk(d) {
+      return d.keys().hasOnly(['eventId', 'reason', 'note', 'createdAt'])
+        && sevaId(d.eventId)
+        && d.reason in ['spam', 'not_seva', 'offensive', 'wrong_details', 'other']
+        && sevaText(d.note, 0, 500)
+        && d.createdAt == request.time;
     }
 
     match /seva_events/{eventId} {
-      allow read: if true;
-      allow create: if request.auth != null && sevaEventOk(request.resource.data);
-      allow update: if request.auth != null && sevaJoinOk(resource.data, request.resource.data);
+      // Anyone reads an event unless moderators hid it; then only its host and
+      // admins can, and others are refused (as for events from before these
+      // rules, which have no `hidden`). One that doesn't exist reads as
+      // missing. The board must ask for visible events, a page at a time.
+      allow get: if resource == null || resource.data.get('hidden', true) == false
+        || sevaIsHost(eventId) || isAdmin();
+      allow list: if (resource.data.hidden == false && request.query.limit <= 100) || isAdmin();
+      allow create: if request.auth != null && sevaId(eventId)
+        && sevaNewEventOk(request.resource.data)
+        && existsAfter(sevaHostingPath(eventId));
+      // Cheap checks first in each branch: a join never pays for the host's
+      // or an admin's lookup.
+      allow update: if request.auth != null && (
+        (sevaHostEditOk(resource.data, request.resource.data) && sevaIsHost(eventId))
+        || (sevaModerateOk(resource.data, request.resource.data) && isAdmin())
+        || sevaJoinOk(eventId, resource.data, request.resource.data)
+        || sevaLeaveOk(eventId, resource.data, request.resource.data));
+      // Cancelled, not deleted (README: "Moderating Seva events").
       allow delete: if false;
+
+      // Read by its volunteer and the host. Made, changed and removed by the
+      // volunteer; made and removed only with the count (sevaJoinOk,
+      // sevaLeaveOk).
+      match /volunteers/{key} {
+        allow get: if request.auth != null && (sevaIsHost(eventId) || sevaIsMine(eventId, key));
+        allow list: if sevaIsHost(eventId);
+        allow create: if request.auth != null && sevaId(key)
+          && sevaVolunteerOk(request.resource.data)
+          && request.resource.data.joinedAt == request.time
+          && getAfter(sevaSignupPath(eventId)).data.volunteerId == key
+          && sevaCountStep(eventId) == 1;
+        allow update: if request.auth != null && sevaIsMine(eventId, key)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'email', 'phone'])
+          && sevaVolunteerOk(request.resource.data);
+        allow delete: if request.auth != null && sevaIsMine(eventId, key)
+          && !existsAfter(sevaSignupPath(eventId))
+          && sevaLeftOrGone(eventId);
+      }
+    }
+
+    // A volunteer's note: made only with the new sign-up it points to, and
+    // removed only with it, so no one can point theirs at someone else's.
+    match /users/{uid}/seva_signups/{eventId} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['volunteerId', 'joinedAt'])
+        && sevaId(request.resource.data.volunteerId)
+        && request.resource.data.joinedAt == request.time
+        && !exists(sevaVolunteerPath(eventId, request.resource.data.volunteerId))
+        && existsAfter(sevaVolunteerPath(eventId, request.resource.data.volunteerId));
+      allow delete: if request.auth != null && request.auth.uid == uid
+        && !existsAfter(sevaVolunteerPath(eventId, resource.data.volunteerId));
+    }
+
+    // A host's note of their event: made only with the event, and kept while
+    // it exists, since it's how the rules know the host.
+    match /users/{uid}/seva_hosting/{eventId} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['createdAt'])
+        && request.resource.data.createdAt == request.time
+        && !exists(sevaEventPath(eventId)) && existsAfter(sevaEventPath(eventId));
+      allow delete: if request.auth != null && request.auth.uid == uid
+        && !existsAfter(sevaEventPath(eventId));
+    }
+
+    // One report per visitor per event: its id is the event's and the
+    // account's. The reporter can see that it exists; admins read and dismiss
+    // reports. Firebase account IDs have no '_'.
+    match /seva_reports/{reportId} {
+      allow get: if (request.auth != null && reportId.split('_').size() == 2
+          && reportId.split('_')[1] == request.auth.uid) || isAdmin();
+      allow list, delete: if isAdmin();
+      allow create: if request.auth != null
+        && reportId == request.resource.data.eventId + '_' + request.auth.uid
+        && sevaReportOk(request.resource.data)
+        && sevaVisible(request.resource.data.eventId);
     }
 
     // ─── Saved chats and shared links (lib/chat/store/firestorePlans.ts) ──────

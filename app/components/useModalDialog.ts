@@ -2,6 +2,11 @@
 
 import { useEffect, useRef } from 'react';
 
+// The look of a centred dialog: a card that fits a phone and scrolls when it's
+// taller than the screen. Its content brings its own padding.
+export const MODAL_DIALOG =
+    'm-auto w-[min(32rem,calc(100vw-2rem))] max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl border border-edge bg-surface-raised p-0 text-ink shadow-2xl backdrop:bg-black/40';
+
 // A native <dialog> opened as a modal, following `open`. The browser makes the
 // page behind it inert, draws it above the sticky navbar, and hands focus back
 // to whatever opened it on close. Never set the `open` attribute directly: that

@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+export { PRIMARY_BUTTON } from './buttons';
+
 // The body of the error pages. It sits on the same theme tokens as every
 // other page, so it follows the user's theme (Next's built-in fallback pages
 // paint their own white, or OS-dark, body). The 404 is app/global-not-found.tsx,
@@ -21,7 +23,3 @@ export function StatusPage({ code, heading, body, children }: {
         </main>
     );
 }
-
-/** The site's primary call-to-action look (as on the seva page). */
-export const PRIMARY_BUTTON =
-    'inline-block bg-kesri text-navy text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-kesri-hover transition-colors shadow-md shadow-kesri/20';

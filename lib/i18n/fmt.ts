@@ -13,3 +13,12 @@ export function fmt(template: string, vars: Record<string, string | number> = {}
 export function extractPlaceholders(value: string): string[] {
     return (value.match(/\{\w+\}/g) ?? []).sort();
 }
+
+// A template split into its text and its {placeholders}, in order, for a
+// caller that renders a placeholder as more than text (a link). Same pattern
+// as fmt(); '{not a placeholder}' stays text.
+export type TemplatePart = string | { key: string };
+
+export function splitTemplate(template: string): TemplatePart[] {
+    return template.split(/\{(\w+)\}/).flatMap<TemplatePart>((part, i) => (i % 2 ? [{ key: part }] : part ? [part] : []));
+}

@@ -312,8 +312,8 @@ const paLatn: Dictionary = {
             },
             seva: {
                 title: 'Seva Samagam',
-                desc: 'Nerhli Sangat de Seva de mauke labbho ate shamil hovo.',
-                cta: 'Samagam dekho',
+                desc: 'Apne nede Seva labbho, usnu apne calendar vich pao, ja apni Sangat layi Seva Samagam karvao.',
+                cta: 'Seva labbho',
             },
         },
     },
@@ -747,48 +747,6 @@ const paLatn: Dictionary = {
         },
     },
 
-    seva: {
-        heroTitle: '{word} naal Seva karo',
-        heroWord: 'Nimrata',
-        // Gurbani (Ang 26) — romanized, quoted
-        quote: '“Vich duniya sev kamaiye, ta dargah baisan paiye.”',
-        postEvent: '+ Samagam Pao',
-        signInPrompt: 'Seva samagam vich shamil hon layi pehlan sign in karo.',
-        joinError: 'Samagam vich shamil hon vele kujh galat ho gaya. Kirpa karke dubara koshish karo.',
-        dismissAria: 'Soochna hatao',
-        loading: 'Load ho riha hai...',
-        spotsLeft: '{n} thavan baki',
-        joined: 'Shamil ho gaye! Waheguru',
-        full: 'Bhar gaya - Waheguru',
-        join: 'Seva vich shamil hovo',
-        categories: {
-            Langar: 'Langar',
-            Service: 'Seva',
-            Education: 'Vidya',
-            Other: 'Hor',
-        },
-    },
-
-    sevaCreate: {
-        title: 'Navin Seva Pao',
-        cancel: 'Radd karo',
-        eventTitle: 'Samagam da naan',
-        eventTitlePlaceholder: 'Jiven: Hafte de akheer Langar di tiari',
-        category: 'Shreni',
-        volunteersNeeded: 'Lorinde sevadar',
-        neededPlaceholder: 'Jiven: 5',
-        location: 'Thaan (Gurdwara)',
-        locationPlaceholder: 'Jiven: Gurdwara Singh Sabha',
-        dateTime: 'Tareekh ate vela',
-        datePlaceholder: 'Jiven: Shanivaar, 20 Janvari • savere 4:00',
-        description: 'Verva',
-        optional: '(vikalpik)',
-        descriptionPlaceholder: 'Sevadar ki Seva karange?',
-        createError: 'Samagam banaun vele kujh galat ho gaya. Kirpa karke dubara koshish karo.',
-        posting: 'Paya ja riha hai...',
-        submit: 'Seva Samagam Banao',
-    },
-
     notFound: {
         heading: 'Panna nahi milia',
         body: 'Jis panne nu tusi labh rahe ho, oh maujud nahi jaan kite hor chala gaya hai.',
@@ -805,63 +763,18 @@ const paLatn: Dictionary = {
         builtBy: 'Nirmata:',
         navAria: 'Footer',
         privacy: 'Nijjta',
+        terms: 'Shartan',
     },
 
-    // /privacy (app/[lang]/privacy): what the site keeps, where, for how long,
-    // what it sends to other services, and how to remove it. Owner-reviewed text.
-    privacy: {
-        title: 'Nijjta',
-        updated: 'Aakhri vaar badleya: 29 September 2026.',
-        intro: 'SikhAI ik chhoti, sutantar site hai. Eh panna dassda hai ki eh tuhade baare ki rakhdi hai, kithe ate kinne samay layi; hor sevavan nu ki bhejdi hai; ate isnu kiven hatauna hai.',
-        sections: [
-            {
-                heading: 'Tuhade browser vich',
-                items: [
-                    'Tuhadian gallbaatan: 50 tak. Jagah na hove taan sabh ton pehlan varti gayi gallbaat hatdi hai, par kade vi pin kiti ja khulli hoi nahi.',
-                    'Tuhade aakhri 30 anuvad, ate tuhadian chat settings: margdarshak, andaaz ate jawab di bhasha.',
-                    'Tuhadi “Punjabi Sikho” tarakki: poore keete sabak, quiz de sab ton vadhia ank, ate har flashcard kadon dubara aavega.',
-                    'Punjabi tutor naal tuhadi gallbaat, tab band hon tak.',
-                    'Tuhadi theme ate bhasha. Bhasha ik cookie vich ik saal layi rakhi jaandi hai, taan jo link tuhadi bhasha vich khulle.',
-                    'Ki tusin sign in si, taan jo tuhada session chheti vapas aa jave.',
-                ],
-            },
-            {
-                heading: 'Tuhade khate vich',
-                items: [
-                    'Je tusin Google naal sign in karde ho, taan site nu Google ton tuhada naam, email pata ate profile photo mildi hai, ate eh tuhada pehla naam dikhaundi hai.',
-                    'Jadon khatian layi sambhalian gallbaatan chaalu hon, tuhadian gallbaatan browser di thaan tuhade khate vich rakhian jaandian han: 100 tak, naal hi jo tusin pin karo.',
-                    'Jo gallbaat tusin saanjhi karde ho, oh sirf-parhan vali copy ban jaandi hai jisnu link vala koi vi khol sakda hai, jadon tak tusin saanjha karna band nahi karde ja gallbaat nahi mitaunde.',
-                    'Tuhade paaye seva samagam sarian nu disde han. Kise samagam vich shamil hon naal tuhade khate di ID us samagam vich jud jaandi hai.',
-                ],
-            },
-            {
-                heading: 'Hor sevavan nu bhejia jaanda',
-                items: [
-                    'Google Gemini jawab likhda hai. Tuhada har suneha gallbaat de 10 tak pichhle sunehian, tuhade jode kise paath, ate tuhadian settings samet usnu jaanda hai. Jis likhat da tusin anuvad karde ho, oh vi usnu jaandi hai.',
-                    'Punjabi tutor nu bheje sunehe vi usnu jaande han, gallbaat de 8 tak pichhle sunehian ate us sabak samet jithon tusi tutor kholia.',
-                    'Jadon Gemini rujhia hove taan Google Cloud Translation usdi thaan kamm karda hai, ate Google Translate naal tulna vi ohi karda hai.',
-                    'GurbaniNow ton Hukamnama ate Ang aunde han. Jawab vichlian Gurbani dian tukkan jaanchan layi oh tukkan uthe labbhian jaandian han; tuhada sawal nahi bhejia jaanda.',
-                    'Google Analytics pheriaan ginda hai: tuhade khole panne, tuhada device ate browser, ate tuhada lagbhag tikana, cookies raahin.',
-                    'Vercel site nu chalaunda hai. Isde log thorhe samay layi tuhada IP pata ate mange panne darj karde han. Site de apne logan vich tuhada likhia kade nahi hunda.',
-                    'Vercel Speed Insights mapda hai ki asal pathakan layi panne kinni tezi naal khulhde han, bina cookies de.',
-                ],
-            },
-            {
-                heading: 'Isnu hatauna',
-                items: [
-                    'Gallbaatan di suchi vichon koi gallbaat mitao, ja uthe rakhia sabh kujh hataun layi apne browser vich is site da data saaf karo.',
-                    'Apni “Punjabi Sikho” tarakki “Punjabi Sikho” panne utte “Tarakki mitao” naal mitao.',
-                    'Gallbaat de saanjha karan vale dabbe vichon saanjha karna band karo: link usse vele kamm karna band kar dinda hai.',
-                    'Navbar ton sign out karo. Apne khate dian gallbaatan ja seva vich apna naam hatvaun layi sampark karo.',
-                ],
-            },
-            {
-                heading: 'Sampark',
-                items: [
-                    'Is panne baare sawal, ja apna data hatvaun di benti: "Saade Baare" panne de linkan raahin Rohan Singh naal sampark karo.',
-                ],
-            },
-        ],
+    // The switch on /privacy that stops this browser being counted
+    // (app/components/AnalyticsSwitch.tsx). The page's own words are in
+    // lib/i18n/policy, which only the server reads.
+    analyticsSwitch: {
+        label: 'Meriaan pheriaan gino',
+        on: 'Chaalu. Is browser dian pheriaan ginian jaandian han, bina cookies de.',
+        off: 'Band. Ih browser na pheriaan di ginti bhejda hai, na panneyan di raftaar de maap.',
+        gpc: 'Band. Tuhada browser Global Privacy Control bhejda hai, ate ih site usnu mannadi hai.',
+        noScript: 'JavaScript band hove taan kujh nahi ginia jaanda.',
     },
 
     meta: {
@@ -873,8 +786,6 @@ const paLatn: Dictionary = {
         chatTitle: 'SikhAI nu Puchho',
         shareTitle: 'Saanjhi kiti gallbaat',
         shabadTitle: 'Shabad Khoj',
-        sevaTitle: 'Seva Samagam',
-        sevaCreateTitle: 'Seva Samagam Pao',
         hukamnamaTitle: 'Ajj da Hukamnama',
         translateTitle: 'Punjabi Anuvadak',
         learnTitle: 'Punjabi Sikho',
@@ -887,7 +798,6 @@ const paLatn: Dictionary = {
             translate: 'English, Gurmukhi ate Roman Punjabi vichkar anuvad karo, shabad-dar-shabad arth, aukhiyan gallan di vyakhya ate uchaaran de sujhavan samet.',
             learn: 'Punjabi Amriki vajon Punjabi sikho: Gurmukhi parho, viakaran samjho, flashcardan naal rozana de shabad sikho, ate tutor naal abhiaas karo.',
             shabad: 'Sri Guru Granth Sahib Ji da koi vi Ang, 1 ton 1430 tak, Gurmukhi vich English anuvad samet parho.',
-            seva: 'Langar ton lai ke sikhya tak, apne nede de seva samagam labbho ate unhan vich shamil hovo, ja apna samagam pao.',
         },
         // An Ang's page: {line} is its opening line, {n} its number.
         angDescription: '{line} — Sri Guru Granth Sahib Ji da Ang {n}, Gurmukhi vich English anuvad samet.',

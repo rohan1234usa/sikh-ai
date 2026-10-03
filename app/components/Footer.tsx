@@ -18,6 +18,7 @@ export default function Footer() {
         { href: to('/translate'), label: t.nav.translate },
         { href: to('/learn'), label: t.nav.learn },
         { href: to('/privacy'), label: t.footer.privacy },
+        { href: to('/terms'), label: t.footer.terms },
     ];
 
     // The chat screen (/chat and each saved chat) and the Punjabi tutor are

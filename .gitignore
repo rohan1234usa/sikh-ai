@@ -56,3 +56,12 @@ scripts/i18n-audit/notes-pa.generated.json
 # and renames, so only a temp file left by an interrupted write is ignored —
 # one rule, for every script that uses it.
 scripts/**/*.json.tmp
+
+# The Firebase emulators' logs (npm run test:rules, npm run emulators).
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+database-debug.log
+
+# axe-core, copied for checking pages under next dev (npm run a11y:prepare).
+/public/__dev/

@@ -54,9 +54,14 @@ test('a Punjabi cookie redirects pages, never files, the API or Next and Vercel 
     const { source } = cookiePages[0];
     for (const path of ['/about', '/chat/abc-123', '/seva/create'])
         assert.ok(matches(source, path), path);
+    // Vercel's analytics paths have no file extension to protect them, so only
+    // the _vercel exclusion keeps a Punjabi reader's visits counting. (Vercel
+    // also serves them at a per-build /<random>/ path, before these rules run.)
     for (const path of ['/og.jpg', '/robots.txt', '/sitemap.xml', '/favicon.ico', '/manifest.webmanifest',
         '/icon-192.png', '/icons/app.png', '/fonts/a/b.woff2', '/api/chat', '/api/shabad',
-        '/_next/static/chunks/a.js', '/_vercel/speed-insights/script.js', '/pa/about', '/pa-latn', '/en/about'])
+        '/_next/static/chunks/a.js', '/_vercel/speed-insights/script.js', '/_vercel/speed-insights/vitals',
+        '/_vercel/insights/script.js', '/_vercel/insights/view', '/_vercel/insights/event',
+        '/pa/about', '/pa-latn', '/en/about'])
         assert.ok(!matches(source, path), path);
     assert.ok(cookiePages.every((r) => !r.permanent), 'a choice can change, so never cached as permanent');
 });
@@ -67,9 +72,10 @@ test('/en is never a public address', () => {
     assert.ok(redirects.some((r) => r.source === '/en/:rest*' && r.destination === '/:rest*' && !r.has));
 });
 
-test('the sitemap lists every page and every Ang in every language, each with its twins', () => {
-    const entries = sitemap();
-    assert.equal(entries.length, (8 + learnPaths().length + 1430) * 3);
+test('the sitemap lists every page and every Ang in every language, each with its twins', async () => {
+    // No Firebase project here, so no events: just the pages.
+    const entries = await sitemap();
+    assert.equal(entries.length, (9 + learnPaths().length + 1430) * 3);
     const hukamnama = entries.find((e) => e.url === 'https://sikhai.vercel.app/pa/hukamnama')!;
     assert.deepEqual(hukamnama.alternates?.languages, {
         en: 'https://sikhai.vercel.app/hukamnama',
@@ -83,5 +89,7 @@ test('the sitemap lists every page and every Ang in every language, each with it
         assert.ok(entries.some((e) => e.url === url), url);
     assert.ok(!entries.some((e) => e.url.endsWith('/shabad/1431')));
     for (const url of ['https://sikhai.vercel.app/learn', 'https://sikhai.vercel.app/pa/learn/script/tones', 'https://sikhai.vercel.app/pa-latn/learn/vocab/family'])
+        assert.ok(entries.some((e) => e.url === url), url);
+    for (const url of ['https://sikhai.vercel.app/privacy', 'https://sikhai.vercel.app/terms', 'https://sikhai.vercel.app/pa-latn/terms'])
         assert.ok(entries.some((e) => e.url === url), url);
 });
