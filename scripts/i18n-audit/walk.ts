@@ -9,18 +9,22 @@ import paLatnDictionary from '../../lib/i18n/dictionaries/pa-latn';
 import enPolicy from '../../lib/i18n/policy/en';
 import paPolicy from '../../lib/i18n/policy/pa';
 import paLatnPolicy from '../../lib/i18n/policy/pa-latn';
+import enAccount from '../../lib/i18n/account/en';
+import paAccount from '../../lib/i18n/account/pa';
+import paLatnAccount from '../../lib/i18n/account/pa-latn';
 import enSeva from '../../lib/i18n/seva/en';
 import paSeva from '../../lib/i18n/seva/pa';
 import paLatnSeva from '../../lib/i18n/seva/pa-latn';
 import { PHRASES } from '../../lib/translate/phrasebook';
 
-// The words of /privacy and /terms, and of the Seva pages, live apart from the
-// dictionaries, so only those pages ship them (lib/i18n/policy,
-// lib/i18n/seva); they're audited as one with the rest, under `policy.` and
-// `seva.`
-export const en = { ...enDictionary, policy: enPolicy, seva: enSeva };
-export const pa = { ...paDictionary, policy: paPolicy, seva: paSeva };
-export const paLatn = { ...paLatnDictionary, policy: paLatnPolicy, seva: paLatnSeva };
+// The words of /privacy and /terms, of the Seva pages, and of removing what
+// the site keeps live apart from the dictionaries, so only the pages that
+// need them ship them (lib/i18n/policy, lib/i18n/seva, lib/i18n/account);
+// they're audited as one with the rest, under `policy.`, `seva.` and
+// `account.`
+export const en = { ...enDictionary, policy: enPolicy, seva: enSeva, account: enAccount };
+export const pa = { ...paDictionary, policy: paPolicy, seva: paSeva, account: paAccount };
+export const paLatn = { ...paLatnDictionary, policy: paLatnPolicy, seva: paLatnSeva, account: paLatnAccount };
 export { PHRASES };
 
 export type Leaf = { path: string; value: string };

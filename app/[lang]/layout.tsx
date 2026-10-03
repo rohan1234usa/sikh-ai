@@ -7,11 +7,13 @@ import { LanguageProvider } from "@/app/context/LanguageContext";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import SiteAnalytics from "@/app/components/SiteAnalytics";
+import SiteDataGuard from "@/app/components/SiteDataGuard";
 import { LANGS, LANG_META, isLang } from "@/lib/i18n/config";
 import { getServerT } from "@/lib/i18n/server";
 import { SITE_URL, openGraph } from "@/lib/metadata";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { AUTH_HINT_SCRIPT } from "@/lib/firebase/hint";
+import { CLEAR_SCRIPT } from "@/lib/browserData";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { lang, t } = await getServerT();
@@ -63,10 +65,11 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
       className={FONT_VARIABLES}
     >
       <head>
-        {/* Before first paint, to avoid a flash: the stored theme, and whether
-            this browser was signed in (which hides "Sign in" while the
-            session is restored). */}
-        <script dangerouslySetInnerHTML={{ __html: `${THEME_INIT_SCRIPT};${AUTH_HINT_SCRIPT}` }} />
+        {/* Before first paint, to avoid a flash: the rest of clearing this
+            browser, when that's why the page loaded (so the others see it
+            clear); the stored theme; and whether this browser was signed in
+            (which hides "Sign in" while the session is restored). */}
+        <script dangerouslySetInnerHTML={{ __html: `${CLEAR_SCRIPT};${THEME_INIT_SCRIPT};${AUTH_HINT_SCRIPT}` }} />
       </head>
       <body className="antialiased min-h-dvh flex flex-col">
         <AuthProvider>
@@ -76,6 +79,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
             <Footer />
           </LanguageProvider>
         </AuthProvider>
+        <SiteDataGuard />
         {/* Vercel's own visit counts (production only, so previews count
             nothing) and Core Web Vitals (any Vercel deployment), on its
             dashboard once each is switched on there. No cookies; Vercel serves

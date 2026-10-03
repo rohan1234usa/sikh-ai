@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import AnalyticsSwitch from '@/app/components/AnalyticsSwitch';
+import ClearBrowserControl from '@/app/components/ClearBrowserControl';
 import PolicyPage from '@/app/components/PolicyPage';
+import { getAccountCopy } from '@/lib/i18n/account';
 import { formatDay } from '@/lib/i18n/date';
 import { localePath } from '@/lib/i18n/paths';
 import { getPolicyCopy } from '@/lib/i18n/policy';
@@ -13,7 +15,8 @@ import { POLICY_VARS, PRIVACY_UPDATED, policyLinks } from '@/lib/policy';
 // lib/i18n/policy, so all three languages say the same thing and only this
 // page ships them, and the limits they state come from the code
 // (lib/policy.ts); the owner signs off on them. The switch under "Counting
-// visits" (#analytics) turns counting off for this browser.
+// visits" (#analytics) turns counting off for this browser, and "Removing it"
+// (#removing) ends with clearing this browser.
 export async function generateMetadata(): Promise<Metadata> {
   const { lang, t } = await getServerT();
   const { privacy } = getPolicyCopy(lang);
@@ -23,12 +26,16 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function PrivacyPage() {
   const { lang, t } = await getServerT();
   const copy = getPolicyCopy(lang);
+  const account = getAccountCopy(lang);
   return (
     <PolicyPage
       copy={copy.privacy}
       vars={{ ...POLICY_VARS, date: formatDay(PRIVACY_UPDATED, lang) }}
       links={policyLinks(lang, copy)}
-      after={{ analytics: <AnalyticsSwitch /> }}
+      after={{
+        analytics: <AnalyticsSwitch />,
+        removing: <ClearBrowserControl copy={account.clearBrowser} />,
+      }}
       related={[
         { href: localePath(lang, '/terms'), label: copy.terms.title },
         { href: localePath(lang, '/about'), label: t.meta.aboutTitle },
