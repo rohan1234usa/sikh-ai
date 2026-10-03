@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { AccountDeletionError, deleteAccountData, problemOf, type DeletionStep } from '@/lib/account/deletion';
+import { AccountDeletionError, deleteAccountData } from '@/lib/account/deletion';
+import { problemOf, type DeletionStep } from '@/lib/account/steps';
 import { ERASE_PAGE, UNLINK_BATCH } from '@/lib/chat/store/firestorePlans';
 import { SEVA_HOST_CLEAR_BATCH } from '@/lib/seva/limits';
 import { FakeFirestore, refuseLeavingWhatsGone } from './fakeFirestore';

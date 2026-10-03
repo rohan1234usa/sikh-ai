@@ -13,9 +13,9 @@ import {
     limit,
     query,
     serverTimestamp,
-    writeBatch,
     type Firestore,
 } from 'firebase/firestore/lite';
+import { commitLite } from '@/lib/firebase/liteBatch';
 import type { AccountIO } from './deletion';
 
 export function accountIO(db: Firestore): AccountIO {
@@ -29,15 +29,7 @@ export function accountIO(db: Firestore): AccountIO {
             const snap = await getDoc(ref(path));
             return snap.exists() ? snap.data() : null;
         },
-        async commit(ops) {
-            const batch = writeBatch(db);
-            for (const op of ops) {
-                if (op.type === 'set') batch.set(ref(op.path), op.data);
-                else if (op.type === 'update') batch.update(ref(op.path), op.data);
-                else batch.delete(ref(op.path));
-            }
-            await batch.commit();
-        },
+        commit: (ops) => commitLite(db, ops),
         sentinels: { now: serverTimestamp(), inc: increment },
     };
 }

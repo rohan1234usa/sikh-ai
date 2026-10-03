@@ -15,25 +15,16 @@
 // Auth user last: until then the rules know who is asking.
 //
 // Every batch is whole or nothing, and each step lists what's left before it
-// acts, so a run cut short anywhere is finished by running it again. A last
-// look catches what another device adds meanwhile.
+// acts, so a run cut short anywhere is finished by running it again. After a
+// round that removed anything, a last look catches what another device added
+// meanwhile.
 
 import type { DocPath, Op } from '@/lib/firebase/ops';
 import { ERASE_PAGE, chatPath, planErasePage, planUnlinkShares } from '@/lib/chat/store/firestorePlans';
-import { DELETION_STEPS, type DeletionStep } from './steps';
 import { toMillis } from '@/lib/seva/event';
-import { errorKind } from '@/lib/seva/errors';
-import {
-    eventPath,
-    planClearSignups,
-    planDeleteEvent,
-    planDropNote,
-    planForget,
-    planLeave,
-    planSetStatus,
-    volunteerPath,
-    type Sentinels,
-} from '@/lib/seva/plans';
+import { leaveEvent } from '@/lib/seva/leave';
+import { eventPath, planClearSignups, planDeleteEvent, planSetStatus, type Sentinels } from '@/lib/seva/plans';
+import { DELETION_STEPS, type DeletionStep } from './steps';
 
 export type StoredDoc = { id: string; data: Record<string, unknown> };
 
@@ -47,16 +38,15 @@ export type AccountIO = {
     sentinels: Sentinels;
 };
 
-export { DELETION_STEPS, problemOf, type DeletionProblem, type DeletionStep } from './steps';
-
 export type DeletionOptions = {
     // Each step as it starts, in the first round.
     onStep?: (step: DeletionStep) => void;
     // An event deleted, whose cached pages can now be refreshed.
     onEventRemoved?: (eventId: string) => void;
-    // Rounds before giving up on something another device keeps adding.
-    maxRounds?: number;
 };
+
+// Rounds before giving up on something another device keeps adding.
+const MAX_ROUNDS = 3;
 
 // Why a run stopped without Firestore saying so:
 // - not_theirs: an event at the id of one this account hosted, posted by
@@ -126,27 +116,14 @@ function events(io: AccountIO, uid: string, opts: DeletionOptions) {
     });
 }
 
-// As the event page leaves (lib/seva/client.ts): the spot back on the count;
-// or, for a sign-up its host has cleared, the note alone; or, for an event
-// that's gone, the sign-up and the note.
-async function leave(io: AccountIO, uid: string, note: StoredDoc) {
-    const eventId = note.id;
-    const key = note.data.volunteerId;
-    // A note the app didn't write: left alone, and the step stops as stuck.
-    if (typeof key !== 'string') return;
-    try {
-        await io.commit(planLeave(uid, eventId, key, io.sentinels));
-        return;
-    } catch (error) {
-        if (errorKind(error) === 'unavailable') throw error;
-    }
-    if (await io.get(volunteerPath(eventId, key)) === null) await io.commit(planDropNote(uid, eventId));
-    else await io.commit(planForget(uid, eventId, key));
-}
-
+// Each sign-up is left as the event page leaves it (lib/seva/leave.ts). A note
+// the app didn't write is left alone, and the step stops as stuck.
 function signups(io: AccountIO, uid: string) {
     return drain(io, users(uid, 'seva_signups'), PAGE, async (page) => {
-        for (const note of page) await leave(io, uid, note);
+        for (const note of page) {
+            const key = note.data.volunteerId;
+            if (typeof key === 'string') await leaveEvent(io, uid, note.id, key, io.sentinels);
+        }
     });
 }
 
@@ -178,7 +155,6 @@ async function anythingLeft(io: AccountIO, uid: string): Promise<boolean> {
 }
 
 export async function deleteAccountData(io: AccountIO, uid: string, opts: DeletionOptions = {}): Promise<void> {
-    const rounds = opts.maxRounds ?? 3;
     for (let round = 1; ; round++) {
         let found = false;
         for (const step of DELETION_STEPS) {
@@ -187,7 +163,7 @@ export async function deleteAccountData(io: AccountIO, uid: string, opts: Deleti
         }
         // An account with nothing in it costs one read a step.
         if (!found || !(await anythingLeft(io, uid))) return;
-        if (round >= rounds) throw new AccountDeletionError('stuck');
+        if (round >= MAX_ROUNDS) throw new AccountDeletionError('stuck');
     }
 }
 

@@ -1,13 +1,15 @@
 // Pure: the Firestore writes for each Seva change, as plain operations the
-// browser carries out in one batch each (./client.ts). tests/rules replays
-// these same plans on the emulator, so the rules are held to what the app
-// really writes.
+// browser carries out (./client.ts, and lib/account/deletion.ts when the
+// host's account goes). tests/rules replays these same plans on the
+// emulator, so the rules are held to what the app really writes.
 //
 // The rules check each batch as a whole (getAfter sees all of it), so a plan
 // is all or nothing: an event and its host's note; a sign-up, the
-// volunteer's note and one more on the count. No plan writes a document
-// twice, and the order is for readers: the public document, then the
-// private ones, then the count.
+// volunteer's note and one more on the count. The few that return several
+// batches (planClearSignups, planDismissReports) are each a pile of single,
+// independent deletes, sized for what the rules may read. No plan writes a
+// document twice, and the order is for readers: the public document, then
+// the private ones, then the count.
 //
 // Firestore's own values, the server's clock and an increment, come in as
 // `Sentinels`, so this file never imports the SDK: the browser passes
