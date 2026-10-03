@@ -60,3 +60,12 @@ scripts/**/*.json.tmp
 # The search eval's cache of GurbaniNow answers: megabytes, and free to
 # rebuild (npm run eval:search), so not committed. Its report is.
 scripts/search-eval/cache.json
+
+# The Firebase emulators' logs (npm run test:rules, npm run emulators).
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+database-debug.log
+
+# axe-core, copied for checking pages under next dev (npm run a11y:prepare).
+/public/__dev/

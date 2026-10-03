@@ -1,35 +1,10 @@
-// The Firestore rules (firestore.rules), on the emulator: `npm run test:rules`
-// starts it (it needs Java) and runs this file; CI does the same. Not part of
-// `npm test`, which needs nothing running.
-//
-// Chat documents come from the app's own write plans
-// (lib/chat/store/firestorePlans.ts), so the rules are held to the shapes the
-// app really writes.
+// The chat rules (firestore.rules, between its BEGIN and END lines): saved
+// chats and their shared links, written by the app's own plans
+// (lib/chat/store/firestorePlans.ts). See ./env.ts.
 
-import { after, before, beforeEach, test } from 'node:test';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import {
-    assertFails,
-    assertSucceeds,
-    initializeTestEnvironment,
-    type RulesTestEnvironment,
-} from '@firebase/rules-unit-testing';
-import {
-    Timestamp,
-    addDoc,
-    arrayUnion,
-    collection,
-    deleteDoc,
-    doc,
-    getDoc,
-    getDocs,
-    setDoc,
-    setLogLevel,
-    updateDoc,
-    writeBatch,
-    type Firestore,
-} from 'firebase/firestore';
+import { test } from 'node:test';
+import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
+import { collection, deleteDoc, doc, getDoc, getDocs, setDoc, updateDoc } from 'firebase/firestore';
 import {
     planCreate,
     planDelete,
@@ -38,115 +13,13 @@ import {
     planPutReply,
     planShare,
     planUnshare,
-    type Op,
 } from '@/lib/chat/store/firestorePlans';
 import { SHARE_VERSION, type ShareDoc } from '@/lib/chat/share';
 import { exchange, reply } from '../chat/helpers';
 import { meta } from '../chat/store-helpers';
+import { commit, rulesEnv } from './env';
 
-let env: RulesTestEnvironment;
-
-before(async () => {
-    // The SDK logs every refused write as an error. Here refusals are the
-    // point, and they'd bury a real failure in the output.
-    setLogLevel('silent');
-    env = await initializeTestEnvironment({
-        projectId: 'demo-sikhai',
-        firestore: { rules: readFileSync(resolve(import.meta.dirname, '../../firestore.rules'), 'utf8') },
-    });
-});
-after(async () => { await env.cleanup(); });
-beforeEach(async () => { await env.clearFirestore(); });
-
-const as = (uid: string) => env.authenticatedContext(uid).firestore() as unknown as Firestore;
-const anon = () => env.unauthenticatedContext().firestore() as unknown as Firestore;
-async function seed(path: string, data: Record<string, unknown>) {
-    await env.withSecurityRulesDisabled(async (ctx) => {
-        await setDoc(doc(ctx.firestore() as unknown as Firestore, path), data);
-    });
-}
-
-// One batch, as the app sends its plans.
-function commit(db: Firestore, ops: Op[]): Promise<void> {
-    const batch = writeBatch(db);
-    for (const op of ops) {
-        const ref = doc(db, op.path.join('/'));
-        if (op.type === 'set') batch.set(ref, op.data);
-        else if (op.type === 'update') batch.update(ref, op.data);
-        else batch.delete(ref);
-    }
-    return batch.commit();
-}
-
-// ─── Seva ───────────────────────────────────────────────────────────────────
-
-// What app/[lang]/seva/create/page.tsx writes.
-const event = (over: Record<string, unknown> = {}) => ({
-    title: 'Langar seva',
-    location: 'Gurdwara Sahib, Fremont',
-    date: 'Sunday, 10 am',
-    needed: 2,
-    attendees: [],
-    category: 'Langar',
-    description: 'Help make and serve langar.',
-    createdAt: Timestamp.now(),
-    ...over,
-});
-
-test('anyone can read the Seva board', async () => {
-    await seed('seva_events/e1', event());
-    await assertSucceeds(getDocs(collection(anon(), 'seva_events')));
-    await assertSucceeds(getDoc(doc(anon(), 'seva_events/e1')));
-});
-
-test('a signed-in visitor can post an event as the create page writes it; no one else can', async () => {
-    await assertSucceeds(addDoc(collection(as('alice'), 'seva_events'), event()));
-    await assertSucceeds(addDoc(collection(as('alice'), 'seva_events'), event({ description: '' })));
-    await assertFails(addDoc(collection(anon(), 'seva_events'), event()));
-});
-
-test('a malformed event is refused', async () => {
-    const db = as('alice');
-    for (const bad of [
-        { needed: Number('five') }, // NaN, from a mistyped number
-        { needed: 0 },
-        { needed: 2.5 },
-        { attendees: ['alice'] },
-        { category: 'Party' },
-        { title: '' },
-        { title: 'x'.repeat(201) },
-        { createdAt: 'yesterday' },
-        { creator: 'someone' },
-    ]) {
-        await assertFails(addDoc(collection(db, 'seva_events'), event(bad)));
-    }
-});
-
-test('signing up adds only yourself, once, while the event has room', async () => {
-    await seed('seva_events/e1', event({ needed: 2 }));
-    const ref = (uid: string) => doc(as(uid), 'seva_events/e1');
-    await assertSucceeds(updateDoc(ref('alice'), { attendees: arrayUnion('alice') }));
-    await assertFails(updateDoc(ref('alice'), { attendees: arrayUnion('alice') })); // twice
-    await assertFails(updateDoc(ref('bob'), { attendees: arrayUnion('carol') })); // someone else
-    await assertFails(updateDoc(ref('bob'), { attendees: arrayUnion('bob'), title: 'Mine now' })); // other fields
-    await assertFails(updateDoc(ref('bob'), { attendees: ['bob'] })); // dropping others
-    await assertSucceeds(updateDoc(ref('bob'), { attendees: arrayUnion('bob') }));
-    await assertFails(updateDoc(ref('carol'), { attendees: arrayUnion('carol') })); // full
-    await assertFails(updateDoc(doc(anon(), 'seva_events/e1'), { attendees: arrayUnion('anon') })); // signed out
-});
-
-test('an event from before sign-ups had a list can still be joined', async () => {
-    const legacy: Record<string, unknown> = event();
-    delete legacy.attendees;
-    await seed('seva_events/old', legacy);
-    await assertSucceeds(updateDoc(doc(as('alice'), 'seva_events/old'), { attendees: arrayUnion('alice') }));
-});
-
-test('no one deletes an event', async () => {
-    await seed('seva_events/e1', event());
-    await assertFails(deleteDoc(doc(as('alice'), 'seva_events/e1')));
-    await assertFails(deleteDoc(doc(anon(), 'seva_events/e1')));
-});
+const { as, anon } = rulesEnv();
 
 // ─── Saved chats ────────────────────────────────────────────────────────────
 

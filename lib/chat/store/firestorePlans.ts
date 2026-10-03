@@ -8,6 +8,7 @@
 // One document per exchange keeps a long Punjabi chat far from the 1 MiB
 // document limit, and a reply can never be stored without its question.
 
+import { MAX_BATCH_OPS, type DocPath, type Op } from '@/lib/firebase/ops';
 import type { Citation } from '@/lib/gurbani/citations';
 import type { ChatContext } from '../config';
 import type { ChatMeta, ShareRef } from '../chatMeta';
@@ -15,14 +16,9 @@ import type { ShareDoc } from '../share';
 import { normalizeReply, toStoredEntry, type Entry, type Reply } from '../transcript';
 import type { MetaPatch } from './types';
 
-export type DocPath = string[];
-export type Op =
-    | { type: 'set'; path: DocPath; data: Record<string, unknown> }
-    | { type: 'update'; path: DocPath; data: Record<string, unknown> }
-    | { type: 'delete'; path: DocPath };
+// The operations, and the batching, are shared with Seva (lib/firebase/ops.ts).
+export { MAX_BATCH_OPS, chunk, type DocPath, type Op } from '@/lib/firebase/ops';
 
-// Well under Firestore's 500 writes per batch (and its 10 MiB request).
-export const MAX_BATCH_OPS = 400;
 export const META_VERSION = 1;
 
 export const chatPath = (uid: string, chatId: string): DocPath => ['users', uid, 'chats', chatId];
@@ -114,13 +110,6 @@ export function planImport(uid: string, meta: ChatMeta, context: ChatContext | n
 // which stay until a later pass.
 export function planEvictions(overflow: ChatMeta[], inUse: (chatId: string) => boolean): ChatMeta[] {
     return overflow.filter((m) => !m.pinned && !inUse(m.id));
-}
-
-// Splits any list of operations into batches Firestore accepts.
-export function chunk(ops: Op[]): Op[][] {
-    const out: Op[][] = [];
-    for (let i = 0; i < ops.length; i += MAX_BATCH_OPS) out.push(ops.slice(i, i + MAX_BATCH_OPS));
-    return out;
 }
 
 // A link made or refreshed: the public snapshot, and the chat's note of it,

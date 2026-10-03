@@ -19,6 +19,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // axe-core, copied for local accessibility checks (npm run a11y:prepare).
+    "public/__dev/**",
   ]),
 ]);
 

@@ -1,7 +1,7 @@
 // Client-safe, pure: every decision about sending, retrying and settling a
 // reply, so the rules are tested here and the React side only carries them out.
 
-import { MAX_EXCHANGES_PER_CHAT, MAX_MESSAGE_CHARS, type LensId } from './config';
+import { MAX_EXCHANGES_PER_CHAT, MAX_HISTORY_TURNS, MAX_MESSAGE_CHARS, type LensId } from './config';
 import {
     hasText,
     isReplyErrorCode,
@@ -16,9 +16,9 @@ import {
 } from './transcript';
 
 // How many past exchanges ride along with a question. The server keeps the
-// last 10 turns (lib/chat/request.ts); five whole exchanges is exactly that,
-// and always starts on a question.
-export const MAX_HISTORY_EXCHANGES = 5;
+// last MAX_HISTORY_TURNS turns (lib/chat/request.ts); whole exchanges are
+// exactly that, and always start on a question.
+export const MAX_HISTORY_EXCHANGES = MAX_HISTORY_TURNS / 2;
 
 export type HistoryTurn = { role: 'user' | 'ai'; text: string };
 

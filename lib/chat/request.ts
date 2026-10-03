@@ -7,6 +7,7 @@ import { ThinkingLevel, type Content, type GenerateContentParameters } from '@go
 import {
     MAX_CONTEXT_TEXT_CHARS,
     MAX_CONTEXT_TITLE_CHARS,
+    MAX_HISTORY_TURNS,
     MAX_MESSAGE_CHARS,
     type ChatContext,
     type LanguageId,
@@ -24,9 +25,6 @@ import { composeSystemInstruction } from './prompts';
 // the route's 27 s stream deadline. A reply that hits the cap is cut short, and
 // the route reports it that way.
 export const CHAT_MAX_OUTPUT_TOKENS = 4096;
-
-// How many past messages ride along (5 exchanges keeps context lean).
-const MAX_HISTORY_TURNS = 10;
 
 // The largest body a real client can send: the message, a full history and a
 // passage, each at its cap, all doubled for worst-case JSON escaping, plus room

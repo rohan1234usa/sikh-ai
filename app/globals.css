@@ -54,6 +54,7 @@
   --color-ink-muted: var(--ink-muted);
   --color-ink-faint: var(--ink-faint);
   --color-edge: var(--edge);
+  --color-edge-strong: var(--edge-strong);
   --color-accent-text: var(--accent-text);
 }
 
@@ -65,7 +66,9 @@
   --ink-muted: #475569;       /* secondary text */
   --ink-faint: #64748B;       /* tertiary text */
   --edge: #E2E8F0;            /* borders */
+  --edge-strong: #64748B;     /* a field's or button's outline: 3:1 or more (WCAG 1.4.11) */
   --accent-text: #B45309;     /* kesri-deep on light */
+  --focus-ring: #B45309;      /* kesri-deep: 5.0:1 on white; kesri is 2.1:1 (WCAG 1.4.11 asks 3:1) */
 }
 
 .dark {
@@ -76,12 +79,21 @@
   --ink-muted: #94A3B8;
   --ink-faint: #64748B;
   --edge: #1E293B;
+  --edge-strong: #64748B;
   --accent-text: #FF9933;     /* full kesri passes on dark */
+  --focus-ring: #FF9933;
 }
 
 body {
   background: var(--surface);
   color: var(--ink);
+}
+
+/* The navbar is sticky and 4rem tall: an element scrolled to (a link to
+   #analytics, an error summary's field, the next one tabbed to) lands below
+   it, not under it (WCAG 2.4.11). */
+html {
+  scroll-padding-top: 5rem;
 }
 
 /* When the UI language is Gurmukhi, the body font stack must carry Gurmukhi
@@ -92,8 +104,9 @@ html[lang='pa'] body {
 }
 
 @layer base {
+  /* Navy panels set --focus-ring back to kesri, which is 8.4:1 on navy. */
   :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
-    outline: 2px solid var(--color-kesri);
+    outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
   }
 }

@@ -3,10 +3,9 @@ import "@/app/globals.css";
 import { FONT_VARIABLES } from "@/app/fonts";
 import { AuthProvider } from "@/app/context/AuthContext";
 import { LanguageProvider } from "@/app/context/LanguageContext";
-import { GoogleAnalytics } from "@next/third-parties/google";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
+import SiteAnalytics from "@/app/components/SiteAnalytics";
 import { LANGS, LANG_META, parseLang } from "@/lib/i18n/config";
 import { getServerT } from "@/lib/i18n/server";
 import { SITE_URL, openGraph } from "@/lib/metadata";
@@ -72,13 +71,13 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
             <Footer />
           </LanguageProvider>
         </AuthProvider>
-        {/* Production only: previews and local builds would otherwise send
-            their visits to the real Analytics property. */}
-        {process.env.VERCEL_ENV === "production" && <GoogleAnalytics gaId="G-9WWKK5Z5GD" />}
-        {/* Core Web Vitals from real visits, on Vercel's dashboard once it's
-            switched on there. No cookies; Vercel serves the script from this
-            site (/_vercel/speed-insights), so it only exists on Vercel. */}
-        {process.env.VERCEL === "1" && <SpeedInsights />}
+        {/* Vercel's own visit counts (production only, so previews count
+            nothing) and Core Web Vitals (any Vercel deployment), on its
+            dashboard once each is switched on there. No cookies; Vercel serves
+            both scripts from this site, so they only exist on Vercel.
+            SiteAnalytics honours the visitor's choice and strips IDs from
+            every address (lib/analytics.ts). */}
+        {process.env.VERCEL === "1" && <SiteAnalytics webAnalytics={process.env.VERCEL_ENV === "production"} />}
       </body>
     </html>
   );

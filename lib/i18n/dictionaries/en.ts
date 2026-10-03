@@ -317,8 +317,8 @@ const en = {
             },
             seva: {
                 title: 'Seva Events',
-                desc: 'Find and join local Sangat seva opportunities.',
-                cta: 'Browse events',
+                desc: 'Find a seva near you, add it to your calendar, or host one for your sangat.',
+                cta: 'Find a seva',
             },
         },
     },
@@ -804,49 +804,6 @@ const en = {
         },
     },
 
-    seva: {
-        heroTitle: 'Serve with {word}',
-        heroWord: 'Humility',
-        // Gurbani (Ang 26) — quoted per language: romanized here, Gurmukhi in pa.
-        quote: '“Vich duniya sev kamaiye, ta dargah baisan paiye.”',
-        postEvent: '+ Post Event',
-        signInPrompt: 'You must be signed in to join a Seva event.',
-        joinError: 'Something went wrong joining the event. Please try again.',
-        dismissAria: 'Dismiss notice',
-        loading: 'Loading...',
-        spotsLeft: '{n} spots left',
-        joined: 'Joined! Waheguru',
-        full: 'Full - Waheguru',
-        join: 'Join Seva',
-        // Display labels only — the raw category value stays the data/style key.
-        categories: {
-            Langar: 'Langar',
-            Service: 'Service',
-            Education: 'Education',
-            Other: 'Other',
-        },
-    },
-
-    sevaCreate: {
-        title: 'Post New Seva',
-        cancel: 'Cancel',
-        eventTitle: 'Event Title',
-        eventTitlePlaceholder: 'e.g. Weekend Langar Prep',
-        category: 'Category',
-        volunteersNeeded: 'Volunteers Needed',
-        neededPlaceholder: 'e.g. 5',
-        location: 'Location (Gurdwara)',
-        locationPlaceholder: 'e.g. Gurdwara Singh Sabha',
-        dateTime: 'Date & Time',
-        datePlaceholder: 'e.g. Sat, Jan 20 • 4:00 AM',
-        description: 'Description',
-        optional: '(optional)',
-        descriptionPlaceholder: 'What will volunteers be doing?',
-        createError: 'Something went wrong creating the event. Please try again.',
-        posting: 'Posting...',
-        submit: 'Create Seva Event',
-    },
-
     notFound: {
         heading: 'Page not found',
         body: "The page you're looking for doesn't exist or may have moved.",
@@ -863,63 +820,18 @@ const en = {
         builtBy: 'Built by',
         navAria: 'Footer',
         privacy: 'Privacy',
+        terms: 'Terms',
     },
 
-    // /privacy (app/[lang]/privacy): what the site keeps, where, for how long,
-    // what it sends to other services, and how to remove it. Owner-reviewed text.
-    privacy: {
-        title: 'Privacy',
-        updated: 'Last updated 2 October 2026.',
-        intro: 'SikhAI is a small, independent site. This page says what it keeps about you, where, and for how long; what it sends to other services; and how to remove it.',
-        sections: [
-            {
-                heading: 'Kept in your browser',
-                items: [
-                    'Your chats: up to 50. When there is no room, the one used longest ago goes first, but never a pinned or open chat.',
-                    'Your last 30 translations, and your chat settings: guide, style and reply language.',
-                    'Your Learn Punjabi progress: the lessons you finished, your best quiz scores, and when each flashcard comes back.',
-                    'Your conversation with the Punjabi tutor, until you close the tab.',
-                    'Your theme and language. The language is a cookie, kept for a year, so a link opens in your language.',
-                    'Whether you were signed in, so your session comes back quickly.',
-                ],
-            },
-            {
-                heading: 'Kept in your account',
-                items: [
-                    'If you sign in with Google, the site receives your name, email address and profile photo from Google, and shows your first name.',
-                    'Once saved chats are switched on for accounts, your chats are kept in your account instead of the browser: up to 100, plus any you pin.',
-                    'A chat you share becomes a read-only copy that anyone with the link can open, until you stop sharing it or delete the chat.',
-                    'Seva events you post are public. Joining one adds your account ID to that event.',
-                ],
-            },
-            {
-                heading: 'Sent to other services',
-                items: [
-                    'Google Gemini writes the answers. Each message you send goes to it with up to 10 earlier messages from the chat, any passage you attached, and your settings. Text you translate goes to it too.',
-                    'Messages to the Punjabi tutor go to it too, with up to 8 earlier messages from the conversation and the lesson you opened the tutor from.',
-                    'Google Cloud Translation stands in when Gemini is busy, and does the comparison with Google Translate.',
-                    'GurbaniNow supplies the Hukamnama, the Angs and the shabads. To check a reply\'s Gurbani quotes, the quoted lines are looked up there; your question is not sent. What you type into Shabad Search is sent there too, to find the line. It is also part of the search page\'s address, which the services below record like any page you open.',
-                    'Google Analytics counts visits: the pages you open, your device and browser, and your approximate location, using cookies.',
-                    'Vercel hosts the site. Its logs record your IP address and the pages you request, for a short time. The site\'s own logs never contain what you write.',
-                    'Vercel Speed Insights measures how fast pages load for real visitors, without cookies.',
-                ],
-            },
-            {
-                heading: 'Removing it',
-                items: [
-                    'Delete a chat from the chat list, or clear this site\'s data in your browser to remove everything kept there.',
-                    'Clear your Learn Punjabi progress with Reset progress on the Learn Punjabi page.',
-                    'Stop sharing a chat from its share dialog: the link stops working at once.',
-                    'Sign out from the navbar. To have your account\'s chats or a Seva sign-up removed, get in touch.',
-                ],
-            },
-            {
-                heading: 'Contact',
-                items: [
-                    'Questions about this page, or a request to remove your data: reach Rohan Singh through the links on the About page.',
-                ],
-            },
-        ],
+    // The switch on /privacy that stops this browser being counted
+    // (app/components/AnalyticsSwitch.tsx). The page's own words are in
+    // lib/i18n/policy, which only the server reads.
+    analyticsSwitch: {
+        label: 'Count my visits',
+        on: 'On. Visits from this browser are counted, without cookies.',
+        off: 'Off. This browser sends no visit counts or page-speed measurements.',
+        gpc: 'Off. Your browser sends Global Privacy Control, and this site follows it.',
+        noScript: 'With JavaScript off, nothing is counted.',
     },
 
     meta: {
@@ -931,8 +843,6 @@ const en = {
         chatTitle: 'Ask SikhAI',
         shareTitle: 'Shared conversation',
         shabadTitle: 'Shabad Search',
-        sevaTitle: 'Seva Events',
-        sevaCreateTitle: 'Post a Seva Event',
         hukamnamaTitle: "Today's Hukamnama",
         translateTitle: 'Punjabi Translator',
         learnTitle: 'Learn Punjabi',
@@ -945,7 +855,6 @@ const en = {
             translate: 'Translate between English, Gurmukhi and romanized Punjabi, with a word-by-word breakdown, tricky parts explained, and pronunciation tips.',
             learn: 'Learn Punjabi as a Punjabi American: read Gurmukhi, understand the grammar, build everyday vocabulary with flashcards, and practice with a tutor.',
             shabad: 'Find any shabad of Sri Guru Granth Sahib Ji from one of its lines, in Gurmukhi or English letters, or its first letters, and read it whole with transliteration and translation. Or open any Ang, 1 to 1430.',
-            seva: 'Find and join seva events near you, from langar to education, or post your own.',
         },
         // An Ang's page: {line} is its opening line, {n} its number.
         angDescription: '{line} — Ang {n} of Sri Guru Granth Sahib Ji, in Gurmukhi with an English translation.',

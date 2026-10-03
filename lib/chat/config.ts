@@ -73,6 +73,10 @@ export const DEFAULT_PREFS = {
 export const MAX_MESSAGE_CHARS = 4000;
 export const MAX_CONTEXT_TITLE_CHARS = 200;
 export const MAX_CONTEXT_TEXT_CHARS = 8000;
+// How many past messages ride along with a question (lib/chat/request.ts),
+// questions and replies alike: five exchanges keeps the context lean.
+// /privacy states it (lib/policy.ts).
+export const MAX_HISTORY_TURNS = 10;
 
 // Saved chats. A reply is capped at 4,096 output tokens (~14,000 characters of
 // English); 40,000 leaves room for Punjabi, which spends more per word, and

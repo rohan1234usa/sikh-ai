@@ -191,12 +191,15 @@ export default function ChatInput({
                 </div>
             </form>
             {/* The one place the chat page says what the AI is and where messages
-                go — the site footer is hidden here. ink-muted keeps AA contrast
-                in dark mode, which ink-faint does not. */}
+                go, and links the privacy page and the terms — the site footer
+                is hidden here. ink-muted keeps AA contrast in dark mode, which
+                ink-faint does not. */}
             <div className="max-w-3xl mx-auto mt-2 flex items-start justify-between gap-3 text-[11px] text-ink-muted">
                 <p>
                     {disclaimer}{' '}
                     <Link href={to('/privacy')} className="underline hover:text-accent-text">{t.footer.privacy}</Link>
+                    {' · '}
+                    <Link href={to('/terms')} className="underline hover:text-accent-text">{t.footer.terms}</Link>
                 </p>
                 {nearCap && (
                     <span id={countId} className={`shrink-0 tabular-nums ${atCap ? 'text-red-600 dark:text-red-400 font-semibold' : ''}`}>

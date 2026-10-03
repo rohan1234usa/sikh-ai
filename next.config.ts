@@ -9,6 +9,7 @@ const CSP = contentSecurityPolicy({
   dev: process.env.NODE_ENV === "development",
   preview: process.env.VERCEL_ENV === "preview",
   firebaseAuthDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  emulators: process.env.NEXT_PUBLIC_FIREBASE_EMULATORS === "1",
 });
 
 // Sent with every page, API route and static file. Vercel already adds HSTS.

@@ -8,6 +8,8 @@
 // localStorage rather than a cookie, so the server cannot know it and the
 // pre-paint script below exists to apply it before the first frame.
 
+import { onStorageKey } from './storage';
+
 export const THEMES = ['light', 'dark', 'system'] as const;
 export type Theme = (typeof THEMES)[number];
 
@@ -99,19 +101,12 @@ export function watchTheme(): () => void {
     const onOsChange = () => {
         if (parseTheme(document.documentElement.dataset.theme) === 'system') applyTheme('system');
     };
-    // Fires only in the tabs that didn't write, and for sessionStorage too —
-    // hence the storageArea check. Storage is re-read rather than trusting
-    // e.newValue, which two tabs picking at once can leave out of date. A null
-    // key means storage was cleared, which reads as the default.
-    const onStorage = (e: StorageEvent) => {
-        try { if (e.storageArea !== localStorage) return; } catch { return; }
-        if (e.key === null || e.key === THEME_STORAGE_KEY) applyTheme(readStoredTheme());
-    };
+    // Another tab's pick, or cleared storage, which reads as the default.
+    const stopFollowing = onStorageKey(THEME_STORAGE_KEY, () => applyTheme(readStoredTheme()));
     query.addEventListener('change', onOsChange);
-    window.addEventListener('storage', onStorage);
     return () => {
         query.removeEventListener('change', onOsChange);
-        window.removeEventListener('storage', onStorage);
+        stopFollowing();
     };
 }
 

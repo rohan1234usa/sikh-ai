@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { TRANSLATE_RESULT_REV, type SourceHint, type TranslationResult } from '@/lib/translate/config';
-import { findCachedTranslation, upsertHistory } from '@/lib/translate/history';
+import { MAX_TRANSLATE_HISTORY, findCachedTranslation, upsertHistory } from '@/lib/translate/history';
 
 export type TranslateHistoryEntry = {
     id: string;
@@ -16,7 +16,6 @@ export type TranslateHistoryEntry = {
 };
 
 const STORAGE_KEY = 'sikhai.translate.history.v1'; // bump the suffix on schema changes
-const MAX_ENTRIES = 30;
 
 type StoredHistory = { version: 1; updatedAt: number; entries: TranslateHistoryEntry[] };
 
@@ -49,7 +48,7 @@ export function useTranslateHistory() {
                 const parsed = JSON.parse(raw) as StoredHistory;
                 if (parsed?.version === 1 && Array.isArray(parsed.entries)) {
                     // eslint-disable-next-line react-hooks/set-state-in-effect
-                    setEntries(parsed.entries.slice(0, MAX_ENTRIES));
+                    setEntries(parsed.entries.slice(0, MAX_TRANSLATE_HISTORY));
                 }
             }
         } catch {
@@ -78,7 +77,7 @@ export function useTranslateHistory() {
             createdAt: Date.now(),
             rev: TRANSLATE_RESULT_REV,
         };
-        setEntries(prev => upsertHistory(prev, full, MAX_ENTRIES));
+        setEntries(prev => upsertHistory(prev, full, MAX_TRANSLATE_HISTORY));
     }, []);
 
     // A saved result for exactly this request, if one can be reused.
