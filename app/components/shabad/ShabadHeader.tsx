@@ -3,7 +3,7 @@ import { SEARCH_EXAMPLES } from '@/lib/gurbani/query';
 import ShabadSearchBox from './ShabadSearchBox';
 
 // The top of /shabad, of every Ang's page and of every shabad's page: the
-// title and the search box, filled with the Ang on show.
+// title and the search box, which on an Ang's page holds its number.
 export default function ShabadHeader({ t, page, ang }: { t: Dictionary; page: 'search' | 'ang' | 'shabad'; ang?: number }) {
     // Word order around the highlighted word differs per language, so split
     // the template on {word} and render the styled span between the halves.

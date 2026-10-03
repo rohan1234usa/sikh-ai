@@ -91,8 +91,8 @@ export type VerseSearchResponse = {
 export function canonicalQuery(input: string): string {
     return input
         .normalize('NFC')
-        .replace(/[‌‍﻿]/g, '')
-        .replace(/​/g, ' ')
+        .replace(/[\u200C\u200D\uFEFF]/g, '')
+        .replace(/\u200B/g, ' ')
         .replace(/\s+/g, ' ')
         .trim()
         .toLowerCase();

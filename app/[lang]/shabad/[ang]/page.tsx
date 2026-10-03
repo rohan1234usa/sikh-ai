@@ -75,7 +75,7 @@ function structuredData(lang: Lang, t: Dictionary, ang: number, description: str
 export default async function AngPage({ params }: PageProps<'/[lang]/shabad/[ang]'>) {
   const { lang, t } = await getServerT();
   const ang = parseAngParam((await params).ang);
-  // Not an Ang (/shabad/1431, /shabad/abc): the Ang search. A notFound() here,
+  // Not an Ang (/shabad/1431, /shabad/abc): the search page. A notFound() here,
   // on a page built at its first visit, would get Next's bare 404 rather than
   // the site's (app/global-not-found.tsx only covers unmatched addresses).
   if (ang === null) redirect(localePath(lang, '/shabad'));

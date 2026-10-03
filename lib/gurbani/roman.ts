@@ -274,7 +274,7 @@ type Cell = { score: number; line: number; strong: number };
 // Lines up the typed words with a line's transliteration, in order, letting
 // a word skip, and one word stand for two run together or apart ("satnam"
 // for "sat naam"), and scores the best alignment.
-export function alignRoman(typed: string[], transliteration: string): RomanMatch {
+export function alignRoman(typed: string[], transliteration: string, tuning: Tuning = TUNING): RomanMatch {
     const u = typed.map(toWord);
     const g = romanTokens(transliteration).map(toWord);
     const typedWeight = u.reduce((sum, w) => sum + w.weight, 0);
@@ -282,7 +282,7 @@ export function alignRoman(typed: string[], transliteration: string): RomanMatch
     if (u.length === 0 || g.length === 0) return { coverage: 0, precision: 0, strong: 0 };
 
     const join = (a: Word, b: Word) => toWord(a.key + b.key);
-    const strongWord = TUNING.strongWord;
+    const { strongWord } = tuning;
     const dp: Cell[][] = Array.from({ length: u.length + 1 }, () => Array.from({ length: g.length + 1 }, () => ({ score: 0, line: 0, strong: 0 })));
     const better = (a: Cell, b: Cell) => (b.score > a.score ? b : a);
     for (let i = 1; i <= u.length; i++) {

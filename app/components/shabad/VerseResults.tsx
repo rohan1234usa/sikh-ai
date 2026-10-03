@@ -121,7 +121,8 @@ export default function VerseResults() {
         : t.shabad.results.unfinished;
 
     return (
-        <section aria-labelledby="verse-results-heading" aria-busy={!answer} className={`${PANEL} space-y-4`}>
+        // Named by its heading, which appears with the answer.
+        <section aria-labelledby={data ? 'verse-results-heading' : undefined} aria-busy={!answer} className={`${PANEL} space-y-4`}>
             <p role="status" className="sr-only">{status}</p>
 
             {!answer && (

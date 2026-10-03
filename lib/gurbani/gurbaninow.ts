@@ -1,15 +1,16 @@
-// SERVER-ONLY: GurbaniNow client for checking quoted lines, and the fetches
-// behind the Hukamnama page and the Ang reader. Same posture as
-// lib/translate/cloud.ts: never throws, and times out fast. The quote checker
-// also meters itself.
+// SERVER-ONLY: GurbaniNow client for the chat's quote checker and Shabad
+// Search, and the fetches behind the Hukamnama, Ang and shabad pages. Same
+// posture as lib/translate/cloud.ts: never throws, and times out fast. The
+// quote checker and Shabad Search each meter themselves.
 //
 // The difference between null and [] is load-bearing. [] means the source
 // answered and nothing matched — evidence a line is not in Gurbani. null
 // means the source did not answer, which is no evidence at all, and must
 // never turn into an "unverified" verdict.
 //
-// Ang text never changes, so responses are cached for a month in the host's
-// data cache (the `next` option; ignored outside Next, e.g. in tests).
+// Gurbani's text never changes, so responses are cached for a month in the
+// host's data cache (the `next` option; ignored outside Next, e.g. in tests).
+// Only the Hukamnama, which changes daily, is kept for less.
 
 import { MAX_ANG, SGGS_SOURCE_ID } from './citations';
 import { assignAngs, isGurbaniId, lineKind, type Shabad, type ShabadLine } from './shabad';
@@ -259,13 +260,13 @@ export const gurbaniNow = gurbaniNowClient({ meter: meters.quoteCheck });
 // Shabad Search: Sri Guru Granth Sahib Ji only, on its own daily count.
 export const verseSearchClient = gurbaniNowClient({ meter: meters.verseSearch, source: SGGS_SOURCE_ID });
 
-// What the site's pages read: the raw payloads /api/shabad (the Ang reader
-// and the chat's links to an Ang), /api/hukamnama and the Hukamnama page
-// parse, and the shabad page's shabad. They skip the daily meters. Each view
-// makes at most one call and the data cache answers repeats, so there is no
-// loop to guard against. A meter is charged before the cache is consulted,
-// so it would count those cache hits too, and a busy day of page views could
-// switch off quote checking. null means no usable answer.
+// What the site's pages read: an Ang for its page and for /api/shabad (the
+// chat's links to an Ang), a shabad for its page, and the Hukamnama for its
+// page and /api/hukamnama. They skip the daily meters. Each view makes at
+// most one call and the data cache answers repeats, so there is no loop to
+// guard against. A meter is charged before the cache is consulted, so it
+// would count those cache hits too, and a busy day of page views could
+// switch off quote checking or search. null means no usable answer.
 
 export async function fetchAngPayload(ang: number): Promise<unknown | null> {
     if (!Number.isInteger(ang) || ang < 1 || ang > MAX_ANG) return null;

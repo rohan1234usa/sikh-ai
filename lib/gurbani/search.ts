@@ -167,7 +167,7 @@ function scorer(query: SearchableQuery, tuning: Tuning): (line: GurbaniLine) => 
         case 'roman': {
             return (line) => {
                 if (!line.transliteration) return null;
-                const m: RomanMatch = alignRoman(query.words, line.transliteration);
+                const m: RomanMatch = alignRoman(query.words, line.transliteration, tuning);
                 return acceptsRoman(m, query.words.length, tuning)
                     ? { line, match: 'roman', tier: 1, score: m.coverage, whole: m.precision, settles: m.coverage >= tuning.satisfied }
                     : null;
@@ -262,17 +262,17 @@ function rankPool(query: SearchableQuery, lines: GurbaniLine[], tuning: Tuning):
 // The hits shown: a line repeated in other shabads appears at most
 // MAX_SAME_LINE times, each saying how many others there are.
 function toHits(perShabad: Ranked[], maxHits = MAX_HITS): { hits: VerseHit[]; more: boolean } {
+    const keys = perShabad.map(r => sameLineKey(r.line));
     const shabadsWith = new Map<string, number>();
-    for (const r of perShabad) shabadsWith.set(sameLineKey(r.line), (shabadsWith.get(sameLineKey(r.line)) ?? 0) + 1);
+    for (const key of keys) shabadsWith.set(key, (shabadsWith.get(key) ?? 0) + 1);
     const shown = new Map<string, number>();
     const hits: VerseHit[] = [];
-    for (const r of perShabad) {
-        const key = sameLineKey(r.line);
-        const already = shown.get(key) ?? 0;
-        if (already >= MAX_SAME_LINE) continue;
-        shown.set(key, already + 1);
-        hits.push(toHit(r.line, r.match, (shabadsWith.get(key) ?? 1) - 1));
-    }
+    perShabad.forEach((r, i) => {
+        const already = shown.get(keys[i]) ?? 0;
+        if (already >= MAX_SAME_LINE) return;
+        shown.set(keys[i], already + 1);
+        hits.push(toHit(r.line, r.match, (shabadsWith.get(keys[i]) ?? 1) - 1));
+    });
     return { hits: hits.slice(0, maxHits), more: hits.length > maxHits };
 }
 

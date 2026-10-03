@@ -34,9 +34,9 @@ test('Gurmukhi words are searched as words, however they were written down', () 
     const expected = words(LINE);
     for (const input of [
         LINE.gurmukhi,
-        LINE.gurmukhi.replace(/ /g, '​'),          // larivaar, words joined by zero-width spaces
-        expected.join('‍ '),                         // a stray joiner
-        `${expected.join(' ')} ॥੧੩॥`, // ॥੧੩॥
+        LINE.gurmukhi.replace(/ /g, '\u200B'), // larivaar, words joined by zero-width spaces
+        expected.join('\u200D '), // a stray joiner
+        `${expected.join(' ')} ॥੧੩॥`, // with a verse number
         `"${expected.join(' ')}"`,
     ]) {
         const query = classifyQuery(input);
@@ -117,7 +117,7 @@ test('a question in English is not searched', () => {
 
 test('nothing to search for', () => {
     assert.equal(kind(classifyQuery('')), 'invalid:empty');
-    assert.equal(kind(classifyQuery(' ​ ')), 'invalid:empty');
+    assert.equal(kind(classifyQuery(' \u200B ')), 'invalid:empty');
     for (const input of ['!!!', '॥', '🙏🙏', '1.5', '-3']) assert.equal(kind(classifyQuery(input)), 'invalid:no-letters', input);
     assert.equal(kind(classifyQuery('सो पुरखु निरंजनु')), 'invalid:unsupported-script', 'Devanagari');
     assert.equal(kind(classifyQuery('سو پرکھ')), 'invalid:unsupported-script', 'Shahmukhi');
@@ -164,7 +164,7 @@ test("the English-only words never occur in GurbaniNow's transliteration", () =>
 
 test('a query has one spelling, so the same search is cached once', () => {
     assert.equal(canonicalQuery('  So   Purakh\tNIRANJAN '), 'so purakh niranjan');
-    assert.equal(canonicalQuery(`${words(LINE)[0]}​${words(LINE)[1]}`), `${words(LINE)[0]} ${words(LINE)[1]}`);
+    assert.equal(canonicalQuery(`${words(LINE)[0]}\u200B${words(LINE)[1]}`), `${words(LINE)[0]} ${words(LINE)[1]}`);
     assert.equal(canonicalQuery('ਸ਼ਬਦ'), 'ਸ਼ਬਦ'.normalize('NFC'));
     for (const line of LINES.slice(0, 50)) {
         for (const text of [line.gurmukhi, line.transliteration]) {
