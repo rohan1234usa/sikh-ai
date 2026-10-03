@@ -315,6 +315,22 @@ npm run eval:chat -- --dry-run
 
 By default it compares the production model with its fallback, the two models a user can be answered by. `--models` takes any list of variants, where `model@level` sets the thinking level (`gemini-3.8-flash@medium`). `--set core` or `--set gurbani-first` narrows the questions, and `--samples N` asks each one N times, since one answer per question says little about a rate. The report gives each variant a summary column (time to first text, length, tokens, estimated cost, failed checks, and quotes by verdict: verified, wrong Ang, altered, not found), then shows every question side by side, most problems first. The two deep-linked passages, a day's Hukamnama and a whole Ang, are captured once with `--capture`, through the app's own API routes and the chat page's own code. Answers and their verdicts are cached in `scripts/chat-eval/cache.json`, and `--reverify` re-checks every quote after a change to the verifier without asking the model again.
 
+## 🧪 Shabad Search Eval
+
+`npm run eval:search` puts 57 searches to the real verse search, against the live GurbaniNow API, the way `/api/shabad/search` runs them. They are well-known lines typed every way readers type them:
+- Gurmukhi as the source spells it, without vowel signs, its first few words, or with a typo, the Gurmukhi cut from lines pinned by their ids, never typed by hand;
+- first letters, in Gurmukhi or English;
+- GurbaniNow's own transliteration, and the casual romanized spellings readers use (so purakh niranjan, tu thakur tum peh ardas, dhan dhan ram das gur);
+- things that should find nothing: English, an Ardas line, Dasam Granth lines, gibberish.
+
+The report (`scripts/search-eval/report.md`) checks the results against the bar to ship: the right line in the top three for 90% of Gurmukhi searches and 80% of casual romanized ones, nothing found for every negative, and at most 2.5 lookups a search on average. The last run met it with every case right. GurbaniNow's answers are cached in `cache.json` (not committed), so rerunning after a ranking change costs nothing. Calls are paced a second apart, since GurbaniNow turns away bursts.
+
+```bash
+npm run eval:search -- --dry-run   # each case's reading and planned lookups; no network
+npm run eval:search -- --verbose   # live, printing each case's top hits
+npm run eval:search -- --sweep     # the romanized thresholds over a range, from the cache
+```
+
 ## 📖 Pre-generated Phrasebook
 
 A phrasebook tap shows a full translator result at once, with no request, because every phrase's answer is generated ahead of time.

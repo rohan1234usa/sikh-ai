@@ -56,3 +56,7 @@ scripts/i18n-audit/notes-pa.generated.json
 # and renames, so only a temp file left by an interrupted write is ignored —
 # one rule, for every script that uses it.
 scripts/**/*.json.tmp
+
+# The search eval's cache of GurbaniNow answers: megabytes, and free to
+# rebuild (npm run eval:search), so not committed. Its report is.
+scripts/search-eval/cache.json
