@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildShareSnapshot, newSinceShared, parseShareDoc, shareToRecord, type ShareDoc } from '@/lib/chat/share';
+import { readFileSync } from 'node:fs';
+import { SHARE_VERSION, buildShareSnapshot, newSinceShared, parseShareDoc, shareDocFor, shareToRecord, type ShareDoc } from '@/lib/chat/share';
 import type { ChatRecord } from '@/lib/chat/store/types';
 import type { Exchange } from '@/lib/chat/transcript';
 import { exchange, notice } from './helpers';
@@ -9,7 +10,7 @@ import { meta } from './store-helpers';
 const record = (transcript: ChatRecord['transcript']): ChatRecord => ({ meta: meta(1), context: null, transcript });
 const utf8 = (s: string) => new TextEncoder().encode(s).length;
 const docOf = (payload: string, over: Partial<ShareDoc> = {}): ShareDoc =>
-    ({ v: 1, ownerUid: 'u', chatId: meta(1).id, title: 'Seva', payload, createdAt: 5, updatedAt: 6, ...over });
+    ({ v: SHARE_VERSION, title: 'Seva', payload, createdAt: 5, updatedAt: 6, ...over });
 
 test('a snapshot holds the answered exchanges, and a lens notice only where an answer follows it', () => {
     const snapshot = buildShareSnapshot(record([
@@ -90,4 +91,14 @@ test('continuing a shared chat makes a new chat with fresh ids, never the origin
 test('the dialog can tell how many answers came after the link was made', () => {
     const chat = record([exchange('One', { order: 1 }), exchange('Two', { order: 5 }), exchange('Three', { order: 9, reply: { status: 'error' } })]);
     assert.equal(newSinceShared(chat, { id: 'share-123', createdAt: 0, updatedAt: 0, lastOrder: 1 }), 1);
+});
+
+test("a link's public document holds the snapshot, its title and its times, and nothing about the account", () => {
+    const snapshot = buildShareSnapshot(record([exchange('Q', { order: 1, reply: { text: 'A.' } })]))!;
+    const doc = shareDocFor('Seva', snapshot, { createdAt: 5, updatedAt: 6 });
+    assert.deepEqual(Object.keys(doc).sort(), ['createdAt', 'payload', 'title', 'updatedAt', 'v']);
+    assert.deepEqual(doc, { v: SHARE_VERSION, title: 'Seva', payload: snapshot.payload, createdAt: 5, updatedAt: 6 });
+    // The rules accept this version and no other (firestore.rules, chatShareOk).
+    const rules = readFileSync(new URL('../../firestore.rules', import.meta.url), 'utf8');
+    assert.equal(Number(/function chatShareOk[\s\S]*?d\.v == (\d+)/.exec(rules)?.[1]), SHARE_VERSION);
 });

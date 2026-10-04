@@ -15,13 +15,14 @@ import {
     query,
     serverTimestamp,
     where,
-    writeBatch,
     type Firestore,
 } from 'firebase/firestore/lite';
+import { commitLite } from '@/lib/firebase/liteBatch';
 import type { Op } from '@/lib/firebase/ops';
 import type { EventStatus } from './config';
 import { errorKind } from './errors';
 import { parseEvent, parseReport, parseSignup, parseVolunteer, toMillis } from './event';
+import { leaveEvent } from './leave';
 import { SEVA_PAGE_MAX } from './limits';
 import type { EventFields, EventPatch, Hosting, Report, ReportFields, SevaEvent, Signup, Volunteer, VolunteerFields } from './model';
 import {
@@ -30,9 +31,7 @@ import {
     hostingPath,
     planCreateEvent,
     planDismissReports,
-    planForget,
     planJoin,
-    planLeave,
     planReport,
     planSetHidden,
     planSetStatus,
@@ -59,16 +58,7 @@ export function sevaClient(db: Firestore) {
     const S = { now: serverTimestamp(), inc: increment };
     const ref = (path: string[]) => doc(db, path.join('/'));
 
-    async function commit(ops: Op[]): Promise<void> {
-        if (ops.length === 0) return;
-        const batch = writeBatch(db);
-        for (const op of ops) {
-            if (op.type === 'set') batch.set(ref(op.path), op.data);
-            else if (op.type === 'update') batch.update(ref(op.path), op.data);
-            else batch.delete(ref(op.path));
-        }
-        await batch.commit();
-    }
+    const commit = (ops: Op[]) => commitLite(db, ops);
 
     // A read the rules may refuse (someone else's, or hidden): null then.
     async function tryGet(path: string[]) {
@@ -132,17 +122,9 @@ export function sevaClient(db: Firestore) {
 
         updateSignup: (eventId: string, key: string, v: VolunteerFields) => commit(planUpdateSignup(eventId, key, v)),
 
-        // Leaving gives the spot back; if the event is gone, there's no count
-        // to give it back to, so the sign-up is just removed.
-        async leave(uid: string, eventId: string, key: string): Promise<void> {
-            try {
-                await commit(planLeave(uid, eventId, key, S));
-            } catch (error) {
-                if (errorKind(error) === 'unavailable') throw error;
-                if (await tryGet(eventPath(eventId)) !== null) throw error;
-                await commit(planForget(uid, eventId, key));
-            }
-        },
+        // Leaving gives the spot back, or clears what's left of a sign-up
+        // whose host or event has gone (./leave.ts).
+        leave: (uid: string, eventId: string, key: string) => leaveEvent({ commit, get: tryGet }, uid, eventId, key, S),
 
         report: (uid: string, eventId: string, r: ReportFields) => commit(planReport(uid, eventId, r, S)),
 

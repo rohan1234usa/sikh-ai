@@ -8,8 +8,9 @@ import { PRIMARY_BUTTON } from './components/StatusPage';
 
 // The site's 404, for any address that isn't a page, in any language. Pages
 // live under app/[lang], whose layout can't serve a 404 of its own (Next
-// would fall back to its bare default page), so this is a whole document of
-// its own: static, built once, with no navbar or providers. The logo still
+// would fall back to its bare default page, as it does for a language prefix
+// in the wrong case, which reaches that layout), so this is a whole document
+// of its own: static, built once, with no navbar or providers. The logo still
 // leads home, as it does on every page.
 //
 // A 404 page can't know its language when it's built, so it carries all

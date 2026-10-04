@@ -4,7 +4,8 @@
 //   app.ts            the shared app, pulled in by the others
 //   auth.ts           sign-in, loaded by AuthContext when it's needed
 //   firestore.ts      shared chats and account chats
-//   firestoreLite.ts  Seva's sign-ups and hosting, loaded when someone acts
+//   firestoreLite.ts  Seva's sign-ups and hosting, loaded when someone acts,
+//                     and deleting an account
 
 export const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -17,7 +18,8 @@ export const firebaseConfig = {
 
 // Chats saved to the signed-in account (and shared links) need the chat
 // section of firestore.rules live first; until the owner turns this on, every
-// chat stays in the browser. Needs a real Firebase project too.
+// chat stays in the browser. Needs a real Firebase project too, or the
+// emulators (README, "Testing Seva locally").
 export const cloudChatsEnabled =
   process.env.NEXT_PUBLIC_CHAT_CLOUD === '1' && !!firebaseConfig.apiKey && !!firebaseConfig.projectId;
 

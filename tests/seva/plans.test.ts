@@ -3,8 +3,11 @@ import assert from 'node:assert/strict';
 import type { Op } from '@/lib/firebase/ops';
 import {
     eventPatch,
+    planClearSignups,
     planCreateEvent,
+    planDeleteEvent,
     planDismissReports,
+    planDropNote,
     planForget,
     planJoin,
     planLeave,
@@ -78,6 +81,17 @@ test('leaving takes all three back; for an event that is gone, only the two left
     assert.deepEqual(dataOf(planLeave('amar', ID, KEY, S)[2]), { volunteerCount: { inc: -1 } });
     assert.deepEqual(planForget('amar', ID, KEY).map(at), [`delete seva_events/${ID}/volunteers/${KEY}`, `delete users/amar/seva_signups/${ID}`]);
     assert.deepEqual(dataOf(planUpdateSignup(ID, KEY, { name: 'A.', email: '', phone: '' })[0]), { name: 'A.', email: '', phone: '' });
+});
+
+test("a host winds an event down: its sign-ups a few at a time, then the event with their note of it", () => {
+    const keys = Array.from({ length: 12 }, (_, i) => `Key${String(i).padStart(17, '0')}`);
+    const batches = planClearSignups(ID, keys);
+    assert.deepEqual(batches.map((b) => b.length), [5, 5, 2]);
+    assert.deepEqual(batches.flat().map(at), keys.map((k) => `delete seva_events/${ID}/volunteers/${k}`));
+    assert.deepEqual(planClearSignups(ID, []), []);
+    assert.deepEqual(planDeleteEvent('hana', ID).map(at), [`delete seva_events/${ID}`, `delete users/hana/seva_hosting/${ID}`]);
+    // A volunteer whose sign-up the host cleared has only their note left.
+    assert.deepEqual(planDropNote('amar', ID).map(at), [`delete users/amar/seva_signups/${ID}`]);
 });
 
 test('a report is one per account per event; moderators change only whether it shows', () => {

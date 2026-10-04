@@ -1,16 +1,20 @@
 import type { Metadata, Viewport } from "next";
+import { notFound } from "next/navigation";
 import "@/app/globals.css";
 import { FONT_VARIABLES } from "@/app/fonts";
 import { AuthProvider } from "@/app/context/AuthContext";
 import { LanguageProvider } from "@/app/context/LanguageContext";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
+import AccountDialogHost from "@/app/components/account/AccountDialogHost";
 import SiteAnalytics from "@/app/components/SiteAnalytics";
-import { LANGS, LANG_META, parseLang } from "@/lib/i18n/config";
+import SiteDataGuard from "@/app/components/SiteDataGuard";
+import { LANGS, LANG_META, isLang } from "@/lib/i18n/config";
 import { getServerT } from "@/lib/i18n/server";
 import { SITE_URL, openGraph } from "@/lib/metadata";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { AUTH_HINT_SCRIPT } from "@/lib/firebase/hint";
+import { CLEAR_SCRIPT } from "@/lib/browserData";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { lang, t } = await getServerT();
@@ -39,17 +43,22 @@ export const viewport: Viewport = {
 // Every page is built once per language, ahead of time, and served from the
 // CDN. The language comes from the URL (lib/i18n/paths.ts): English at the
 // root, Punjabi under /pa and /pa-latn. The routing rules (lib/i18n/routing.ts)
-// let no other value reach this segment. There's no dynamicParams = false
-// here: it would also refuse the Angs (shabad/[ang]), which are built as
-// they're first visited.
+// let no other value reach this segment but a prefix in the wrong case, which
+// the layout answers with a 404. There's no dynamicParams = false here: it
+// would also refuse the Angs (shabad/[ang]), which are built as they're first
+// visited.
 export function generateStaticParams() {
   return LANGS.map((lang) => ({ lang }));
 }
 
 export default async function RootLayout({ children, params }: LayoutProps<"/[lang]">) {
   // From the URL, so <html lang> and every word are right in the built HTML,
-  // and the client provider is seeded with the same value.
-  const lang = parseLang((await params).lang);
+  // and the client provider is seeded with the same value. Only a prefix in
+  // the wrong case (/PA/…) reaches here as anything else: the host matches the
+  // routing rules regardless of case, so it skips the rewrite. That address
+  // is a 404, not the English page under a name of its own.
+  const lang = (await params).lang;
+  if (!isLang(lang)) notFound();
 
   return (
     <html
@@ -58,10 +67,11 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
       className={FONT_VARIABLES}
     >
       <head>
-        {/* Before first paint, to avoid a flash: the stored theme, and whether
-            this browser was signed in (which hides "Sign in" while the
-            session is restored). */}
-        <script dangerouslySetInnerHTML={{ __html: `${THEME_INIT_SCRIPT};${AUTH_HINT_SCRIPT}` }} />
+        {/* Before first paint, to avoid a flash: the rest of clearing this
+            browser, when that's why the page loaded (so the others see it
+            clear); the stored theme; and whether this browser was signed in
+            (which hides "Sign in" while the session is restored). */}
+        <script dangerouslySetInnerHTML={{ __html: `${CLEAR_SCRIPT};${THEME_INIT_SCRIPT};${AUTH_HINT_SCRIPT}` }} />
       </head>
       <body className="antialiased min-h-dvh flex flex-col">
         <AuthProvider>
@@ -69,8 +79,10 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
             <Navbar />
             {children}
             <Footer />
+            <AccountDialogHost />
           </LanguageProvider>
         </AuthProvider>
+        <SiteDataGuard />
         {/* Vercel's own visit counts (production only, so previews count
             nothing) and Core Web Vitals (any Vercel deployment), on its
             dashboard once each is switched on there. No cookies; Vercel serves

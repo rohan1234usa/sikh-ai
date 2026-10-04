@@ -1,7 +1,8 @@
-// Firestore Lite, for Seva: reads and batched writes, without the live
-// listeners Seva doesn't use, at about a third of the full SDK's size. Only
-// app/components/seva/sevaFirebase.ts imports it, and that is loaded with
-// import() when someone signed in needs it, so visitors never download it.
+// Firestore Lite, for Seva and for deleting an account: reads and batched
+// writes, without the live listeners neither uses, at about a third of the
+// full SDK's size. Only app/components/seva/sevaFirebase.ts and app/
+// components/account/accountFirebase.ts import it, each loaded with import()
+// when someone signed in needs it, so visitors never download it.
 
 import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore/lite';
 import { app } from './app';

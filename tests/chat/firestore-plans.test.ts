@@ -3,15 +3,19 @@ import assert from 'node:assert/strict';
 import {
     MAX_BATCH_OPS,
     chunk,
+    ERASE_PAGE,
+    UNLINK_BATCH,
     planCitations,
     planCreate,
     planDelete,
+    planErasePage,
     planEvictions,
     planImport,
     planMeta,
     planPutEntries,
     planPutReply,
     planShare,
+    planUnlinkShares,
     planUnshare,
     type Op,
 } from '@/lib/chat/store/firestorePlans';
@@ -62,11 +66,12 @@ test('a meta change writes only what changed', () => {
     assert.deepEqual((op as { data: object }).data, { pinned: true });
 });
 
-test('deleting a chat removes it from the list first, its shared link with it, then every entry', () => {
-    const ops = planDelete(UID, 'chat-123456', ['a', 'b'], 'share-12345');
+test('deleting a chat removes it from the list first, its shared link and the note of it with it, then every entry', () => {
+    const ops = planDelete(UID, 'chat-123456', ['a', 'b'], ['share-12345']);
     assert.deepEqual(ops.map(at), [
         'delete users/user-1/chats/chat-123456',
         'delete shared_chats/share-12345',
+        'delete users/user-1/shares/share-12345',
         'delete users/user-1/chats/chat-123456/entries/a',
         'delete users/user-1/chats/chat-123456/entries/b',
     ]);
@@ -86,16 +91,29 @@ test('moving a long chat splits into batches, with the meta written last', () =>
     assert.deepEqual(chunk(entries.map(() => ({ type: 'delete', path: ['x'] }) as Op)).map((b) => b.length), [MAX_BATCH_OPS, 5]);
 });
 
-test('a link and the chat\'s note of it are written together, and ended together', () => {
+test("a link, the owner's note of it and the chat's are written together, and every link of the chat ends together", () => {
     const ref = { id: 'share-12345', createdAt: 1, updatedAt: 2, lastOrder: 9 };
-    const doc = { v: 1, ownerUid: UID, chatId: 'chat-123456', title: 'Seva', payload: '{}', createdAt: 1, updatedAt: 2 };
-    assert.deepEqual(planShare(UID, 'chat-123456', 'share-12345', doc, ref).map(at), [
+    const doc = { v: 2, title: 'Seva', payload: '{}', createdAt: 1, updatedAt: 2 };
+    const share = planShare(UID, 'chat-123456', 'share-12345', doc, ref);
+    assert.deepEqual(share.map(at), [
         'set shared_chats/share-12345',
+        'set users/user-1/shares/share-12345',
         'update users/user-1/chats/chat-123456',
     ]);
-    const unshare = planUnshare(UID, 'chat-123456', 'share-12345');
-    assert.deepEqual(unshare.map(at), ['delete shared_chats/share-12345', 'update users/user-1/chats/chat-123456']);
-    assert.deepEqual((unshare[1] as { data: object }).data, { share: null });
+    // Who shared it, and from which chat, only in the owner's own documents.
+    const [published, note] = share as { data: object }[];
+    assert.ok(!JSON.stringify(published.data).includes(UID) && !JSON.stringify(published.data).includes('chat-123456'));
+    assert.deepEqual(note.data, { chatId: 'chat-123456' });
+
+    const unshare = planUnshare(UID, 'chat-123456', ['share-12345', 'share-67890']);
+    assert.deepEqual(unshare.map(at), [
+        'delete shared_chats/share-12345',
+        'delete users/user-1/shares/share-12345',
+        'delete shared_chats/share-67890',
+        'delete users/user-1/shares/share-67890',
+        'update users/user-1/chats/chat-123456',
+    ]);
+    assert.deepEqual((unshare[4] as { data: object }).data, { share: null });
 });
 
 test('past the cap, every unpinned chat goes, except one in use here', () => {
@@ -103,4 +121,14 @@ test('past the cap, every unpinned chat goes, except one in use here', () => {
     const inUse = (id: string) => id === meta(3).id;
     assert.deepEqual(planEvictions(overflow, inUse).map((m) => m.id), [meta(1).id, meta(4).id]);
     assert.deepEqual(planEvictions([], inUse), []);
+});
+
+test('when the account goes, its links end a few to a batch, each with its note, and a chat goes after its entries', () => {
+    const ids = Array.from({ length: 12 }, (_, i) => `share-${String(i).padStart(5, '0')}`);
+    const batches = planUnlinkShares(UID, ids);
+    assert.deepEqual(batches.map((b) => b.length), [2 * UNLINK_BATCH, 2 * UNLINK_BATCH, 4]);
+    assert.deepEqual(batches[0].slice(0, 2).map(at), ['delete shared_chats/share-00000', 'delete users/user-1/shares/share-00000']);
+    assert.deepEqual(planErasePage(UID, 'chat-123456', ['a'], false).map(at), ['delete users/user-1/chats/chat-123456/entries/a']);
+    assert.deepEqual(planErasePage(UID, 'chat-123456', ['a'], true).map(at).at(-1), 'delete users/user-1/chats/chat-123456');
+    assert.ok(ERASE_PAGE + 1 <= MAX_BATCH_OPS, 'a full page and the chat fit one batch');
 });

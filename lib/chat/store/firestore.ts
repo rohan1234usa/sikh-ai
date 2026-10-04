@@ -29,7 +29,7 @@ import {
 import type { Citation } from '@/lib/gurbani/citations';
 import { MAX_ACCOUNT_CHATS, sanitizeChatContext, type ChatContext } from '../config';
 import { sanitizeMeta, sortChats, type ChatMeta, type ShareRef } from '../chatMeta';
-import { SHARE_VERSION, type ShareDoc, type Snapshot } from '../share';
+import { shareDocFor, type Snapshot } from '../share';
 import { normalizeTranscript, toStoredEntry, type Entry, type Reply } from '../transcript';
 import {
     chunk,
@@ -42,6 +42,7 @@ import {
     planPutEntries,
     planPutReply,
     planShare,
+    planUnlinkShares,
     planUnshare,
     type Op,
 } from './firestorePlans';
@@ -368,16 +369,32 @@ export class FirestoreChatStore implements ChatStore {
     async deleteChat(chatId: string): Promise<void> {
         // The link from what is being listened to now: the open chat, else the list.
         const state = this.watches.has(chatId) ? this.chats.get(chatId) : undefined;
-        const shareId = (state?.status === 'ready' ? state.record.meta.share : this.list.chats.find((c) => c.id === chatId)?.share)?.id;
-        return this.remove(chatId, shareId);
+        const meta = state?.status === 'ready' ? state.record.meta : this.list.chats.find((c) => c.id === chatId);
+        return this.remove(chatId, meta?.share ? [meta.share.id] : []);
     }
 
-    private async remove(chatId: string, shareId: string | null | undefined): Promise<void> {
+    // The links the account's notes name for a chat: right where this tab's
+    // copy of it may not be (a link ended or made on another device, or a
+    // chat this tab doesn't hold). One read.
+    private async linksOf(chatId: string): Promise<string[]> {
+        const snap = await getDocs(query(collection(this.db, 'users', this.uid, 'shares'), where('chatId', '==', chatId)));
+        return snap.docs.map((d) => d.id);
+    }
+
+    // The chat goes at once, with the links this tab knows of; then any other
+    // link the account's notes name for it. If they can't be asked (offline),
+    // those wait for the account's deletion, which finds them all.
+    private async remove(chatId: string, knownLinks: readonly string[]): Promise<void> {
         // Every entry document, including any the transcript repair set aside.
         const entryIds = this.watches.get(chatId)?.entryIds
             ?? (await getDocs(collection(this.db, 'users', this.uid, 'chats', chatId, 'entries'))).docs.map((d) => d.id);
         this.setChat(chatId, MISSING);
-        return this.send(chunk(planDelete(this.uid, chatId, entryIds, shareId)), { chatId, kind: 'write' });
+        const sent = this.send(chunk(planDelete(this.uid, chatId, entryIds, knownLinks)), { chatId, kind: 'write' });
+        void this.linksOf(chatId).then((links) => {
+            const more = links.filter((id) => !knownLinks.includes(id));
+            if (more.length > 0) void this.send(planUnlinkShares(this.uid, more), { chatId, kind: 'write' });
+        }, () => {});
+        return sent;
     }
 
     async importChat(record: ChatRecord): Promise<void> {
@@ -417,7 +434,7 @@ export class FirestoreChatStore implements ChatStore {
             const chats = collection(this.db, 'users', this.uid, 'chats');
             const past = await getDocs(query(chats, orderBy('updatedAt', 'desc'), startAfter(end), limit(OVERFLOW_BATCH)));
             for (const meta of planEvictions(metas(past.docs), (id) => this.opts.inUse?.(id) ?? false)) {
-                await this.remove(meta.id, meta.share?.id);
+                await this.remove(meta.id, meta.share ? [meta.share.id] : []);
                 removed.push(meta.id);
             }
         } catch {
@@ -437,15 +454,7 @@ export class FirestoreChatStore implements ChatStore {
         const existing = record.meta.share;
         const id = existing?.id ?? doc(collection(this.db, 'shared_chats')).id;
         const createdAt = existing?.createdAt ?? now;
-        const shared: ShareDoc = {
-            v: SHARE_VERSION,
-            ownerUid: this.uid,
-            chatId: record.meta.id,
-            title: record.meta.title,
-            payload: snapshot.payload,
-            createdAt,
-            updatedAt: now,
-        };
+        const shared = shareDocFor(record.meta.title, snapshot, { createdAt, updatedAt: now });
         const ref: ShareRef = { id, createdAt, updatedAt: now, lastOrder: snapshot.lastOrder };
         await this.sendAndWait([planShare(this.uid, record.meta.id, id, shared, ref)]);
         this.apply(record.meta.id, (r) => withMeta(r, { share: ref }));
@@ -453,8 +462,11 @@ export class FirestoreChatStore implements ChatStore {
     }
 
     // The link stops working at once: its snapshot is deleted, not hidden.
+    // Every link of the chat ends, so a device showing an older one can't
+    // leave a newer one public with nothing naming it.
     async unshare(chatId: string, shareId: string): Promise<void> {
-        await this.sendAndWait([planUnshare(this.uid, chatId, shareId)]);
+        const links = await this.linksOf(chatId).catch((): string[] => []);
+        await this.sendAndWait([planUnshare(this.uid, chatId, [...new Set([shareId, ...links])])]);
         this.apply(chatId, (r) => withMeta(r, { share: null }));
     }
 }

@@ -145,8 +145,9 @@ export class ReplyRuntime {
         for (const [key, c] of this.verifications) if (key.startsWith(prefix)) c.abort();
     }
 
-    // Signing out: stop every reply bound for that account. Their partial
-    // text is saved if the store still accepts it; there is no citation check.
+    // Signing out, or deleting the account (app/components/chat/chatStores.ts):
+    // stop every reply bound for that account. Their partial text is saved if
+    // the store still accepts it; there is no citation check.
     stopFor(store: ChatStore): void {
         for (const job of this.jobs.values()) {
             if (job.store !== store) continue;

@@ -4,6 +4,7 @@
 // first use in the browser (never during server rendering), and never torn
 // down: a reply keeps going while the user is elsewhere on the site.
 
+import { onAccountDeletion } from '@/lib/account/prepare';
 import type { ChatHome } from '@/lib/chat/chatMeta';
 import type { FirestoreChatStore, WriteFailure } from '@/lib/chat/store/firestore';
 import { LocalChatStore, type StorageLike } from '@/lib/chat/store/local';
@@ -119,6 +120,13 @@ export function loadAccountChats(): Promise<AccountChats> {
                 getReplyRuntime().stopFor(account);
                 account.dispose();
                 account = null;
+            });
+            // An account about to be deleted: its replies stop first, so
+            // nothing this tab saves lands after its chats have gone. What a
+            // stopped reply saves is an update, which can't bring back a chat
+            // already deleted.
+            onAccountDeletion((uid) => {
+                if (account?.uid === uid) getReplyRuntime().stopFor(account);
             });
             setAccountChatsState('ready');
             return m;

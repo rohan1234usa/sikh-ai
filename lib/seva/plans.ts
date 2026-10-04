@@ -1,13 +1,15 @@
 // Pure: the Firestore writes for each Seva change, as plain operations the
-// browser carries out in one batch each (./client.ts). tests/rules replays
-// these same plans on the emulator, so the rules are held to what the app
-// really writes.
+// browser carries out (./client.ts, and lib/account/deletion.ts when the
+// host's account goes). tests/rules replays these same plans on the
+// emulator, so the rules are held to what the app really writes.
 //
 // The rules check each batch as a whole (getAfter sees all of it), so a plan
 // is all or nothing: an event and its host's note; a sign-up, the
-// volunteer's note and one more on the count. No plan writes a document
-// twice, and the order is for readers: the public document, then the
-// private ones, then the count.
+// volunteer's note and one more on the count. The few that return several
+// batches (planClearSignups, planDismissReports) are each a pile of single,
+// independent deletes, sized for what the rules may read. No plan writes a
+// document twice, and the order is for readers: the public document, then
+// the private ones, then the count.
 //
 // Firestore's own values, the server's clock and an increment, come in as
 // `Sentinels`, so this file never imports the SDK: the browser passes
@@ -15,7 +17,7 @@
 
 import { chunk, type DocPath, type Op } from '@/lib/firebase/ops';
 import type { EventStatus } from './config';
-import { SEVA_ADMIN_BATCH, SEVA_EVENT_VERSION } from './limits';
+import { SEVA_ADMIN_BATCH, SEVA_EVENT_VERSION, SEVA_HOST_CLEAR_BATCH } from './limits';
 import type { EventFields, EventPatch, ReportFields, SevaEvent, VolunteerFields } from './model';
 
 export type Sentinels = { now: unknown; inc: (n: number) => unknown };
@@ -109,6 +111,28 @@ export function planForget(uid: string, eventId: string, key: string): Op[] {
     return [
         { type: 'delete', path: volunteerPath(eventId, key) },
         { type: 'delete', path: signupPath(uid, eventId) },
+    ];
+}
+
+// A volunteer's note of a sign-up its host has already cleared, winding the
+// event down: nothing else is left to take back.
+export function planDropNote(uid: string, eventId: string): Op[] {
+    return [{ type: 'delete', path: signupPath(uid, eventId) }];
+}
+
+// The host winding down an event that's cancelled or over (or gone): every
+// sign-up first, a few to a batch, then the event with their note of it. The
+// sign-ups go while the event still holds its id: once it's gone, anyone may
+// post under it and list what's under it. The count isn't touched, since the
+// event is about to go.
+export function planClearSignups(eventId: string, keys: string[]): Op[][] {
+    return chunk(keys.map((key): Op => ({ type: 'delete', path: volunteerPath(eventId, key) })), SEVA_HOST_CLEAR_BATCH);
+}
+
+export function planDeleteEvent(uid: string, eventId: string): Op[] {
+    return [
+        { type: 'delete', path: eventPath(eventId) },
+        { type: 'delete', path: hostingPath(uid, eventId) },
     ];
 }
 

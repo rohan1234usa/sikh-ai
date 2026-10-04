@@ -27,13 +27,16 @@ import {
     type Firestore,
 } from 'firebase/firestore';
 import type { Op } from '@/lib/firebase/ops';
-import { SEVA_TEXT } from '@/lib/seva/limits';
+import { SEVA_HOST_CLEAR_BATCH, SEVA_TEXT } from '@/lib/seva/limits';
 import type { EventFields, ReportFields, VolunteerFields } from '@/lib/seva/model';
 import {
     eventPatch,
     hostingPath,
+    planClearSignups,
     planCreateEvent,
+    planDeleteEvent,
     planDismissReports,
+    planDropNote,
     planForget,
     planJoin,
     planLeave,
@@ -260,10 +263,80 @@ test('the host cancels and reopens; a cancelled event takes no sign-ups but can 
     await assertSucceeds(join('bina', K_B, E, bina));
 });
 
-test('no one deletes an event', async () => {
+test("only an event's host deletes it, once it's cancelled or over, and their note goes with it", async () => {
     await makeAdmin();
     await assertSucceeds(post());
-    for (const uid of ['hana', 'olive', 'bob']) await assertFails(deleteDoc(doc(as(uid), `seva_events/${E}`)));
+    // Open and still to come: no one, not even its host.
+    for (const uid of ['hana', 'olive', 'bob']) await assertFails(commit(as(uid), planDeleteEvent(uid, E)));
+    await assertFails(deleteDoc(doc(as('hana'), `seva_events/${E}`)));
+    await assertSucceeds(commit(as('hana'), planSetStatus(E, 'cancelled', '', S)));
+    for (const uid of ['olive', 'bob']) await assertFails(commit(as(uid), planDeleteEvent(uid, E)));
+    // The host's note can't go while the event stays.
+    await assertFails(commit(as('hana'), [planDeleteEvent('hana', E)[1]]));
+    await assertSucceeds(commit(as('hana'), planDeleteEvent('hana', E)));
+    assert.equal(await peek(`seva_events/${E}`), null);
+    assert.equal(await peek(`users/hana/seva_hosting/${E}`), null);
+    // Over, or hidden and cancelled, or already gone: the same.
+    let n = 0;
+    for (const state of [past(), { status: 'cancelled', hidden: true }]) {
+        const eventId = id(++n);
+        await seedEvent(eventId, state);
+        await assertSucceeds(commit(as('hana'), planDeleteEvent('hana', eventId)));
+    }
+    const gone = id(++n);
+    await seedEvent(gone);
+    await wipe(`seva_events/${gone}`);
+    await assertSucceeds(commit(as('hana'), planDeleteEvent('hana', gone)));
+    assert.equal(await peek(`users/hana/seva_hosting/${gone}`), null);
+});
+
+test('the host clears the sign-ups once the event is cancelled, over or gone, in the batches the app sends', async () => {
+    await assertSucceeds(post());
+    const people = Array.from({ length: SEVA_HOST_CLEAR_BATCH + 2 }, (_, i) => ({ uid: `vol${i}`, key: `Key${String(i).padStart(17, '0')}` }));
+    for (const { uid, key } of people) await assertSucceeds(join(uid, key));
+    const batches = planClearSignups(E, people.map((p) => p.key));
+    // Not while it's open and to come, and never by anyone else.
+    await assertFails(commit(as('hana'), batches[0]));
+    await assertSucceeds(commit(as('hana'), planSetStatus(E, 'cancelled', '', S)));
+    await assertFails(commit(as('bob'), batches[0]));
+    await assertFails(commit(as('vol1'), [batches[0][0]])); // vol0's
+    for (const batch of batches) await assertSucceeds(commit(as('hana'), batch));
+    assert.equal((await getDocs(collection(as('hana'), `seva_events/${E}/volunteers`))).size, 0);
+    await assertSucceeds(commit(as('hana'), planDeleteEvent('hana', E)));
+
+    // Over, or already gone (the console leaves what's below an event): the same.
+    let n = 0;
+    for (const over of [true, false]) {
+        const eventId = id(++n);
+        await seedEvent(eventId, over ? past() : {});
+        await seedSignup('amar', K_A, eventId);
+        if (!over) await wipe(`seva_events/${eventId}`);
+        await assertSucceeds(commit(as('hana'), planClearSignups(eventId, [K_A])[0]));
+    }
+});
+
+test("a volunteer whose sign-up the host cleared drops their note; one still there can't be dropped alone", async () => {
+    await assertSucceeds(post());
+    await assertSucceeds(join('amar', K_A));
+    await assertFails(commit(as('amar'), planDropNote('amar', E)));
+    await assertSucceeds(commit(as('hana'), planSetStatus(E, 'cancelled', '', S)));
+    await assertSucceeds(commit(as('hana'), planClearSignups(E, [K_A])[0]));
+    // Leaving has no sign-up left to take back, and the event is still there.
+    await assertFails(leave('amar', K_A));
+    await assertFails(commit(as('amar'), planForget('amar', E, K_A)));
+    await assertSucceeds(commit(as('amar'), planDropNote('amar', E)));
+});
+
+test('once its host has wound an event down, nothing is left under its id for whoever posts there next', async () => {
+    await assertSucceeds(post());
+    await assertSucceeds(join('amar', K_A));
+    await assertSucceeds(commit(as('hana'), planSetStatus(E, 'cancelled', '', S)));
+    for (const batch of planClearSignups(E, [K_A])) await assertSucceeds(commit(as('hana'), batch));
+    await assertSucceeds(commit(as('hana'), planDeleteEvent('hana', E)));
+    // Its id is public, so anyone may post under it now, and list what's there.
+    await assertSucceeds(post('bob', E));
+    assert.equal((await getDocs(collection(as('bob'), `seva_events/${E}/volunteers`))).size, 0);
+    await assertSucceeds(commit(as('amar'), planDropNote('amar', E)));
 });
 
 // ─── Joining ────────────────────────────────────────────────────────────────

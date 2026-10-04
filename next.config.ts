@@ -32,7 +32,8 @@ const SECURITY_HEADERS = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   // app/global-not-found.tsx: the 404 for every language (pages live under
-  // app/[lang], whose layout can't serve one of its own).
+  // app/[lang], whose layout can't serve one of its own; a language prefix in
+  // the wrong case gets Next's plain 404 from that layout).
   experimental: { globalNotFound: true },
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];

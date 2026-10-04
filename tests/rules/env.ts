@@ -11,7 +11,23 @@ import { after, before, beforeEach } from 'node:test';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { initializeTestEnvironment, type RulesTestEnvironment } from '@firebase/rules-unit-testing';
-import { deleteDoc, doc, getDoc, setDoc, setLogLevel, writeBatch, type DocumentData, type Firestore } from 'firebase/firestore';
+import {
+    collection,
+    deleteDoc,
+    doc,
+    getDoc,
+    getDocs,
+    increment,
+    limit,
+    query,
+    serverTimestamp,
+    setDoc,
+    setLogLevel,
+    writeBatch,
+    type DocumentData,
+    type Firestore,
+} from 'firebase/firestore';
+import type { AccountIO } from '@/lib/account/deletion';
 import type { Op } from '@/lib/firebase/ops';
 
 // One environment for the file, emptied before each test.
@@ -48,6 +64,25 @@ export function rulesEnv() {
             const snap = await getDoc(doc(db, path));
             return snap.exists() ? snap.data() : null;
         }),
+        // The ids of a collection's documents.
+        ids: (path: string) => admin(async (db) => (await getDocs(collection(db, path))).docs.map((d) => d.id)),
+    };
+}
+
+// Firestore as the account deletion uses it (lib/account/deletion.ts), on one
+// visitor's connection, as lib/account/client.ts gives it in the browser.
+export function accountIO(db: Firestore): AccountIO {
+    return {
+        async list(path, n) {
+            const snap = await getDocs(query(collection(db, path.join('/')), limit(n)));
+            return snap.docs.map((d) => ({ id: d.id, data: d.data() }));
+        },
+        async get(path) {
+            const snap = await getDoc(doc(db, path.join('/')));
+            return snap.exists() ? snap.data() : null;
+        },
+        commit: (ops) => commit(db, ops),
+        sentinels: { now: serverTimestamp(), inc: increment },
     };
 }
 

@@ -41,7 +41,7 @@ export function planAuthStart(hint: AuthHint, firebaseDb: boolean | null): 'rest
 }
 
 // Firebase Auth's IndexedDB database, where a signed-in session is kept.
-const FIREBASE_AUTH_DB = 'firebaseLocalStorageDb';
+export const FIREBASE_AUTH_DB = 'firebaseLocalStorageDb';
 
 export async function hasFirebaseAuthDb(): Promise<boolean | null> {
     try {

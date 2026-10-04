@@ -265,6 +265,9 @@ const en = {
         greeting: 'Sat Sri Akal, {name}',
         signIn: 'Sign In',
         signOut: 'Sign Out',
+        account: 'Your account',
+        deleteAccount: 'Delete account…',
+        deleteAccountUnavailable: "Couldn't open Delete account. Check your connection and try again.",
         toggleMenu: 'Toggle navigation menu',
         changeTheme: 'Change theme',
         themes: {
@@ -437,7 +440,7 @@ const en = {
             moveFirst: 'This chat is saved only in this browser. Move it to your account to share it.',
             moveAndShare: 'Move to account and share',
             intro: 'Anyone with the link can read a copy of this chat as it is now. Messages you send later stay private until you update the link.',
-            noName: "The copy doesn't show your name.",
+            noName: "The copy doesn't show your name or account.",
             create: 'Create link',
             creating: 'Creating link…',
             linkLabel: 'Shared link',

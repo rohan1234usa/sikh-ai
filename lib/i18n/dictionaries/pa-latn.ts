@@ -261,6 +261,9 @@ const paLatn: Dictionary = {
         greeting: 'Sat Sri Akal, {name}',
         signIn: 'Sign In',
         signOut: 'Sign Out',
+        account: 'Tuhada khaata',
+        deleteAccount: 'Khaata mitao…',
+        deleteAccountUnavailable: 'Khaata mitaun vala dabba khul nahi sakia. Apna connection jaancho ate dubara koshish karo.',
         toggleMenu: 'Navigation menu kholo jaan band karo',
         changeTheme: 'Theme badlo',
         themes: {
@@ -429,7 +432,7 @@ const paLatn: Dictionary = {
             moveFirst: 'Ih gallbaat sirf ise browser vich sambhali hoi hai. Is nu saanjha karan layi apne khaate vich bhejo.',
             moveAndShare: 'Khaate vich bhej ke saanjha karo',
             intro: 'Link vala koi vi is gallbaat di hun vali copy parh sakda hai. Baad vich bheje sunehe link update karan tak nijji rehnde han.',
-            noName: 'Copy vich tuhada naam nahi disda.',
+            noName: 'Copy vich tuhada naam jaan khaata nahi disda.',
             create: 'Link banao',
             creating: 'Link ban riha hai…',
             linkLabel: 'Saanjha link',

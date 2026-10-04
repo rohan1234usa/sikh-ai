@@ -1,7 +1,15 @@
 // Firebase Auth. Only AuthContext loads this, with import(), and only once
 // it's needed: see app/context/AuthContext.tsx.
 
-import { GoogleAuthProvider, connectAuthEmulator, getAuth, signInWithCredential } from 'firebase/auth';
+import {
+    GoogleAuthProvider,
+    connectAuthEmulator,
+    getAuth,
+    reauthenticateWithCredential,
+    reauthenticateWithPopup,
+    signInWithCredential,
+    type User,
+} from 'firebase/auth';
 import { app } from './app';
 import { EMULATOR_HOSTS, useEmulators } from './config';
 
@@ -22,4 +30,18 @@ if (useEmulators) {
     }
 }
 
-export { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
+// Google confirms it's still the person signed in, as Firebase wants before
+// an account is deleted. The popup opens straight away: call this first in
+// the click, before anything awaits, or Safari blocks it. On the emulator, the
+// seeded account's fake Google credential stands in, as for emulatorSignIn.
+export function reauthenticate(user: User): Promise<unknown> {
+    if (useEmulators) {
+        const sub = user.providerData[0]?.uid ?? user.uid;
+        return reauthenticateWithCredential(user, GoogleAuthProvider.credential(
+            JSON.stringify({ sub, email: user.email, email_verified: true, name: user.displayName ?? sub }),
+        ));
+    }
+    return reauthenticateWithPopup(user, googleProvider);
+}
+
+export { deleteUser, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';

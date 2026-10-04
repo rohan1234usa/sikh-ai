@@ -7,9 +7,9 @@ const INTERACTIVE = 'a[href], button, input, select, textarea, summary, [tabinde
 
 // The behaviour of a button that opens a menu: how it opens, where focus goes,
 // the keys it answers to, and every way it closes. The Navbar's pickers
-// (SettingMenu), the chat bar's chips and the chat list's row menus all use
-// it, so they share one tuned set of focus and dismissal rules and differ
-// only in their markup.
+// (SettingMenu) and account menu (AccountMenu), the chat bar's chips and the
+// chat list's row menus all use it, so they share one tuned set of focus and
+// dismissal rules and differ only in their markup.
 //
 // Wire-up: rootRef + onBlur={onRootBlur} on a wrapper around the trigger and
 // the menu; triggerRef + onClick={toggle} on the trigger; onKeyDown=
