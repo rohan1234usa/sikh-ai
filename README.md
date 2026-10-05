@@ -130,6 +130,8 @@ Follow these steps to set up the project locally.
     # Google Cloud Translation (server-side, optional)
     # Powers the translator's fallback when Gemini is unavailable, the
     # "Compare with Google Translate" cross-check, and the i18n audit script.
+    # Each running server allows the fallback 10,000 characters a day, and
+    # the cross-check its own 10,000, so one can't use up the other's.
     # Must be a key with the Cloud Translation API enabled — a Gemini key
     # restricted to the Generative Language API returns 403.
     GOOGLE_TRANSLATE_API_KEY=your_translation_key

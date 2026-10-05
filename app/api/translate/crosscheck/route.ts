@@ -81,7 +81,7 @@ async function handlePost(req: Request) {
 
     // Source is always explicit here — the caller sends a rendition whose
     // language is already known, so there is no detection ambiguity to resolve.
-    const result = await cloudTranslate({ text: trimmed, ...DIRECTIONS[direction] });
+    const result = await cloudTranslate({ text: trimmed, ...DIRECTIONS[direction], purpose: 'compare' });
 
     if (!result) {
       // `crosscheck_failed` is intentionally absent from the i18n `errors`

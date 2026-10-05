@@ -65,7 +65,7 @@ async function attemptCloudFallback(
 
   // Gurmukhi input is unambiguous regardless of what the chip claims.
   if (detectedScript === 'gurmukhi') {
-    const res = await cloudTranslate({ text: trimmed, source: 'pa', target: 'en' });
+    const res = await cloudTranslate({ text: trimmed, source: 'pa', target: 'en', purpose: 'fallback' });
     return res ? synthesize('punjabi-gurmukhi', trimmed, res.translatedText) : null;
   }
 
@@ -82,13 +82,13 @@ async function attemptCloudFallback(
   if (hint === 'auto' && looksRomanizedPunjabi(trimmed)) return null;
 
   if (hint === 'english') {
-    const res = await cloudTranslate({ text: trimmed, source: 'en', target: 'pa' });
+    const res = await cloudTranslate({ text: trimmed, source: 'en', target: 'pa', purpose: 'fallback' });
     return res ? synthesize('english', res.translatedText, trimmed) : null;
   }
 
   // 'auto' + Latin that reads as English: let Cloud confirm. Its own verdict is
   // a second line of defence, not the only one — see the screen above.
-  const res = await cloudTranslate({ text: trimmed, target: 'pa' });
+  const res = await cloudTranslate({ text: trimmed, target: 'pa', purpose: 'fallback' });
   if (!res || res.detectedSourceLanguage !== 'en') return null;
   return synthesize('english', res.translatedText, trimmed);
 }
