@@ -18,7 +18,7 @@ export const MAX_TUTOR_EXCHANGES = 20;
 export const TUTOR_SESSION_KEY = 'sikhai.learn.tutor.v1';
 
 // The route's error codes (errors.learn_* in the dictionaries), plus generic.
-export const TUTOR_ERROR_CODES = ['learn_empty', 'learn_too_long', 'learn_failed', 'learn_busy', 'learn_blocked', 'generic'] as const;
+export const TUTOR_ERROR_CODES = ['learn_empty', 'learn_too_long', 'learn_failed', 'learn_busy', 'learn_limit', 'learn_blocked', 'generic'] as const;
 export type TutorErrorCode = (typeof TUTOR_ERROR_CODES)[number];
 export const isTutorErrorCode = (value: unknown): value is TutorErrorCode =>
     typeof value === 'string' && (TUTOR_ERROR_CODES as readonly string[]).includes(value);

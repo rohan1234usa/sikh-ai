@@ -174,6 +174,8 @@ test('every way a stream ends settles into a state with something to show', () =
 test('a failed response maps to a code the reply can show', () => {
     assert.equal(errorCodeFromResponse(422, { error: '…', code: 'chat_blocked' }), 'chat_blocked');
     assert.equal(errorCodeFromResponse(429, null), 'chat_busy');
+    assert.equal(errorCodeFromResponse(429, { error: '…', code: 'chat_limit' }), 'chat_limit');
+    assert.equal(errorCodeFromResponse(403, null), 'generic');
     assert.equal(errorCodeFromResponse(502, null), 'generic');
     assert.equal(errorCodeFromResponse(500, { code: 'translate_busy' }), 'generic');
 });

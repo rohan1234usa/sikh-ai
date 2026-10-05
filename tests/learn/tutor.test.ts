@@ -66,6 +66,7 @@ test('an error response, a broken stream and Stop each settle their own way', ()
 test('an error response names its code, a bare 429 is busy, and anything else is generic', () => {
     assert.equal(tutorErrorCode(422, { code: 'learn_blocked' }), 'learn_blocked');
     assert.equal(tutorErrorCode(429, null), 'learn_busy');
+    assert.equal(tutorErrorCode(429, { code: 'learn_limit' }), 'learn_limit');
     assert.equal(tutorErrorCode(500, { code: 'chat_failed' }), 'generic');
     assert.equal(tutorErrorCode(502, '<html>'), 'generic');
 });

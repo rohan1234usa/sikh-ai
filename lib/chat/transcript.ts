@@ -26,7 +26,7 @@ import {
 // Keys of t.errors a reply can fail with (a test holds them to the
 // dictionary). Stored as the key, not the text, so a failed reply follows
 // a language switch like everything else on the page.
-export const REPLY_ERROR_CODES = ['generic', 'chat_busy', 'chat_blocked', 'chat_failed', 'chat_too_long', 'chat_empty'] as const;
+export const REPLY_ERROR_CODES = ['generic', 'chat_busy', 'chat_limit', 'chat_blocked', 'chat_failed', 'chat_too_long', 'chat_empty'] as const;
 export type ReplyErrorCode = (typeof REPLY_ERROR_CODES)[number];
 export const isReplyErrorCode = (v: unknown): v is ReplyErrorCode => REPLY_ERROR_CODES.includes(v as ReplyErrorCode);
 

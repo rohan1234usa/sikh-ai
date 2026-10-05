@@ -1,7 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { DAY_MS, MINUTE_MS, REFUSALS, VISITOR_LIMITS, allowances, limitVisitor, visitorAllowance, visitorOf } from '@/lib/api/allowance';
+import { REPLY_ERROR_CODES } from '@/lib/chat/transcript';
+import { getDictionary, type Dictionary } from '@/lib/i18n';
+import { responseErrorText } from '@/lib/i18n/apiError';
+import { LANGS } from '@/lib/i18n/config';
 import en from '@/lib/i18n/dictionaries/en';
+import { TUTOR_ERROR_CODES } from '@/lib/learn/tutor';
 
 // Its own file: `allowances` is module state, and these tests spend it. A
 // test that does uses addresses no other test uses.
@@ -133,4 +138,25 @@ test("the English of every refusal the site shows is the dictionary's for its co
             if (code in en.errors) assert.equal(error, en.errors[code as keyof typeof en.errors], `${feature} ${code}`);
         }
     }
+});
+
+test('every refusal the chat, the tutor, the translator and Shabad Search show has words in all three languages', () => {
+    for (const feature of ['chat', 'learn', 'translate', 'search'] as const) {
+        for (const { code } of Object.values(REFUSALS[feature])) {
+            for (const lang of LANGS) {
+                const text = getDictionary(lang).errors[code as keyof Dictionary['errors']];
+                assert.ok(typeof text === 'string' && text.length > 0, `${lang} ${code}`);
+                assert.doesNotMatch(text, /\{\w+\}/, `${lang} ${code}: shown as is, so no placeholders`);
+            }
+        }
+    }
+    // The chat and the tutor show only the codes on their lists; the
+    // translator and Shabad Search, any the dictionary has.
+    assert.ok(REPLY_ERROR_CODES.includes('chat_limit'));
+    assert.ok(TUTOR_ERROR_CODES.includes('learn_limit'));
+    const t = getDictionary('pa');
+    const refused = new Response(null, { status: 429 });
+    assert.equal(responseErrorText(t, refused, REFUSALS.translate.day, 'translate_busy'), t.errors.translate_limit);
+    assert.equal(responseErrorText(t, refused, REFUSALS.search.day, 'search_busy'), t.errors.search_limit);
+    assert.equal(responseErrorText(t, refused, REFUSALS.search.minute, 'search_busy'), t.errors.search_busy);
 });
