@@ -2,7 +2,7 @@ import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { MockGemini } from '../../scripts/mock-gemini';
 import { MAX_TRANSLATE_CHARS } from '@/lib/translate/config';
-import { captured, postJson, startRouteMock } from '../helpers/routes';
+import { captured, postJson, spendDay, startRouteMock } from '../helpers/routes';
 
 let mock: MockGemini;
 let POST: (req: Request) => Promise<Response>;
@@ -133,4 +133,31 @@ test("another site's request, or a post that isn't JSON, is refused before Gemin
             assert.equal(cloudCalls, 0);
         }
     }
+});
+
+test("past the day's limit a visitor gets translate_limit: no Gemini, and no Cloud fallback either", async () => {
+    spendDay('translate', '203.0.113.70');
+    const req = postJson('http://local/api/translate', { text: 'How are you?', sourceHint: 'english' }, { 'x-forwarded-for': '203.0.113.70' });
+    const { result: res, requests } = await captured(mock, () => POST(req));
+    assert.equal(res.status, 429);
+    assert.equal(res.headers.get('cache-control'), 'no-store');
+    assert.equal((await res.json()).code, 'translate_limit');
+    assert.equal(requests.length, 0);
+    assert.equal(cloudCalls, 0);
+});
+
+test("past the day's limit Compare answers only what it remembers, and buys nothing", async () => {
+    const { POST: crosscheck } = await import('@/app/api/translate/crosscheck/route');
+    const visitor = { 'x-forwarded-for': '203.0.113.71' };
+    const compare = (text: string) => crosscheck(postJson('http://local/api/translate/crosscheck', { text, direction: 'en-pa' }, visitor));
+    assert.equal((await compare('Where is the gurdwara?')).status, 200);
+    spendDay('crosscheck', '203.0.113.71');
+    cloudCalls = 0;
+    const remembered = await compare('Where is the gurdwara?');
+    assert.equal(remembered.status, 200, 'already bought, so not counted');
+    const res = await compare('When does the langar start?');
+    assert.equal(res.status, 429);
+    assert.equal(res.headers.get('cache-control'), 'no-store');
+    assert.equal((await res.json()).code, 'crosscheck_limit');
+    assert.equal(cloudCalls, 0);
 });

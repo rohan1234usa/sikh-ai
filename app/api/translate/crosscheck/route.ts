@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { limitVisitor } from "@/lib/api/allowance";
 import { refuseCrossSite } from "@/lib/api/guard";
 import { MAX_TRANSLATE_CHARS, isCrosscheckDirection, type CrosscheckDirection } from "@/lib/translate/config";
 import { cloudTranslate, type CloudLang } from "@/lib/translate/cloud";
@@ -72,6 +73,11 @@ async function handlePost(req: Request) {
         { headers: { "Cache-Control": "no-store" } },
       );
     }
+
+    // One visitor's too many (lib/api/allowance.ts), counted only when
+    // the answer has to be bought.
+    const limited = limitVisitor(req, "crosscheck");
+    if (limited) return limited;
 
     // Source is always explicit here — the caller sends a rendition whose
     // language is already known, so there is no detection ambiguity to resolve.

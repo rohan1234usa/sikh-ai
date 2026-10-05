@@ -2,6 +2,7 @@
 // routes read, and small request/response helpers.
 
 import { startMockGemini, type MockGemini } from '../../scripts/mock-gemini';
+import { DAY_MS, MINUTE_MS, VISITOR_LIMITS, allowances, type Feature } from '@/lib/api/allowance';
 
 export async function startRouteMock(): Promise<MockGemini> {
     const mock = await startMockGemini();
@@ -14,7 +15,9 @@ export async function startRouteMock(): Promise<MockGemini> {
 }
 
 // A POST as the site's own pages send it. `headers` adds to the JSON content
-// type, or replaces it.
+// type, or replaces it. No address goes with it unless a test sets one
+// (x-forwarded-for), and a request without one isn't counted against any
+// visitor's allowance (lib/api/allowance.ts).
 export function postJson(url: string, body: unknown, headers: Record<string, string> = {}): Request {
     return new Request(url, {
         method: 'POST',
@@ -45,4 +48,12 @@ export async function captured<T>(mock: MockGemini, run: () => Promise<T>) {
     const start = mock.requests.length;
     const result = await run();
     return { result, requests: mock.requests.slice(start) };
+}
+
+// Spends a visitor's day with one feature, all but `leave` of it, as if a
+// request came every minute from midnight UTC, so no minute's limit stops it
+// first. The routes share these counts: they run in the test's own process.
+export function spendDay(feature: Feature, visitor: string, leave = 0): void {
+    const midnight = Math.floor(Date.now() / DAY_MS) * DAY_MS;
+    for (let i = 0; i < VISITOR_LIMITS[feature].perDay - leave; i++) allowances[feature].take(visitor, midnight + i * MINUTE_MS);
 }

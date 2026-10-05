@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import type { MockGemini } from '../../scripts/mock-gemini';
 import { MAX_CONTEXT_TEXT_CHARS, MAX_CONTEXT_TITLE_CHARS, MAX_MESSAGE_CHARS } from '@/lib/chat/config';
 import { MAX_CHAT_BODY_CHARS } from '@/lib/chat/request';
-import { captured, postJson, readStream, startRouteMock } from '../helpers/routes';
+import { captured, postJson, readStream, spendDay, startRouteMock } from '../helpers/routes';
 
 let mock: MockGemini;
 let POST: (req: Request) => Promise<Response>;
@@ -147,6 +147,27 @@ test("another site's request, or a post that isn't JSON, is refused before any m
     const own = await POST(postJson('http://local/api/chat', { message: 'What is seva?', history: [] }, { 'sec-fetch-site': 'same-origin' }));
     assert.equal(own.status, 200, "the site's own page");
     await readStream(own);
+});
+
+test("past the day's limit a visitor gets chat_limit, before any model call; refusals and bad requests aren't counted", async () => {
+    const visitor = { 'x-forwarded-for': '203.0.113.50' };
+    const ask = (message: string, headers: Record<string, string> = visitor) =>
+        POST(postJson('http://local/api/chat', { message, history: [] }, headers));
+    spendDay('chat', '203.0.113.50', 1);
+    assert.equal((await ask('What is seva?', { ...visitor, 'sec-fetch-site': 'cross-site' })).status, 403);
+    assert.equal((await ask('   ')).status, 400);
+    const last = await ask('What is seva?');
+    assert.equal(last.status, 200, 'neither of those spent the last one');
+    await readStream(last);
+    const { result: res, requests } = await captured(mock, () => ask('What is simran?'));
+    assert.equal(res.status, 429);
+    assert.equal(res.headers.get('cache-control'), 'no-store');
+    assert.ok(Number(res.headers.get('retry-after')) > 0);
+    assert.equal((await res.json()).code, 'chat_limit');
+    assert.equal(requests.length, 0);
+    const other = await ask('What is seva?', { 'x-forwarded-for': '203.0.113.51' });
+    assert.equal(other.status, 200, 'someone else');
+    await readStream(other);
 });
 
 test('the largest body a real client sends still gets an answer', async () => {

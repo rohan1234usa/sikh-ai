@@ -1,5 +1,6 @@
 import { ApiError, FinishReason, GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
+import { limitVisitor } from "@/lib/api/allowance";
 import { refuseCrossSite } from "@/lib/api/guard";
 import { TRANSLATE_ATTEMPT_MS, TRANSLATE_BUDGET_MS } from "@/lib/gemini/budgets";
 import { isCapacityError, statusOf, withModelFallback, withTransport } from "@/lib/gemini/fallback";
@@ -129,6 +130,11 @@ async function handlePost(req: Request) {
       logEvent("config_error", { missing: "GEMINI_API_KEY" }, "error");
       return NextResponse.json({ error: FRIENDLY_ERROR, code: "translate_failed" }, { status: 500 });
     }
+    // One visitor's too many (lib/api/allowance.ts), counted only now that
+    // the request is good and about to cost something, and before `text` is
+    // set, so a refusal can't reach the Cloud fallback below.
+    const limited = limitVisitor(req, "translate");
+    if (limited) return limited;
 
     // Only now is the input known good — assigning the hoisted bindings here
     // is what arms the Cloud fallback in the catch block.

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { limitVisitor } from '@/lib/api/allowance';
 import { refuseCrossSite } from '@/lib/api/guard';
 import { meters, verseSearchClient } from '@/lib/gurbani/gurbaninow';
 import { alternativesOf, classifyQuery, isSearchable, parseSearchAs, type VerseSearchResponse } from '@/lib/gurbani/query';
@@ -48,6 +49,10 @@ async function handleGet(request: Request) {
   if (meters.verseSearch.remaining() < MAX_SEARCH_CALLS) {
     return fail(503, 'search_busy', 'Shabad Search is busy');
   }
+  // One visitor's too many (lib/api/allowance.ts), counted only for a search
+  // that's going to run. Never cached: limitVisitor answers with no-store.
+  const limited = limitVisitor(request, 'search');
+  if (limited) return limited;
 
   const started = Date.now();
   try {

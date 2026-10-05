@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { limitVisitor } from "@/lib/api/allowance";
 import { refuseCrossSite } from "@/lib/api/guard";
 import { MAX_VERIFY_CHARS, hasGurmukhiRun } from "@/lib/gurbani/citations";
 import { verifyReply } from "@/lib/gurbani/verify";
@@ -41,6 +42,10 @@ async function handlePost(req: Request) {
     }
     // Most replies quote nothing; answer those without any lookup.
     if (!hasGurmukhiRun(text)) return NextResponse.json({ citations: [] }, { headers: NO_STORE });
+    // One visitor's too many (lib/api/allowance.ts), counted only once a
+    // lookup is coming.
+    const limited = limitVisitor(req, "verify");
+    if (limited) return limited;
 
     const signal = AbortSignal.any([req.signal, AbortSignal.timeout(DEADLINE_MS)]);
     const citations = await verifyReply(text, { signal });

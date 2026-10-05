@@ -2,7 +2,7 @@ import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { MAX_VERIFY_CHARS } from '@/lib/gurbani/citations';
 import { reply } from '../gurbani/helpers';
-import { postJson } from '../helpers/routes';
+import { postJson, spendDay } from '../helpers/routes';
 
 // The quote check's route. GurbaniNow is stubbed as a source that's down, so
 // a check that looks something up gets no cards; every URL asked for is kept.
@@ -74,4 +74,16 @@ test("another site's request, or a post that isn't JSON, is refused without a lo
         assert.equal(res.headers.get('cache-control'), 'no-store');
     }
     assert.deepEqual(asked, []);
+});
+
+test("past the day's limit a visitor's quotes aren't looked up; a reply with nothing to look up is still answered", async () => {
+    spendDay('verify', '203.0.113.80');
+    const visitor = { 'x-forwarded-for': '203.0.113.80' };
+    const res = await verify({ text: QUOTING }, visitor);
+    assert.equal(res.status, 429);
+    assert.equal(res.headers.get('cache-control'), 'no-store');
+    assert.equal((await res.json()).code, 'verify_limit');
+    assert.deepEqual(asked, []);
+    const plain = await verify({ text: 'Seva is selfless service.' }, visitor);
+    assert.deepEqual(await plain.json(), { citations: [] });
 });

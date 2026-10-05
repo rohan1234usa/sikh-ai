@@ -7,6 +7,7 @@ import { classifyQuery, isSearchable } from '@/lib/gurbani/query';
 import { getDictionary } from '@/lib/i18n';
 import { LANGS } from '@/lib/i18n/config';
 import { inputOf, SEARCHES } from '../gurbani/search-fixtures';
+import { spendDay } from '../helpers/routes';
 
 // GurbaniNow is stubbed with the recorded answers to Shabad Search's lookups
 // (npm run fixtures:gurbani -- --only search), rebuilt into the payloads the
@@ -217,6 +218,17 @@ test("another site's page can't run a search: refused, never cached, and nothing
     assert.deepEqual(asked, []);
     const own = await GET(new Request('http://local/api/shabad/search?q=so+purakh+niranjan', { headers: { 'sec-fetch-site': 'same-origin' } }));
     assert.equal(own.status, 200, "the site's own page");
+});
+
+test("past the day's limit a visitor's search is refused, never cached, and nothing is asked", async () => {
+    spendDay('search', '203.0.113.90');
+    const res = await GET(new Request('http://local/api/shabad/search?q=so+purakh+niranjan', { headers: { 'x-forwarded-for': '203.0.113.90' } }));
+    assert.equal(res.status, 429);
+    assert.equal(res.headers.get('cache-control'), 'no-store');
+    assert.equal((await res.json()).code, 'search_limit');
+    assert.deepEqual(asked, []);
+    const other = await GET(new Request('http://local/api/shabad/search?q=so+purakh+niranjan', { headers: { 'x-forwarded-for': '203.0.113.91' } }));
+    assert.equal(other.status, 200, 'someone else');
 });
 
 // Last: it spends this process's search allowance.
