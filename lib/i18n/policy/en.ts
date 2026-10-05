@@ -70,6 +70,7 @@ const policy = {
                     'Firebase, Google\'s app platform, runs sign-in and keeps accounts, saved chats, share links, and Seva events with their sign-ups and reports. Your browser connects to it directly for signing in, while you\'re signed in, and on a share link, so Google sees your IP address then. The Seva pages are built on this site\'s server, so looking at events doesn\'t connect your browser to Firebase. Otherwise your browser connects only to this site.',
                     'An event\'s directions and calendar links open Google Maps or Google Calendar, and sharing it on WhatsApp opens WhatsApp, with the event\'s details. Those services then get the details, and your IP address, under their own privacy policies. The calendar file for other calendars comes from this site.',
                     'Vercel hosts the site. Its logs record your IP address and the pages you request, for a short time. The site\'s own logs never contain what you write, though they can contain a page\'s address.',
+                    'To keep any one visitor from using up the AI features or Shabad Search, the site\'s server counts how often each IP address uses them, this minute and today. It counts under a code made from the address with a secret that changes every day, keeps the code only in its memory, and never writes it down or sends it anywhere.',
                 ],
             },
             analytics: {
