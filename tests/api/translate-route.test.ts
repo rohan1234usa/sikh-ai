@@ -161,3 +161,17 @@ test("past the day's limit Compare answers only what it remembers, and buys noth
     assert.equal((await res.json()).code, 'crosscheck_limit');
     assert.equal(cloudCalls, 0);
 });
+
+test('a body that isn’t a JSON object is a 400 on the translator and Compare, with no model or Cloud call', async () => {
+    const { POST: crosscheck } = await import('@/app/api/translate/crosscheck/route');
+    for (const [path, handler] of [['translate', POST], ['translate/crosscheck', crosscheck]] as const) {
+        for (const body of ['{not json', 'null', '[]', '"hello"', '']) {
+            const req = new Request(`http://local/api/${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body });
+            const { result: res, requests } = await captured(mock, () => handler(req));
+            assert.equal(res.status, 400, `${path} ${JSON.stringify(body)}`);
+            assert.equal((await res.json()).code, 'translate_empty');
+            assert.equal(requests.length, 0);
+            assert.equal(cloudCalls, 0);
+        }
+    }
+});

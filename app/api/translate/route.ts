@@ -95,8 +95,8 @@ async function attemptCloudFallback(
 
 async function handlePost(req: Request) {
   // Hoisted so the catch block can tell whether Gemini was actually attempted:
-  // a malformed body or a validation throw lands in the same catch, and those
-  // must not spend Cloud Translation credit.
+  // a body that can't be read, or a validation throw, lands in the same catch,
+  // and those must not spend Cloud Translation credit.
   let text = '';
   let hint: SourceHint = 'auto';
   let detectedScript: 'gurmukhi' | 'latin' = 'latin';
@@ -112,9 +112,11 @@ async function handlePost(req: Request) {
     if (raw.length > MAX_BODY_CHARS) {
       return NextResponse.json({ error: TOO_LONG_ERROR, code: "translate_too_long" }, { status: 413 });
     }
-    const body = JSON.parse(raw);
-    const sourceHint = body?.sourceHint;
-    const rawText = body?.text;
+    // A body that isn't a JSON object has no text: a 400, not a crash.
+    let body: unknown = null;
+    try { body = JSON.parse(raw); } catch { /* answered below */ }
+    const { sourceHint, text: rawText } =
+      body !== null && typeof body === "object" && !Array.isArray(body) ? (body as Record<string, unknown>) : {};
 
     if (typeof rawText !== 'string' || rawText.trim() === '') {
       return NextResponse.json({ error: "Please enter some text to translate.", code: "translate_empty" }, { status: 400 });
