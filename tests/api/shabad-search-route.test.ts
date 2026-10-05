@@ -208,6 +208,17 @@ test('every error code the search answers with has words in all three languages'
     }
 });
 
+test("another site's page can't run a search: refused, never cached, and nothing is asked", async () => {
+    for (const site of ['cross-site', 'same-site']) {
+        const res = await GET(new Request('http://local/api/shabad/search?q=so+purakh+niranjan', { headers: { 'sec-fetch-site': site } }));
+        assert.equal(res.status, 403, site);
+        assert.equal(res.headers.get('cache-control'), 'no-store');
+    }
+    assert.deepEqual(asked, []);
+    const own = await GET(new Request('http://local/api/shabad/search?q=so+purakh+niranjan', { headers: { 'sec-fetch-site': 'same-origin' } }));
+    assert.equal(own.status, 200, "the site's own page");
+});
+
 // Last: it spends this process's search allowance.
 test('with the day\'s allowance spent, a search is busy, and nothing is asked', async () => {
     const { meters } = await import('@/lib/gurbani/gurbaninow');

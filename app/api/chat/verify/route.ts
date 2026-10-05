@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { refuseCrossSite } from "@/lib/api/guard";
 import { MAX_VERIFY_CHARS, hasGurmukhiRun } from "@/lib/gurbani/citations";
 import { verifyReply } from "@/lib/gurbani/verify";
 import { logRouteError, withRequestLog } from "@/lib/log";
@@ -18,6 +19,10 @@ const NO_STORE = { "Cache-Control": "no-store" };
 
 async function handlePost(req: Request) {
   try {
+    // Another site's page, or a post that isn't JSON: refused before the
+    // body is read (lib/api/guard.ts).
+    const refused = refuseCrossSite(req);
+    if (refused) return refused;
     const raw = await req.text();
     if (raw.length > MAX_BODY_CHARS) {
       return NextResponse.json({ error: "Too large", code: "verify_too_large" }, { status: 413, headers: NO_STORE });

@@ -1,5 +1,6 @@
 import { ApiError, FinishReason, GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
+import { refuseCrossSite } from "@/lib/api/guard";
 import { TRANSLATE_ATTEMPT_MS, TRANSLATE_BUDGET_MS } from "@/lib/gemini/budgets";
 import { isCapacityError, statusOf, withModelFallback, withTransport } from "@/lib/gemini/fallback";
 import { logGeminiCall, usageFields } from "@/lib/gemini/log";
@@ -100,6 +101,10 @@ async function handlePost(req: Request) {
   let detectedScript: 'gurmukhi' | 'latin' = 'latin';
 
   try {
+    // Another site's page, or a post that isn't JSON: refused before the
+    // body is read (lib/api/guard.ts).
+    const refused = refuseCrossSite(req);
+    if (refused) return refused;
     // The `code` field lets clients render a translated message; the English
     // `error` string stays for logs and older clients.
     const raw = await req.text();

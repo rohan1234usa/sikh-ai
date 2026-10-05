@@ -131,6 +131,24 @@ test('an oversized body is refused before it is parsed or sent anywhere', async 
     assert.equal(requests.length, 0);
 });
 
+test("another site's request, or a post that isn't JSON, is refused before any model call", async () => {
+    const cases: [Record<string, string>, number][] = [
+        [{ 'sec-fetch-site': 'cross-site' }, 403],
+        [{ 'sec-fetch-site': 'same-site' }, 403],
+        [{ 'content-type': 'text/plain;charset=UTF-8' }, 415],
+    ];
+    for (const [headers, status] of cases) {
+        const req = postJson('http://local/api/chat', { message: 'What is seva?', history: [] }, headers);
+        const { result: res, requests } = await captured(mock, () => POST(req));
+        assert.equal(res.status, status, JSON.stringify(headers));
+        assert.equal(res.headers.get('cache-control'), 'no-store');
+        assert.equal(requests.length, 0);
+    }
+    const own = await POST(postJson('http://local/api/chat', { message: 'What is seva?', history: [] }, { 'sec-fetch-site': 'same-origin' }));
+    assert.equal(own.status, 200, "the site's own page");
+    await readStream(own);
+});
+
 test('the largest body a real client sends still gets an answer', async () => {
     // Every field at its cap, in characters JSON has to escape.
     const full = '"\n'.repeat(MAX_MESSAGE_CHARS / 2);

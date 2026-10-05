@@ -117,3 +117,20 @@ test('the cross-check refuses an oversized body too', async () => {
     assert.equal((await res.json()).code, 'translate_too_long');
     assert.equal(cloudCalls, 0);
 });
+
+test("another site's request, or a post that isn't JSON, is refused before Gemini or Cloud is asked", async () => {
+    const { POST: crosscheck } = await import('@/app/api/translate/crosscheck/route');
+    const routes: [string, (req: Request) => Promise<Response>, object][] = [
+        ['translate', POST, { text: 'Ki haal hai?', sourceHint: 'auto' }],
+        ['translate/crosscheck', crosscheck, { text: 'How are you?', direction: 'en-pa' }],
+    ];
+    for (const [path, handler, body] of routes) {
+        for (const [headers, status] of [[{ 'sec-fetch-site': 'cross-site' }, 403], [{ 'content-type': 'text/plain;charset=UTF-8' }, 415]] as const) {
+            const { result: res, requests } = await captured(mock, () => handler(postJson(`http://local/api/${path}`, body, headers)));
+            assert.equal(res.status, status, `${path} ${JSON.stringify(headers)}`);
+            assert.equal(res.headers.get('cache-control'), 'no-store');
+            assert.equal(requests.length, 0);
+            assert.equal(cloudCalls, 0);
+        }
+    }
+});

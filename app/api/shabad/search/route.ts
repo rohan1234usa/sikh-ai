@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { refuseCrossSite } from '@/lib/api/guard';
 import { meters, verseSearchClient } from '@/lib/gurbani/gurbaninow';
 import { alternativesOf, classifyQuery, isSearchable, parseSearchAs, type VerseSearchResponse } from '@/lib/gurbani/query';
 import { MAX_SEARCH_CALLS, searchVerses } from '@/lib/gurbani/search';
@@ -28,6 +29,11 @@ const fail = (status: number, code: string, error: string, extra: object = {}) =
   NextResponse.json({ error, code, ...extra }, { status, headers: NO_STORE });
 
 async function handleGet(request: Request) {
+  // Another site's page (an <img> or a fetch from elsewhere) could spend the
+  // search's allowance for everyone: refused first (lib/api/guard.ts). The
+  // refusal is never cached, so it can't reach this site's own visitors.
+  const refused = refuseCrossSite(request);
+  if (refused) return refused;
   const params = new URL(request.url).searchParams;
   const q = params.get('q');
   if (q === null || q.trim() === '') return fail(400, 'missing_query', 'Missing query');

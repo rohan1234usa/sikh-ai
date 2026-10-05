@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
+import { refuseCrossSite } from "@/lib/api/guard";
 import { DEFAULT_PREFS, MAX_MESSAGE_CHARS, isLensId, isModeId, isLanguageId, isScript, type ChatContext } from "@/lib/chat/config";
 import { MAX_CHAT_BODY_CHARS, buildChatRequest, toChatHistory, type ChatInput } from "@/lib/chat/request";
 import { CHAT_BUDGET_MS, CHAT_FIRST_TEXT_MS } from "@/lib/gemini/budgets";
@@ -39,6 +40,10 @@ function sanitizeContext(raw: unknown): ChatContext | null {
 
 async function handlePost(req: Request) {
   try {
+    // Another site's page, or a post that isn't JSON: refused before the
+    // body is read (lib/api/guard.ts).
+    const refused = refuseCrossSite(req);
+    if (refused) return refused;
     // The `code` field lets clients render a translated message; the English
     // `error` string stays for logs and older clients.
     const raw = await req.text();

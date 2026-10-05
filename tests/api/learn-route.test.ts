@@ -162,6 +162,20 @@ test('a body that isn’t a JSON object is a 400, before any model call', async 
     }
 });
 
+test("another site's request, or a post that isn't JSON, is refused before any model call", async () => {
+    const cases: [Record<string, string>, number][] = [
+        [{ 'sec-fetch-site': 'cross-site' }, 403],
+        [{ 'content-type': 'text/plain;charset=UTF-8' }, 415],
+    ];
+    for (const [headers, status] of cases) {
+        const req = postJson('http://local/api/learn', { message: 'Sat Sri Akal', history: [] }, headers);
+        const { result: res, requests } = await captured(mock, () => POST(req));
+        assert.equal(res.status, status, JSON.stringify(headers));
+        assert.equal(res.headers.get('cache-control'), 'no-store');
+        assert.equal(requests.length, 0);
+    }
+});
+
 test('the largest body a real client sends still gets an answer', async () => {
     // Every question and reply at its cap, in characters JSON has to escape.
     const message = '"\n'.repeat(MAX_TUTOR_MESSAGE_CHARS / 2);

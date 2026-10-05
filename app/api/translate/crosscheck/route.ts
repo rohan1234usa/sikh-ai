@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { refuseCrossSite } from "@/lib/api/guard";
 import { MAX_TRANSLATE_CHARS, isCrosscheckDirection, type CrosscheckDirection } from "@/lib/translate/config";
 import { cloudTranslate, type CloudLang } from "@/lib/translate/cloud";
 import { logRouteError, withRequestLog } from "@/lib/log";
@@ -41,6 +42,10 @@ function remember(key: string, value: string): void {
 
 async function handlePost(req: Request) {
   try {
+    // Another site's page, or a post that isn't JSON: refused before the
+    // body is read (lib/api/guard.ts).
+    const refused = refuseCrossSite(req);
+    if (refused) return refused;
     const raw = await req.text();
     if (raw.length > MAX_BODY_CHARS) {
       return NextResponse.json({ error: "That text is too long to compare.", code: "translate_too_long" }, { status: 413 });

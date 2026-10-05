@@ -13,10 +13,12 @@ export async function startRouteMock(): Promise<MockGemini> {
     return mock;
 }
 
-export function postJson(url: string, body: unknown): Request {
+// A POST as the site's own pages send it. `headers` adds to the JSON content
+// type, or replaces it.
+export function postJson(url: string, body: unknown, headers: Record<string, string> = {}): Request {
     return new Request(url, {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: { 'content-type': 'application/json', ...headers },
         body: JSON.stringify(body),
     });
 }

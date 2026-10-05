@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
+import { refuseCrossSite } from "@/lib/api/guard";
 import { LEARN_BUDGET_MS, LEARN_FIRST_TEXT_MS } from "@/lib/gemini/budgets";
 import { isCapacityError, statusOf, withModelFallback } from "@/lib/gemini/fallback";
 import { openTextStream, settleNoText, textStreamResponse } from "@/lib/gemini/stream";
@@ -23,6 +24,10 @@ const NO_STORE = { "Cache-Control": "no-store" };
 
 async function handlePost(req: Request) {
   try {
+    // Another site's page, or a post that isn't JSON: refused before the
+    // body is read (lib/api/guard.ts).
+    const refused = refuseCrossSite(req);
+    if (refused) return refused;
     const raw = await req.text();
     if (raw.length > MAX_LEARN_BODY_CHARS) {
       return NextResponse.json({ error: TOO_LONG_ERROR, code: "learn_too_long" }, { status: 413 });
