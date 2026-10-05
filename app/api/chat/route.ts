@@ -1,5 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
+import { limitVisitor } from "@/lib/api/allowance";
+import { refuseCrossSite } from "@/lib/api/guard";
 import { DEFAULT_PREFS, MAX_MESSAGE_CHARS, isLensId, isModeId, isLanguageId, isScript, type ChatContext } from "@/lib/chat/config";
 import { MAX_CHAT_BODY_CHARS, buildChatRequest, toChatHistory, type ChatInput } from "@/lib/chat/request";
 import { CHAT_BUDGET_MS, CHAT_FIRST_TEXT_MS } from "@/lib/gemini/budgets";
@@ -39,6 +41,10 @@ function sanitizeContext(raw: unknown): ChatContext | null {
 
 async function handlePost(req: Request) {
   try {
+    // Another site's page, or a post that isn't JSON: refused before the
+    // body is read (lib/api/guard.ts).
+    const refused = refuseCrossSite(req);
+    if (refused) return refused;
     // The `code` field lets clients render a translated message; the English
     // `error` string stays for logs and older clients.
     const raw = await req.text();
@@ -63,6 +69,10 @@ async function handlePost(req: Request) {
       logEvent("config_error", { missing: "GEMINI_API_KEY" }, "error");
       return NextResponse.json({ error: FRIENDLY_ERROR, code: "chat_failed" }, { status: 500 });
     }
+    // One visitor's too many (lib/api/allowance.ts), counted only now that
+    // the request is good and about to cost something.
+    const limited = limitVisitor(req, "chat");
+    if (limited) return limited;
 
     // Unknown IDs fall back to defaults silently: stale localStorage or an
     // old client must never brick the chat. IDs are lookup keys only.

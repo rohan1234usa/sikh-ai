@@ -1,5 +1,7 @@
 import { ApiError, FinishReason, GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
+import { limitVisitor } from "@/lib/api/allowance";
+import { refuseCrossSite } from "@/lib/api/guard";
 import { TRANSLATE_ATTEMPT_MS, TRANSLATE_BUDGET_MS } from "@/lib/gemini/budgets";
 import { isCapacityError, statusOf, withModelFallback, withTransport } from "@/lib/gemini/fallback";
 import { logGeminiCall, usageFields } from "@/lib/gemini/log";
@@ -63,7 +65,7 @@ async function attemptCloudFallback(
 
   // Gurmukhi input is unambiguous regardless of what the chip claims.
   if (detectedScript === 'gurmukhi') {
-    const res = await cloudTranslate({ text: trimmed, source: 'pa', target: 'en' });
+    const res = await cloudTranslate({ text: trimmed, source: 'pa', target: 'en', purpose: 'fallback' });
     return res ? synthesize('punjabi-gurmukhi', trimmed, res.translatedText) : null;
   }
 
@@ -80,35 +82,41 @@ async function attemptCloudFallback(
   if (hint === 'auto' && looksRomanizedPunjabi(trimmed)) return null;
 
   if (hint === 'english') {
-    const res = await cloudTranslate({ text: trimmed, source: 'en', target: 'pa' });
+    const res = await cloudTranslate({ text: trimmed, source: 'en', target: 'pa', purpose: 'fallback' });
     return res ? synthesize('english', res.translatedText, trimmed) : null;
   }
 
   // 'auto' + Latin that reads as English: let Cloud confirm. Its own verdict is
   // a second line of defence, not the only one — see the screen above.
-  const res = await cloudTranslate({ text: trimmed, target: 'pa' });
+  const res = await cloudTranslate({ text: trimmed, target: 'pa', purpose: 'fallback' });
   if (!res || res.detectedSourceLanguage !== 'en') return null;
   return synthesize('english', res.translatedText, trimmed);
 }
 
 async function handlePost(req: Request) {
   // Hoisted so the catch block can tell whether Gemini was actually attempted:
-  // a malformed body or a validation throw lands in the same catch, and those
-  // must not spend Cloud Translation credit.
+  // a body that can't be read, or a validation throw, lands in the same catch,
+  // and those must not spend Cloud Translation credit.
   let text = '';
   let hint: SourceHint = 'auto';
   let detectedScript: 'gurmukhi' | 'latin' = 'latin';
 
   try {
+    // Another site's page, or a post that isn't JSON: refused before the
+    // body is read (lib/api/guard.ts).
+    const refused = refuseCrossSite(req);
+    if (refused) return refused;
     // The `code` field lets clients render a translated message; the English
     // `error` string stays for logs and older clients.
     const raw = await req.text();
     if (raw.length > MAX_BODY_CHARS) {
       return NextResponse.json({ error: TOO_LONG_ERROR, code: "translate_too_long" }, { status: 413 });
     }
-    const body = JSON.parse(raw);
-    const sourceHint = body?.sourceHint;
-    const rawText = body?.text;
+    // A body that isn't a JSON object has no text: a 400, not a crash.
+    let body: unknown = null;
+    try { body = JSON.parse(raw); } catch { /* answered below */ }
+    const { sourceHint, text: rawText } =
+      body !== null && typeof body === "object" && !Array.isArray(body) ? (body as Record<string, unknown>) : {};
 
     if (typeof rawText !== 'string' || rawText.trim() === '') {
       return NextResponse.json({ error: "Please enter some text to translate.", code: "translate_empty" }, { status: 400 });
@@ -124,6 +132,11 @@ async function handlePost(req: Request) {
       logEvent("config_error", { missing: "GEMINI_API_KEY" }, "error");
       return NextResponse.json({ error: FRIENDLY_ERROR, code: "translate_failed" }, { status: 500 });
     }
+    // One visitor's too many (lib/api/allowance.ts), counted only now that
+    // the request is good and about to cost something, and before `text` is
+    // set, so a refusal can't reach the Cloud fallback below.
+    const limited = limitVisitor(req, "translate");
+    if (limited) return limited;
 
     // Only now is the input known good — assigning the hoisted bindings here
     // is what arms the Cloud fallback in the catch block.

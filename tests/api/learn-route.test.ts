@@ -5,7 +5,7 @@ import { getLesson } from '@/lib/learn/curriculum';
 import { LEARN_MAX_OUTPUT_TOKENS, MAX_LEARN_BODY_CHARS } from '@/lib/learn/request';
 import { MAX_TUTOR_HISTORY_TURNS, MAX_TUTOR_HISTORY_TURN_CHARS, MAX_TUTOR_MESSAGE_CHARS } from '@/lib/learn/tutor';
 import { ROMANIZATION_RULES } from '@/lib/translate/romanization';
-import { captured, postJson, readStream, startRouteMock } from '../helpers/routes';
+import { captured, postJson, readStream, spendDay, startRouteMock } from '../helpers/routes';
 
 let mock: MockGemini;
 let POST: (req: Request) => Promise<Response>;
@@ -160,6 +160,30 @@ test('a body that isn’t a JSON object is a 400, before any model call', async 
         assert.equal((await res.json()).code, 'learn_empty');
         assert.equal(requests.length, 0);
     }
+});
+
+test("another site's request, or a post that isn't JSON, is refused before any model call", async () => {
+    const cases: [Record<string, string>, number][] = [
+        [{ 'sec-fetch-site': 'cross-site' }, 403],
+        [{ 'content-type': 'text/plain;charset=UTF-8' }, 415],
+    ];
+    for (const [headers, status] of cases) {
+        const req = postJson('http://local/api/learn', { message: 'Sat Sri Akal', history: [] }, headers);
+        const { result: res, requests } = await captured(mock, () => POST(req));
+        assert.equal(res.status, status, JSON.stringify(headers));
+        assert.equal(res.headers.get('cache-control'), 'no-store');
+        assert.equal(requests.length, 0);
+    }
+});
+
+test("past the day's limit a visitor gets learn_limit, before any model call", async () => {
+    spendDay('learn', '203.0.113.60');
+    const req = postJson('http://local/api/learn', { message: 'Sat Sri Akal', history: [] }, { 'x-forwarded-for': '203.0.113.60' });
+    const { result: res, requests } = await captured(mock, () => POST(req));
+    assert.equal(res.status, 429);
+    assert.equal(res.headers.get('cache-control'), 'no-store');
+    assert.equal((await res.json()).code, 'learn_limit');
+    assert.equal(requests.length, 0);
 });
 
 test('the largest body a real client sends still gets an answer', async () => {

@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { limitVisitor } from "@/lib/api/allowance";
+import { refuseCrossSite } from "@/lib/api/guard";
 import { MAX_VERIFY_CHARS, hasGurmukhiRun } from "@/lib/gurbani/citations";
 import { verifyReply } from "@/lib/gurbani/verify";
 import { logRouteError, withRequestLog } from "@/lib/log";
@@ -18,6 +20,10 @@ const NO_STORE = { "Cache-Control": "no-store" };
 
 async function handlePost(req: Request) {
   try {
+    // Another site's page, or a post that isn't JSON: refused before the
+    // body is read (lib/api/guard.ts).
+    const refused = refuseCrossSite(req);
+    if (refused) return refused;
     const raw = await req.text();
     if (raw.length > MAX_BODY_CHARS) {
       return NextResponse.json({ error: "Too large", code: "verify_too_large" }, { status: 413, headers: NO_STORE });
@@ -36,6 +42,10 @@ async function handlePost(req: Request) {
     }
     // Most replies quote nothing; answer those without any lookup.
     if (!hasGurmukhiRun(text)) return NextResponse.json({ citations: [] }, { headers: NO_STORE });
+    // One visitor's too many (lib/api/allowance.ts), counted only once a
+    // lookup is coming.
+    const limited = limitVisitor(req, "verify");
+    if (limited) return limited;
 
     const signal = AbortSignal.any([req.signal, AbortSignal.timeout(DEADLINE_MS)]);
     const citations = await verifyReply(text, { signal });

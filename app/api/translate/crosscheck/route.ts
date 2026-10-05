@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { limitVisitor } from "@/lib/api/allowance";
+import { refuseCrossSite } from "@/lib/api/guard";
 import { MAX_TRANSLATE_CHARS, isCrosscheckDirection, type CrosscheckDirection } from "@/lib/translate/config";
 import { cloudTranslate, type CloudLang } from "@/lib/translate/cloud";
 import { logRouteError, withRequestLog } from "@/lib/log";
@@ -41,12 +43,19 @@ function remember(key: string, value: string): void {
 
 async function handlePost(req: Request) {
   try {
+    // Another site's page, or a post that isn't JSON: refused before the
+    // body is read (lib/api/guard.ts).
+    const refused = refuseCrossSite(req);
+    if (refused) return refused;
     const raw = await req.text();
     if (raw.length > MAX_BODY_CHARS) {
       return NextResponse.json({ error: "That text is too long to compare.", code: "translate_too_long" }, { status: 413 });
     }
-    const body = JSON.parse(raw);
-    const { text, direction } = body ?? {};
+    // A body that isn't a JSON object has nothing to compare: a 400, not a crash.
+    let body: unknown = null;
+    try { body = JSON.parse(raw); } catch { /* answered below */ }
+    const { text, direction } =
+      body !== null && typeof body === "object" && !Array.isArray(body) ? (body as Record<string, unknown>) : {};
 
     if (typeof text !== 'string' || text.trim() === '') {
       return NextResponse.json({ error: "Nothing to compare.", code: "translate_empty" }, { status: 400 });
@@ -68,9 +77,14 @@ async function handlePost(req: Request) {
       );
     }
 
+    // One visitor's too many (lib/api/allowance.ts), counted only when
+    // the answer has to be bought.
+    const limited = limitVisitor(req, "crosscheck");
+    if (limited) return limited;
+
     // Source is always explicit here — the caller sends a rendition whose
     // language is already known, so there is no detection ambiguity to resolve.
-    const result = await cloudTranslate({ text: trimmed, ...DIRECTIONS[direction] });
+    const result = await cloudTranslate({ text: trimmed, ...DIRECTIONS[direction], purpose: 'compare' });
 
     if (!result) {
       // `crosscheck_failed` is intentionally absent from the i18n `errors`

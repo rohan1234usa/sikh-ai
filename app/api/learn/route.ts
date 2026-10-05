@@ -1,5 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
+import { limitVisitor } from "@/lib/api/allowance";
+import { refuseCrossSite } from "@/lib/api/guard";
 import { LEARN_BUDGET_MS, LEARN_FIRST_TEXT_MS } from "@/lib/gemini/budgets";
 import { isCapacityError, statusOf, withModelFallback } from "@/lib/gemini/fallback";
 import { openTextStream, settleNoText, textStreamResponse } from "@/lib/gemini/stream";
@@ -23,6 +25,10 @@ const NO_STORE = { "Cache-Control": "no-store" };
 
 async function handlePost(req: Request) {
   try {
+    // Another site's page, or a post that isn't JSON: refused before the
+    // body is read (lib/api/guard.ts).
+    const refused = refuseCrossSite(req);
+    if (refused) return refused;
     const raw = await req.text();
     if (raw.length > MAX_LEARN_BODY_CHARS) {
       return NextResponse.json({ error: TOO_LONG_ERROR, code: "learn_too_long" }, { status: 413 });
@@ -45,6 +51,10 @@ async function handlePost(req: Request) {
       logEvent("config_error", { missing: "GEMINI_API_KEY" }, "error");
       return NextResponse.json({ error: FRIENDLY_ERROR, code: "learn_failed" }, { status: 500 });
     }
+    // One visitor's too many (lib/api/allowance.ts), counted only now that
+    // the request is good and about to cost something.
+    const limited = limitVisitor(req, "learn");
+    if (limited) return limited;
 
     // An unknown lesson id is ignored, so a stale link still gets a tutor.
     const input: TutorInput = {
