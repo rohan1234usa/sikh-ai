@@ -2,6 +2,8 @@
 // it survives the sign-in popup, a reload or a change of language, which
 // reloads the page. Versioned, and thrown away after a day or once posted.
 
+import { isSignupMode } from './config';
+import { signupMode } from './event';
 import type { EventFields } from './model';
 import { shiftLocalDays, utcToZoned } from './time';
 import type { EventDraft } from './validate';
@@ -35,19 +37,25 @@ export function clearDraft(route: string) {
     } catch { /* storage blocked */ }
 }
 
+// A new event takes sign-ups, with no limit: a host who wants a limit, or
+// none, says so.
 export const EMPTY_DRAFT: EventDraft = {
     title: '', category: '', description: '', date: '', startTime: '', endTime: '', multiDay: false, endDate: '',
-    timeZone: '', venue: '', address: '', city: '', region: '', country: '', spots: '', organizer: '', contact: '',
+    timeZone: '', venue: '', address: '', city: '', region: '', country: '', signup: 'unlimited', spots: '',
+    organizer: '', contact: '',
 };
 
-// Only the form's own fields, each as the form holds it.
+// Only the form's own fields, each as the form holds it. A draft kept from
+// before the form asked who may sign up, with a number in it, had a limit.
 export function parseDraft(d: Record<string, unknown>): EventDraft {
     const out = { ...EMPTY_DRAFT };
     for (const key of Object.keys(EMPTY_DRAFT) as (keyof EventDraft)[]) {
         const v = d[key];
         if (key === 'multiDay') out.multiDay = v === true;
+        else if (key === 'signup') { if (isSignupMode(v)) out.signup = v; }
         else if (typeof v === 'string') (out as Record<string, unknown>)[key] = v.slice(0, 2000);
     }
+    if (!isSignupMode(d.signup) && out.spots.trim()) out.signup = 'limited';
     return out;
 }
 
@@ -56,11 +64,12 @@ export function draftFromEvent(e: EventFields): EventDraft {
     const start = utcToZoned(e.startsAt, e.timeZone);
     const end = utcToZoned(e.endsAt, e.timeZone);
     const multiDay = end.date !== start.date;
+    const signup = signupMode(e);
     return {
         title: e.title, category: e.category, description: e.description,
         date: start.date, startTime: start.time, endTime: end.time, multiDay, endDate: multiDay ? end.date : '',
         timeZone: e.timeZone, venue: e.venue, address: e.address, city: e.city, region: e.region, country: e.country,
-        spots: String(e.spots), organizer: e.organizer, contact: e.contact,
+        signup, spots: signup === 'limited' ? String(e.spots) : '', organizer: e.organizer, contact: e.contact,
     };
 }
 

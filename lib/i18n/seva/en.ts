@@ -10,7 +10,7 @@
 // (lib/seva/time.ts); these only join them. Relative type imports only: the
 // audit runs this file under tsx.
 
-import type { ReportReason, SevaCategory } from '../../seva/config';
+import type { ReportReason, SevaCategory, SignupMode } from '../../seva/config';
 
 const seva = {
     meta: {
@@ -302,7 +302,7 @@ const seva = {
     form: {
         createTitle: 'Host a seva event',
         editTitle: 'Edit event',
-        intro: 'Your event goes live as soon as you post it. Anyone can see it, and signed-in volunteers can join.',
+        intro: 'Your event goes live as soon as you post it, and anyone can see it. Volunteers sign in to join, unless you choose no sign-up.',
         signInNotice: 'Posting needs a Google sign-in, so volunteers know who is hosting. You can fill this in first: it stays here while you sign in.',
         signIn: 'Sign in now',
         draftRestored: 'We kept what you’d filled in.',
@@ -312,7 +312,7 @@ const seva = {
         about: 'About the seva',
         when: 'When',
         where: 'Where',
-        volunteers: 'Volunteers',
+        signup: 'Volunteer sign-up',
         host: 'Host',
         title: 'Event title',
         titleHint: 'Say what volunteers will do, for example “Langar prep for Sunday diwan”.',
@@ -352,14 +352,27 @@ const seva = {
         commonCountries: 'Most used',
         allCountries: 'All countries',
         checkMap: 'Check the address in Google Maps',
-        spots: 'Volunteers needed',
-        spotsHint: 'How many people you need, from 1 to {max}.',
+        // Who may sign up: each choice, and a word on it.
+        signupOptions: {
+            none: 'No sign-up',
+            unlimited: 'Anyone can sign up',
+            limited: 'Limit the number',
+        } satisfies Record<SignupMode, string>,
+        signupHints: {
+            none: 'Just letting people know. Anyone can come along.',
+            unlimited: 'No limit. You see who joined; others see how many.',
+            limited: 'Sign-up closes when it’s full.',
+        } satisfies Record<SignupMode, string>,
+        spots: 'How many volunteers?',
+        spotsHint: 'A number from 1 to {max}.',
         spotsJoined: 'Already joined: {n}. The number can’t go below that.',
         organizer: 'Hosted by',
         organizerHint: 'Shown to everyone. Your name, or your Gurdwara’s or group’s name.',
         contact: 'Public contact',
         contactHint: 'Shown to everyone on the event page, so volunteers can ask questions: a phone number or an email. Leave it blank to keep yours private.',
-        publicNotice: 'Posting makes this event public. Volunteers who join can choose to share their email or phone number with you.',
+        publicNotice: 'Posting makes this event public.',
+        // Added to it when the event takes sign-ups.
+        joinNotice: 'Volunteers who join can choose to share their email or phone number with you.',
         privacyLink: 'How SikhAI handles this: Privacy',
         submit: 'Post event',
         submitSignIn: 'Sign in and post event',
@@ -397,6 +410,8 @@ const seva = {
             spotsRequired: 'Enter how many volunteers you need',
             spotsInvalid: 'Enter a whole number from 1 to {max}',
             spotsBelowJoined: 'Already joined: {n}. Enter {n} or more.',
+            signupRequired: 'Choose who can sign up',
+            signupJoined: 'Already joined: {n}. Keep sign-up on, or set a limit of {n} to stop new sign-ups.',
             organizerRequired: 'Enter who is hosting',
             tooShort: 'Enter at least {min} characters',
             tooLong: 'Keep this to {max} characters or fewer',

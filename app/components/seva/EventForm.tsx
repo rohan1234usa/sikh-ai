@@ -13,9 +13,10 @@ import { useAuth } from '@/app/context/AuthContext';
 import type { Lang } from '@/lib/i18n/config';
 import { fmt } from '@/lib/i18n/fmt';
 import type { SevaCopy } from '@/lib/i18n/seva';
-import { isCountryCode, isEventId, type SevaCategory } from '@/lib/seva/config';
+import { SIGNUP_MODES, isCountryCode, isEventId, type SevaCategory } from '@/lib/seva/config';
 import { countryName } from '@/lib/seva/countries';
 import { EMPTY_DRAFT, clearDraft, draftFromEvent, postAgainDraft, readDraft, writeDraft } from '@/lib/seva/draft';
+import { errorKind } from '@/lib/seva/errors';
 import { SEVA_CATEGORIES, SEVA_MAX_DAYS_LONG, SEVA_SPOTS, SEVA_TEXT } from '@/lib/seva/limits';
 import { mapsUrl, placeLine } from '@/lib/seva/links';
 import type { SevaEvent } from '@/lib/seva/model';
@@ -130,10 +131,16 @@ function freshDraft(name: string): EventDraft {
 // The order fields appear in, for the error summary.
 const FIELD_ORDER: (keyof EventDraft)[] = [
     'title', 'category', 'description', 'date', 'startTime', 'endTime', 'endDate', 'timeZone',
-    'venue', 'address', 'city', 'region', 'country', 'spots', 'organizer', 'contact',
+    'venue', 'address', 'city', 'region', 'country', 'signup', 'spots', 'organizer', 'contact',
 ];
 
 const fieldId = (key: keyof EventDraft) => `seva-${key}`;
+
+// One of a few choices, as a pill in a row that wraps: a real radio, its dot
+// kept for forced colours and the site's focus ring. Checked, it isn't bold,
+// which would change its width and reflow the row.
+const PILL =
+    'inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-3xl border border-edge-strong bg-surface-raised px-3 py-2 text-sm text-ink hover:border-accent-text/60 has-[:checked]:border-kesri-deep has-[:checked]:bg-kesri/10 dark:has-[:checked]:border-kesri';
 
 function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whenWords, countries, commonCountries, hrefs, route, source }: EventFormProps & { route: string; source: SevaEvent | null }) {
     const { user, signIn, signInIntent } = useAuth();
@@ -152,7 +159,10 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
     // The form only renders in the browser, where this is never null.
     const now = useMinute() ?? 0;
 
-    const editing = mode === 'edit' && source ? { startsAt: source.startsAt, endsAt: source.endsAt, volunteerCount: source.volunteerCount } : undefined;
+    // How many had joined when the form opened, or, after a save refused
+    // because more have since, as many as there are now.
+    const [joinedNow, setJoinedNow] = useState<number | null>(null);
+    const editing = mode === 'edit' && source ? { startsAt: source.startsAt, endsAt: source.endsAt, volunteerCount: joinedNow ?? source.volunteerCount } : undefined;
 
     // The tab keeps the work in progress, once there is some.
     useEffect(() => {
@@ -205,7 +215,8 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
             case 'endBeforeStart': return key === 'endDate' ? e.endDateBefore : e.endBeforeStart;
             case 'tooLongEvent': return fmt(e.tooLongEvent, { max: SEVA_MAX_DAYS_LONG });
             case 'tooFarAhead': return e.dateTooFar;
-            case 'belowJoined': return fmt(e.spotsBelowJoined, { n: source?.volunteerCount ?? 0 });
+            case 'belowJoined': return fmt(e.spotsBelowJoined, { n: editing?.volunteerCount ?? 0 });
+            case 'hasVolunteers': return fmt(e.signupJoined, { n: editing?.volunteerCount ?? 0 });
             case 'invalid':
                 if (key === 'date' || key === 'endDate') return e.dateInvalid;
                 if (key === 'spots') return fmt(e.spotsInvalid, { max: SEVA_SPOTS[1] });
@@ -216,7 +227,8 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
                 const required: Partial<Record<keyof EventDraft, string>> = {
                     title: e.titleRequired, category: e.categoryRequired, date: e.dateRequired, startTime: e.startRequired,
                     endTime: e.endRequired, endDate: e.endDateRequired, timeZone: e.timeZoneRequired, venue: e.venueRequired,
-                    city: e.cityRequired, country: e.countryRequired, spots: e.spotsRequired, organizer: e.organizerRequired,
+                    city: e.cityRequired, country: e.countryRequired, signup: e.signupRequired, spots: e.spotsRequired,
+                    organizer: e.organizerRequired,
                 };
                 return required[key] ?? e.required;
             }
@@ -224,6 +236,25 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
     };
 
     const errorOf = (key: keyof EventDraft) => (errors[key] ? message(key, errors[key]) : undefined);
+
+    // A save refused because people joined since the form opened, when the
+    // change (no sign-up, or a lower limit) no longer fits: checked again
+    // against the event as it is, so the form can say what's wrong.
+    const recheck = async (id: string): Promise<boolean> => {
+        if (!source) return false;
+        try {
+            const fresh = await (await loadSeva()).getEvent(id, { allowHidden: true });
+            if (!fresh || fresh.volunteerCount === (joinedNow ?? source.volunteerCount)) return false;
+            setJoinedNow(fresh.volunteerCount);
+            const r = validateEventDraft(draft, { now: clock(), editing: { startsAt: source.startsAt, endsAt: source.endsAt, volunteerCount: fresh.volunteerCount } });
+            if (r.ok) return false;
+            setErrors(r.errors);
+            setSummaryFocus((n) => n + 1);
+            return true;
+        } catch {
+            return false;
+        }
+    };
     const summary: FormError[] = FIELD_ORDER.flatMap((key) => (errors[key] ? [{ fieldId: fieldId(key), message: message(key, errors[key]) }] : []));
 
     const submit = async (e: React.FormEvent) => {
@@ -268,8 +299,9 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
             // the router's cached copy of it.
             // eslint-disable-next-line @next/next/no-location-assign-relative-destination
             window.location.assign(`${hrefs.eventBase}${id}`);
-        } catch {
+        } catch (error) {
             setBusy(false);
+            if (mode === 'edit' && eventId && errorKind(error) === 'denied' && await recheck(eventId)) return;
             setProblem(mode === 'edit' ? copy.saveFailed : copy.failed);
         }
     };
@@ -463,18 +495,43 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
                 )}
             </Fieldset>
 
-            <Fieldset id="seva-volunteers" legend={copy.volunteers}>
-                <Field
-                    id={fieldId('spots')}
-                    label={copy.spots}
-                    hint={editing && editing.volunteerCount > 0 ? `${fmt(copy.spotsHint, { max: SEVA_SPOTS[1] })} ${fmt(copy.spotsJoined, { n: editing.volunteerCount })}` : fmt(copy.spotsHint, { max: SEVA_SPOTS[1] })}
-                    error={errorOf('spots')}
-                    className="sm:max-w-xs"
-                >
-                    {(c) => (
-                        <input id={c.id} type="text" inputMode="numeric" required value={draft.spots} onChange={(e) => set({ spots: e.target.value })} aria-describedby={c.describedBy} aria-invalid={c.invalid || undefined} className={INPUT} />
-                    )}
-                </Field>
+            {/* Who may sign up. Each choice's word is read with it (a hidden
+                span, so it isn't part of its name); the chosen one's is shown
+                below. A limit asks for the number, next in the tab order. */}
+            <Fieldset id={fieldId('signup')} legend={copy.signup} error={errorOf('signup')}>
+                <div>
+                    <div className="flex flex-wrap gap-2">
+                        {SIGNUP_MODES.map((m) => (
+                            <label key={m} className={PILL}>
+                                <input
+                                    type="radio"
+                                    name="signup"
+                                    value={m}
+                                    checked={draft.signup === m}
+                                    onChange={() => set({ signup: m })}
+                                    aria-describedby={`signup-hint-${m}`}
+                                    className="h-4 w-4 shrink-0"
+                                />
+                                {copy.signupOptions[m]}
+                                <span id={`signup-hint-${m}`} hidden>{copy.signupHints[m]}</span>
+                            </label>
+                        ))}
+                    </div>
+                    <p aria-hidden="true" className="mt-2 text-sm text-ink-muted">{copy.signupHints[draft.signup]}</p>
+                </div>
+                {draft.signup === 'limited' && (
+                    <Field
+                        id={fieldId('spots')}
+                        label={copy.spots}
+                        hint={editing && editing.volunteerCount > 0 ? `${fmt(copy.spotsHint, { max: SEVA_SPOTS[1] })} ${fmt(copy.spotsJoined, { n: editing.volunteerCount })}` : fmt(copy.spotsHint, { max: SEVA_SPOTS[1] })}
+                        error={errorOf('spots')}
+                        className="sm:max-w-xs"
+                    >
+                        {(c) => (
+                            <input id={c.id} type="text" inputMode="numeric" required value={draft.spots} onChange={(e) => set({ spots: e.target.value })} aria-describedby={c.describedBy} aria-invalid={c.invalid || undefined} className={INPUT} />
+                        )}
+                    </Field>
+                )}
             </Fieldset>
 
             <Fieldset id="seva-host" legend={copy.host}>
@@ -483,7 +540,7 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
             </Fieldset>
 
             <p className="text-sm text-ink-muted">
-                {copy.publicNotice}{' '}
+                {copy.publicNotice}{draft.signup !== 'none' && ` ${copy.joinNotice}`}{' '}
                 <IntentLink href={hrefs.privacy} className="underline">{copy.privacyLink}</IntentLink>
             </p>
 

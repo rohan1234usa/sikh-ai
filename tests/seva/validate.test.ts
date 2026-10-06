@@ -2,7 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { SEVA_TEXT } from '@/lib/seva/limits';
 import { textLength, validateCancelNote, validateEventDraft, validateJoin, validateReport, westernDigits } from '@/lib/seva/validate';
-import { NOW, SIX_PM_LA, NINE_PM_LA, draft } from './helpers';
+import { eventPatch } from '@/lib/seva/plans';
+import { NOW, SIX_PM_LA, NINE_PM_LA, draft, event } from './helpers';
 
 const errorsOf = (over: Parameters<typeof draft>[0], ctx: Partial<Parameters<typeof validateEventDraft>[1]> = {}) => {
     const r = validateEventDraft(draft(over), { now: NOW, ...ctx });
@@ -35,13 +36,35 @@ test('each text field is held to the limits the rules use, counted in code point
     assert.equal(errorsOf({ address: '' }).address, undefined, 'the street is optional');
 });
 
-test('volunteers needed is a whole number from 1 to 500, in either script of digits', () => {
+test('a limit is a whole number from 1 to 500, in either script of digits', () => {
     assert.equal(westernDigits('੨੫'), '25');
     const r = validateEventDraft(draft({ spots: '੫' }), { now: NOW });
     assert.ok(r.ok && r.fields.spots === 5);
     for (const bad of ['0', '501', '5.5', 'five', '-2']) assert.equal(errorsOf({ spots: bad }).spots, 'invalid', bad);
     assert.equal(errorsOf({ spots: '' }).spots, 'required');
     assert.equal(errorsOf({ spots: '2' }, { editing: { startsAt: SIX_PM_LA, endsAt: NINE_PM_LA, volunteerCount: 3 } }).spots, 'belowJoined');
+});
+
+test('who may sign up: no limit is null, no sign-up 0, and a number typed for another choice is ignored', () => {
+    const fieldsOf = (over: Parameters<typeof draft>[0]) => {
+        const r = validateEventDraft(draft(over), { now: NOW });
+        assert.ok(r.ok, JSON.stringify(r.ok ? null : r.errors));
+        return r.fields;
+    };
+    assert.equal(fieldsOf({ signup: 'unlimited', spots: '' }).spots, null);
+    assert.equal(fieldsOf({ signup: 'none', spots: '' }).spots, 0);
+    assert.equal(fieldsOf({ signup: 'unlimited', spots: 'lots' }).spots, null);
+    assert.equal(fieldsOf({ signup: 'none', spots: '7' }).spots, 0);
+    assert.equal(errorsOf({ signup: 'maybe' as never }).signup, 'required');
+});
+
+test("sign-up can't stop while anyone has joined, nor a limit drop below them", () => {
+    const editing = (volunteerCount: number) => ({ editing: { startsAt: SIX_PM_LA, endsAt: NINE_PM_LA, volunteerCount } });
+    assert.equal(errorsOf({ signup: 'none' }, editing(3)).signup, 'hasVolunteers');
+    assert.deepEqual(errorsOf({ signup: 'unlimited' }, editing(3)), {});
+    assert.equal(errorsOf({ signup: 'limited', spots: '2' }, editing(3)).spots, 'belowJoined');
+    assert.deepEqual(errorsOf({ signup: 'limited', spots: '3' }, editing(3)), {});
+    assert.deepEqual(errorsOf({ signup: 'none' }, editing(0)), {});
 });
 
 test('the times hang together: ends after it starts, within a week, not already started', () => {
@@ -108,4 +131,24 @@ test('an event goes back into the form as it was typed, and a week later for Pos
     assert.deepEqual([draftFromEvent(overnight.fields).multiDay, draftFromEvent(overnight.fields).endDate], [true, '2026-10-11']);
     // A kept draft keeps only the form's fields.
     assert.deepEqual(parseDraft({ title: 'x', multiDay: 'yes', extra: 1 }), { ...parseDraft({}), title: 'x' });
+});
+
+test('who may sign up goes back into the form as it was, and a draft kept from before had a limit if it had a number', async () => {
+    const { draftFromEvent, parseDraft } = await import('@/lib/seva/draft');
+    for (const [spots, signup, typed] of [[20, 'limited', '20'], [null, 'unlimited', ''], [0, 'none', '']] as const) {
+        const e = event({ spots, volunteerCount: 0 });
+        const back = draftFromEvent(e);
+        assert.deepEqual([back.signup, back.spots], [signup, typed]);
+        // Saved untouched, an edit writes nothing.
+        const r = validateEventDraft(back, { now: NOW, editing: { startsAt: e.startsAt, endsAt: e.endsAt, volunteerCount: 0 } });
+        assert.ok(r.ok);
+        assert.deepEqual(eventPatch(e, r.fields), {});
+    }
+    assert.equal(parseDraft({}).signup, 'unlimited', 'a new event takes sign-ups, with no limit');
+    assert.equal(parseDraft({ spots: '12' }).signup, 'limited');
+    assert.equal(parseDraft({ spots: ' ' }).signup, 'unlimited');
+    assert.equal(parseDraft({ signup: 'none', spots: '12' }).signup, 'none');
+    assert.equal(parseDraft({ signup: 'everyone', spots: '12' }).signup, 'limited');
+    assert.equal(parseDraft({ signup: 7 }).signup, 'unlimited');
+    assert.deepEqual(parseDraft(JSON.parse(JSON.stringify(draft({ signup: 'none' })))), draft({ signup: 'none' }));
 });

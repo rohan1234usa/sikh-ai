@@ -608,7 +608,7 @@ test('every event the form accepts, the rules accept', async () => {
     const base: EventDraft = {
         title: 'Langar seva', category: 'langar', description: '', date: inTwoDays, startTime: '18:00', endTime: '21:00',
         multiDay: false, endDate: '', timeZone: tz, venue: 'Gurdwara', address: '', city: 'Amritsar', region: '',
-        country: 'IN', spots: '1', organizer: 'Sangat', contact: '',
+        country: 'IN', signup: 'limited', spots: '1', organizer: 'Sangat', contact: '',
     };
     let n = 300;
     for (const over of [
@@ -617,6 +617,11 @@ test('every event the form accepts, the rules accept', async () => {
         { description: 'ਲੰਗਰ '.repeat(400).trim(), contact: '+91 98765 43210', spots: '500' },
         { multiDay: true, endDate: utcToZoned(Date.now() + 9 * DAY, tz).date, endTime: '18:00' },
         { spots: '੨੦', region: 'Punjab', address: 'Golden Temple Rd' },
+        { signup: 'unlimited', spots: '' },
+        { signup: 'none', spots: '' },
+        // A number typed, then another choice made: not sent.
+        { signup: 'unlimited', spots: '7' },
+        { signup: 'none', spots: 'lots' },
     ] satisfies Partial<EventDraft>[]) {
         const r = validateEventDraft({ ...base, ...over }, { now: Date.now() });
         assert.ok(r.ok, JSON.stringify(r.ok ? null : r.errors));
@@ -629,4 +634,14 @@ test('every event the form accepts, the rules accept', async () => {
     assert.ok(before);
     const patch = eventPatch({ ...r.fields, title: 'Langar seva', id: id(301), status: 'open', cancelNote: '', hidden: false, volunteerCount: 0, createdAt: 0, updatedAt: 0 }, r.fields);
     await assertSucceeds(commit(as('hana'), planUpdateEvent(id(301), patch, S)));
+    // And each change of who may sign up, while no one has joined.
+    let stored = r.fields;
+    for (const over of [{ signup: 'unlimited' }, { signup: 'none' }, { signup: 'limited', spots: '5' }, { signup: 'none' }] satisfies Partial<EventDraft>[]) {
+        const next = validateEventDraft({ ...base, title: 'Langar prep', ...over }, { now: Date.now(), editing: { startsAt: stored.startsAt, endsAt: stored.endsAt, volunteerCount: 0 } });
+        assert.ok(next.ok, JSON.stringify(over));
+        const step = eventPatch({ ...stored, id: id(301), status: 'open', cancelNote: '', hidden: false, volunteerCount: 0, createdAt: 0, updatedAt: 0 }, next.fields);
+        await assertSucceeds(commit(as('hana'), planUpdateEvent(id(301), step, S)));
+        stored = next.fields;
+    }
+    assert.equal((await peek(`seva_events/${id(301)}`))?.spots, 0);
 });
