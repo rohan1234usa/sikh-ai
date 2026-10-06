@@ -6,8 +6,7 @@ import type { EventDisplay } from '@/lib/seva/display';
 import { isFull } from '@/lib/seva/event';
 import type { SevaEvent } from '@/lib/seva/model';
 import CapacityLine from './CapacityLine';
-
-export const CHIP = 'inline-flex items-center rounded-full border border-edge-strong px-2.5 py-0.5 text-sm text-ink';
+import { CHIP, PANEL } from './styles';
 
 // One event on the board or the home page: its title is the link to its page,
 // stretched over the card, and the rest is a list of facts. Under a day's
@@ -27,7 +26,7 @@ export default function EventCard({ event, display, href, copy, showDate = false
     return (
         <article
             aria-labelledby={titleId}
-            className="relative h-full rounded-xl border border-edge bg-surface-raised p-4 shadow-sm transition-colors hover:border-accent-text/50 sm:p-5"
+            className={`relative h-full ${PANEL} transition-colors hover:border-accent-text/50`}
         >
             <p className="flex flex-wrap items-center gap-2">
                 <span className={CHIP}>{copy.categories[event.category]}</span>

@@ -14,7 +14,7 @@ import HostTools from '@/app/components/seva/HostTools';
 import JoinCard from '@/app/components/seva/JoinCard';
 import { AdminTools, ReportControl } from '@/app/components/seva/ReportControl';
 import { CalendarCard, ShareCard } from '@/app/components/seva/ShareCard';
-import { CHIP } from '@/app/components/seva/EventCard';
+import { CHIP } from '@/app/components/seva/styles';
 import { LANG_META } from '@/lib/i18n/config';
 import { fmt } from '@/lib/i18n/fmt';
 import { localePath } from '@/lib/i18n/paths';

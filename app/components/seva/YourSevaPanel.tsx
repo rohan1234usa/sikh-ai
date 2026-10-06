@@ -10,9 +10,9 @@ import { fmt } from '@/lib/i18n/fmt';
 import type { SevaCopy } from '@/lib/i18n/seva';
 import type { Hosting, SevaEvent, Signup } from '@/lib/seva/model';
 import { formatDate } from '@/lib/seva/time';
-import { CHIP } from './EventCard';
 import { setJoined, setMyEvents, useMinute } from './hooks';
 import { loadSeva } from './sevaClient';
+import { CHIP, PANEL } from './styles';
 
 const SHOWN = 5;
 
@@ -188,7 +188,7 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
     }
 
     return (
-        <section aria-labelledby="your-seva" className="rounded-xl border border-edge bg-surface-raised p-4 shadow-sm sm:p-5">
+        <section aria-labelledby="your-seva" className={PANEL}>
             <h2 ref={titleRef} id="your-seva" tabIndex={-1} className="text-lg font-bold text-ink">{copy.title}</h2>
             {body}
             {announcer}

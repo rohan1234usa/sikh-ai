@@ -11,6 +11,7 @@ import type { SevaCategory } from '@/lib/seva/config';
 import { SEVA_CATEGORIES } from '@/lib/seva/limits';
 import { NO_FILTERS, filterOptions, filtersToSearch, matches, parseFilters, type Facets, type Filters } from '@/lib/seva/listing';
 import { replaceSearch, saveCountry, useMinute, useSavedCountry, useSearch } from './hooks';
+import { PANEL } from './styles';
 
 export type BoardItem = { id: string; facets: Facets; card: ReactNode };
 export type BoardGroup = { key: string; heading: string; dateTime?: string; items: BoardItem[] };
@@ -84,7 +85,7 @@ export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, cop
 
     return (
         <div className="space-y-6">
-            <div role="search" aria-label={copy.aria} className="rounded-xl border border-edge bg-surface-raised p-4 shadow-sm sm:p-5">
+            <div role="search" aria-label={copy.aria} className={PANEL}>
                 <div className="grid gap-4 sm:grid-cols-3">
                     <div>
                         <label htmlFor="filter-country" className="block text-sm font-semibold text-ink">{copy.country}</label>

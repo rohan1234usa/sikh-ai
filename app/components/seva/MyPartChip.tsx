@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/app/context/AuthContext';
 import { useMyEvents } from './hooks';
+import { MINE_CHIP } from './styles';
 
 // On a board card, for the one signed in: that they host this event, or have
 // joined it. It comes from what "Your seva" read (useMyEvents), after the
@@ -13,8 +14,6 @@ export default function MyPartChip({ eventId, labels }: { eventId: string; label
     const label = mine.hosting.has(eventId) ? labels.hosting : mine.joined.has(eventId) ? labels.joined : null;
     if (!label) return null;
     return (
-        <span className="inline-flex items-center rounded-full border border-accent-text px-2.5 py-0.5 text-sm font-semibold text-accent-text">
-            {label}
-        </span>
+        <span className={MINE_CHIP}>{label}</span>
     );
 }
