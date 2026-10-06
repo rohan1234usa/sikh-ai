@@ -83,7 +83,10 @@ test("the per-visitor limit passes on the route's own 429, and fails when nothin
     assert.equal(uncounted.ok, false);
     assert.match(uncounted.detail, /limit_skipped/);
     assert.equal(judgeVisitorLimit(run([10, { status: 200 }], [2, FIREWALL]), 'verify').ok, false);
-    assert.equal(judgeVisitorLimit(run([10, { status: 200 }], [2, { status: 429, code: 'verify_busy' }]), 'verify').ok, false, 'needs a Retry-After');
+    assert.deepEqual(judgeVisitorLimit(run([10, { status: 200 }], [2, { status: 429, code: 'verify_busy' }]), 'verify'), {
+        ok: false,
+        detail: '10 × 200, 2 × 429 verify_busy: verify_busy from #11, but without a Retry-After',
+    });
     assert.equal(judgeVisitorLimit(run([10, { status: 200 }], [2, { status: 429, code: 'chat_busy', retryAfter: '9' }]), 'verify').ok, false);
     assert.equal(judgeVisitorLimit(run([12, { status: 429, code: 'verify_busy', retryAfter: '30' }]), 'verify').ok, null);
 });

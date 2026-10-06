@@ -46,6 +46,8 @@ const BURST = 45;
 const PACE_MS = 250;
 // Long enough for any window an earlier burst ran into to end.
 const GAP_MS = 60_000;
+// Past the slowest route's own deadline (/api/chat/verify gives up at 15 s).
+const TIMEOUT_MS = 30_000;
 const JSON_TYPE = { 'content-type': 'application/json' };
 const CROSS_SITE = { 'sec-fetch-site': 'cross-site' };
 
@@ -95,6 +97,7 @@ async function send(base: string, probe: Probe, n: number): Promise<Answer> {
         headers: probe.headers,
         body: probe.body,
         redirect: 'manual',
+        signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     const body = await res.text();
     const date = Date.parse(res.headers.get('date') ?? '');
@@ -187,7 +190,7 @@ async function main(): Promise<void> {
             run = await burst(base, cspReport, BURST, PACE_MS);
             report('firewall leaves out /api/csp-report', judgeLeftOut(run.answers, { status: 204 }), run);
         } else {
-            report('firewall leaves out /api/csp-report', { ok: null, detail: "skipped: the rule isn't limiting the posts, so this would show nothing" });
+            report('firewall leaves out /api/csp-report', { ok: null, detail: 'skipped: it shows something only once the rule is seen limiting the posts' });
         }
     }
 

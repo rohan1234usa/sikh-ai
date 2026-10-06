@@ -102,8 +102,10 @@ export function judgeVisitorLimit(answers: Answer[], feature: string): Verdict {
     if (!stop) {
         return { ok: false, detail: `${tally(answers)}: never limited, so the route isn't counting (a limit_skipped log line means it gets no address)` };
     }
-    if (isRouteLimit(stop) && stop.code?.startsWith(`${feature}_`) && stop.retryAfter) {
-        return { ok: true, detail: `${tally(answers)}: ${stop.code} from #${stop.n}, Retry-After ${stop.retryAfter}` };
+    if (isRouteLimit(stop) && stop.code?.startsWith(`${feature}_`)) {
+        return stop.retryAfter
+            ? { ok: true, detail: `${tally(answers)}: ${stop.code} from #${stop.n}, Retry-After ${stop.retryAfter}` }
+            : { ok: false, detail: `${tally(answers)}: ${stop.code} from #${stop.n}, but without a Retry-After` };
     }
     if (isFirewallLimit(stop)) {
         return { ok: false, detail: `${tally(answers)}: the firewall's 429 came first, at #${stop.n}, so its limit is below the route's` };
