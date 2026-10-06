@@ -11,7 +11,7 @@ import type { SevaCopy } from '@/lib/i18n/seva';
 import type { Hosting, SevaEvent, Signup } from '@/lib/seva/model';
 import { formatDate } from '@/lib/seva/time';
 import { CHIP } from './EventCard';
-import { setMyEvents, useMinute } from './hooks';
+import { setJoined, setMyEvents, useMinute } from './hooks';
 import { loadSeva } from './sevaClient';
 
 const SHOWN = 5;
@@ -78,6 +78,7 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
         setProblem('');
         try {
             await (await loadSeva()).leave(user.uid, signup.eventId, signup.volunteerId);
+            setJoined(user.uid, signup.eventId, false);
             setMine((m) => (m && m.data !== 'failed'
                 ? { ...m, data: { ...m.data, joined: m.data.joined.filter((j) => j.signup.eventId !== signup.eventId) } }
                 : m));

@@ -95,6 +95,16 @@ const subscribeMyEvents = (onChange: () => void) => {
 };
 export const useMyEvents = () => useSyncExternalStore(subscribeMyEvents, () => myEvents, () => null);
 
+// A join or a leave made since, kept in step, so going back to the board
+// doesn't show the old state while "Your seva" reads the notes again.
+export function setJoined(uid: string, eventId: string, joined: boolean) {
+    if (myEvents?.uid !== uid) return;
+    const next = new Set(myEvents.joined);
+    if (joined) next.add(eventId);
+    else next.delete(eventId);
+    setMyEvents({ ...myEvents, joined: next });
+}
+
 // A word for an event's page to show once it opens, after a change made on
 // another page (the hosting form): posted, or saved. Kept for the tab, not in
 // the address, so the page stays the same for everyone and a copied link
