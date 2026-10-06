@@ -22,7 +22,8 @@
     "eval:translate": "tsx scripts/translate-eval/index.ts",
     "build:phrasebook": "tsx scripts/phrasebook-build/index.ts",
     "eval:chat": "tsx scripts/chat-eval/index.ts",
-    "eval:search": "tsx scripts/search-eval/index.ts"
+    "eval:search": "tsx scripts/search-eval/index.ts",
+    "check:limits": "tsx scripts/limits-check/index.ts"
   },
   "dependencies": {
     "@google/genai": "^2.24.0",
