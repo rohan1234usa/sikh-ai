@@ -11,6 +11,12 @@ export type ReportReason = (typeof SEVA_REPORT_REASONS)[number];
 export const isCategory = (v: unknown): v is SevaCategory => SEVA_CATEGORIES.includes(v as SevaCategory);
 export const isReportReason = (v: unknown): v is ReportReason => SEVA_REPORT_REASONS.includes(v as ReportReason);
 
+// Who may sign up, as the hosting form asks it: no one, anyone, or up to a
+// number. Stored as the event's spots: 0, null, or the number (./model.ts).
+export const SIGNUP_MODES = ['none', 'unlimited', 'limited'] as const;
+export type SignupMode = (typeof SIGNUP_MODES)[number];
+export const isSignupMode = (v: unknown): v is SignupMode => SIGNUP_MODES.includes(v as SignupMode);
+
 // An id the SDK makes (doc().id): 20 letters and digits. Event ids are in
 // public addresses, so the rules refuse any other, and a page asks Firestore
 // only for one of these.

@@ -10,7 +10,7 @@
 // (lib/seva/time.ts); these only join them. Relative type imports only: the
 // audit runs this file under tsx.
 
-import type { ReportReason, SevaCategory } from '../../seva/config';
+import type { ReportReason, SevaCategory, SignupMode } from '../../seva/config';
 
 const seva = {
     meta: {
@@ -47,9 +47,13 @@ const seva = {
             sameDay: '{date}, {times}',
             withZone: '{when} ({zone})',
         },
+        // Who may sign up, and how many have: with a limit, with none, or
+        // for an event that takes no sign-ups.
         capacity: 'Volunteers: {count} of {spots}',
         spotsLeft: 'Spots left: {n}',
         full: 'Full',
+        capacityNoLimit: 'Volunteers: {count}',
+        noSignup: 'No sign-up needed',
         happeningNow: 'Happening now',
         cancelled: 'Cancelled',
         hidden: 'Hidden',
@@ -173,6 +177,7 @@ const seva = {
         detailsSaved: 'Details saved.',
         leave: 'Leave this seva',
         leavePrompt: 'Leave this seva? Your spot opens up for someone else.',
+        leavePromptNoLimit: 'Leave this seva? Your name comes off the host’s list.',
         leaveConfirm: 'Yes, leave',
         leaveKeep: 'Stay signed up',
         leaving: 'Leaving…',
@@ -182,6 +187,8 @@ const seva = {
         wasJoined: 'You joined this seva.',
         fullTitle: 'This seva is full',
         fullBody: 'A spot may open up later, or you can find another seva.',
+        // An event that takes no sign-ups.
+        noSignupBody: 'No sign-up needed: just come along.',
         yourTime: 'Your time: {when}',
         errors: {
             nameRequired: 'Enter your name',
@@ -202,8 +209,10 @@ const seva = {
         linkLabel: 'Link to this event',
         postedTitle: 'Your event is live',
         postedBody: 'Share it with your sangat so volunteers can find it. Come back to this page to see who has joined.',
+        postedBodyNoSignup: 'Share it with your sangat so people can find it and come along.',
         savedTitle: 'Changes saved',
         savedBody: 'Volunteers aren’t told about changes automatically. If you changed the date, time or place, let them know.',
+        savedBodyNoSignup: 'If you changed the date, time or place, share the event again so people know.',
         cancelledFlash: 'The event is cancelled. Its page now says so.',
         done: 'Done',
     },
@@ -256,8 +265,10 @@ const seva = {
     cancelDialog: {
         title: 'Cancel this event?',
         body: 'It comes off the list of events, and its page will say it’s cancelled. Volunteers aren’t told automatically, so let them know.',
+        bodyNoSignup: 'It comes off the list of events, and its page will say it’s cancelled. Leave a message for anyone planning to come.',
         seeVolunteers: 'See volunteers’ contacts',
         note: 'Message for volunteers',
+        noteNoSignup: 'Message for anyone coming',
         noteHint: 'Shown on the event page, for example “Moved to next Sunday”.',
         confirm: 'Cancel event',
         keep: 'Keep event',
@@ -269,6 +280,7 @@ const seva = {
     volunteers: {
         title: 'Volunteers',
         count: 'Joined: {count} of {spots}',
+        countNoLimit: 'Joined: {count}',
         empty: 'No one has joined yet. Share the event so volunteers can find it.',
         loading: 'Loading volunteers…',
         failed: 'Couldn’t load the volunteers. Check your connection and try again.',
@@ -291,7 +303,7 @@ const seva = {
     form: {
         createTitle: 'Host a seva event',
         editTitle: 'Edit event',
-        intro: 'Your event goes live as soon as you post it. Anyone can see it, and signed-in volunteers can join.',
+        intro: 'Your event goes live as soon as you post it, and anyone can see it. Volunteers sign in to join, unless you choose no sign-up.',
         signInNotice: 'Posting needs a Google sign-in, so volunteers know who is hosting. You can fill this in first: it stays here while you sign in.',
         signIn: 'Sign in now',
         draftRestored: 'We kept what you’d filled in.',
@@ -301,7 +313,7 @@ const seva = {
         about: 'About the seva',
         when: 'When',
         where: 'Where',
-        volunteers: 'Volunteers',
+        signup: 'Volunteer sign-up',
         host: 'Host',
         title: 'Event title',
         titleHint: 'Say what volunteers will do, for example “Langar prep for Sunday diwan”.',
@@ -327,6 +339,12 @@ const seva = {
         timeZone: 'Time zone',
         timeZoneHint: 'Volunteers see the times as they are in this time zone. It starts as your device’s.',
         timeZoneMatched: 'Time zone set to {zone} to match the country.',
+        // The time zone, folded into a line until it's to be changed. No full
+        // stop: the button follows it.
+        timesIn: 'Times are in {zone}',
+        changeZone: 'Change time zone',
+        // Said when the form fills in the end for the host.
+        endFilled: 'End time set to {time}, 2 hours after the start.',
         suggestedZones: 'Suggested',
         allZones: 'All time zones',
         startsAt: 'Starts {when}',
@@ -341,14 +359,28 @@ const seva = {
         commonCountries: 'Most used',
         allCountries: 'All countries',
         checkMap: 'Check the address in Google Maps',
-        spots: 'Volunteers needed',
-        spotsHint: 'How many people you need, from 1 to {max}.',
-        spotsJoined: 'Already joined: {n}. The number can’t go below that.',
+        // Who may sign up: each choice, and a word on it.
+        signupOptions: {
+            none: 'No sign-up',
+            unlimited: 'Anyone can sign up',
+            limited: 'Limit the number',
+        } satisfies Record<SignupMode, string>,
+        signupHints: {
+            none: 'Just letting people know. Anyone can come along.',
+            unlimited: 'No limit. You see who joined; others see how many.',
+            limited: 'Sign-up closes when it’s full.',
+        } satisfies Record<SignupMode, string>,
+        spots: 'How many volunteers?',
+        spotsHint: 'A number from 1 to {max}.',
+        // When editing an event people have joined.
+        signupJoinedHint: 'Already joined: {n}. Sign-up stays on while they’re signed up, and a limit can’t go below {n}.',
         organizer: 'Hosted by',
         organizerHint: 'Shown to everyone. Your name, or your Gurdwara’s or group’s name.',
         contact: 'Public contact',
         contactHint: 'Shown to everyone on the event page, so volunteers can ask questions: a phone number or an email. Leave it blank to keep yours private.',
-        publicNotice: 'Posting makes this event public. Volunteers who join can choose to share their email or phone number with you.',
+        publicNotice: 'Posting makes this event public.',
+        // Added to it when the event takes sign-ups.
+        joinNotice: 'Volunteers who join can choose to share their email or phone number with you.',
         privacyLink: 'How SikhAI handles this: Privacy',
         submit: 'Post event',
         submitSignIn: 'Sign in and post event',
@@ -386,6 +418,8 @@ const seva = {
             spotsRequired: 'Enter how many volunteers you need',
             spotsInvalid: 'Enter a whole number from 1 to {max}',
             spotsBelowJoined: 'Already joined: {n}. Enter {n} or more.',
+            signupRequired: 'Choose who can sign up',
+            signupJoined: 'Already joined: {n}. Keep sign-up on, or set a limit of {n} to stop new sign-ups.',
             organizerRequired: 'Enter who is hosting',
             tooShort: 'Enter at least {min} characters',
             tooLong: 'Keep this to {max} characters or fewer',

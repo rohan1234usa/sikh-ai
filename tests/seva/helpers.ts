@@ -53,6 +53,7 @@ export const draft = (over: Partial<EventDraft> = {}): EventDraft => ({
     city: 'Fremont',
     region: 'CA',
     country: 'US',
+    signup: 'limited',
     spots: '20',
     organizer: 'Youth committee',
     contact: '',

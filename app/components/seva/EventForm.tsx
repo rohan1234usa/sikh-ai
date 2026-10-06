@@ -13,18 +13,20 @@ import { useAuth } from '@/app/context/AuthContext';
 import type { Lang } from '@/lib/i18n/config';
 import { fmt } from '@/lib/i18n/fmt';
 import type { SevaCopy } from '@/lib/i18n/seva';
-import { isCountryCode, isEventId, type SevaCategory } from '@/lib/seva/config';
+import { SIGNUP_MODES, isCategory, isCountryCode, isEventId, type SevaCategory } from '@/lib/seva/config';
 import { countryName } from '@/lib/seva/countries';
 import { EMPTY_DRAFT, clearDraft, draftFromEvent, postAgainDraft, readDraft, writeDraft } from '@/lib/seva/draft';
+import { errorKind } from '@/lib/seva/errors';
 import { SEVA_CATEGORIES, SEVA_MAX_DAYS_LONG, SEVA_SPOTS, SEVA_TEXT } from '@/lib/seva/limits';
 import { mapsUrl, placeLine } from '@/lib/seva/links';
 import type { SevaEvent } from '@/lib/seva/model';
 import { eventPatch } from '@/lib/seva/plans';
-import { formatDate, formatTime, utcToZoned, zoneName, zonedTimeToUtc, type WhenWords } from '@/lib/seva/time';
+import { formatClock, formatDate, formatTime, isTimeZone, suggestEnd, utcToZoned, zoneName, zonedTimeToUtc, type WhenWords } from '@/lib/seva/time';
 import { allTimeZones, countryTimeZones, deviceTimeZone, zoneLabel } from '@/lib/seva/timezones';
-import { textLength, validateEventDraft, type DraftError, type DraftErrors, type EventDraft } from '@/lib/seva/validate';
+import { textLength, validateEventDraft, type DraftError, type DraftErrors, type EventDraft, type Editing } from '@/lib/seva/validate';
 import { setFlash, useMinute, useMounted } from './hooks';
 import { loadSeva, refreshPages } from './sevaClient';
+import { PILL } from './styles';
 
 export type EventFormProps = {
     mode: 'create' | 'edit';
@@ -127,13 +129,19 @@ function freshDraft(name: string): EventDraft {
     return { ...EMPTY_DRAFT, timeZone: deviceTimeZone(), country: isCountryCode(country) ? country : '', city, organizer: name };
 }
 
+// The end the form suggests, after a start, as the copy says.
+const END_AFTER_MINUTES = 120;
+
 // The order fields appear in, for the error summary.
 const FIELD_ORDER: (keyof EventDraft)[] = [
     'title', 'category', 'description', 'date', 'startTime', 'endTime', 'endDate', 'timeZone',
-    'venue', 'address', 'city', 'region', 'country', 'spots', 'organizer', 'contact',
+    'venue', 'address', 'city', 'region', 'country', 'signup', 'spots', 'organizer', 'contact',
 ];
 
 const fieldId = (key: keyof EventDraft) => `seva-${key}`;
+
+// What only the count of those who joined can be in the way of.
+const heldByJoined = (errors: DraftErrors) => Object.values(errors).some((e) => e === 'hasVolunteers' || e === 'belowJoined');
 
 function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whenWords, countries, commonCountries, hrefs, route, source }: EventFormProps & { route: string; source: SevaEvent | null }) {
     const { user, signIn, signInIntent } = useAuth();
@@ -146,13 +154,24 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
     const [problem, setProblem] = useState('');
     const [summaryFocus, setSummaryFocus] = useState(0);
     const zoneTouched = useRef(start.origin !== 'fresh' || mode === 'edit');
+    // The time zone's list, folded into a line until it's wanted ("Change
+    // time zone", which hands it the focus, or a problem with it).
+    const [zoneOpen, setZoneOpen] = useState(false);
+    const zoneRef = useRef<HTMLSelectElement>(null);
+    const zoneFocus = useRef(false);
+    // An end the form filled in, until the host changes it: it follows the
+    // start.
+    const endAuto = useRef(false);
     const dirty = useRef(false);
     const summaryRef = useRef<HTMLDivElement>(null);
     const { announce, announcer } = useAnnouncer();
     // The form only renders in the browser, where this is never null.
     const now = useMinute() ?? 0;
 
-    const editing = mode === 'edit' && source ? { startsAt: source.startsAt, endsAt: source.endsAt, volunteerCount: source.volunteerCount } : undefined;
+    // How many had joined when the form opened, or, after a save refused
+    // because more have since, as many as there are now.
+    const [joinedNow, setJoinedNow] = useState<number | null>(null);
+    const editing = mode === 'edit' && source ? { startsAt: source.startsAt, endsAt: source.endsAt, volunteerCount: joinedNow ?? source.volunteerCount } : undefined;
 
     // The tab keeps the work in progress, once there is some.
     useEffect(() => {
@@ -162,6 +181,13 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
     useEffect(() => {
         if (summaryFocus) summaryRef.current?.focus();
     }, [summaryFocus]);
+
+    useEffect(() => {
+        if (zoneOpen && zoneFocus.current) {
+            zoneFocus.current = false;
+            zoneRef.current?.focus();
+        }
+    }, [zoneOpen]);
 
     const set = (patch: Partial<EventDraft>) => {
         dirty.current = true;
@@ -184,6 +210,16 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
         }
     };
 
+    // A start fills in an empty end 2 hours later, and says so; an end it
+    // filled in follows the start (suggestEnd says when).
+    const chooseStart = (startTime: string) => {
+        const next = suggestEnd({ start: startTime, end: draft.endTime, auto: endAuto.current, multiDay: draft.multiDay }, END_AFTER_MINUTES);
+        if (!next) return set({ startTime });
+        endAuto.current = next.auto;
+        if (next.announce) announce(fmt(copy.endFilled, { time: formatClock(next.end, lang) }));
+        set({ startTime, endTime: next.end });
+    };
+
     const reset = () => {
         clearDraft(route);
         dirty.current = false;
@@ -192,6 +228,8 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
         setErrors({});
         setAttempted(false);
         zoneTouched.current = mode === 'edit';
+        endAuto.current = false;
+        setZoneOpen(false);
     };
 
     const message = (key: keyof EventDraft, error: DraftError): string => {
@@ -205,7 +243,8 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
             case 'endBeforeStart': return key === 'endDate' ? e.endDateBefore : e.endBeforeStart;
             case 'tooLongEvent': return fmt(e.tooLongEvent, { max: SEVA_MAX_DAYS_LONG });
             case 'tooFarAhead': return e.dateTooFar;
-            case 'belowJoined': return fmt(e.spotsBelowJoined, { n: source?.volunteerCount ?? 0 });
+            case 'belowJoined': return fmt(e.spotsBelowJoined, { n: editing?.volunteerCount ?? 0 });
+            case 'hasVolunteers': return fmt(e.signupJoined, { n: editing?.volunteerCount ?? 0 });
             case 'invalid':
                 if (key === 'date' || key === 'endDate') return e.dateInvalid;
                 if (key === 'spots') return fmt(e.spotsInvalid, { max: SEVA_SPOTS[1] });
@@ -216,7 +255,8 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
                 const required: Partial<Record<keyof EventDraft, string>> = {
                     title: e.titleRequired, category: e.categoryRequired, date: e.dateRequired, startTime: e.startRequired,
                     endTime: e.endRequired, endDate: e.endDateRequired, timeZone: e.timeZoneRequired, venue: e.venueRequired,
-                    city: e.cityRequired, country: e.countryRequired, spots: e.spotsRequired, organizer: e.organizerRequired,
+                    city: e.cityRequired, country: e.countryRequired, signup: e.signupRequired, spots: e.spotsRequired,
+                    organizer: e.organizerRequired,
                 };
                 return required[key] ?? e.required;
             }
@@ -224,13 +264,36 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
     };
 
     const errorOf = (key: keyof EventDraft) => (errors[key] ? message(key, errors[key]) : undefined);
+
+    // The count of those who joined, as it is now: it was read when the form
+    // opened, and people may have joined or left since. Null if it can't be
+    // read. Only when editing, signed in already, so nothing awaited here
+    // keeps signIn() from its popup.
+    const joinedNowFor = async (id: string, was: Editing): Promise<Editing | null> => {
+        try {
+            const fresh = await (await loadSeva()).getEvent(id, { allowHidden: true });
+            if (!fresh) return null;
+            setJoinedNow(fresh.volunteerCount);
+            return { ...was, volunteerCount: fresh.volunteerCount };
+        } catch {
+            return null;
+        }
+    };
     const summary: FormError[] = FIELD_ORDER.flatMap((key) => (errors[key] ? [{ fieldId: fieldId(key), message: message(key, errors[key]) }] : []));
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (busy) return;
-        const result = validateEventDraft(draft, { now: clock(), editing });
+        let result = validateEventDraft(draft, { now: clock(), editing });
         setAttempted(true);
+        // Held back by who had joined (no sign-up, or a lower limit): ask
+        // again, in case they've left.
+        if (!result.ok && editing && eventId && heldByJoined(result.errors)) {
+            setBusy(true);
+            const fresh = await joinedNowFor(eventId, editing);
+            setBusy(false);
+            if (fresh) result = validateEventDraft(draft, { now: clock(), editing: fresh });
+        }
         if (!result.ok) {
             setErrors(result.errors);
             setSummaryFocus((n) => n + 1);
@@ -268,8 +331,19 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
             // the router's cached copy of it.
             // eslint-disable-next-line @next/next/no-location-assign-relative-destination
             window.location.assign(`${hrefs.eventBase}${id}`);
-        } catch {
+        } catch (error) {
             setBusy(false);
+            // Refused, perhaps because people joined since: checked against
+            // the count now, the form can say what's in the way.
+            if (editing && eventId && errorKind(error) === 'denied') {
+                const fresh = await joinedNowFor(eventId, editing);
+                const again = fresh && validateEventDraft(draft, { now: clock(), editing: fresh });
+                if (again && !again.ok) {
+                    setErrors(again.errors);
+                    setSummaryFocus((n) => n + 1);
+                    return;
+                }
+            }
             setProblem(mode === 'edit' ? copy.saveFailed : copy.failed);
         }
     };
@@ -298,8 +372,12 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
         </Field>
     );
 
-    const today = utcToZoned(now, draft.timeZone || deviceTimeZone()).date;
-    const resolvedStart = draft.date && draft.startTime && draft.timeZone ? zonedTimeToUtc(draft.date, draft.startTime, draft.timeZone) : null;
+    // A zone this browser doesn't know (from a draft kept elsewhere) would
+    // make the dates throw: the list opens instead, to choose another.
+    const zoneKnown = isTimeZone(draft.timeZone);
+    const zoneShown = zoneOpen || !zoneKnown || !!errors.timeZone;
+    const today = utcToZoned(now, zoneKnown ? draft.timeZone : deviceTimeZone()).date;
+    const resolvedStart = draft.date && draft.startTime && zoneKnown ? zonedTimeToUtc(draft.date, draft.startTime, draft.timeZone) : null;
     const startLine = resolvedStart
         ? fmt(copy.startsAt, {
             when: fmt(whenWords.withZone, {
@@ -310,8 +388,14 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
         : '';
     const place = placeLine({ venue: draft.venue, address: draft.address, city: draft.city, region: draft.region }, draft.country ? countryName(draft.country, lang) : '');
 
-    const suggestedZones = [...new Set([deviceTimeZone(), ...countryTimeZones(draft.country), ...(draft.timeZone ? [draft.timeZone] : [])])].filter(Boolean);
-    const otherZones = allTimeZones().filter((z) => !suggestedZones.includes(z));
+    // Folded: the start, or before there is one the zone, with the button.
+    const zoneLine = zoneShown ? startLine : startLine || fmt(copy.timesIn, { zone: zoneLabel(draft.timeZone, lang) });
+    const suggestedZones = zoneShown ? [...new Set([deviceTimeZone(), ...countryTimeZones(draft.country), ...(zoneKnown ? [draft.timeZone] : [])])].filter(Boolean) : [];
+    const otherZones = zoneShown ? allTimeZones().filter((z) => !suggestedZones.includes(z)) : [];
+    const openZone = () => {
+        zoneFocus.current = true;
+        setZoneOpen(true);
+    };
     const common = commonCountries.flatMap((code) => countries.find((c) => c.code === code) ?? []);
 
     return (
@@ -341,10 +425,12 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
 
             <Fieldset id="seva-about" legend={copy.about}>
                 {textField('title', copy.title, { hint: copy.titleHint })}
+                {/* Pills, like who may sign up: each category's word is read
+                    with it, and the chosen one's is shown below. */}
                 <Fieldset id={fieldId('category')} legend={copy.category} size="question" error={errorOf('category')}>
-                    <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="flex flex-wrap gap-2">
                         {SEVA_CATEGORIES.map((id) => (
-                            <label key={id} className="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border border-edge-strong p-3 has-[:checked]:border-kesri-deep has-[:checked]:bg-kesri/10 dark:has-[:checked]:border-kesri">
+                            <label key={id} className={PILL}>
                                 <input
                                     type="radio"
                                     name="category"
@@ -352,15 +438,14 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
                                     checked={draft.category === id}
                                     onChange={() => set({ category: id })}
                                     aria-describedby={`category-hint-${id}`}
-                                    className="mt-0.5 h-5 w-5 shrink-0"
+                                    className="h-4 w-4 shrink-0"
                                 />
-                                <span>
-                                    <span className="block font-semibold text-ink">{categories[id]}</span>
-                                    <span id={`category-hint-${id}`} className="block text-sm text-ink-muted">{copy.categoryHints[id]}</span>
-                                </span>
+                                {categories[id]}
+                                <span id={`category-hint-${id}`} hidden>{copy.categoryHints[id]}</span>
                             </label>
                         ))}
                     </div>
+                    <p aria-hidden="true" className="mt-2 min-h-5 text-sm text-ink-muted">{isCategory(draft.category) ? copy.categoryHints[draft.category] : ''}</p>
                 </Fieldset>
                 <Field id={fieldId('description')} label={copy.description} optional={optional} hint={copy.descriptionHint} error={errorOf('description')}>
                     {(c) => (
@@ -382,20 +467,33 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
             </Fieldset>
 
             <Fieldset id="seva-when" legend={copy.when}>
-                <div className="grid gap-4 sm:grid-cols-3">
-                    <Field id={fieldId('date')} label={copy.date} error={errorOf('date')}>
+                {/* On a phone the date has a row, and the times share one. */}
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                    <Field id={fieldId('date')} label={copy.date} error={errorOf('date')} className="col-span-2 sm:col-span-1">
                         {(c) => (
                             <input id={c.id} type="date" required min={mode === 'create' ? today : undefined} value={draft.date} onChange={(e) => set({ date: e.target.value })} aria-describedby={c.describedBy} aria-invalid={c.invalid || undefined} className={INPUT} />
                         )}
                     </Field>
                     <Field id={fieldId('startTime')} label={copy.start} error={errorOf('startTime')}>
                         {(c) => (
-                            <input id={c.id} type="time" required value={draft.startTime} onChange={(e) => set({ startTime: e.target.value })} aria-describedby={c.describedBy} aria-invalid={c.invalid || undefined} className={INPUT} />
+                            <input id={c.id} type="time" required value={draft.startTime} onChange={(e) => chooseStart(e.target.value)} aria-describedby={c.describedBy} aria-invalid={c.invalid || undefined} className={INPUT} />
                         )}
                     </Field>
                     <Field id={fieldId('endTime')} label={copy.end} error={errorOf('endTime')}>
                         {(c) => (
-                            <input id={c.id} type="time" required value={draft.endTime} onChange={(e) => set({ endTime: e.target.value })} aria-describedby={c.describedBy} aria-invalid={c.invalid || undefined} className={INPUT} />
+                            <input
+                                id={c.id}
+                                type="time"
+                                required
+                                value={draft.endTime}
+                                onChange={(e) => {
+                                    endAuto.current = false;
+                                    set({ endTime: e.target.value });
+                                }}
+                                aria-describedby={c.describedBy}
+                                aria-invalid={c.invalid || undefined}
+                                className={INPUT}
+                            />
                         )}
                     </Field>
                 </div>
@@ -410,30 +508,49 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
                         )}
                     </Field>
                 )}
-                <Field id={fieldId('timeZone')} label={copy.timeZone} hint={copy.timeZoneHint} error={errorOf('timeZone')}>
-                    {(c) => (
-                        <select
-                            id={c.id}
-                            required
-                            value={draft.timeZone}
-                            onChange={(e) => {
-                                zoneTouched.current = true;
-                                set({ timeZone: e.target.value });
-                            }}
-                            aria-describedby={c.describedBy}
-                            aria-invalid={c.invalid || undefined}
-                            className={INPUT}
-                        >
-                            <optgroup label={copy.suggestedZones}>
-                                {suggestedZones.map((z) => <option key={z} value={z}>{zoneLabel(z, lang)}</option>)}
-                            </optgroup>
-                            <optgroup label={copy.allZones}>
-                                {otherZones.map((z) => <option key={z} value={z}>{zoneLabel(z, lang)}</option>)}
-                            </optgroup>
-                        </select>
-                    )}
-                </Field>
-                {startLine && <p className="text-sm text-ink-muted">{startLine}</p>}
+                {zoneShown && (
+                    <Field id={fieldId('timeZone')} label={copy.timeZone} hint={copy.timeZoneHint} error={errorOf('timeZone')}>
+                        {(c) => (
+                            <select
+                                ref={zoneRef}
+                                id={c.id}
+                                required
+                                value={draft.timeZone}
+                                onChange={(e) => {
+                                    zoneTouched.current = true;
+                                    // Once used, it stays open, even if it
+                                    // opened for a problem now fixed.
+                                    setZoneOpen(true);
+                                    set({ timeZone: e.target.value });
+                                }}
+                                aria-describedby={c.describedBy}
+                                aria-invalid={c.invalid || undefined}
+                                className={INPUT}
+                            >
+                                <optgroup label={copy.suggestedZones}>
+                                    {suggestedZones.map((z) => <option key={z} value={z}>{zoneLabel(z, lang)}</option>)}
+                                </optgroup>
+                                <optgroup label={copy.allZones}>
+                                    {otherZones.map((z) => <option key={z} value={z}>{zoneLabel(z, lang)}</option>)}
+                                </optgroup>
+                            </select>
+                        )}
+                    </Field>
+                )}
+                {zoneLine && (
+                    <p className="text-sm text-ink-muted">
+                        {zoneLine}
+                        {!zoneShown && (
+                            <>
+                                {' '}
+                                <span className="whitespace-nowrap">
+                                    <span aria-hidden="true">· </span>
+                                    <button type="button" onClick={openZone} className="font-semibold text-accent-text underline">{copy.changeZone}</button>
+                                </span>
+                            </>
+                        )}
+                    </p>
+                )}
             </Fieldset>
 
             <Fieldset id="seva-where" legend={copy.where}>
@@ -463,18 +580,48 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
                 )}
             </Fieldset>
 
-            <Fieldset id="seva-volunteers" legend={copy.volunteers}>
-                <Field
-                    id={fieldId('spots')}
-                    label={copy.spots}
-                    hint={editing && editing.volunteerCount > 0 ? `${fmt(copy.spotsHint, { max: SEVA_SPOTS[1] })} ${fmt(copy.spotsJoined, { n: editing.volunteerCount })}` : fmt(copy.spotsHint, { max: SEVA_SPOTS[1] })}
-                    error={errorOf('spots')}
-                    className="sm:max-w-xs"
-                >
-                    {(c) => (
-                        <input id={c.id} type="text" inputMode="numeric" required value={draft.spots} onChange={(e) => set({ spots: e.target.value })} aria-describedby={c.describedBy} aria-invalid={c.invalid || undefined} className={INPUT} />
-                    )}
-                </Field>
+            {/* Who may sign up. Each choice's word is read with it (a hidden
+                span, so it isn't part of its name); the chosen one's is shown
+                below. A limit asks for the number, next in the tab order. */}
+            <Fieldset
+                id={fieldId('signup')}
+                legend={copy.signup}
+                hint={editing && editing.volunteerCount > 0 ? fmt(copy.signupJoinedHint, { n: editing.volunteerCount }) : undefined}
+                error={errorOf('signup')}
+            >
+                <div>
+                    <div className="flex flex-wrap gap-2">
+                        {SIGNUP_MODES.map((m) => (
+                            <label key={m} className={PILL}>
+                                <input
+                                    type="radio"
+                                    name="signup"
+                                    value={m}
+                                    checked={draft.signup === m}
+                                    onChange={() => set({ signup: m })}
+                                    aria-describedby={`signup-hint-${m}`}
+                                    className="h-4 w-4 shrink-0"
+                                />
+                                {copy.signupOptions[m]}
+                                <span id={`signup-hint-${m}`} hidden>{copy.signupHints[m]}</span>
+                            </label>
+                        ))}
+                    </div>
+                    <p aria-hidden="true" className="mt-2 text-sm text-ink-muted">{copy.signupHints[draft.signup]}</p>
+                </div>
+                {draft.signup === 'limited' && (
+                    <Field
+                        id={fieldId('spots')}
+                        label={copy.spots}
+                        hint={fmt(copy.spotsHint, { max: SEVA_SPOTS[1] })}
+                        error={errorOf('spots')}
+                        className="sm:max-w-xs"
+                    >
+                        {(c) => (
+                            <input id={c.id} type="text" inputMode="numeric" required value={draft.spots} onChange={(e) => set({ spots: e.target.value })} aria-describedby={c.describedBy} aria-invalid={c.invalid || undefined} className={INPUT} />
+                        )}
+                    </Field>
+                )}
             </Fieldset>
 
             <Fieldset id="seva-host" legend={copy.host}>
@@ -483,7 +630,7 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
             </Fieldset>
 
             <p className="text-sm text-ink-muted">
-                {copy.publicNotice}{' '}
+                {copy.publicNotice}{draft.signup !== 'none' && ` ${copy.joinNotice}`}{' '}
                 <IntentLink href={hrefs.privacy} className="underline">{copy.privacyLink}</IntentLink>
             </p>
 

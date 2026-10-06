@@ -4,9 +4,11 @@
 // in the console. Nothing here throws; a document that isn't what the app
 // writes is null, and the page goes on without it.
 
-import { isCategory, isCountryCode, isEventId, isReportReason } from './config';
-import { SEVA_EVENT_VERSION } from './limits';
-import type { Report, SevaEvent, Signup, Volunteer } from './model';
+import { fmt } from '@/lib/i18n/fmt';
+import type { SevaCopy } from '@/lib/i18n/seva';
+import { isCategory, isCountryCode, isEventId, isReportReason, type SignupMode } from './config';
+import { SEVA_EVENT_VERSION, SEVA_SPOTS } from './limits';
+import type { EventFields, Report, SevaEvent, Signup, Volunteer } from './model';
 import { isTimeZone } from './time';
 
 // A Firestore time, however it arrives: a Timestamp from the SDK, a Date, an
@@ -28,6 +30,14 @@ export function toMillis(v: unknown): number | null {
 const text = (v: unknown): string => (typeof v === 'string' ? v : '');
 const count = (v: unknown): number | null => (typeof v === 'number' && Number.isSafeInteger(v) ? v : null);
 
+// Spots as stored: null (no limit), 0 (no sign-up) or a limit. Anything else,
+// a missing field included, is undefined: "no limit" is only an explicit null.
+function readSpots(v: unknown): number | null | undefined {
+    if (v === null) return null;
+    const n = count(v);
+    return n !== null && n >= 0 ? n : undefined;
+}
+
 // An event as the app wrote it, or null: one from before these rules (no
 // version), one moderators hid (unless the reader is allowed to see it), or
 // one whose essentials don't hold together.
@@ -39,11 +49,12 @@ export function parseEvent(id: string, raw: unknown, { allowHidden = false } = {
     const status = d.status === 'open' || d.status === 'cancelled' ? d.status : null;
     const startsAt = toMillis(d.startsAt);
     const endsAt = toMillis(d.endsAt);
-    const spots = count(d.spots);
+    const spots = readSpots(d.spots);
     const title = text(d.title).trim();
-    if (!status || startsAt === null || endsAt === null || endsAt <= startsAt || spots === null || spots < 1 || !title) {
+    if (!status || startsAt === null || endsAt === null || endsAt <= startsAt || spots === undefined || !title) {
         return null;
     }
+    const joined = Math.max(count(d.volunteerCount) ?? 0, 0);
     return {
         id,
         title,
@@ -64,7 +75,7 @@ export function parseEvent(id: string, raw: unknown, { allowHidden = false } = {
         contact: text(d.contact),
         spots,
         // A count edited by hand could stray; what's shown stays sensible.
-        volunteerCount: Math.min(Math.max(count(d.volunteerCount) ?? 0, 0), spots),
+        volunteerCount: Math.min(joined, spots ?? SEVA_SPOTS[1]),
         status,
         cancelNote: text(d.cancelNote),
         hidden: d.hidden === true,
@@ -98,7 +109,60 @@ export function parseReport(id: string, raw: unknown): Report | null {
     return { id, eventId: d.eventId, reason: d.reason, note: text(d.note), createdAt };
 }
 
-// Whether an event is over at a given moment, or has room.
+// Whether an event is over at a given moment.
 export const hasEnded = (e: SevaEvent, now: number) => e.endsAt <= now;
-export const isFull = (e: SevaEvent) => e.volunteerCount >= e.spots;
-export const spotsLeft = (e: SevaEvent) => Math.max(e.spots - e.volunteerCount, 0);
+
+// Who may sign up, and the room left: what the pages read instead of the
+// spots themselves, which mean three things (./model.ts). Each takes just
+// the two fields, so the islands can pass the event as they keep it.
+type Counted = Pick<SevaEvent, 'spots' | 'volunteerCount'>;
+
+// With no set limit, sign-ups stop at the most a limit can be (./limits.ts).
+export type Room =
+    | { mode: 'none' }
+    | { mode: 'unlimited'; joined: number; full: boolean }
+    | { mode: 'limited'; joined: number; spots: number; left: number; full: boolean };
+
+export const signupMode = ({ spots }: Pick<EventFields, 'spots'>): SignupMode =>
+    spots === null ? 'unlimited' : spots === 0 ? 'none' : 'limited';
+
+export function room({ spots, volunteerCount: joined }: Counted): Room {
+    if (spots === null) return { mode: 'unlimited', joined, full: joined >= SEVA_SPOTS[1] };
+    if (spots === 0) return { mode: 'none' };
+    return { mode: 'limited', joined, spots, left: Math.max(spots - joined, 0), full: joined >= spots };
+}
+
+// Whether the host asked for sign-ups at all: the setting, not whether one
+// can be made now (a cancelled or past event still takes them).
+export const takesSignups = (e: Pick<EventFields, 'spots'>) => e.spots !== 0;
+
+// Full: a limit reached, or with none set, the most there can be.
+export const isFull = (e: Counted) => {
+    const r = room(e);
+    return r.mode !== 'none' && r.full;
+};
+
+// Who may sign up, and how many have, in words, as the board's cards and the
+// event page's Join card both say it: "No sign-up needed", "Volunteers: 12",
+// or, with a limit, "Volunteers: 3 of 20" and "Spots left: 17" (or "Full"),
+// with how full, 0–100, for the bar beside them.
+export type SignupWords = Pick<SevaCopy['common'], 'capacity' | 'spotsLeft' | 'full' | 'capacityNoLimit' | 'noSignup'>;
+
+export type SignupLine =
+    | { mode: 'none' | 'unlimited'; text: string }
+    | { mode: 'limited'; text: string; left: string; percent: number };
+
+export function signupLine(e: Counted, words: SignupWords): SignupLine {
+    const r = room(e);
+    if (r.mode === 'none') return { mode: 'none', text: words.noSignup };
+    if (r.mode === 'unlimited') {
+        const text = fmt(words.capacityNoLimit, { count: r.joined });
+        return { mode: 'unlimited', text: r.full ? `${text} · ${words.full}` : text };
+    }
+    return {
+        mode: 'limited',
+        text: fmt(words.capacity, { count: r.joined, spots: r.spots }),
+        left: r.full ? words.full : fmt(words.spotsLeft, { n: r.left }),
+        percent: Math.round((Math.min(r.joined, r.spots) / r.spots) * 100),
+    };
+}

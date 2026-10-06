@@ -12,6 +12,7 @@ import type { Lang } from '@/lib/i18n/config';
 import { formatDate } from '@/lib/i18n/date';
 import { fmt } from '@/lib/i18n/fmt';
 import type { SevaCopy } from '@/lib/i18n/seva';
+import { room, takesSignups } from '@/lib/seva/event';
 import { SEVA_TEXT } from '@/lib/seva/limits';
 import { telUrl } from '@/lib/seva/links';
 import type { Volunteer } from '@/lib/seva/model';
@@ -44,6 +45,9 @@ export default function HostTools({ lang, copy, cancelCopy, volunteersCopy, retr
 
     if (viewer.kind !== 'ready' || !viewer.is.isHost) return null;
     const cancelled = event.status === 'cancelled';
+    // An event that takes no sign-ups has no one to list (the rules keep its
+    // count at 0).
+    const signups = takesSignups(event);
 
     const reopen = async () => {
         if (busy) return;
@@ -68,9 +72,11 @@ export default function HostTools({ lang, copy, cancelCopy, volunteersCopy, retr
             {event.hidden && <p className="mt-3 rounded-lg border border-edge-strong p-3 text-ink">{copy.hiddenNotice}</p>}
             <div className="mt-4 flex flex-wrap gap-3">
                 <IntentLink href={editHref} className={SECONDARY_BUTTON}>{copy.edit}</IntentLink>
-                <button type="button" onClick={() => setVolunteersOpen(true)} className={SECONDARY_BUTTON}>
-                    {fmt(copy.volunteers, { n: event.volunteerCount })}
-                </button>
+                {signups && (
+                    <button type="button" onClick={() => setVolunteersOpen(true)} className={SECONDARY_BUTTON}>
+                        {fmt(copy.volunteers, { n: event.volunteerCount })}
+                    </button>
+                )}
                 <IntentLink href={postAgainHref} className={SECONDARY_BUTTON} aria-describedby="post-again-hint">{copy.postAgain}</IntentLink>
                 {!ended && (cancelled ? (
                     <button type="button" onClick={reopen} aria-disabled={busy || undefined} className={SECONDARY_BUTTON}>
@@ -138,6 +144,7 @@ function VolunteersBody({ onClose, copy, retry, lang }: { onClose: () => void; c
         } catch { /* nothing copied; the details are on screen */ }
     };
 
+    const r = room(event);
     const people = Array.isArray(list) ? list : [];
     const emails = people.map((v) => v.email).filter(Boolean);
     const phones = people.map((v) => v.phone).filter(Boolean);
@@ -146,7 +153,9 @@ function VolunteersBody({ onClose, copy, retry, lang }: { onClose: () => void; c
         <div className="p-5">
             <h2 id="volunteers-title" tabIndex={-1} data-initial-focus className="text-lg font-bold text-ink">{copy.title}</h2>
             <p className="mt-1 text-sm text-ink-muted [overflow-wrap:anywhere]">{event.title}</p>
-            <p className="mt-1 text-sm text-ink">{fmt(copy.count, { count: event.volunteerCount, spots: event.spots })}</p>
+            <p className="mt-1 text-sm text-ink">
+                {r.mode === 'limited' ? fmt(copy.count, { count: r.joined, spots: r.spots }) : fmt(copy.countNoLimit, { count: event.volunteerCount })}
+            </p>
             {list === null && <p role="status" className="mt-4 text-ink-muted">{copy.loading}</p>}
             {list === 'failed' && (
                 <div className="mt-4">
@@ -268,9 +277,15 @@ function CancelBody({ onClose, copy, onSeeVolunteers, onCancelled }: {
     return (
         <div className="p-5">
             <h2 id="cancel-title" className="text-lg font-bold text-ink">{copy.title}</h2>
-            <p className="mt-2 text-ink">{copy.body}</p>
-            <button type="button" onClick={onSeeVolunteers} className="mt-2 font-semibold text-accent-text underline">{copy.seeVolunteers}</button>
-            <Field id="cancel-note" label={copy.note} hint={copy.noteHint} className="mt-4">
+            {takesSignups(event) ? (
+                <>
+                    <p className="mt-2 text-ink">{copy.body}</p>
+                    <button type="button" onClick={onSeeVolunteers} className="mt-2 font-semibold text-accent-text underline">{copy.seeVolunteers}</button>
+                </>
+            ) : (
+                <p className="mt-2 text-ink">{copy.bodyNoSignup}</p>
+            )}
+            <Field id="cancel-note" label={takesSignups(event) ? copy.note : copy.noteNoSignup} hint={copy.noteHint} className="mt-4">
                 {(c) => (
                     <>
                         <textarea

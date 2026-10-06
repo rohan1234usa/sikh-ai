@@ -157,8 +157,10 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
             <div className="space-y-6 lg:col-start-2 lg:row-span-2 lg:row-start-1">
               <JoinCard
                 copy={copy.actions}
-                capacity={{ count: copy.common.capacity, left: copy.common.spotsLeft }}
-                fullLabel={copy.common.full}
+                words={{
+                  capacity: copy.common.capacity, spotsLeft: copy.common.spotsLeft, full: copy.common.full,
+                  capacityNoLimit: copy.common.capacityNoLimit, noSignup: copy.common.noSignup,
+                }}
                 hostingLabel={copy.event.youAreHosting}
                 contactFallback={event.contact ? fmt(copy.event.noAccountContact, { contact: event.contact }) : null}
               />
