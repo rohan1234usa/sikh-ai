@@ -178,7 +178,7 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
     }
 
     return (
-        <section aria-labelledby="your-seva" className="rounded-xl border border-edge bg-surface-raised p-5 shadow-sm">
+        <section aria-labelledby="your-seva" className="rounded-xl border border-edge bg-surface-raised p-4 shadow-sm sm:p-5">
             <h2 ref={titleRef} id="your-seva" tabIndex={-1} className="text-lg font-bold text-ink">{copy.title}</h2>
             {body}
             {announcer}

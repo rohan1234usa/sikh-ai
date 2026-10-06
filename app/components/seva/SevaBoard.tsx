@@ -84,7 +84,7 @@ export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, cop
 
     return (
         <div className="space-y-6">
-            <div role="search" aria-label={copy.aria} className="rounded-xl border border-edge bg-surface-raised p-4 shadow-sm">
+            <div role="search" aria-label={copy.aria} className="rounded-xl border border-edge bg-surface-raised p-4 shadow-sm sm:p-5">
                 <div className="grid gap-4 sm:grid-cols-3">
                     <div>
                         <label htmlFor="filter-country" className="block text-sm font-semibold text-ink">{copy.country}</label>
