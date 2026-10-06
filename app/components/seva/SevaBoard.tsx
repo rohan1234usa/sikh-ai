@@ -155,7 +155,7 @@ export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, cop
                     const headingId = `day-${group.key}`;
                     return (
                         <section key={group.key} aria-labelledby={headingId}>
-                            <h2 id={headingId} className="text-lg font-bold text-ink">
+                            <h2 id={headingId} className="text-base font-semibold text-ink-muted">
                                 {group.dateTime ? <time dateTime={group.dateTime}>{group.heading}</time> : group.heading}
                             </h2>
                             <ul className="mt-3 space-y-3">
