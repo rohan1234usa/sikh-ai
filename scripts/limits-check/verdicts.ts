@@ -2,7 +2,7 @@
 // apart from the network so tests/api/limits-check.test.ts can try every
 // case: the README's (Running in production, step 3) and the ways it fails.
 
-const MINUTE_MS = 60_000;
+import { MINUTE_MS } from '../../lib/api/allowance';
 
 // One answer, as the check keeps it.
 // - code: the JSON body's top-level `code`. The routes' own refusals and
@@ -82,6 +82,13 @@ export function judgeAnswer(a: Answer, want: Expected, noStore: boolean): Verdic
     return { ok: true, detail: noStore ? `${labelOf(a)}, no-store` : labelOf(a) };
 }
 
+// The same request without what got it refused: anything but a refusal
+// passes, since the route may still find its own source down or busy.
+export function judgeNotRefused(a: Answer): Verdict {
+    if (a.status === 403 || a.status === 415) return { ok: false, detail: `got ${labelOf(a)}: refused without the header too` };
+    return { ok: true, detail: `${labelOf(a)}, not refused` };
+}
+
 // A burst whose first answer is already a refusal ran into a limit left over
 // from before it, an earlier burst or run: it shows nothing.
 function leftOver(answers: Answer[]): Verdict | null {
@@ -100,7 +107,10 @@ export function judgeVisitorLimit(answers: Answer[], feature: string): Verdict {
     if (early) return early;
     const stop = answers.find((a) => a.status !== 200);
     if (!stop) {
-        return { ok: false, detail: `${tally(answers)}: never limited, so the route isn't counting (a limit_skipped log line means it gets no address)` };
+        return {
+            ok: false,
+            detail: `${tally(answers)}: never limited. Either they reached more than one server, each counting on its own (run it again), or the route isn't counting (a limit_skipped log line means it gets no address)`,
+        };
     }
     if (isRouteLimit(stop) && stop.code?.startsWith(`${feature}_`)) {
         return stop.retryAfter
@@ -135,6 +145,26 @@ export function judgeRateLimited(answers: Answer[], want: Expected, limit: numbe
         return { ok: null, detail: `${tally(answers)}: a challenge at #${stop.n}, not the rate limit` };
     }
     return { ok: false, detail: `${tally(answers)}: ${labelOf(stop)} at #${stop.n}` };
+}
+
+// The regions a burst's answers came from. The firewall counts each region
+// on its own, so a burst that didn't pass from more than one is worth
+// running again; one that met the 429 anyway has shown the rule.
+export function regionsOf(answers: Answer[], ok: boolean | null): string {
+    const edges = [...new Set(answers.map((a) => a.edge ?? 'no x-vercel-id'))];
+    const again = edges.length > 1 && ok !== true ? '; more than one region, so run it again' : '';
+    return `${edges.join(' + ')}${again}`;
+}
+
+// The run's last line and exit code: 1 when a check failed, 2 when none
+// failed but one couldn't tell, so a run that showed nothing never looks
+// like a pass.
+export function outcome(verdicts: Verdict[]): { line: string; exitCode: number } {
+    const failed = verdicts.filter((v) => v.ok === false).length;
+    const unsure = verdicts.filter((v) => v.ok === null).length;
+    if (failed) return { line: `${failed} failed`, exitCode: 1 };
+    if (unsure) return { line: `none failed, ${unsure} unsure`, exitCode: 2 };
+    return { line: 'all passed', exitCode: 0 };
 }
 
 // A path the rule has to leave out (/api/csp-report): never a 429.

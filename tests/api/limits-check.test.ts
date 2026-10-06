@@ -7,9 +7,12 @@ import {
     isRouteLimit,
     judgeAnswer,
     judgeLeftOut,
+    judgeNotRefused,
     judgeRateLimited,
     judgeVisitorLimit,
     nextStart,
+    outcome,
+    regionsOf,
     tally,
     type Answer,
 } from '../../scripts/limits-check/verdicts';
@@ -69,11 +72,20 @@ test('a burst starts three seconds into the first minute that is late enough', (
     assert.equal(nextStart(minute, minute + 75_000), minute + 123_000);
 });
 
-test('a refusal needs its status and no-store; the search needs only its 200', () => {
+test('a refusal needs its status and no-store; any other answer only its status', () => {
     assert.deepEqual(judgeAnswer(one({ status: 415, cacheControl: 'no-store' }), { status: 415 }, true), { ok: true, detail: '415, no-store' });
     assert.equal(judgeAnswer(one({ status: 415, cacheControl: 'public, max-age=0' }), { status: 415 }, true).ok, false);
     assert.equal(judgeAnswer(one(EMPTY), { status: 415 }, true).detail, 'got 400 chat_empty, wanted 415');
     assert.equal(judgeAnswer(one({ status: 200, cacheControl: 'public, max-age=3600' }), { status: 200 }, false).ok, true);
+});
+
+test('the same request without the refused header passes unless it is refused too', () => {
+    assert.deepEqual(judgeNotRefused(one({ status: 200 })), { ok: true, detail: '200, not refused' });
+    // The source being down or busy is the route answering, not refusing.
+    assert.equal(judgeNotRefused(one({ status: 502, code: 'source_error' })).ok, true);
+    assert.equal(judgeNotRefused(one({ status: 429, code: 'search_busy' })).ok, true);
+    assert.deepEqual(judgeNotRefused(one({ status: 403 })), { ok: false, detail: 'got 403: refused without the header too' });
+    assert.equal(judgeNotRefused(one({ status: 415 })).ok, false);
 });
 
 test("the per-visitor limit passes on the route's own 429, and fails when nothing counts", () => {
@@ -81,6 +93,7 @@ test("the per-visitor limit passes on the route's own 429, and fails when nothin
     assert.deepEqual(limited, { ok: true, detail: '10 × 200, 2 × 429 verify_busy: verify_busy from #11, Retry-After 54' });
     const uncounted = judgeVisitorLimit(run([12, { status: 200 }]), 'verify');
     assert.equal(uncounted.ok, false);
+    assert.match(uncounted.detail, /more than one server, each counting on its own \(run it again\)/);
     assert.match(uncounted.detail, /limit_skipped/);
     assert.equal(judgeVisitorLimit(run([10, { status: 200 }], [2, FIREWALL]), 'verify').ok, false);
     assert.deepEqual(judgeVisitorLimit(run([10, { status: 200 }], [2, { status: 429, code: 'verify_busy' }]), 'verify'), {
@@ -109,6 +122,24 @@ test("the firewall fails when it never limits, or denies instead; a leftover or 
     assert.equal(judgeRateLimited(run([45, FIREWALL]), EMPTY, 20).ok, null);
     assert.equal(judgeRateLimited(run([20, EMPTY], [25, { status: 429, mitigated: 'challenge' }]), EMPTY, 20).ok, null);
     assert.equal(judgeRateLimited(run([20, EMPTY], [1, { status: 500, code: 'chat_failed' }]), EMPTY, 20).ok, false);
+});
+
+test('regions: one is just named; more than one asks for a rerun unless the burst passed', () => {
+    assert.equal(regionsOf(run([3, EMPTY]), false), 'sfo1::iad1');
+    const split = run([2, EMPTY], [1, { ...EMPTY, edge: 'lax1::iad1' }]);
+    assert.equal(regionsOf(split, false), 'sfo1::iad1 + lax1::iad1; more than one region, so run it again');
+    assert.equal(regionsOf(split, null), 'sfo1::iad1 + lax1::iad1; more than one region, so run it again');
+    assert.equal(regionsOf(split, true), 'sfo1::iad1 + lax1::iad1');
+    assert.equal(regionsOf(run([1, { ...EMPTY, edge: null }]), true), 'no x-vercel-id');
+});
+
+test('a run that showed nothing never exits like a pass', () => {
+    const pass = { ok: true, detail: '' };
+    const fail = { ok: false, detail: '' };
+    const unsure = { ok: null, detail: '' };
+    assert.deepEqual(outcome([pass, pass]), { line: 'all passed', exitCode: 0 });
+    assert.deepEqual(outcome([pass, unsure, unsure]), { line: 'none failed, 2 unsure', exitCode: 2 });
+    assert.deepEqual(outcome([pass, unsure, fail]), { line: '1 failed', exitCode: 1 });
 });
 
 test('a path the rule leaves out passes only if it is never limited', () => {

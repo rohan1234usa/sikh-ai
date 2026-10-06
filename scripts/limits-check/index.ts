@@ -11,14 +11,17 @@
 // --bursts runs your own address into the limits, so the site answers you
 // 429 for up to a minute after each burst:
 // - 12 quote checks: the route's own limit (lib/api/allowance.ts) has to stop
-//   the 11th, which also proves the routes see each visitor's address.
+//   the 11th, which also proves the routes see each visitor's address. Each
+//   server counts on its own, so a burst that none of them stopped is sent
+//   once more.
 // - 45 empty chat posts, 45 searches for an Ang number (the routes turn both
 //   away without counting them) and 45 CSP reports, four a second, each
 //   burst at least a minute after the last: the firewall has to answer the
 //   first two with 429 and leave the reports alone.
 // Each burst starts about three seconds into a minute by the site's clock,
 // so the routes' per-minute count, and a firewall window if it keeps the
-// clock's, doesn't split it. It exits 1 when a check fails.
+// clock's, doesn't split it. It exits 1 when a check fails, and 2 when none
+// failed but one couldn't tell.
 
 import { setTimeout as sleep } from 'node:timers/promises';
 import { VISITOR_LIMITS } from '../../lib/api/allowance';
@@ -27,9 +30,12 @@ import {
     edgeOf,
     judgeAnswer,
     judgeLeftOut,
+    judgeNotRefused,
     judgeRateLimited,
     judgeVisitorLimit,
     nextStart,
+    outcome,
+    regionsOf,
     type Answer,
     type Verdict,
 } from './verdicts';
@@ -44,7 +50,12 @@ const FIREWALL_LIMIT = 20;
 const BURST = 45;
 // Four a second: the firewall's counts lag real traffic by a few seconds.
 const PACE_MS = 250;
-// Long enough for any window an earlier burst ran into to end.
+// Long enough for any window an earlier burst ran into to end. It counts
+// from the end of that burst, not its start: the window may run from the
+// first request it counted rather than the clock's minute, and its counts
+// lag, so a burst begun a bare minute after the last could still meet that
+// one's 429 and show nothing. Rounding up to the next start makes the
+// bursts about two minutes apart.
 const GAP_MS = 60_000;
 // Past the slowest route's own deadline (/api/chat/verify gives up at 15 s).
 const TIMEOUT_MS = 30_000;
@@ -61,6 +72,8 @@ Usage: npm run check:limits -- [flags]
                  to a minute after each burst
   --base <url>   Another public deployment (default ${DEFAULT_BASE})
   --help         This message
+
+Exits 1 when a check fails, and 2 when none failed but one couldn't tell.
 `;
 
 type Options = { base: string; bursts: boolean };
@@ -84,7 +97,9 @@ function parseArgs(argv: string[]): Options {
     return opts;
 }
 
-type Probe = { method: 'GET' | 'POST'; path: string; headers?: Record<string, string>; body?: string };
+// `costly`: a request the route has to turn away, since answering it could
+// cost something (a chat message reaching Gemini).
+type Probe = { method: 'GET' | 'POST'; path: string; headers?: Record<string, string>; body?: string; costly?: boolean };
 type Burst = { answers: Answer[]; from: number; to: number };
 
 // The site's clock minus this one's, from the last Date header: it's rounded
@@ -102,9 +117,9 @@ async function send(base: string, probe: Probe, n: number): Promise<Answer> {
     const body = await res.text();
     const date = Date.parse(res.headers.get('date') ?? '');
     if (!Number.isNaN(date)) offsetMs = date + 500 - Date.now();
-    // An empty message can only be refused. Anything else means the chat
-    // answered, so stop before another request could cost something.
-    if (probe.path === '/api/chat' && res.ok) throw new Error(`/api/chat answered ${res.status} to an empty message: stopping`);
+    // A costly probe can only be refused. Anything else means the route
+    // answered it, so stop before another request could cost something.
+    if (probe.costly && res.ok) throw new Error(`${probe.path} answered ${res.status} to a request it should refuse: stopping`);
     return {
         n,
         status: res.status,
@@ -143,13 +158,7 @@ const verdicts: Verdict[] = [];
 function report(name: string, verdict: Verdict, run?: Burst): Verdict {
     verdicts.push(verdict);
     const mark = verdict.ok === true ? 'pass' : verdict.ok === false ? 'FAIL' : 'unsure';
-    let where = '';
-    if (run) {
-        const edges = [...new Set(run.answers.map((a) => a.edge ?? 'no x-vercel-id'))];
-        // The firewall counts each region on its own, so a split burst can pass unlimited.
-        const split = edges.length > 1 ? '; more than one region, so run it again' : '';
-        where = ` [${utc(run.from + offsetMs)}–${utc(run.to + offsetMs)} UTC, ${edges.join(' + ')}${split}]`;
-    }
+    const where = run ? ` [${utc(run.from + offsetMs)}–${utc(run.to + offsetMs)} UTC, ${regionsOf(run.answers, verdict.ok)}]` : '';
     console.log(`${mark.padEnd(6)} ${name}: ${verdict.detail}${where}`);
     return verdict;
 }
@@ -161,18 +170,28 @@ async function main(): Promise<void> {
     // The search carries a parameter the route ignores, so no copy the CDN
     // kept from someone's earlier search can answer it: only the route.
     const search = `/api/shabad/search?q=so+purakh+niranjan&check=${Date.now()}`;
-    const chat = (headers: Record<string, string>): Probe => ({ method: 'POST', path: '/api/chat', headers, body: EMPTY_CHAT });
+    const chat = (headers: Record<string, string>): Probe => ({ method: 'POST', path: '/api/chat', headers, body: EMPTY_CHAT, costly: true });
     report('cross-site search', judgeAnswer(await send(base, { method: 'GET', path: search, headers: CROSS_SITE }, 1), { status: 403 }, true));
-    report('the same search', judgeAnswer(await send(base, { method: 'GET', path: search }, 1), { status: 200 }, false));
+    report('the same search, not cross-site', judgeNotRefused(await send(base, { method: 'GET', path: search }, 1)));
     report('chat as text/plain', judgeAnswer(await send(base, chat({ 'content-type': 'text/plain' }), 1), { status: 415 }, true));
     report('cross-site chat', judgeAnswer(await send(base, chat({ ...JSON_TYPE, ...CROSS_SITE }), 1), { status: 403 }, true));
 
     if (bursts) {
         console.log('Bursts: the site answers this address 429 for up to a minute after each.');
         const quote: Probe = { method: 'POST', path: '/api/chat/verify', headers: JSON_TYPE, body: JSON.stringify({ text: QUOTE }) };
+        const sends = VISITOR_LIMITS.verify.perMinute + 2;
         await startAt(Date.now());
-        let run = await burst(base, quote, VISITOR_LIMITS.verify.perMinute + 2, 0);
-        report('per-visitor limit (quote checks)', judgeVisitorLimit(run.answers, 'verify'), run);
+        let run = await burst(base, quote, sends, 0);
+        let visitor = judgeVisitorLimit(run.answers, 'verify');
+        if (visitor.ok === false && run.answers.every((a) => a.status === 200)) {
+            // Each server counts on its own, and these may have reached more
+            // than one: once more, in a minute of their own.
+            console.log(`       none of the ${sends} was limited; sending them once more`);
+            await startAt(run.to + GAP_MS);
+            run = await burst(base, quote, sends, 0);
+            visitor = judgeVisitorLimit(run.answers, 'verify');
+        }
+        report('per-visitor limit (quote checks)', visitor, run);
 
         await startAt(run.to + GAP_MS);
         run = await burst(base, chat(JSON_TYPE), BURST, PACE_MS);
@@ -194,10 +213,9 @@ async function main(): Promise<void> {
         }
     }
 
-    const failed = verdicts.filter((v) => v.ok === false).length;
-    const unsure = verdicts.filter((v) => v.ok === null).length;
-    console.log(failed ? `${failed} failed` : unsure ? `none failed, ${unsure} unsure` : 'all passed');
-    if (failed) process.exitCode = 1;
+    const { line, exitCode } = outcome(verdicts);
+    console.log(line);
+    process.exitCode = exitCode;
 }
 
 main().catch((error: unknown) => {
