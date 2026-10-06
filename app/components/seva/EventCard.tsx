@@ -11,17 +11,20 @@ import { CHIP, PANEL } from './styles';
 // One event on the board or the home page: its title is the link to its page,
 // stretched over the card, and the rest is a list of facts. Under a day's
 // heading only the times are given; elsewhere the whole date. On the board,
-// `mark` is a chip for the one signed in (MyPartChip): passed in, not
-// imported here, so the home page's strip, which has none, doesn't load it.
+// `mark` draws a chip for the one signed in (MyPartChip), with the id the
+// title's link takes as its description, so a screen reader moving by link
+// hears it too. It's passed in, not imported here, so the home page's strip,
+// which has none, doesn't load it.
 export default function EventCard({ event, display, href, copy, showDate = false, mark }: {
     event: SevaEvent;
     display: EventDisplay;
     href: string;
     copy: SevaCopy['common'];
     showDate?: boolean;
-    mark?: ReactNode;
+    mark?: (id: string) => ReactNode;
 }) {
     const titleId = `event-${event.id}`;
+    const markId = `${titleId}-mark`;
     const full = isFull(event);
     return (
         <article
@@ -31,10 +34,10 @@ export default function EventCard({ event, display, href, copy, showDate = false
             <p className="flex flex-wrap items-center gap-2">
                 <span className={CHIP}>{copy.categories[event.category]}</span>
                 {full && <span className={`${CHIP} font-semibold`}>{copy.full}</span>}
-                {mark}
+                {mark?.(markId)}
             </p>
             <h3 id={titleId} className="mt-2 text-lg font-bold leading-snug text-ink [overflow-wrap:anywhere]">
-                <IntentLink href={href} className="after:absolute after:inset-0 after:content-[''] hover:underline">
+                <IntentLink href={href} aria-describedby={mark ? markId : undefined} className="after:absolute after:inset-0 after:content-[''] hover:underline">
                     <Mixed text={event.title} />
                 </IntentLink>
             </h3>

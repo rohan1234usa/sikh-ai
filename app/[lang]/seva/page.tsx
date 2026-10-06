@@ -55,7 +55,7 @@ export default async function SevaBoardPage() {
       href={to(eventHref(event.id))}
       copy={copy.common}
       showDate={showDate}
-      mark={<MyPartChip />}
+      mark={(id) => <MyPartChip id={id} />}
     />
   );
   const item = (event: SevaEvent, showDate: boolean) => ({ id: event.id, facets: facetsOf(event), card: card(event, showDate) });
