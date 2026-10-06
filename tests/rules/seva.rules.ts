@@ -442,12 +442,17 @@ test('joining stops when the event is full, takes no sign-ups, is cancelled, hid
     await assertSucceeds(join('amar', K_A, id(5))); // under way
 });
 
-test('with no limit, anyone can join, past 500 too, and leave', async () => {
-    await seedEvent(E, { spots: null, volunteerCount: 500 });
+test('with no set limit, anyone can join up to 500, the most a limit can be, and leave', async () => {
+    await seedEvent(E, { spots: null, volunteerCount: 499 });
     await assertSucceeds(join('amar', K_A));
-    assert.equal((await peek(`seva_events/${E}`))?.volunteerCount, 501);
-    await assertSucceeds(leave('amar', K_A));
     assert.equal((await peek(`seva_events/${E}`))?.volunteerCount, 500);
+    await assertFails(join('bina', K_B, E, bina));
+    await assertSucceeds(leave('amar', K_A));
+    assert.equal((await peek(`seva_events/${E}`))?.volunteerCount, 499);
+    await assertSucceeds(join('bina', K_B, E, bina));
+    // The count can't stray past it, through an edit either.
+    await seedEvent(id(2), { spots: null, volunteerCount: 501 });
+    await assertFails(commit(as('hana'), planUpdateEvent(id(2), { title: 'Over' }, S)));
 });
 
 test('two people racing for the last spot: only one gets it', async () => {

@@ -60,20 +60,24 @@ test('who may sign up reads back as written: a limit, none (null) or no sign-up 
     assert.equal(parseEvent(ID, missing), null, 'a missing field');
 });
 
-test('the count is held to the spots only when there is a limit', () => {
+test('the count is held to the spots, or with no set limit to 500', () => {
     assert.equal(parseEvent(ID, raw({ spots: 0, volunteerCount: 4 }))?.volunteerCount, 0);
-    assert.equal(parseEvent(ID, raw({ spots: null, volunteerCount: 999 }))?.volunteerCount, 999);
+    assert.equal(parseEvent(ID, raw({ spots: null, volunteerCount: 499 }))?.volunteerCount, 499);
+    assert.equal(parseEvent(ID, raw({ spots: null, volunteerCount: 999 }))?.volunteerCount, 500);
     assert.equal(parseEvent(ID, raw({ spots: null, volunteerCount: -2 }))?.volunteerCount, 0);
     assert.equal(parseEvent(ID, raw({ spots: 5, volunteerCount: 9 }))?.volunteerCount, 5);
 });
 
 test('the room an event has, by who may sign up', () => {
     const none = { spots: 0, volunteerCount: 0 };
-    const open = { spots: null, volunteerCount: 10_000 };
+    const open = { spots: null, volunteerCount: 120 };
     const limited = { spots: 20, volunteerCount: 3 };
     assert.deepEqual([signupMode(none), signupMode(open), signupMode(limited)], ['none', 'unlimited', 'limited']);
     assert.deepEqual(room(none), { mode: 'none' });
-    assert.deepEqual(room(open), { mode: 'unlimited', joined: 10_000 });
+    assert.deepEqual(room(open), { mode: 'unlimited', joined: 120, full: false });
+    // With no set limit, sign-ups stop at the most a limit can be.
+    assert.deepEqual(room({ spots: null, volunteerCount: 500 }), { mode: 'unlimited', joined: 500, full: true });
+    assert.ok(isFull({ spots: null, volunteerCount: 500 }));
     assert.deepEqual(room(limited), { mode: 'limited', joined: 3, spots: 20, left: 17, full: false });
     assert.deepEqual([takesSignups(none), takesSignups(open), takesSignups(limited)], [false, true, true]);
     // In a comparison null counts as 0, so these would be "full" if read

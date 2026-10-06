@@ -7,7 +7,7 @@
 import { fmt } from '@/lib/i18n/fmt';
 import type { SevaCopy } from '@/lib/i18n/seva';
 import { isCategory, isCountryCode, isEventId, isReportReason, type SignupMode } from './config';
-import { SEVA_EVENT_VERSION } from './limits';
+import { SEVA_EVENT_VERSION, SEVA_SPOTS } from './limits';
 import type { EventFields, Report, SevaEvent, Signup, Volunteer } from './model';
 import { isTimeZone } from './time';
 
@@ -75,7 +75,7 @@ export function parseEvent(id: string, raw: unknown, { allowHidden = false } = {
         contact: text(d.contact),
         spots,
         // A count edited by hand could stray; what's shown stays sensible.
-        volunteerCount: spots === null ? joined : Math.min(joined, spots),
+        volunteerCount: Math.min(joined, spots ?? SEVA_SPOTS[1]),
         status,
         cancelNote: text(d.cancelNote),
         hidden: d.hidden === true,
@@ -117,16 +117,17 @@ export const hasEnded = (e: SevaEvent, now: number) => e.endsAt <= now;
 // the two fields, so the islands can pass the event as they keep it.
 type Counted = Pick<SevaEvent, 'spots' | 'volunteerCount'>;
 
+// With no set limit, sign-ups stop at the most a limit can be (./limits.ts).
 export type Room =
     | { mode: 'none' }
-    | { mode: 'unlimited'; joined: number }
+    | { mode: 'unlimited'; joined: number; full: boolean }
     | { mode: 'limited'; joined: number; spots: number; left: number; full: boolean };
 
 export const signupMode = ({ spots }: Pick<EventFields, 'spots'>): SignupMode =>
     spots === null ? 'unlimited' : spots === 0 ? 'none' : 'limited';
 
 export function room({ spots, volunteerCount: joined }: Counted): Room {
-    if (spots === null) return { mode: 'unlimited', joined };
+    if (spots === null) return { mode: 'unlimited', joined, full: joined >= SEVA_SPOTS[1] };
     if (spots === 0) return { mode: 'none' };
     return { mode: 'limited', joined, spots, left: Math.max(spots - joined, 0), full: joined >= spots };
 }
@@ -135,10 +136,10 @@ export function room({ spots, volunteerCount: joined }: Counted): Room {
 // can be made now (a cancelled or past event still takes them).
 export const takesSignups = (e: Pick<EventFields, 'spots'>) => e.spots !== 0;
 
-// Full only with a limit, and reached.
+// Full: a limit reached, or with none set, the most there can be.
 export const isFull = (e: Counted) => {
     const r = room(e);
-    return r.mode === 'limited' && r.full;
+    return r.mode !== 'none' && r.full;
 };
 
 // Who may sign up, and how many have, in words, as the board's cards and the
@@ -154,7 +155,10 @@ export type SignupLine =
 export function signupLine(e: Counted, words: SignupWords): SignupLine {
     const r = room(e);
     if (r.mode === 'none') return { mode: 'none', text: words.noSignup };
-    if (r.mode === 'unlimited') return { mode: 'unlimited', text: fmt(words.capacityNoLimit, { count: r.joined }) };
+    if (r.mode === 'unlimited') {
+        const text = fmt(words.capacityNoLimit, { count: r.joined });
+        return { mode: 'unlimited', text: r.full ? `${text} · ${words.full}` : text };
+    }
     return {
         mode: 'limited',
         text: fmt(words.capacity, { count: r.joined, spots: r.spots }),

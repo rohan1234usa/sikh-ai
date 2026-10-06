@@ -10,6 +10,7 @@ const common = getSevaCopy('en').common;
 test('each way of signing up has its own line, and only a limit has a bar', () => {
     assert.deepEqual(signupLine({ spots: 0, volunteerCount: 0 }, common), { mode: 'none', text: 'No sign-up needed' });
     assert.deepEqual(signupLine({ spots: null, volunteerCount: 12 }, common), { mode: 'unlimited', text: 'Volunteers: 12' });
+    assert.deepEqual(signupLine({ spots: null, volunteerCount: 500 }, common), { mode: 'unlimited', text: 'Volunteers: 500 · Full' });
     assert.deepEqual(signupLine({ spots: 20, volunteerCount: 3 }, common), {
         mode: 'limited', text: 'Volunteers: 3 of 20', left: 'Spots left: 17', percent: 15,
     });

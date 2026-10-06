@@ -71,12 +71,12 @@ test('the upcoming list is one cached POST for the whole day, with no key, share
 });
 
 test('events with no limit, or no sign-up, come through the list as they are', async () => {
-    const open = restDoc({ id: 'N0LimitEventId000000', spots: null, volunteerCount: 640 });
+    const open = restDoc({ id: 'N0LimitEventId000000', spots: null, volunteerCount: 64 });
     const none = restDoc({ id: 'N0SignupEventId00000', spots: 0, volunteerCount: 0 });
     answer = () => Response.json([{ document: open }, { document: none }]);
     const read = await fetchUpcomingEvents(Date.UTC(2026, 9, 2, 8));
     assert.equal(read.kind, 'ok');
-    assert.deepEqual(read.kind === 'ok' && read.value.map((e) => [e.spots, e.volunteerCount]), [[null, 640], [0, 0]]);
+    assert.deepEqual(read.kind === 'ok' && read.value.map((e) => [e.spots, e.volunteerCount]), [[null, 64], [0, 0]]);
 });
 
 test('an event is ok, missing (404, 403, hidden or unreadable) or failed (anything else)', async () => {
