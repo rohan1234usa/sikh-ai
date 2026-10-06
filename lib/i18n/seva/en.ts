@@ -58,6 +58,9 @@ const seva = {
         whereLabel: 'Where',
         contactLabel: 'Contact',
         hostedBy: 'Hosted by {name}',
+        // A board card's word for the one signed in.
+        youHost: 'You’re hosting',
+        youJoined: 'You’ve joined',
     },
 
     // The board, /seva.

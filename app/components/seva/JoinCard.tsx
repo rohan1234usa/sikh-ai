@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { BUTTON_LG, PRIMARY_BUTTON, SECONDARY_BUTTON } from '@/app/components/buttons';
 import { ERROR_TEXT, Field, INPUT } from '@/app/components/form/Field';
 import { useAnnouncer } from '@/app/components/useAnnouncer';
@@ -29,6 +30,7 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
     contactFallback: string | null;
 }) {
     const { signIn, signInIntent, user } = useAuth();
+    const router = useRouter();
     const { event, viewer, ended, update, setIs, whenViewer } = useEvent();
     const [mode, setMode] = useState<Mode>('idle');
     const [editing, setEditing] = useState(false);
@@ -44,6 +46,12 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
     const headingRef = useRef<HTMLHeadingElement>(null);
     const focusNext = useRef<'join' | 'name' | 'joined' | 'stay' | null>(null);
     const ids = useId();
+
+    // After a join or a leave, the server builds this page and the board
+    // again; then this tab lets go of the copies it kept (router.refresh), so
+    // Back to the board shows the new count beside the new mark rather than
+    // the count from before.
+    const refreshAfterChange = () => { void refreshPages(event.id).then(() => router.refresh()); };
 
     const is = viewer.kind === 'ready' ? viewer.is : null;
     const joined = !!is?.signup;
@@ -160,7 +168,7 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
             update({ volunteerCount: event.volunteerCount + 1 });
             setMode('idle');
             focusNext.current = 'joined';
-            void refreshPages(event.id);
+            refreshAfterChange();
         } catch (error) {
             setMode('form');
             setProblem(editing ? copy.errors.saveFailed : errorKind(error) === 'denied' ? await refusal() : copy.errors.failed);
@@ -178,7 +186,7 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
             setMode('idle');
             setNote(open ? copy.left : copy.signupRemoved);
             focusNext.current = 'join';
-            void refreshPages(event.id);
+            refreshAfterChange();
         } catch {
             setMode(open ? 'confirmLeave' : 'idle');
             setProblem(copy.errors.leaveFailed);

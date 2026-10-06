@@ -10,9 +10,9 @@ import { fmt } from '@/lib/i18n/fmt';
 import type { SevaCopy } from '@/lib/i18n/seva';
 import type { Hosting, SevaEvent, Signup } from '@/lib/seva/model';
 import { formatDate } from '@/lib/seva/time';
-import { CHIP } from './EventCard';
-import { useMinute } from './hooks';
+import { setMyEvents, useMinute } from './hooks';
 import { loadSeva } from './sevaClient';
+import { CHIP, PANEL } from './styles';
 
 const SHOWN = 5;
 
@@ -60,6 +60,19 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
         refocus.current = false;
         (joinedRef.current ?? titleRef.current)?.focus();
     });
+
+    // The board marks the events in these lists (SevaBoard) for as long as
+    // they're shown here: the marks go with them on sign-out, for another
+    // account, or when the board is left.
+    const listsShown = user && mine?.uid === user.uid && mine.data !== 'failed' ? mine.data : null;
+    useEffect(() => {
+        if (!listsShown) return;
+        setMyEvents({
+            hosting: new Set(listsShown.hosting.map((h) => h.hosting.eventId)),
+            joined: new Set(listsShown.joined.map((j) => j.signup.eventId)),
+        });
+        return () => setMyEvents(null);
+    }, [listsShown]);
 
     if (!user) return null;
     const data = mine?.uid === user.uid ? mine.data : null;
@@ -178,7 +191,7 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
     }
 
     return (
-        <section aria-labelledby="your-seva" className="rounded-xl border border-edge bg-surface-raised p-5 shadow-sm">
+        <section aria-labelledby="your-seva" className={PANEL}>
             <h2 ref={titleRef} id="your-seva" tabIndex={-1} className="text-lg font-bold text-ink">{copy.title}</h2>
             {body}
             {announcer}
