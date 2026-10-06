@@ -129,15 +129,12 @@ export function room({ spots, volunteerCount: joined }: Counted): Room {
     return { mode: 'limited', joined, spots, left: Math.max(spots - joined, 0), full: joined >= spots };
 }
 
-// Its setting, whatever its state: cancelled or over, it still "takes" them.
+// Whether the host asked for sign-ups at all: the setting, not whether one
+// can be made now (a cancelled or past event still takes them).
 export const takesSignups = (e: Pick<EventFields, 'spots'>) => e.spots !== 0;
 
-// Full only with a limit, and reached; spots left only with a limit.
+// Full only with a limit, and reached.
 export const isFull = (e: Counted) => {
     const r = room(e);
     return r.mode === 'limited' && r.full;
-};
-export const spotsLeft = (e: Counted): number | null => {
-    const r = room(e);
-    return r.mode === 'limited' ? r.left : null;
 };

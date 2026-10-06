@@ -268,6 +268,7 @@ const seva = {
         bodyNoSignup: 'It comes off the list of events, and its page will say it’s cancelled. Leave a message for anyone planning to come.',
         seeVolunteers: 'See volunteers’ contacts',
         note: 'Message for volunteers',
+        noteNoSignup: 'Message for anyone coming',
         noteHint: 'Shown on the event page, for example “Moved to next Sunday”.',
         confirm: 'Cancel event',
         keep: 'Keep event',
@@ -341,9 +342,9 @@ const seva = {
         // The time zone, folded into a line until it's to be changed. No full
         // stop: the button follows it.
         timesIn: 'Times are in {zone}',
+        changeZone: 'Change time zone',
         // Said when the form fills in the end for the host.
         endFilled: 'End time set to {time}, 2 hours after the start.',
-        changeZone: 'Change time zone',
         suggestedZones: 'Suggested',
         allZones: 'All time zones',
         startsAt: 'Starts {when}',

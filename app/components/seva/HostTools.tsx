@@ -285,7 +285,7 @@ function CancelBody({ onClose, copy, onSeeVolunteers, onCancelled }: {
             ) : (
                 <p className="mt-2 text-ink">{copy.bodyNoSignup}</p>
             )}
-            <Field id="cancel-note" label={copy.note} hint={copy.noteHint} className="mt-4">
+            <Field id="cancel-note" label={takesSignups(event) ? copy.note : copy.noteNoSignup} hint={copy.noteHint} className="mt-4">
                 {(c) => (
                     <>
                         <textarea

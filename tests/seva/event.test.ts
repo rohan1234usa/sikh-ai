@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { hasEnded, isFull, parseEvent, parseReport, parseSignup, parseVolunteer, room, signupMode, spotsLeft, takesSignups, toMillis } from '@/lib/seva/event';
+import { hasEnded, isFull, parseEvent, parseReport, parseSignup, parseVolunteer, room, signupMode, takesSignups, toMillis } from '@/lib/seva/event';
 import { ID, KEY, event } from './helpers';
 
 // As Firestore would hand it back: times as Timestamps, from the SDK.
@@ -79,15 +79,16 @@ test('the room an event has, by who may sign up', () => {
     // In a comparison null counts as 0, so these would be "full" if read
     // straight from the spots.
     assert.deepEqual([isFull(none), isFull(open)], [false, false]);
-    assert.deepEqual([spotsLeft(none), spotsLeft(open)], [null, null]);
     assert.ok(isFull({ spots: 3, volunteerCount: 3 }));
 });
 
 test('ended, full and spots left', () => {
     const e = event({ volunteerCount: 20 });
     assert.ok(isFull(e));
-    assert.equal(spotsLeft(e), 0);
-    assert.equal(spotsLeft(event()), 17);
+    assert.deepEqual(room(e), { mode: 'limited', joined: 20, spots: 20, left: 0, full: true });
+    // A count past the limit (written by hand) leaves no spots, never fewer.
+    assert.deepEqual(room({ spots: 20, volunteerCount: 25 }), { mode: 'limited', joined: 25, spots: 20, left: 0, full: true });
+    assert.deepEqual(room(event()), { mode: 'limited', joined: 3, spots: 20, left: 17, full: false });
     assert.ok(hasEnded(e, e.endsAt));
     assert.ok(!hasEnded(e, e.endsAt - 1));
 });
