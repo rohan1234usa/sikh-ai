@@ -46,8 +46,8 @@ export default async function SevaBoardPage() {
   }
   const events = read.kind === 'ok' ? upcoming(read.value, now) : null;
 
-  // Each card says whether the one signed in hosts it or has joined it.
-  const mineLabels = { hosting: copy.common.youHost, joined: copy.common.youJoined };
+  // Each card has room for a word to the one signed in, that they host it or
+  // have joined it, which the board fills in the browser (SevaBoard).
   const card = (event: SevaEvent, showDate: boolean) => (
     <EventCard
       event={event}
@@ -55,7 +55,7 @@ export default async function SevaBoardPage() {
       href={to(eventHref(event.id))}
       copy={copy.common}
       showDate={showDate}
-      mark={<MyPartChip eventId={event.id} labels={mineLabels} />}
+      mark={<MyPartChip />}
     />
   );
   const item = (event: SevaEvent, showDate: boolean) => ({ id: event.id, facets: facetsOf(event), card: card(event, showDate) });
@@ -105,6 +105,7 @@ export default async function SevaBoardPage() {
             countryNames={countryNames}
             categoryNames={copy.common.categories}
             createHref={to(CREATE_HREF)}
+            mineLabels={{ hosting: copy.common.youHost, joined: copy.common.youJoined }}
           />
         )}
 

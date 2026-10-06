@@ -10,7 +10,7 @@ import { fmt } from '@/lib/i18n/fmt';
 import type { SevaCopy } from '@/lib/i18n/seva';
 import type { Hosting, SevaEvent, Signup } from '@/lib/seva/model';
 import { formatDate } from '@/lib/seva/time';
-import { setJoined, setMyEvents, useMinute } from './hooks';
+import { setMyEvents, useMinute } from './hooks';
 import { loadSeva } from './sevaClient';
 import { CHIP, PANEL } from './styles';
 
@@ -48,16 +48,7 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
         let cancelled = false;
         loadSeva()
             .then((seva) => Promise.all([seva.mine(user.uid), seva.isAdmin(user.uid)]))
-            .then(([lists, admin]) => {
-                if (cancelled) return;
-                setMine({ uid: user.uid, data: { ...lists, admin } });
-                // The board's cards mark these (MyPartChip).
-                setMyEvents({
-                    uid: user.uid,
-                    hosting: new Set(lists.hosting.map((h) => h.hosting.eventId)),
-                    joined: new Set(lists.joined.map((j) => j.signup.eventId)),
-                });
-            })
+            .then(([lists, admin]) => { if (!cancelled) setMine({ uid: user.uid, data: { ...lists, admin } }); })
             .catch(() => { if (!cancelled) setMine({ uid: user.uid, data: 'failed' }); });
         return () => { cancelled = true; };
     }, [user, attempt]);
@@ -70,6 +61,19 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
         (joinedRef.current ?? titleRef.current)?.focus();
     });
 
+    // The board marks the events in these lists (SevaBoard) for as long as
+    // they're shown here: the marks go with them on sign-out, for another
+    // account, or when the board is left.
+    const listsShown = user && mine?.uid === user.uid && mine.data !== 'failed' ? mine.data : null;
+    useEffect(() => {
+        if (!listsShown) return;
+        setMyEvents({
+            hosting: new Set(listsShown.hosting.map((h) => h.hosting.eventId)),
+            joined: new Set(listsShown.joined.map((j) => j.signup.eventId)),
+        });
+        return () => setMyEvents(null);
+    }, [listsShown]);
+
     if (!user) return null;
     const data = mine?.uid === user.uid ? mine.data : null;
 
@@ -78,7 +82,6 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
         setProblem('');
         try {
             await (await loadSeva()).leave(user.uid, signup.eventId, signup.volunteerId);
-            setJoined(user.uid, signup.eventId, false);
             setMine((m) => (m && m.data !== 'failed'
                 ? { ...m, data: { ...m.data, joined: m.data.joined.filter((j) => j.signup.eventId !== signup.eventId) } }
                 : m));

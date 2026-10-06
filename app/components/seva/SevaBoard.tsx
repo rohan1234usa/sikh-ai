@@ -10,7 +10,8 @@ import type { SevaCopy } from '@/lib/i18n/seva';
 import type { SevaCategory } from '@/lib/seva/config';
 import { SEVA_CATEGORIES } from '@/lib/seva/limits';
 import { NO_FILTERS, filterOptions, filtersToSearch, matches, parseFilters, type Facets, type Filters } from '@/lib/seva/listing';
-import { replaceSearch, saveCountry, useMinute, useSavedCountry, useSearch } from './hooks';
+import { replaceSearch, saveCountry, useMinute, useMyEvents, useSavedCountry, useSearch } from './hooks';
+import { MyPart } from './MyPartChip';
 import { PANEL } from './styles';
 
 export type BoardItem = { id: string; facets: Facets; card: ReactNode };
@@ -20,8 +21,10 @@ export type BoardGroup = { key: string; heading: string; dateTime?: string; item
 // carries what it's filtered by, so the browser only shows or hides them.
 // The filters live in the address, so a filtered list can be shared, and
 // Back from an event comes back to it; with none there, the country chosen
-// last time. Until the page is interactive, every card shows.
-export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, copy, countryNames, categoryNames, createHref }: {
+// last time. Until the page is interactive, every card shows. The cards of
+// events the one signed in hosts or has joined say so (MyPart), from the
+// lists "Your seva" shows.
+export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, copy, countryNames, categoryNames, createHref, mineLabels }: {
     lang: Lang;
     groups: BoardGroup[];
     // "Upcoming events: {n}"
@@ -31,12 +34,14 @@ export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, cop
     countryNames: Record<string, string>;
     categoryNames: Record<SevaCategory, string>;
     createHref: string;
+    mineLabels: { hosting: string; joined: string };
 }) {
     const search = useSearch();
     const saved = useSavedCountry();
     // A cached page can be a few minutes old: events that have ended since
     // drop out once the browser knows the time.
     const now = useMinute();
+    const mine = useMyEvents();
     const { announce, announcer } = useAnnouncer();
     const countryRef = useRef<HTMLSelectElement>(null);
     const announceTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -49,6 +54,7 @@ export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, cop
         : { ...NO_FILTERS, country: all.some((f) => f.country === saved) ? saved : '' };
 
     const isShown = (f: Facets) => live(f) && matches(f, filters);
+    const markOf = (id: string) => (mine?.hosting.has(id) ? mineLabels.hosting : mine?.joined.has(id) ? mineLabels.joined : null);
     const liveFacets = all.filter(live);
     const shown = all.filter(isShown).length;
     const active = !!(filters.country || filters.city || filters.category);
@@ -160,7 +166,9 @@ export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, cop
                                 {group.dateTime ? <time dateTime={group.dateTime}>{group.heading}</time> : group.heading}
                             </h2>
                             <ul className="mt-3 space-y-3">
-                                {items.map((item) => <li key={item.id}>{item.card}</li>)}
+                                {items.map((item) => (
+                                    <li key={item.id}><MyPart.Provider value={markOf(item.id)}>{item.card}</MyPart.Provider></li>
+                                ))}
                             </ul>
                         </section>
                     );

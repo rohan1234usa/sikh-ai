@@ -12,7 +12,6 @@ import { errorKind } from '@/lib/seva/errors';
 import { SEVA_VOLUNTEER_TEXT } from '@/lib/seva/limits';
 import { validateJoin, type JoinErrors } from '@/lib/seva/validate';
 import { useEvent } from './EventContext';
-import { setJoined } from './hooks';
 import { loadSeva, refreshPages } from './sevaClient';
 
 type Mode = 'idle' | 'form' | 'busy' | 'confirmLeave';
@@ -158,7 +157,6 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
             }
             const signup = await seva.join(user.uid, event.id, result.fields);
             setIs({ signup, volunteer: { key: signup.volunteerId, joinedAt: signup.joinedAt, ...result.fields } });
-            setJoined(user.uid, event.id, true);
             update({ volunteerCount: event.volunteerCount + 1 });
             setMode('idle');
             focusNext.current = 'joined';
@@ -176,7 +174,6 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
         try {
             await (await loadSeva()).leave(user.uid, event.id, is.signup.volunteerId);
             setIs({ signup: null, volunteer: null });
-            setJoined(user.uid, event.id, false);
             update({ volunteerCount: Math.max(0, event.volunteerCount - 1) });
             setMode('idle');
             setNote(open ? copy.left : copy.signupRemoved);

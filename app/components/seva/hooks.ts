@@ -77,14 +77,16 @@ export function saveCountry(country: string) {
     window.dispatchEvent(new Event(COUNTRY_CHANGED));
 }
 
-// The events this account hosts and has joined, as "Your seva" last read
-// them from its notes, so the board's cards can say so without reading them
-// again. Each reader checks it's for the account signed in now.
-export type MyEvents = { uid: string; hosting: ReadonlySet<string>; joined: ReadonlySet<string> };
+// What the account signed in hosts and has joined, as "Your seva" shows it,
+// for the board to mark those events' cards (SevaBoard). The panel sets it
+// while it has its lists and clears it when it lets them go (signed out,
+// another account, the board left), so a mark never outlives the read it
+// came from.
+type MyEvents = { hosting: ReadonlySet<string>; joined: ReadonlySet<string> };
 let myEvents: MyEvents | null = null;
 const MY_EVENTS_CHANGED = 'sikhai:seva-mine';
 
-export function setMyEvents(next: MyEvents) {
+export function setMyEvents(next: MyEvents | null) {
     myEvents = next;
     window.dispatchEvent(new Event(MY_EVENTS_CHANGED));
 }
@@ -94,16 +96,6 @@ const subscribeMyEvents = (onChange: () => void) => {
     return () => window.removeEventListener(MY_EVENTS_CHANGED, onChange);
 };
 export const useMyEvents = () => useSyncExternalStore(subscribeMyEvents, () => myEvents, () => null);
-
-// A join or a leave made since, kept in step, so going back to the board
-// doesn't show the old state while "Your seva" reads the notes again.
-export function setJoined(uid: string, eventId: string, joined: boolean) {
-    if (myEvents?.uid !== uid) return;
-    const next = new Set(myEvents.joined);
-    if (joined) next.add(eventId);
-    else next.delete(eventId);
-    setMyEvents({ ...myEvents, joined: next });
-}
 
 // A word for an event's page to show once it opens, after a change made on
 // another page (the hosting form): posted, or saved. Kept for the tab, not in
