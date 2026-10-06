@@ -142,10 +142,12 @@ export function sevaClient(db: Firestore) {
 
         // "Your seva": the sign-ups and events in this account's own notes,
         // each with its event as it is now (null once it's gone or hidden).
+        // Newest first: notes of past events stay, so past the limit what's
+        // left out is the oldest, not whichever ids sort last.
         async mine(uid: string): Promise<{ joined: { signup: Signup; event: SevaEvent | null }[]; hosting: { hosting: Hosting; event: SevaEvent | null }[] }> {
             const [signups, hosted] = await Promise.all([
-                getDocs(query(collection(db, 'users', uid, 'seva_signups'), limit(SEVA_PAGE_MAX))),
-                getDocs(query(collection(db, 'users', uid, 'seva_hosting'), limit(SEVA_PAGE_MAX))),
+                getDocs(query(collection(db, 'users', uid, 'seva_signups'), orderBy('joinedAt', 'desc'), limit(SEVA_PAGE_MAX))),
+                getDocs(query(collection(db, 'users', uid, 'seva_hosting'), orderBy('createdAt', 'desc'), limit(SEVA_PAGE_MAX))),
             ]);
             const joined = await Promise.all(signups.docs.flatMap((d) => {
                 const signup = parseSignup(d.id, d.data());
