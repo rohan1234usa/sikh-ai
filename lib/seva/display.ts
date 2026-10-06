@@ -6,7 +6,7 @@ import type { Lang } from '@/lib/i18n/config';
 import { fmt } from '@/lib/i18n/fmt';
 import type { SevaCopy } from '@/lib/i18n/seva';
 import { countryName } from './countries';
-import { spotsLeft } from './event';
+import { filledPercent, spotsLeft } from './event';
 import { placeLine } from './links';
 import type { SevaEvent } from './model';
 import { formatDate, formatTimes, formatWhen, toIsoWithOffset, zoneName } from './time';
@@ -27,7 +27,7 @@ export type EventDisplay = {
     placeFull: string;
     capacity: string;
     spotsLeft: string;
-    // How full, 0–100, for the bar beside the words.
+    // How full, 0–100, for the bar beside the words (filledPercent).
     percent: number;
 };
 
@@ -45,6 +45,6 @@ export function describeEvent(e: SevaEvent, lang: Lang, copy: SevaCopy): EventDi
         placeFull: placeLine(e, country),
         capacity: fmt(copy.common.capacity, { count: e.volunteerCount, spots: e.spots }),
         spotsLeft: fmt(copy.common.spotsLeft, { n: spotsLeft(e) }),
-        percent: Math.round((Math.min(e.volunteerCount, e.spots) / e.spots) * 100),
+        percent: filledPercent(e),
     };
 }
