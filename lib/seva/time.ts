@@ -158,6 +158,22 @@ export const formatDate = (ms: number, tz: string, lang: Lang) => formatter(lang
 // "6:00 PM", at the venue.
 export const formatTime = (ms: number, tz: string, lang: Lang) => formatter(lang, tz, 'time').format(ms);
 
+// A clock time ('18:00') some minutes later the same day, or null if that
+// reaches midnight, or it isn't a time. On the clock face, whatever the
+// clocks do that night: the form suggests an end, and the host sees it.
+export function laterSameDay(time: string, minutes: number): string | null {
+    const m = TIME_RE.exec(time);
+    if (!m || Number(m[1]) > 23 || Number(m[2]) > 59) return null;
+    const total = Number(m[1]) * 60 + Number(m[2]) + minutes;
+    return total < 24 * 60 ? `${pad(Math.floor(total / 60))}:${pad(total % 60)}` : null;
+}
+
+// A clock time ('20:00') in words ("8:00 PM"), in no zone in particular.
+export function formatClock(time: string, lang: Lang): string {
+    const m = TIME_RE.exec(time);
+    return m ? formatTime(Date.UTC(2000, 0, 1, Number(m[1]), Number(m[2])), 'UTC', lang) : time;
+}
+
 // "Pacific Time", "India Standard Time": the zone in words.
 export function zoneName(ms: number, tz: string, lang: Lang): string {
     return formatter(lang, tz, 'zone').formatToParts(ms).find((p) => p.type === 'timeZoneName')?.value ?? tz;

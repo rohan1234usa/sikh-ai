@@ -21,7 +21,7 @@ import { SEVA_CATEGORIES, SEVA_MAX_DAYS_LONG, SEVA_SPOTS, SEVA_TEXT } from '@/li
 import { mapsUrl, placeLine } from '@/lib/seva/links';
 import type { SevaEvent } from '@/lib/seva/model';
 import { eventPatch } from '@/lib/seva/plans';
-import { formatDate, formatTime, isTimeZone, utcToZoned, zoneName, zonedTimeToUtc, type WhenWords } from '@/lib/seva/time';
+import { formatClock, formatDate, formatTime, isTimeZone, laterSameDay, utcToZoned, zoneName, zonedTimeToUtc, type WhenWords } from '@/lib/seva/time';
 import { allTimeZones, countryTimeZones, deviceTimeZone, zoneLabel } from '@/lib/seva/timezones';
 import { textLength, validateEventDraft, type DraftError, type DraftErrors, type EventDraft } from '@/lib/seva/validate';
 import { setFlash, useMinute, useMounted } from './hooks';
@@ -128,6 +128,9 @@ function freshDraft(name: string): EventDraft {
     return { ...EMPTY_DRAFT, timeZone: deviceTimeZone(), country: isCountryCode(country) ? country : '', city, organizer: name };
 }
 
+// The end the form suggests, after a start, as the copy says.
+const END_AFTER_MINUTES = 120;
+
 // The order fields appear in, for the error summary.
 const FIELD_ORDER: (keyof EventDraft)[] = [
     'title', 'category', 'description', 'date', 'startTime', 'endTime', 'endDate', 'timeZone',
@@ -158,6 +161,9 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
     const [zoneOpen, setZoneOpen] = useState(false);
     const zoneRef = useRef<HTMLSelectElement>(null);
     const zoneFocus = useRef(false);
+    // An end the form filled in, until the host changes it: it follows the
+    // start.
+    const endAuto = useRef(false);
     const dirty = useRef(false);
     const summaryRef = useRef<HTMLDivElement>(null);
     const { announce, announcer } = useAnnouncer();
@@ -206,6 +212,26 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
         }
     };
 
+    // A start fills in an empty end 2 hours later, on the same day, and says
+    // so once; an end it filled in follows the start. Not for an event that
+    // ends on a later day, whose end the host gives.
+    const chooseStart = (startTime: string) => {
+        const patch: Partial<EventDraft> = { startTime };
+        if (startTime && !draft.multiDay && (endAuto.current || !draft.endTime)) {
+            const end = laterSameDay(startTime, END_AFTER_MINUTES);
+            if (end) {
+                if (!endAuto.current) announce(fmt(copy.endFilled, { time: formatClock(end, lang) }));
+                endAuto.current = true;
+                patch.endTime = end;
+            } else if (endAuto.current) {
+                // Past midnight: the end filled in would come before the start.
+                endAuto.current = false;
+                patch.endTime = '';
+            }
+        }
+        set(patch);
+    };
+
     const reset = () => {
         clearDraft(route);
         dirty.current = false;
@@ -214,6 +240,7 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
         setErrors({});
         setAttempted(false);
         zoneTouched.current = mode === 'edit';
+        endAuto.current = false;
         setZoneOpen(false);
     };
 
@@ -447,12 +474,24 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
                     </Field>
                     <Field id={fieldId('startTime')} label={copy.start} error={errorOf('startTime')}>
                         {(c) => (
-                            <input id={c.id} type="time" required value={draft.startTime} onChange={(e) => set({ startTime: e.target.value })} aria-describedby={c.describedBy} aria-invalid={c.invalid || undefined} className={INPUT} />
+                            <input id={c.id} type="time" required value={draft.startTime} onChange={(e) => chooseStart(e.target.value)} aria-describedby={c.describedBy} aria-invalid={c.invalid || undefined} className={INPUT} />
                         )}
                     </Field>
                     <Field id={fieldId('endTime')} label={copy.end} error={errorOf('endTime')}>
                         {(c) => (
-                            <input id={c.id} type="time" required value={draft.endTime} onChange={(e) => set({ endTime: e.target.value })} aria-describedby={c.describedBy} aria-invalid={c.invalid || undefined} className={INPUT} />
+                            <input
+                                id={c.id}
+                                type="time"
+                                required
+                                value={draft.endTime}
+                                onChange={(e) => {
+                                    endAuto.current = false;
+                                    set({ endTime: e.target.value });
+                                }}
+                                aria-describedby={c.describedBy}
+                                aria-invalid={c.invalid || undefined}
+                                className={INPUT}
+                            />
                         )}
                     </Field>
                 </div>

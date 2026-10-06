@@ -341,6 +341,8 @@ const seva = {
         // The time zone, folded into a line until it's to be changed. No full
         // stop: the button follows it.
         timesIn: 'Times are in {zone}',
+        // Said when the form fills in the end for the host.
+        endFilled: 'End time set to {time}, 2 hours after the start.',
         changeZone: 'Change time zone',
         suggestedZones: 'Suggested',
         allZones: 'All time zones',

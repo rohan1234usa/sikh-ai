@@ -2,10 +2,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
     addDays,
+    formatClock,
     formatDayKey,
     formatTimes,
     formatWhen,
     isTimeZone,
+    laterSameDay,
     localDateKey,
     parseDate,
     shiftLocalDays,
@@ -84,4 +86,16 @@ test('Punjabi names the day, month and zone in Gurmukhi with Western digits; rom
     assert.match(formatWhen(e, 'pa-latn', WORDS), /^Saturday, October 10, 2026/);
     assert.notEqual(zoneName(e.startsAt, 'Asia/Kolkata', 'en'), 'Asia/Kolkata');
     assert.equal(formatDayKey('2026-10-10', 'en'), 'Saturday, October 10, 2026');
+});
+
+test('the end the form suggests: later the same day, or none past midnight', () => {
+    assert.equal(laterSameDay('18:00', 120), '20:00');
+    assert.equal(laterSameDay('09:45', 120), '11:45');
+    assert.equal(laterSameDay('21:59', 120), '23:59');
+    assert.equal(laterSameDay('22:00', 120), null, 'midnight is the next day');
+    assert.equal(laterSameDay('23:30', 120), null);
+    for (const bad of ['', '6pm', '24:00', '18:60', '7:00']) assert.equal(laterSameDay(bad, 120), null, bad);
+    assert.equal(formatClock('20:00', 'en'), '8:00 PM');
+    assert.match(formatClock('20:00', 'pa'), /8:00/);
+    assert.equal(formatClock('soon', 'en'), 'soon');
 });
