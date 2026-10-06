@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { filledPercent, hasEnded, isFull, parseEvent, parseReport, parseSignup, parseVolunteer, spotsLeft, toMillis } from '@/lib/seva/event';
+import { hasEnded, isFull, parseEvent, parseReport, parseSignup, parseVolunteer, spotsLeft, toMillis } from '@/lib/seva/event';
 import { ID, KEY, event } from './helpers';
 
 // As Firestore would hand it back: times as Timestamps, from the SDK.
@@ -57,14 +57,4 @@ test('ended, full and spots left', () => {
     assert.equal(spotsLeft(event()), 17);
     assert.ok(hasEnded(e, e.endsAt));
     assert.ok(!hasEnded(e, e.endsAt - 1));
-});
-
-test('how full, for the bar: nothing until someone joins, then at least 1', () => {
-    assert.equal(filledPercent(event({ volunteerCount: 0 })), 0);
-    assert.equal(filledPercent(event({ volunteerCount: 1, spots: 500 })), 1);
-    assert.equal(filledPercent(event()), 15);
-    assert.equal(filledPercent(event({ volunteerCount: 7, spots: 100 })), 7);
-    assert.equal(filledPercent(event({ volunteerCount: 20 })), 100);
-    // A count past the spots fills the bar, and no further.
-    assert.equal(filledPercent(event({ volunteerCount: 25 })), 100);
 });

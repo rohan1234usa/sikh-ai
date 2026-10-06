@@ -102,9 +102,3 @@ export function parseReport(id: string, raw: unknown): Report | null {
 export const hasEnded = (e: SevaEvent, now: number) => e.endsAt <= now;
 export const isFull = (e: SevaEvent) => e.volunteerCount >= e.spots;
 export const spotsLeft = (e: SevaEvent) => Math.max(e.spots - e.volunteerCount, 0);
-
-// How full, 0–100, for the bar beside the words: rounded, but at least 1
-// from the first volunteer, so the bar shows as soon as anyone joins (1 of
-// 500 would round to nothing).
-export const filledPercent = (e: SevaEvent) =>
-    e.volunteerCount > 0 ? Math.max(1, Math.round((Math.min(e.volunteerCount, e.spots) / e.spots) * 100)) : 0;

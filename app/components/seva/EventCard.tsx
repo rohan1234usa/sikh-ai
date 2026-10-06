@@ -51,7 +51,7 @@ export default function EventCard({ event, display, href, copy, showDate = false
                 </div>
             </dl>
             <p className="mt-1 text-sm text-ink-muted">
-                <CapacityLine capacity={display.capacity} spotsLeft={display.spotsLeft} percent={display.percent} full={full} fullLabel={copy.full} />
+                <CapacityLine capacity={display.capacity} spotsLeft={display.spotsLeft} percent={display.percent} anyJoined={event.volunteerCount > 0} full={full} fullLabel={copy.full} />
             </p>
         </article>
     );
