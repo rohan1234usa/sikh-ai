@@ -21,7 +21,7 @@ import { SEVA_CATEGORIES, SEVA_MAX_DAYS_LONG, SEVA_SPOTS, SEVA_TEXT } from '@/li
 import { mapsUrl, placeLine } from '@/lib/seva/links';
 import type { SevaEvent } from '@/lib/seva/model';
 import { eventPatch } from '@/lib/seva/plans';
-import { formatDate, formatTime, utcToZoned, zoneName, zonedTimeToUtc, type WhenWords } from '@/lib/seva/time';
+import { formatDate, formatTime, isTimeZone, utcToZoned, zoneName, zonedTimeToUtc, type WhenWords } from '@/lib/seva/time';
 import { allTimeZones, countryTimeZones, deviceTimeZone, zoneLabel } from '@/lib/seva/timezones';
 import { textLength, validateEventDraft, type DraftError, type DraftErrors, type EventDraft } from '@/lib/seva/validate';
 import { setFlash, useMinute, useMounted } from './hooks';
@@ -153,6 +153,11 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
     const [problem, setProblem] = useState('');
     const [summaryFocus, setSummaryFocus] = useState(0);
     const zoneTouched = useRef(start.origin !== 'fresh' || mode === 'edit');
+    // The time zone's list, folded into a line until it's wanted ("Change
+    // time zone", which hands it the focus, or a problem with it).
+    const [zoneOpen, setZoneOpen] = useState(false);
+    const zoneRef = useRef<HTMLSelectElement>(null);
+    const zoneFocus = useRef(false);
     const dirty = useRef(false);
     const summaryRef = useRef<HTMLDivElement>(null);
     const { announce, announcer } = useAnnouncer();
@@ -172,6 +177,13 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
     useEffect(() => {
         if (summaryFocus) summaryRef.current?.focus();
     }, [summaryFocus]);
+
+    useEffect(() => {
+        if (zoneOpen && zoneFocus.current) {
+            zoneFocus.current = false;
+            zoneRef.current?.focus();
+        }
+    }, [zoneOpen]);
 
     const set = (patch: Partial<EventDraft>) => {
         dirty.current = true;
@@ -202,6 +214,7 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
         setErrors({});
         setAttempted(false);
         zoneTouched.current = mode === 'edit';
+        setZoneOpen(false);
     };
 
     const message = (key: keyof EventDraft, error: DraftError): string => {
@@ -330,8 +343,12 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
         </Field>
     );
 
-    const today = utcToZoned(now, draft.timeZone || deviceTimeZone()).date;
-    const resolvedStart = draft.date && draft.startTime && draft.timeZone ? zonedTimeToUtc(draft.date, draft.startTime, draft.timeZone) : null;
+    // A zone this browser doesn't know (from a draft kept elsewhere) would
+    // make the dates throw: the list opens instead, to choose another.
+    const zoneKnown = isTimeZone(draft.timeZone);
+    const zoneShown = zoneOpen || !zoneKnown || !!errors.timeZone;
+    const today = utcToZoned(now, zoneKnown ? draft.timeZone : deviceTimeZone()).date;
+    const resolvedStart = draft.date && draft.startTime && zoneKnown ? zonedTimeToUtc(draft.date, draft.startTime, draft.timeZone) : null;
     const startLine = resolvedStart
         ? fmt(copy.startsAt, {
             when: fmt(whenWords.withZone, {
@@ -342,8 +359,14 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
         : '';
     const place = placeLine({ venue: draft.venue, address: draft.address, city: draft.city, region: draft.region }, draft.country ? countryName(draft.country, lang) : '');
 
-    const suggestedZones = [...new Set([deviceTimeZone(), ...countryTimeZones(draft.country), ...(draft.timeZone ? [draft.timeZone] : [])])].filter(Boolean);
-    const otherZones = allTimeZones().filter((z) => !suggestedZones.includes(z));
+    // Folded: the start, or before there is one the zone, with the button.
+    const zoneLine = zoneShown ? startLine : startLine || fmt(copy.timesIn, { zone: zoneLabel(draft.timeZone, lang) });
+    const suggestedZones = zoneShown ? [...new Set([deviceTimeZone(), ...countryTimeZones(draft.country), ...(zoneKnown ? [draft.timeZone] : [])])].filter(Boolean) : [];
+    const otherZones = zoneShown ? allTimeZones().filter((z) => !suggestedZones.includes(z)) : [];
+    const openZone = () => {
+        zoneFocus.current = true;
+        setZoneOpen(true);
+    };
     const common = commonCountries.flatMap((code) => countries.find((c) => c.code === code) ?? []);
 
     return (
@@ -415,8 +438,9 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
             </Fieldset>
 
             <Fieldset id="seva-when" legend={copy.when}>
-                <div className="grid gap-4 sm:grid-cols-3">
-                    <Field id={fieldId('date')} label={copy.date} error={errorOf('date')}>
+                {/* On a phone the date has a row, and the times share one. */}
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                    <Field id={fieldId('date')} label={copy.date} error={errorOf('date')} className="col-span-2 sm:col-span-1">
                         {(c) => (
                             <input id={c.id} type="date" required min={mode === 'create' ? today : undefined} value={draft.date} onChange={(e) => set({ date: e.target.value })} aria-describedby={c.describedBy} aria-invalid={c.invalid || undefined} className={INPUT} />
                         )}
@@ -443,30 +467,49 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
                         )}
                     </Field>
                 )}
-                <Field id={fieldId('timeZone')} label={copy.timeZone} hint={copy.timeZoneHint} error={errorOf('timeZone')}>
-                    {(c) => (
-                        <select
-                            id={c.id}
-                            required
-                            value={draft.timeZone}
-                            onChange={(e) => {
-                                zoneTouched.current = true;
-                                set({ timeZone: e.target.value });
-                            }}
-                            aria-describedby={c.describedBy}
-                            aria-invalid={c.invalid || undefined}
-                            className={INPUT}
-                        >
-                            <optgroup label={copy.suggestedZones}>
-                                {suggestedZones.map((z) => <option key={z} value={z}>{zoneLabel(z, lang)}</option>)}
-                            </optgroup>
-                            <optgroup label={copy.allZones}>
-                                {otherZones.map((z) => <option key={z} value={z}>{zoneLabel(z, lang)}</option>)}
-                            </optgroup>
-                        </select>
-                    )}
-                </Field>
-                {startLine && <p className="text-sm text-ink-muted">{startLine}</p>}
+                {zoneShown && (
+                    <Field id={fieldId('timeZone')} label={copy.timeZone} hint={copy.timeZoneHint} error={errorOf('timeZone')}>
+                        {(c) => (
+                            <select
+                                ref={zoneRef}
+                                id={c.id}
+                                required
+                                value={draft.timeZone}
+                                onChange={(e) => {
+                                    zoneTouched.current = true;
+                                    // Once used, it stays open, even if it
+                                    // opened for a problem now fixed.
+                                    setZoneOpen(true);
+                                    set({ timeZone: e.target.value });
+                                }}
+                                aria-describedby={c.describedBy}
+                                aria-invalid={c.invalid || undefined}
+                                className={INPUT}
+                            >
+                                <optgroup label={copy.suggestedZones}>
+                                    {suggestedZones.map((z) => <option key={z} value={z}>{zoneLabel(z, lang)}</option>)}
+                                </optgroup>
+                                <optgroup label={copy.allZones}>
+                                    {otherZones.map((z) => <option key={z} value={z}>{zoneLabel(z, lang)}</option>)}
+                                </optgroup>
+                            </select>
+                        )}
+                    </Field>
+                )}
+                {zoneLine && (
+                    <p className="text-sm text-ink-muted">
+                        {zoneLine}
+                        {!zoneShown && (
+                            <>
+                                {' '}
+                                <span className="whitespace-nowrap">
+                                    <span aria-hidden="true">· </span>
+                                    <button type="button" onClick={openZone} className="font-semibold text-accent-text underline">{copy.changeZone}</button>
+                                </span>
+                            </>
+                        )}
+                    </p>
+                )}
             </Fieldset>
 
             <Fieldset id="seva-where" legend={copy.where}>

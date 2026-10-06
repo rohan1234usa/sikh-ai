@@ -337,6 +337,8 @@ const seva: SevaCopy = {
         timeZone: 'Samaan khetar',
         timeZoneHint: 'Sevadaran nu samagam da samaan ise samaan khetar anusaar disda hai. Shuru vich ih tuhade device da samaan khetar hunda hai.',
         timeZoneMatched: 'Desh naal mel layi samaan khetar {zone} kar ditta gaya hai.',
+        timesIn: 'Samaan {zone} anusaar hai',
+        changeZone: 'Samaan khetar badlo',
         suggestedZones: 'Sujhaye gaye',
         allZones: 'Saare samaan khetar',
         startsAt: 'Shuru: {when}',

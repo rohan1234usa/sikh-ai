@@ -334,6 +334,8 @@ const seva: SevaCopy = {
         timeZone: 'ਸਮਾਂ ਖੇਤਰ',
         timeZoneHint: 'ਸੇਵਾਦਾਰਾਂ ਨੂੰ ਸਮਾਗਮ ਦਾ ਸਮਾਂ ਇਸੇ ਸਮਾਂ ਖੇਤਰ ਅਨੁਸਾਰ ਦਿਸਦਾ ਹੈ। ਸ਼ੁਰੂ ਵਿੱਚ ਇਹ ਤੁਹਾਡੇ ਡਿਵਾਈਸ ਦਾ ਸਮਾਂ ਖੇਤਰ ਹੁੰਦਾ ਹੈ।',
         timeZoneMatched: 'ਦੇਸ਼ ਨਾਲ ਮੇਲ ਲਈ ਸਮਾਂ ਖੇਤਰ {zone} ਕਰ ਦਿੱਤਾ ਗਿਆ ਹੈ।',
+        timesIn: 'ਸਮਾਂ {zone} ਅਨੁਸਾਰ ਹੈ',
+        changeZone: 'ਸਮਾਂ ਖੇਤਰ ਬਦਲੋ',
         suggestedZones: 'ਸੁਝਾਏ ਗਏ',
         allZones: 'ਸਾਰੇ ਸਮਾਂ ਖੇਤਰ',
         startsAt: 'ਸ਼ੁਰੂ: {when}',

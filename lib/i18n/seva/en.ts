@@ -338,6 +338,10 @@ const seva = {
         timeZone: 'Time zone',
         timeZoneHint: 'Volunteers see the times as they are in this time zone. It starts as your device’s.',
         timeZoneMatched: 'Time zone set to {zone} to match the country.',
+        // The time zone, folded into a line until it's to be changed. No full
+        // stop: the button follows it.
+        timesIn: 'Times are in {zone}',
+        changeZone: 'Change time zone',
         suggestedZones: 'Suggested',
         allZones: 'All time zones',
         startsAt: 'Starts {when}',
