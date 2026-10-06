@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import IntentLink from '@/app/components/IntentLink';
 import { PRIMARY_BUTTON } from '@/app/components/buttons';
 import EventCard from '@/app/components/seva/EventCard';
+import MyPartChip from '@/app/components/seva/MyPartChip';
 import SevaBoard, { type BoardGroup } from '@/app/components/seva/SevaBoard';
 import SevaHero from '@/app/components/seva/SevaHero';
 import YourSevaPanel from '@/app/components/seva/YourSevaPanel';
@@ -45,8 +46,17 @@ export default async function SevaBoardPage() {
   }
   const events = read.kind === 'ok' ? upcoming(read.value, now) : null;
 
+  // Each card says whether the one signed in hosts it or has joined it.
+  const mineLabels = { hosting: copy.common.youHost, joined: copy.common.youJoined };
   const card = (event: SevaEvent, showDate: boolean) => (
-    <EventCard event={event} display={describeEvent(event, lang, copy)} href={to(eventHref(event.id))} copy={copy.common} showDate={showDate} markMine />
+    <EventCard
+      event={event}
+      display={describeEvent(event, lang, copy)}
+      href={to(eventHref(event.id))}
+      copy={copy.common}
+      showDate={showDate}
+      mark={<MyPartChip eventId={event.id} labels={mineLabels} />}
+    />
   );
   const item = (event: SevaEvent, showDate: boolean) => ({ id: event.id, facets: facetsOf(event), card: card(event, showDate) });
 
