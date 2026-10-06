@@ -4,9 +4,9 @@
 // in the console. Nothing here throws; a document that isn't what the app
 // writes is null, and the page goes on without it.
 
-import { isCategory, isCountryCode, isEventId, isReportReason } from './config';
+import { isCategory, isCountryCode, isEventId, isReportReason, type SignupMode } from './config';
 import { SEVA_EVENT_VERSION } from './limits';
-import type { Report, SevaEvent, Signup, Volunteer } from './model';
+import type { EventFields, Report, SevaEvent, Signup, Volunteer } from './model';
 import { isTimeZone } from './time';
 
 // A Firestore time, however it arrives: a Timestamp from the SDK, a Date, an
@@ -28,6 +28,14 @@ export function toMillis(v: unknown): number | null {
 const text = (v: unknown): string => (typeof v === 'string' ? v : '');
 const count = (v: unknown): number | null => (typeof v === 'number' && Number.isSafeInteger(v) ? v : null);
 
+// Spots as stored: null (no limit), 0 (no sign-up) or a limit. Anything else,
+// a missing field included, is undefined: "no limit" is only an explicit null.
+function readSpots(v: unknown): number | null | undefined {
+    if (v === null) return null;
+    const n = count(v);
+    return n !== null && n >= 0 ? n : undefined;
+}
+
 // An event as the app wrote it, or null: one from before these rules (no
 // version), one moderators hid (unless the reader is allowed to see it), or
 // one whose essentials don't hold together.
@@ -39,11 +47,12 @@ export function parseEvent(id: string, raw: unknown, { allowHidden = false } = {
     const status = d.status === 'open' || d.status === 'cancelled' ? d.status : null;
     const startsAt = toMillis(d.startsAt);
     const endsAt = toMillis(d.endsAt);
-    const spots = count(d.spots);
+    const spots = readSpots(d.spots);
     const title = text(d.title).trim();
-    if (!status || startsAt === null || endsAt === null || endsAt <= startsAt || spots === null || spots < 1 || !title) {
+    if (!status || startsAt === null || endsAt === null || endsAt <= startsAt || spots === undefined || !title) {
         return null;
     }
+    const joined = Math.max(count(d.volunteerCount) ?? 0, 0);
     return {
         id,
         title,
@@ -64,7 +73,7 @@ export function parseEvent(id: string, raw: unknown, { allowHidden = false } = {
         contact: text(d.contact),
         spots,
         // A count edited by hand could stray; what's shown stays sensible.
-        volunteerCount: Math.min(Math.max(count(d.volunteerCount) ?? 0, 0), spots),
+        volunteerCount: spots === null ? joined : Math.min(joined, spots),
         status,
         cancelNote: text(d.cancelNote),
         hidden: d.hidden === true,
@@ -98,7 +107,37 @@ export function parseReport(id: string, raw: unknown): Report | null {
     return { id, eventId: d.eventId, reason: d.reason, note: text(d.note), createdAt };
 }
 
-// Whether an event is over at a given moment, or has room.
+// Whether an event is over at a given moment.
 export const hasEnded = (e: SevaEvent, now: number) => e.endsAt <= now;
-export const isFull = (e: SevaEvent) => e.volunteerCount >= e.spots;
-export const spotsLeft = (e: SevaEvent) => Math.max(e.spots - e.volunteerCount, 0);
+
+// Who may sign up, and the room left: what the pages read instead of the
+// spots themselves, which mean three things (./model.ts). Each takes just
+// the two fields, so the islands can pass the event as they keep it.
+type Counted = Pick<SevaEvent, 'spots' | 'volunteerCount'>;
+
+export type Room =
+    | { mode: 'none' }
+    | { mode: 'unlimited'; joined: number }
+    | { mode: 'limited'; joined: number; spots: number; left: number; full: boolean };
+
+export const signupMode = ({ spots }: Pick<EventFields, 'spots'>): SignupMode =>
+    spots === null ? 'unlimited' : spots === 0 ? 'none' : 'limited';
+
+export function room({ spots, volunteerCount: joined }: Counted): Room {
+    if (spots === null) return { mode: 'unlimited', joined };
+    if (spots === 0) return { mode: 'none' };
+    return { mode: 'limited', joined, spots, left: Math.max(spots - joined, 0), full: joined >= spots };
+}
+
+// Its setting, whatever its state: cancelled or over, it still "takes" them.
+export const takesSignups = (e: Pick<EventFields, 'spots'>) => e.spots !== 0;
+
+// Full only with a limit, and reached; spots left only with a limit.
+export const isFull = (e: Counted) => {
+    const r = room(e);
+    return r.mode === 'limited' && r.full;
+};
+export const spotsLeft = (e: Counted): number | null => {
+    const r = room(e);
+    return r.mode === 'limited' ? r.left : null;
+};

@@ -89,7 +89,9 @@ service cloud.firestore {
     }
 
     // Every field, every time (a blank one is ''); reading a missing one fails
-    // the rule.
+    // the rule. The spots say how many may join, and never fewer than have:
+    // 1 to 500; 0 for an event that takes no sign-ups, so no one has; or null
+    // for no limit. Null can't be compared with a number, so it's checked first.
     function sevaEventOk(d) {
       return d.keys().hasOnly(['v', 'title', 'category', 'description', 'startsAt', 'endsAt',
           'timeZone', 'venue', 'address', 'city', 'region', 'country', 'organizer', 'contact',
@@ -105,8 +107,9 @@ service cloud.firestore {
         && sevaText(d.city, 1, 80) && sevaText(d.region, 0, 80)
         && d.country is string && d.country.matches('^[A-Z]{2}$')
         && sevaText(d.organizer, 2, 80) && sevaText(d.contact, 0, 200)
-        && d.spots is int && d.spots >= 1 && d.spots <= 500
-        && d.volunteerCount is int && d.volunteerCount >= 0 && d.volunteerCount <= d.spots
+        && d.volunteerCount is int && d.volunteerCount >= 0
+        && (d.spots == null || (d.spots is int && (d.spots == 0 || (d.spots >= 1 && d.spots <= 500))
+          && d.volunteerCount <= d.spots))
         && d.status in ['open', 'cancelled']
         && sevaText(d.cancelNote, 0, 300)
         && d.hidden is bool
@@ -142,11 +145,12 @@ service cloud.firestore {
     }
 
     // One more: a new sign-up of yours (your note is new in this batch), while
-    // the event is open, visible, not over, and has room.
+    // the event is open, visible, not over, and has room: no limit, or fewer
+    // than its spots (0 when it takes no sign-ups).
     function sevaJoinOk(eventId, before, after) {
       return after.diff(before).affectedKeys().hasOnly(['volunteerCount'])
         && after.volunteerCount == before.volunteerCount + 1
-        && after.volunteerCount <= before.spots
+        && (before.spots == null || after.volunteerCount <= before.spots)
         && before.status == 'open' && before.hidden == false
         && request.time < before.endsAt
         && !exists(sevaSignupPath(eventId)) && existsAfter(sevaSignupPath(eventId));

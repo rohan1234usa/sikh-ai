@@ -32,7 +32,11 @@ export type EventFields = {
     organizer: string;
     // How to reach the host, if they want it shown to everyone.
     contact: string;
-    spots: number;
+    // How many may join: 1 to 500 (SEVA_SPOTS); null for no limit; 0 for an
+    // event that takes no sign-ups and only lets the community know. Never
+    // fewer than have joined. Read it through ./event.ts, not as a number:
+    // in a comparison, null counts as 0.
+    spots: number | null;
 };
 
 export type SevaEvent = EventFields & {

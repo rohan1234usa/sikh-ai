@@ -8,6 +8,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import type { Lang } from '@/lib/i18n/config';
 import { fmt } from '@/lib/i18n/fmt';
 import type { SevaCopy } from '@/lib/i18n/seva';
+import { isFull } from '@/lib/seva/event';
 import type { Hosting, SevaEvent, Signup } from '@/lib/seva/model';
 import { formatDate } from '@/lib/seva/time';
 import { setMyEvents, useMinute } from './hooks';
@@ -98,7 +99,7 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
         <>
             {e.status === 'cancelled' && <span className={CHIP}>{labels.cancelled}</span>}
             {e.hidden && <span className={CHIP}>{labels.hidden}</span>}
-            {e.volunteerCount >= e.spots && e.status === 'open' && <span className={CHIP}>{labels.full}</span>}
+            {isFull(e) && e.status === 'open' && <span className={CHIP}>{labels.full}</span>}
         </>
     );
 

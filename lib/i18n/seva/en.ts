@@ -47,9 +47,13 @@ const seva = {
             sameDay: '{date}, {times}',
             withZone: '{when} ({zone})',
         },
+        // Who may sign up, and how many have: with a limit, with none, or
+        // for an event that takes no sign-ups.
         capacity: 'Volunteers: {count} of {spots}',
         spotsLeft: 'Spots left: {n}',
         full: 'Full',
+        capacityNoLimit: 'Volunteers: {count}',
+        noSignup: 'No sign-up needed',
         happeningNow: 'Happening now',
         cancelled: 'Cancelled',
         hidden: 'Hidden',
@@ -173,6 +177,7 @@ const seva = {
         detailsSaved: 'Details saved.',
         leave: 'Leave this seva',
         leavePrompt: 'Leave this seva? Your spot opens up for someone else.',
+        leavePromptNoLimit: 'Leave this seva? Your name comes off the host’s list.',
         leaveConfirm: 'Yes, leave',
         leaveKeep: 'Stay signed up',
         leaving: 'Leaving…',
@@ -182,6 +187,8 @@ const seva = {
         wasJoined: 'You joined this seva.',
         fullTitle: 'This seva is full',
         fullBody: 'A spot may open up later, or you can find another seva.',
+        // An event that takes no sign-ups.
+        noSignupBody: 'No sign-up needed: just come along.',
         yourTime: 'Your time: {when}',
         errors: {
             nameRequired: 'Enter your name',
@@ -202,8 +209,10 @@ const seva = {
         linkLabel: 'Link to this event',
         postedTitle: 'Your event is live',
         postedBody: 'Share it with your sangat so volunteers can find it. Come back to this page to see who has joined.',
+        postedBodyNoSignup: 'Share it with your sangat so people can find it and come along.',
         savedTitle: 'Changes saved',
         savedBody: 'Volunteers aren’t told about changes automatically. If you changed the date, time or place, let them know.',
+        savedBodyNoSignup: 'If you changed the date, time or place, share the event again so people know.',
         cancelledFlash: 'The event is cancelled. Its page now says so.',
         done: 'Done',
     },
@@ -256,6 +265,7 @@ const seva = {
     cancelDialog: {
         title: 'Cancel this event?',
         body: 'It comes off the list of events, and its page will say it’s cancelled. Volunteers aren’t told automatically, so let them know.',
+        bodyNoSignup: 'It comes off the list of events, and its page will say it’s cancelled. Leave a message for anyone planning to come.',
         seeVolunteers: 'See volunteers’ contacts',
         note: 'Message for volunteers',
         noteHint: 'Shown on the event page, for example “Moved to next Sunday”.',
@@ -269,6 +279,7 @@ const seva = {
     volunteers: {
         title: 'Volunteers',
         count: 'Joined: {count} of {spots}',
+        countNoLimit: 'Joined: {count}',
         empty: 'No one has joined yet. Share the event so volunteers can find it.',
         loading: 'Loading volunteers…',
         failed: 'Couldn’t load the volunteers. Check your connection and try again.',

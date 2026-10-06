@@ -13,6 +13,7 @@ import {
     arrayUnion,
     collection,
     deleteDoc,
+    deleteField,
     doc,
     getDoc,
     getDocs,
@@ -146,7 +147,13 @@ test('each field is held to the limits the form uses, counted as the form counts
     }
     await assertSucceeds(post('hana', id(++n), { spots: 1 }));
     await assertSucceeds(post('hana', id(++n), { spots: 500 }));
-    for (const spots of [0, 501, 2.5, Number('five')]) await assertFails(post('hana', id(++n), { spots }));
+    // No limit, and no sign-up.
+    await assertSucceeds(post('hana', id(++n), { spots: null }));
+    await assertSucceeds(post('hana', id(++n), { spots: 0 }));
+    for (const spots of [-1, 501, 2.5, Number('five')]) await assertFails(post('hana', id(++n), { spots }));
+    await assertFails(postWith((d) => { d.spots = '5'; }, id(++n)));
+    // "No limit" is an explicit null, never a missing field.
+    await assertFails(postWith((d) => { delete d.spots; }, id(++n)));
     for (const bad of [{ category: 'party' }, { country: 'us' }, { country: 'USA' }, { country: '' }, { timeZone: 'Not a zone!' }]) {
         await assertFails(post('hana', id(++n), bad as Partial<EventFields>));
     }
@@ -159,6 +166,7 @@ test('a new event starts open, visible, empty and stamped by the server', async 
     let n = 100;
     for (const change of [
         (d: Record<string, unknown>) => { d.volunteerCount = 1; },
+        (d: Record<string, unknown>) => { d.spots = null; d.volunteerCount = 1; },
         (d: Record<string, unknown>) => { d.status = 'cancelled'; },
         (d: Record<string, unknown>) => { d.hidden = true; },
         (d: Record<string, unknown>) => { d.cancelNote = 'Already off'; },
@@ -242,6 +250,40 @@ test("spots can't drop below those signed up", async () => {
     await assertSucceeds(join('bina', K_B, E, bina));
     await assertFails(commit(as('hana'), planUpdateEvent(E, { spots: 1 }, S)));
     await assertSucceeds(commit(as('hana'), planUpdateEvent(E, { spots: 2 }, S)));
+});
+
+test('the host chooses who may sign up, but not "no one" once someone has', async () => {
+    await assertSucceeds(post('hana', E, { spots: null }));
+    const setSpots = (spots: number | null) => commit(as('hana'), planUpdateEvent(E, { spots }, S));
+    await assertSucceeds(setSpots(0));
+    await assertFails(join('amar', K_A));
+    // Cancelling and reopening check the whole event again.
+    await assertSucceeds(commit(as('hana'), planSetStatus(E, 'cancelled', '', S)));
+    await assertSucceeds(commit(as('hana'), planSetStatus(E, 'open', '', S)));
+    await assertSucceeds(setSpots(null));
+    await assertSucceeds(join('amar', K_A));
+    await assertFails(setSpots(0)); // someone has joined
+    await assertSucceeds(setSpots(1)); // a limit at the count stops new sign-ups
+    await assertSucceeds(setSpots(null)); // lifted again, with a volunteer
+    await assertSucceeds(join('bina', K_B, E, bina));
+    await assertFails(setSpots(1));
+    await assertSucceeds(setSpots(2));
+    for (const spots of [-1, 501]) await assertFails(setSpots(spots));
+    const ref = doc(as('hana'), `seva_events/${E}`);
+    await assertFails(updateDoc(ref, { spots: deleteField(), updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(ref, { spots: '5', updatedAt: serverTimestamp() }));
+    await assertSucceeds(leave('amar', K_A));
+    await assertSucceeds(leave('bina', K_B));
+    await assertSucceeds(setSpots(0)); // everyone has left
+});
+
+test('switching to no sign-up while someone joins: never both', async () => {
+    await assertSucceeds(post('hana', E, { spots: null }));
+    // Firestore commits each batch whole, against the latest count.
+    const results = await Promise.allSettled([commit(as('hana'), planUpdateEvent(E, { spots: 0 }, S)), join('amar', K_A)]);
+    assert.equal(results.filter((r) => r.status === 'fulfilled').length, 1);
+    const after = await peek(`seva_events/${E}`);
+    assert.equal(after?.volunteerCount, after?.spots === 0 ? 0 : 1);
 });
 
 test('a past event can be corrected but not moved into the past', async () => {
@@ -389,14 +431,23 @@ test("no one can point their note at someone else's sign-up", async () => {
     await assertFails(getDoc(doc(db, `seva_events/${E}/volunteers/${K_A}`)));
 });
 
-test('joining stops when the event is full, cancelled, hidden or over', async () => {
+test('joining stops when the event is full, takes no sign-ups, is cancelled, hidden or over', async () => {
     await seedEvent(id(1), { spots: 1, volunteerCount: 1 });
     await seedEvent(id(2), { status: 'cancelled' });
     await seedEvent(id(3), { hidden: true });
     await seedEvent(id(4), past());
     await seedEvent(id(5), { startsAt: Timestamp.fromMillis(Date.now() - HOUR), endsAt: Timestamp.fromMillis(Date.now() + HOUR) });
-    for (const n of [1, 2, 3, 4]) await assertFails(join('amar', K_A, id(n)));
+    await seedEvent(id(6), { spots: 0 });
+    for (const n of [1, 2, 3, 4, 6]) await assertFails(join('amar', K_A, id(n)));
     await assertSucceeds(join('amar', K_A, id(5))); // under way
+});
+
+test('with no limit, anyone can join, past 500 too, and leave', async () => {
+    await seedEvent(E, { spots: null, volunteerCount: 500 });
+    await assertSucceeds(join('amar', K_A));
+    assert.equal((await peek(`seva_events/${E}`))?.volunteerCount, 501);
+    await assertSucceeds(leave('amar', K_A));
+    assert.equal((await peek(`seva_events/${E}`))?.volunteerCount, 500);
 });
 
 test('two people racing for the last spot: only one gets it', async () => {

@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { fmt } from '@/lib/i18n/fmt';
 import type { Lang } from '@/lib/i18n/config';
 import type { SevaCopy } from '@/lib/i18n/seva';
+import { takesSignups } from '@/lib/seva/event';
 import { formatWhen, zoneOffset, type WhenWords } from '@/lib/seva/time';
 import { useEvent } from './EventContext';
 
@@ -32,13 +33,17 @@ export function StatusBanner({ copy }: { copy: SevaCopy['event'] }) {
 }
 
 // "Your event is live", "Changes saved": the word after a change made on the
-// hosting form, which takes the focus so it's heard first.
+// hosting form, which takes the focus so it's heard first. An event that
+// takes no sign-ups has no one joining to see or tell.
 export function FlashPanel({ copy }: { copy: SevaCopy['actions'] }) {
-    const { flash, dismissFlash } = useEvent();
+    const { event, flash, dismissFlash } = useEvent();
     const ref = useRef<HTMLHeadingElement>(null);
     useEffect(() => { if (flash) ref.current?.focus(); }, [flash]);
     if (!flash) return null;
-    const [title, body] = flash === 'posted' ? [copy.postedTitle, copy.postedBody] : [copy.savedTitle, copy.savedBody];
+    const signups = takesSignups(event);
+    const [title, body] = flash === 'posted'
+        ? [copy.postedTitle, signups ? copy.postedBody : copy.postedBodyNoSignup]
+        : [copy.savedTitle, signups ? copy.savedBody : copy.savedBodyNoSignup];
     return (
         <div className="mt-6 rounded-xl border-2 border-kesri-deep bg-surface-raised p-4 dark:border-kesri">
             <h2 ref={ref} tabIndex={-1} className="font-bold text-ink">{title}</h2>
