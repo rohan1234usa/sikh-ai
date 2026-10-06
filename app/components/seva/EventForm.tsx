@@ -13,7 +13,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import type { Lang } from '@/lib/i18n/config';
 import { fmt } from '@/lib/i18n/fmt';
 import type { SevaCopy } from '@/lib/i18n/seva';
-import { SIGNUP_MODES, isCountryCode, isEventId, type SevaCategory } from '@/lib/seva/config';
+import { SIGNUP_MODES, isCategory, isCountryCode, isEventId, type SevaCategory } from '@/lib/seva/config';
 import { countryName } from '@/lib/seva/countries';
 import { EMPTY_DRAFT, clearDraft, draftFromEvent, postAgainDraft, readDraft, writeDraft } from '@/lib/seva/draft';
 import { errorKind } from '@/lib/seva/errors';
@@ -373,10 +373,12 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
 
             <Fieldset id="seva-about" legend={copy.about}>
                 {textField('title', copy.title, { hint: copy.titleHint })}
+                {/* Pills, like who may sign up: each category's word is read
+                    with it, and the chosen one's is shown below. */}
                 <Fieldset id={fieldId('category')} legend={copy.category} size="question" error={errorOf('category')}>
-                    <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="flex flex-wrap gap-2">
                         {SEVA_CATEGORIES.map((id) => (
-                            <label key={id} className="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border border-edge-strong p-3 has-[:checked]:border-kesri-deep has-[:checked]:bg-kesri/10 dark:has-[:checked]:border-kesri">
+                            <label key={id} className={PILL}>
                                 <input
                                     type="radio"
                                     name="category"
@@ -384,15 +386,14 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
                                     checked={draft.category === id}
                                     onChange={() => set({ category: id })}
                                     aria-describedby={`category-hint-${id}`}
-                                    className="mt-0.5 h-5 w-5 shrink-0"
+                                    className="h-4 w-4 shrink-0"
                                 />
-                                <span>
-                                    <span className="block font-semibold text-ink">{categories[id]}</span>
-                                    <span id={`category-hint-${id}`} className="block text-sm text-ink-muted">{copy.categoryHints[id]}</span>
-                                </span>
+                                {categories[id]}
+                                <span id={`category-hint-${id}`} hidden>{copy.categoryHints[id]}</span>
                             </label>
                         ))}
                     </div>
+                    <p aria-hidden="true" className="mt-2 min-h-5 text-sm text-ink-muted">{isCategory(draft.category) ? copy.categoryHints[draft.category] : ''}</p>
                 </Fieldset>
                 <Field id={fieldId('description')} label={copy.description} optional={optional} hint={copy.descriptionHint} error={errorOf('description')}>
                     {(c) => (
