@@ -5,7 +5,7 @@
 import { isSignupMode } from './config';
 import { signupMode } from './event';
 import type { EventFields } from './model';
-import { shiftLocalDays, utcToZoned } from './time';
+import { isTimeZone, shiftLocalDays, utcToZoned } from './time';
 import type { EventDraft } from './validate';
 
 const PREFIX = 'sikhai.seva.draft.v1:';
@@ -45,14 +45,17 @@ export const EMPTY_DRAFT: EventDraft = {
     organizer: '', contact: '',
 };
 
-// Only the form's own fields, each as the form holds it. A draft kept from
-// before the form asked who may sign up, with a number in it, had a limit.
+// Only the form's own fields, each as the form holds it. A time zone this
+// browser doesn't know is left out, so the form asks for one. A draft kept
+// from before the form asked who may sign up, with a number in it, had a
+// limit.
 export function parseDraft(d: Record<string, unknown>): EventDraft {
     const out = { ...EMPTY_DRAFT };
     for (const key of Object.keys(EMPTY_DRAFT) as (keyof EventDraft)[]) {
         const v = d[key];
         if (key === 'multiDay') out.multiDay = v === true;
         else if (key === 'signup') { if (isSignupMode(v)) out.signup = v; }
+        else if (key === 'timeZone') { if (typeof v === 'string' && isTimeZone(v)) out.timeZone = v; }
         else if (typeof v === 'string') (out as Record<string, unknown>)[key] = v.slice(0, 2000);
     }
     if (!isSignupMode(d.signup) && out.spots.trim()) out.signup = 'limited';

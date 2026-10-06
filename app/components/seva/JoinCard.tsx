@@ -10,7 +10,7 @@ import { fmt } from '@/lib/i18n/fmt';
 import type { SevaCopy } from '@/lib/i18n/seva';
 import type { ViewerOfEvent } from '@/lib/seva/client';
 import { errorKind } from '@/lib/seva/errors';
-import { isFull, room, takesSignups } from '@/lib/seva/event';
+import { isFull, signupLine, takesSignups, type SignupWords } from '@/lib/seva/event';
 import { SEVA_VOLUNTEER_TEXT } from '@/lib/seva/limits';
 import { validateJoin, type JoinErrors } from '@/lib/seva/validate';
 import { useEvent } from './EventContext';
@@ -23,13 +23,11 @@ type Form = { name: string; shareEmail: boolean; sharePhone: boolean; phone: str
 // and leaving. Whatever replaces the control that was pressed takes the
 // focus, so no one is left on a button that vanished. An event that takes no
 // sign-ups has no Join: the card says to just come along.
-export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, contactFallback }: {
+export default function JoinCard({ copy, words, hostingLabel, contactFallback }: {
     copy: SevaCopy['actions'];
     hostingLabel: string;
-    // "Volunteers: {count} of {spots}" and "Spots left: {n}"; "Volunteers:
-    // {count}" with no limit; "No sign-up needed".
-    capacity: { count: string; left: string; noLimit: string; none: string };
-    fullLabel: string;
+    // Who may sign up and how many have, as the board's cards say it.
+    words: SignupWords;
     contactFallback: string | null;
 }) {
     const { signIn, signInIntent, user } = useAuth();
@@ -58,7 +56,7 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
 
     const is = viewer.kind === 'ready' ? viewer.is : null;
     const joined = !!is?.signup;
-    const r = room(event);
+    const line = signupLine(event, words);
     const full = isFull(event);
     const open = event.status === 'open' && !ended && !event.hidden;
 
@@ -208,13 +206,7 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
         }
     };
 
-    const capacityLine = (
-        <p className="text-ink-muted">
-            {r.mode === 'none' ? capacity.none
-                : r.mode === 'unlimited' ? fmt(capacity.noLimit, { count: r.joined })
-                    : `${fmt(capacity.count, { count: r.joined, spots: r.spots })} · ${r.full ? fullLabel : fmt(capacity.left, { n: r.left })}`}
-        </p>
-    );
+    const capacityLine = <p className="text-ink-muted">{line.mode === 'limited' ? `${line.text} · ${line.left}` : line.text}</p>;
 
     const shared = is?.volunteer;
     const form_ = (mode === 'form' || mode === 'busy') && (
@@ -302,7 +294,7 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
                 )}
                 {mode === 'confirmLeave' || (mode === 'busy' && !editing) ? (
                     <div role="group" aria-labelledby={`${ids}-leave`} className="rounded-lg border border-edge-strong p-3">
-                        <p id={`${ids}-leave`} className="text-ink">{r.mode === 'limited' ? copy.leavePrompt : copy.leavePromptNoLimit}</p>
+                        <p id={`${ids}-leave`} className="text-ink">{line.mode === 'limited' ? copy.leavePrompt : copy.leavePromptNoLimit}</p>
                         {problem && <p role="alert" className={`mt-2 ${ERROR_TEXT}`}>{problem}</p>}
                         <div className="mt-3 flex flex-wrap gap-3">
                             <button type="button" onClick={leave} aria-disabled={mode === 'busy' || undefined} className={`${SECONDARY_BUTTON} ${BUTTON_LG}`}>
@@ -332,7 +324,7 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
         );
     } else if (joined && editing) {
         body = form_;
-    } else if (r.mode === 'none') {
+    } else if (line.mode === 'none') {
         body = open ? <p className="text-ink">{copy.noSignupBody}</p> : capacityLine;
     } else if (!open) {
         body = note ? null : capacityLine;

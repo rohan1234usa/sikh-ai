@@ -8,6 +8,7 @@ import {
     formatWhen,
     isTimeZone,
     laterSameDay,
+    suggestEnd,
     localDateKey,
     parseDate,
     shiftLocalDays,
@@ -98,4 +99,21 @@ test('the end the form suggests: later the same day, or none past midnight', () 
     assert.equal(formatClock('20:00', 'en'), '8:00 PM');
     assert.match(formatClock('20:00', 'pa'), /8:00/);
     assert.equal(formatClock('soon', 'en'), 'soon');
+});
+
+test("the form's end follows the start only while it's the form's own", () => {
+    const at = (start: string, end: string, auto: boolean, multiDay = false) => suggestEnd({ start, end, auto, multiDay }, 120);
+    // An empty end is filled in, and said once.
+    assert.deepEqual(at('18:00', '', false), { end: '20:00', auto: true, announce: true });
+    // One the form filled in follows the start, quietly.
+    assert.deepEqual(at('19:30', '20:00', true), { end: '21:30', auto: true, announce: false });
+    // One the host gave stays.
+    assert.equal(at('19:30', '22:00', false), null);
+    // Past midnight: an empty end stays empty, and one the form filled in,
+    // now before the start, is cleared.
+    assert.equal(at('22:15', '', false), null);
+    assert.deepEqual(at('22:30', '23:00', true), { end: '', auto: false, announce: false });
+    // An event over several days, or a start cleared: nothing changes.
+    assert.equal(at('18:00', '', false, true), null);
+    assert.equal(at('', '20:00', true), null);
 });

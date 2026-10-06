@@ -151,4 +151,7 @@ test('who may sign up goes back into the form as it was, and a draft kept from b
     assert.equal(parseDraft({ signup: 'everyone', spots: '12' }).signup, 'limited');
     assert.equal(parseDraft({ signup: 7 }).signup, 'unlimited');
     assert.deepEqual(parseDraft(JSON.parse(JSON.stringify(draft({ signup: 'none' })))), draft({ signup: 'none' }));
+    // A time zone this browser doesn't know is left out, for the form to ask.
+    assert.equal(parseDraft({ timeZone: 'Mars/Base' }).timeZone, '');
+    assert.equal(parseDraft({ timeZone: 'Asia/Kolkata' }).timeZone, 'Asia/Kolkata');
 });

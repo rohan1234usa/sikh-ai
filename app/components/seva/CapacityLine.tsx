@@ -1,4 +1,4 @@
-import type { SignupLine } from '@/lib/seva/display';
+import type { SignupLine } from '@/lib/seva/event';
 
 // Who may join and how many have, in words. With a limit, a bar beside them
 // only shows it: screen readers get the words ("Volunteers: 3 of 20 · Spots

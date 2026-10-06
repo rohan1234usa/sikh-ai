@@ -4,6 +4,8 @@
 // in the console. Nothing here throws; a document that isn't what the app
 // writes is null, and the page goes on without it.
 
+import { fmt } from '@/lib/i18n/fmt';
+import type { SevaCopy } from '@/lib/i18n/seva';
 import { isCategory, isCountryCode, isEventId, isReportReason, type SignupMode } from './config';
 import { SEVA_EVENT_VERSION } from './limits';
 import type { EventFields, Report, SevaEvent, Signup, Volunteer } from './model';
@@ -138,3 +140,25 @@ export const isFull = (e: Counted) => {
     const r = room(e);
     return r.mode === 'limited' && r.full;
 };
+
+// Who may sign up, and how many have, in words, as the board's cards and the
+// event page's Join card both say it: "No sign-up needed", "Volunteers: 12",
+// or, with a limit, "Volunteers: 3 of 20" and "Spots left: 17" (or "Full"),
+// with how full, 0–100, for the bar beside them.
+export type SignupWords = Pick<SevaCopy['common'], 'capacity' | 'spotsLeft' | 'full' | 'capacityNoLimit' | 'noSignup'>;
+
+export type SignupLine =
+    | { mode: 'none' | 'unlimited'; text: string }
+    | { mode: 'limited'; text: string; left: string; percent: number };
+
+export function signupLine(e: Counted, words: SignupWords): SignupLine {
+    const r = room(e);
+    if (r.mode === 'none') return { mode: 'none', text: words.noSignup };
+    if (r.mode === 'unlimited') return { mode: 'unlimited', text: fmt(words.capacityNoLimit, { count: r.joined }) };
+    return {
+        mode: 'limited',
+        text: fmt(words.capacity, { count: r.joined, spots: r.spots }),
+        left: r.full ? words.full : fmt(words.spotsLeft, { n: r.left }),
+        percent: Math.round((Math.min(r.joined, r.spots) / r.spots) * 100),
+    };
+}

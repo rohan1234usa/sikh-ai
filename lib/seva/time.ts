@@ -14,11 +14,17 @@ const MINUTE = 60_000;
 const DAY = 24 * 60 * MINUTE;
 
 // Whether this engine knows the zone. Chrome may name India's
-// "Asia/Calcutta", which is fine: it's the same zone.
+// "Asia/Calcutta", which is fine: it's the same zone. Each zone it knows is
+// remembered, as the form asks on every render and the server for every
+// event; one it doesn't is rare, and asked again.
+const knownZones = new Set<string>();
+
 export function isTimeZone(tz: string): boolean {
     if (!tz) return false;
+    if (knownZones.has(tz)) return true;
     try {
         new Intl.DateTimeFormat('en-US', { timeZone: tz });
+        knownZones.add(tz);
         return true;
     } catch {
         return false;
@@ -166,6 +172,23 @@ export function laterSameDay(time: string, minutes: number): string | null {
     if (!m || Number(m[1]) > 23 || Number(m[2]) > 59) return null;
     const total = Number(m[1]) * 60 + Number(m[2]) + minutes;
     return total < 24 * 60 ? `${pad(Math.floor(total / 60))}:${pad(total % 60)}` : null;
+}
+
+// The end time, as the start changes: an empty end, or one the form filled
+// in itself (auto), becomes the start plus some minutes; past midnight, one
+// it filled in is cleared. An end the host gave stays, and so does any end
+// of an event over several days. Null when the end stays as it is; announce
+// when the form fills an end that was empty.
+export type EndSuggestion = { end: string; auto: boolean; announce: boolean };
+
+export function suggestEnd(
+    { start, end, auto, multiDay }: { start: string; end: string; auto: boolean; multiDay: boolean },
+    minutes: number,
+): EndSuggestion | null {
+    if (!start || multiDay || (end && !auto)) return null;
+    const later = laterSameDay(start, minutes);
+    if (later) return { end: later, auto: true, announce: !auto };
+    return auto ? { end: '', auto: false, announce: false } : null;
 }
 
 // A clock time ('20:00') in words ("8:00 PM"), in no zone in particular.

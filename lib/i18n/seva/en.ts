@@ -372,7 +372,8 @@ const seva = {
         } satisfies Record<SignupMode, string>,
         spots: 'How many volunteers?',
         spotsHint: 'A number from 1 to {max}.',
-        spotsJoined: 'Already joined: {n}. The number can’t go below that.',
+        // When editing an event people have joined.
+        signupJoinedHint: 'Already joined: {n}. Sign-up stays on while they’re signed up, and a limit can’t go below {n}.',
         organizer: 'Hosted by',
         organizerHint: 'Shown to everyone. Your name, or your Gurdwara’s or group’s name.',
         contact: 'Public contact',

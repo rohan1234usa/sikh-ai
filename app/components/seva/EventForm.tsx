@@ -21,11 +21,12 @@ import { SEVA_CATEGORIES, SEVA_MAX_DAYS_LONG, SEVA_SPOTS, SEVA_TEXT } from '@/li
 import { mapsUrl, placeLine } from '@/lib/seva/links';
 import type { SevaEvent } from '@/lib/seva/model';
 import { eventPatch } from '@/lib/seva/plans';
-import { formatClock, formatDate, formatTime, isTimeZone, laterSameDay, utcToZoned, zoneName, zonedTimeToUtc, type WhenWords } from '@/lib/seva/time';
+import { formatClock, formatDate, formatTime, isTimeZone, suggestEnd, utcToZoned, zoneName, zonedTimeToUtc, type WhenWords } from '@/lib/seva/time';
 import { allTimeZones, countryTimeZones, deviceTimeZone, zoneLabel } from '@/lib/seva/timezones';
-import { textLength, validateEventDraft, type DraftError, type DraftErrors, type EventDraft } from '@/lib/seva/validate';
+import { textLength, validateEventDraft, type DraftError, type DraftErrors, type EventDraft, type Editing } from '@/lib/seva/validate';
 import { setFlash, useMinute, useMounted } from './hooks';
 import { loadSeva, refreshPages } from './sevaClient';
+import { PILL } from './styles';
 
 export type EventFormProps = {
     mode: 'create' | 'edit';
@@ -139,11 +140,8 @@ const FIELD_ORDER: (keyof EventDraft)[] = [
 
 const fieldId = (key: keyof EventDraft) => `seva-${key}`;
 
-// One of a few choices, as a pill in a row that wraps: a real radio, its dot
-// kept for forced colours and the site's focus ring. Checked, it isn't bold,
-// which would change its width and reflow the row.
-const PILL =
-    'inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-3xl border border-edge-strong bg-surface-raised px-3 py-2 text-sm text-ink hover:border-accent-text/60 has-[:checked]:border-kesri-deep has-[:checked]:bg-kesri/10 dark:has-[:checked]:border-kesri';
+// What only the count of those who joined can be in the way of.
+const heldByJoined = (errors: DraftErrors) => Object.values(errors).some((e) => e === 'hasVolunteers' || e === 'belowJoined');
 
 function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whenWords, countries, commonCountries, hrefs, route, source }: EventFormProps & { route: string; source: SevaEvent | null }) {
     const { user, signIn, signInIntent } = useAuth();
@@ -212,24 +210,14 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
         }
     };
 
-    // A start fills in an empty end 2 hours later, on the same day, and says
-    // so once; an end it filled in follows the start. Not for an event that
-    // ends on a later day, whose end the host gives.
+    // A start fills in an empty end 2 hours later, and says so; an end it
+    // filled in follows the start (suggestEnd says when).
     const chooseStart = (startTime: string) => {
-        const patch: Partial<EventDraft> = { startTime };
-        if (startTime && !draft.multiDay && (endAuto.current || !draft.endTime)) {
-            const end = laterSameDay(startTime, END_AFTER_MINUTES);
-            if (end) {
-                if (!endAuto.current) announce(fmt(copy.endFilled, { time: formatClock(end, lang) }));
-                endAuto.current = true;
-                patch.endTime = end;
-            } else if (endAuto.current) {
-                // Past midnight: the end filled in would come before the start.
-                endAuto.current = false;
-                patch.endTime = '';
-            }
-        }
-        set(patch);
+        const next = suggestEnd({ start: startTime, end: draft.endTime, auto: endAuto.current, multiDay: draft.multiDay }, END_AFTER_MINUTES);
+        if (!next) return set({ startTime });
+        endAuto.current = next.auto;
+        if (next.announce) announce(fmt(copy.endFilled, { time: formatClock(next.end, lang) }));
+        set({ startTime, endTime: next.end });
     };
 
     const reset = () => {
@@ -277,22 +265,18 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
 
     const errorOf = (key: keyof EventDraft) => (errors[key] ? message(key, errors[key]) : undefined);
 
-    // A save refused because people joined since the form opened, when the
-    // change (no sign-up, or a lower limit) no longer fits: checked again
-    // against the event as it is, so the form can say what's wrong.
-    const recheck = async (id: string): Promise<boolean> => {
-        if (!source) return false;
+    // The count of those who joined, as it is now: it was read when the form
+    // opened, and people may have joined or left since. Null if it can't be
+    // read. Only when editing, signed in already, so nothing awaited here
+    // keeps signIn() from its popup.
+    const joinedNowFor = async (id: string, was: Editing): Promise<Editing | null> => {
         try {
             const fresh = await (await loadSeva()).getEvent(id, { allowHidden: true });
-            if (!fresh || fresh.volunteerCount === (joinedNow ?? source.volunteerCount)) return false;
+            if (!fresh) return null;
             setJoinedNow(fresh.volunteerCount);
-            const r = validateEventDraft(draft, { now: clock(), editing: { startsAt: source.startsAt, endsAt: source.endsAt, volunteerCount: fresh.volunteerCount } });
-            if (r.ok) return false;
-            setErrors(r.errors);
-            setSummaryFocus((n) => n + 1);
-            return true;
+            return { ...was, volunteerCount: fresh.volunteerCount };
         } catch {
-            return false;
+            return null;
         }
     };
     const summary: FormError[] = FIELD_ORDER.flatMap((key) => (errors[key] ? [{ fieldId: fieldId(key), message: message(key, errors[key]) }] : []));
@@ -300,8 +284,16 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (busy) return;
-        const result = validateEventDraft(draft, { now: clock(), editing });
+        let result = validateEventDraft(draft, { now: clock(), editing });
         setAttempted(true);
+        // Held back by who had joined (no sign-up, or a lower limit): ask
+        // again, in case they've left.
+        if (!result.ok && editing && eventId && heldByJoined(result.errors)) {
+            setBusy(true);
+            const fresh = await joinedNowFor(eventId, editing);
+            setBusy(false);
+            if (fresh) result = validateEventDraft(draft, { now: clock(), editing: fresh });
+        }
         if (!result.ok) {
             setErrors(result.errors);
             setSummaryFocus((n) => n + 1);
@@ -341,7 +333,17 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
             window.location.assign(`${hrefs.eventBase}${id}`);
         } catch (error) {
             setBusy(false);
-            if (mode === 'edit' && eventId && errorKind(error) === 'denied' && await recheck(eventId)) return;
+            // Refused, perhaps because people joined since: checked against
+            // the count now, the form can say what's in the way.
+            if (editing && eventId && errorKind(error) === 'denied') {
+                const fresh = await joinedNowFor(eventId, editing);
+                const again = fresh && validateEventDraft(draft, { now: clock(), editing: fresh });
+                if (again && !again.ok) {
+                    setErrors(again.errors);
+                    setSummaryFocus((n) => n + 1);
+                    return;
+                }
+            }
             setProblem(mode === 'edit' ? copy.saveFailed : copy.failed);
         }
     };
@@ -581,7 +583,12 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
             {/* Who may sign up. Each choice's word is read with it (a hidden
                 span, so it isn't part of its name); the chosen one's is shown
                 below. A limit asks for the number, next in the tab order. */}
-            <Fieldset id={fieldId('signup')} legend={copy.signup} error={errorOf('signup')}>
+            <Fieldset
+                id={fieldId('signup')}
+                legend={copy.signup}
+                hint={editing && editing.volunteerCount > 0 ? fmt(copy.signupJoinedHint, { n: editing.volunteerCount }) : undefined}
+                error={errorOf('signup')}
+            >
                 <div>
                     <div className="flex flex-wrap gap-2">
                         {SIGNUP_MODES.map((m) => (
@@ -606,7 +613,7 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
                     <Field
                         id={fieldId('spots')}
                         label={copy.spots}
-                        hint={editing && editing.volunteerCount > 0 ? `${fmt(copy.spotsHint, { max: SEVA_SPOTS[1] })} ${fmt(copy.spotsJoined, { n: editing.volunteerCount })}` : fmt(copy.spotsHint, { max: SEVA_SPOTS[1] })}
+                        hint={fmt(copy.spotsHint, { max: SEVA_SPOTS[1] })}
                         error={errorOf('spots')}
                         className="sm:max-w-xs"
                     >

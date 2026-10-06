@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { getSevaCopy } from '@/lib/i18n/seva';
-import { describeEvent, signupLine } from '@/lib/seva/display';
+import { describeEvent } from '@/lib/seva/display';
+import { signupLine } from '@/lib/seva/event';
 import { event } from './helpers';
 
 const common = getSevaCopy('en').common;

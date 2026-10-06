@@ -367,7 +367,7 @@ const seva: SevaCopy = {
         },
         spots: 'Kinne sevadar?',
         spotsHint: '1 ton {max} tak koi ginti.',
-        spotsJoined: 'Pehlan hi shamil: {n}. Ginti is ton ghatt nahi ho sakdi.',
+        signupJoinedHint: 'Pehlan hi shamil: {n}. Jad tak oh shamil han, naam likhvauna chaalu rahega, ate hadd {n} ton ghatt nahi ho sakdi.',
         organizer: 'Prabandhak da naam',
         organizerHint: 'Sarian nu disda hai. Tuhada naam, jaan tuhade Gurdwara jaan jathe da naam.',
         contact: 'Jantak sampark',
