@@ -68,6 +68,8 @@ const seva: SevaCopy = {
         whereLabel: 'ਕਿੱਥੇ',
         contactLabel: 'ਸੰਪਰਕ',
         hostedBy: 'ਪ੍ਰਬੰਧਕ: {name}',
+        youHost: 'ਪ੍ਰਬੰਧਕ ਤੁਸੀਂ ਹੋ',
+        youJoined: 'ਤੁਸੀਂ ਸ਼ਾਮਲ ਹੋ',
     },
 
     board: {

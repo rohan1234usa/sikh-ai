@@ -71,6 +71,8 @@ const seva: SevaCopy = {
         whereLabel: 'Kithe',
         contactLabel: 'Sampark',
         hostedBy: 'Prabandhak: {name}',
+        youHost: 'Prabandhak tusi ho',
+        youJoined: 'Tusi shamil ho',
     },
 
     board: {

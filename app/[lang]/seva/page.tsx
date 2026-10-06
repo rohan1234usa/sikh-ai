@@ -46,7 +46,7 @@ export default async function SevaBoardPage() {
   const events = read.kind === 'ok' ? upcoming(read.value, now) : null;
 
   const card = (event: SevaEvent, showDate: boolean) => (
-    <EventCard event={event} display={describeEvent(event, lang, copy)} href={to(eventHref(event.id))} copy={copy.common} showDate={showDate} />
+    <EventCard event={event} display={describeEvent(event, lang, copy)} href={to(eventHref(event.id))} copy={copy.common} showDate={showDate} markMine />
   );
   const item = (event: SevaEvent, showDate: boolean) => ({ id: event.id, facets: facetsOf(event), card: card(event, showDate) });
 

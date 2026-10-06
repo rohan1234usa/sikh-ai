@@ -11,7 +11,7 @@ import type { SevaCopy } from '@/lib/i18n/seva';
 import type { Hosting, SevaEvent, Signup } from '@/lib/seva/model';
 import { formatDate } from '@/lib/seva/time';
 import { CHIP } from './EventCard';
-import { useMinute } from './hooks';
+import { setMyEvents, useMinute } from './hooks';
 import { loadSeva } from './sevaClient';
 
 const SHOWN = 5;
@@ -48,7 +48,16 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
         let cancelled = false;
         loadSeva()
             .then((seva) => Promise.all([seva.mine(user.uid), seva.isAdmin(user.uid)]))
-            .then(([lists, admin]) => { if (!cancelled) setMine({ uid: user.uid, data: { ...lists, admin } }); })
+            .then(([lists, admin]) => {
+                if (cancelled) return;
+                setMine({ uid: user.uid, data: { ...lists, admin } });
+                // The board's cards mark these (MyPartChip).
+                setMyEvents({
+                    uid: user.uid,
+                    hosting: new Set(lists.hosting.map((h) => h.hosting.eventId)),
+                    joined: new Set(lists.joined.map((j) => j.signup.eventId)),
+                });
+            })
             .catch(() => { if (!cancelled) setMine({ uid: user.uid, data: 'failed' }); });
         return () => { cancelled = true; };
     }, [user, attempt]);
