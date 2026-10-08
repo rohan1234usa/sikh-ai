@@ -57,37 +57,54 @@ export function EventProvider({ initial, endedAtBuild, children }: { initial: Li
     const now = useMinute();
     const flash = useFlash(initial.id);
     const reading = useRef<{ uid: string; promise: Promise<ViewerOfEvent> } | null>(null);
+    // The account whose read failed, if the page is showing that it did.
+    const failedFor = useRef<string | null>(null);
+
+    // A read that answered, for the page: what the account is to the event,
+    // and the event as it is now.
+    const apply = useCallback((uid: string, is: ViewerOfEvent) => {
+        setLoaded({ uid, is });
+        if (is.event) {
+            const { title, status, cancelNote, volunteerCount, spots, startsAt, endsAt, hidden } = is.event;
+            setEvent((e) => ({ ...e, title, status, cancelNote, volunteerCount, spots, startsAt, endsAt, hidden }));
+        }
+    }, []);
 
     // One read per account, shared by the page and an action waiting on it,
     // and kept in step with what the viewer does here (setIs). One that fails
-    // is forgotten, so the next asks again.
+    // is forgotten, so the next asks again; and if that one, asked by an
+    // action (Join, Report), answers, the page takes it too, rather than
+    // going on saying it couldn't tell (a host's Join would do nothing).
     const remember = useCallback((uid: string, promise: Promise<ViewerOfEvent>) => {
         promise.catch(() => { if (reading.current?.promise === promise) reading.current = null; });
         reading.current = { uid, promise };
         return promise;
     }, []);
-    const whenViewer = useCallback((u: User) => (
-        reading.current?.uid === u.uid
-            ? reading.current.promise
-            : remember(u.uid, loadSeva().then((seva) => seva.viewerOf(u.uid, initial.id)))
-    ), [initial.id, remember]);
+    const whenViewer = useCallback((u: User) => {
+        if (reading.current?.uid === u.uid) return reading.current.promise;
+        const promise = remember(u.uid, loadSeva().then((seva) => seva.viewerOf(u.uid, initial.id)));
+        promise.then((is) => {
+            if (failedFor.current !== u.uid) return;
+            failedFor.current = null;
+            apply(u.uid, is);
+        }, () => {});
+        return promise;
+    }, [initial.id, remember, apply]);
 
     useEffect(() => {
+        failedFor.current = null;
         if (!user) return;
         let cancelled = false;
         whenViewer(user).then(
-            (is) => {
+            (is) => { if (!cancelled) apply(user.uid, is); },
+            () => {
                 if (cancelled) return;
-                setLoaded({ uid: user.uid, is });
-                if (is.event) {
-                    const { title, status, cancelNote, volunteerCount, spots, startsAt, endsAt, hidden } = is.event;
-                    setEvent((e) => ({ ...e, title, status, cancelNote, volunteerCount, spots, startsAt, endsAt, hidden }));
-                }
+                failedFor.current = user.uid;
+                setLoaded({ uid: user.uid, is: null });
             },
-            () => { if (!cancelled) setLoaded({ uid: user.uid, is: null }); },
         );
         return () => { cancelled = true; };
-    }, [user, whenViewer]);
+    }, [user, whenViewer, apply]);
 
     // The word after a change on another page lasts for this visit.
     useEffect(() => {
