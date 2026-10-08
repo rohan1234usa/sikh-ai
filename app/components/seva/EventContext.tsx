@@ -36,6 +36,11 @@ type EventContextValue = {
     // What an account is to the event, as it stands (setIs included), once
     // known: for an action, which may have just signed someone in.
     whenViewer: (user: User) => Promise<ViewerOfEvent>;
+    // An action (Join, Report) pressed by the event's host before the page
+    // knew: the control is about to go, so the host's tools, about to show,
+    // take the focus (HostTools takes the hand-off, once).
+    handToHost: () => void;
+    takeHandOff: () => boolean;
 };
 
 const EventContext = createContext<EventContextValue | null>(null);
@@ -59,6 +64,7 @@ export function EventProvider({ initial, endedAtBuild, children }: { initial: Li
     const reading = useRef<{ uid: string; promise: Promise<ViewerOfEvent> } | null>(null);
     // The account whose read failed, if the page is showing that it did.
     const failedFor = useRef<string | null>(null);
+    const handOff = useRef(false);
 
     // A read that answered, for the page: what the account is to the event,
     // and the event as it is now.
@@ -93,6 +99,7 @@ export function EventProvider({ initial, endedAtBuild, children }: { initial: Li
 
     useEffect(() => {
         failedFor.current = null;
+        handOff.current = false;
         if (!user) return;
         let cancelled = false;
         whenViewer(user).then(
@@ -124,6 +131,12 @@ export function EventProvider({ initial, endedAtBuild, children }: { initial: Li
         const r = reading.current;
         if (r) remember(r.uid, r.promise.then((is) => ({ ...is, ...patch })));
     }, [remember]);
+    const handToHost = useCallback(() => { handOff.current = true; }, []);
+    const takeHandOff = useCallback(() => {
+        const handed = handOff.current;
+        handOff.current = false;
+        return handed;
+    }, []);
 
     const value = useMemo<EventContextValue>(() => ({
         event,
@@ -135,7 +148,9 @@ export function EventProvider({ initial, endedAtBuild, children }: { initial: Li
         update,
         setIs,
         whenViewer,
-    }), [event, viewer, now, endedAtBuild, flash, update, setIs, whenViewer]);
+        handToHost,
+        takeHandOff,
+    }), [event, viewer, now, endedAtBuild, flash, update, setIs, whenViewer, handToHost, takeHandOff]);
 
     return <EventContext.Provider value={value}>{children}</EventContext.Provider>;
 }

@@ -21,10 +21,6 @@ import CapacityLine from './CapacityLine';
 import { useEvent } from './EventContext';
 import { loadSeva, refreshPages } from './sevaClient';
 
-// The tools' heading, which takes the focus when they replace the Join
-// button a host just pressed (JoinCard).
-export const HOST_TOOLS_ID = 'host-tools';
-
 // The host's own tools, on their event's page: edit, see who's coming, post
 // it again, cancel or reopen. They come first beside the event's details, in
 // the Join card's place (it steps aside for a host who hasn't joined), so
@@ -44,7 +40,7 @@ export default function HostTools({ lang, heading, copy, words, cancelCopy, volu
     editHref: string;
     postAgainHref: string;
 }) {
-    const { event, viewer, ended, update } = useEvent();
+    const { event, viewer, ended, update, takeHandOff } = useEvent();
     // Two dialogs, which can be open together: the volunteers' list opens over
     // the cancel dialog, so a host can reach them first and come back to it.
     const [volunteersOpen, setVolunteersOpen] = useState(false);
@@ -52,8 +48,16 @@ export default function HostTools({ lang, heading, copy, words, cancelCopy, volu
     const [busy, setBusy] = useState(false);
     const [problem, setProblem] = useState('');
     const { announce, announcer } = useAnnouncer();
+    const headingRef = useRef<HTMLHeadingElement>(null);
+    const shown = viewer.kind === 'ready' && viewer.is.isHost;
 
-    if (viewer.kind !== 'ready' || !viewer.is.isHost) return null;
+    // Shown in place of a Join or Report the host just pressed, which has
+    // gone: the heading takes the focus.
+    useEffect(() => {
+        if (shown && takeHandOff()) headingRef.current?.focus();
+    });
+
+    if (!shown) return null;
     const cancelled = event.status === 'cancelled';
     // An event that takes no sign-ups has no one to list (the rules keep its
     // count at 0).
@@ -76,8 +80,8 @@ export default function HostTools({ lang, heading, copy, words, cancelCopy, volu
     };
 
     return (
-        <section aria-labelledby={HOST_TOOLS_ID} className="rounded-xl border border-edge bg-surface-raised p-5 shadow-sm">
-            <h2 id={HOST_TOOLS_ID} tabIndex={-1} className="text-lg font-bold text-ink">{heading}</h2>
+        <section aria-labelledby="host-tools" className="rounded-xl border border-edge bg-surface-raised p-5 shadow-sm">
+            <h2 ref={headingRef} id="host-tools" tabIndex={-1} className="text-lg font-bold text-ink">{heading}</h2>
             <p className="mt-1 text-sm text-ink-muted">{copy.intro}</p>
             <p className="mt-3 text-ink-muted">
                 <CapacityLine signup={signupLine(event, words)} anyJoined={event.volunteerCount > 0} />

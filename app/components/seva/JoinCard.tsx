@@ -14,7 +14,6 @@ import { isFull, signupLine, takesSignups, type SignupWords } from '@/lib/seva/e
 import { SEVA_VOLUNTEER_TEXT } from '@/lib/seva/limits';
 import { validateJoin, type JoinErrors } from '@/lib/seva/validate';
 import { useEvent } from './EventContext';
-import { HOST_TOOLS_ID } from './HostTools';
 import { loadSeva, refreshPages } from './sevaClient';
 
 type Mode = 'idle' | 'form' | 'busy' | 'confirmLeave';
@@ -33,7 +32,7 @@ export default function JoinCard({ copy, words, contactFallback }: {
 }) {
     const { signIn, signInIntent, user } = useAuth();
     const router = useRouter();
-    const { event, viewer, ended, update, setIs, whenViewer } = useEvent();
+    const { event, viewer, ended, update, setIs, whenViewer, handToHost } = useEvent();
     const [mode, setMode] = useState<Mode>('idle');
     const [editing, setEditing] = useState(false);
     const [form, setForm] = useState<Form>({ name: '', shareEmail: false, sharePhone: false, phone: '' });
@@ -46,7 +45,7 @@ export default function JoinCard({ copy, words, contactFallback }: {
     const joinedRef = useRef<HTMLHeadingElement>(null);
     const stayRef = useRef<HTMLButtonElement>(null);
     const headingRef = useRef<HTMLHeadingElement>(null);
-    const focusNext = useRef<'join' | 'name' | 'joined' | 'stay' | 'host' | null>(null);
+    const focusNext = useRef<'join' | 'name' | 'joined' | 'stay' | null>(null);
     const ids = useId();
 
     // After a join or a leave, the server builds this page and the board
@@ -71,7 +70,6 @@ export default function JoinCard({ copy, words, contactFallback }: {
         if (target === 'name') nameRef.current?.focus();
         if (target === 'joined') joinedRef.current?.focus();
         if (target === 'stay') stayRef.current?.focus();
-        if (target === 'host') document.getElementById(HOST_TOOLS_ID)?.focus();
     });
 
     const openForm = (prefill: Form) => {
@@ -112,7 +110,7 @@ export default function JoinCard({ copy, words, contactFallback }: {
             openForm({ name: account.displayName ?? '', shareEmail: false, sharePhone: false, phone: '' });
         } else {
             // Their own event: the card makes way for their tools.
-            focusNext.current = 'host';
+            handToHost();
         }
     };
 
@@ -276,7 +274,7 @@ export default function JoinCard({ copy, words, contactFallback }: {
         </form>
     );
 
-    // The host's tools stand in for the card (still mounted, for the focus).
+    // The host's tools stand in for the card.
     if (is?.isHost && !joined) return null;
 
     let body: React.ReactNode;

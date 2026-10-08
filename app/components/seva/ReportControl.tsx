@@ -21,7 +21,7 @@ import { loadSeva, refreshPages } from './sevaClient';
 // the host never sees who reported.
 export function ReportControl({ copy }: { copy: SevaCopy['report'] }) {
     const { signIn, signInIntent, user } = useAuth();
-    const { viewer, setIs, whenViewer } = useEvent();
+    const { viewer, setIs, whenViewer, handToHost } = useEvent();
     const [open, setOpen] = useState(false);
     const [note, setNote] = useState('');
     // Once there's a report (just sent, or found on signing in), the button
@@ -40,14 +40,21 @@ export function ReportControl({ copy }: { copy: SevaCopy['report'] }) {
 
     // Signed in first if need be (with no await before signIn(), for
     // Safari's popup); then the form, unless it turns out this account hosts
-    // the event or has already reported it, which the page then shows.
+    // the event (its tools show, and take the focus) or has already reported
+    // it, which the page then shows.
     const start = async () => {
         setNote('');
         const account = user ?? await signIn();
         if (!account) return;
         const is = await whenViewer(account).catch(() => null); // not known: the form says so if sending fails
-        if (is?.reported) focusDone.current = true;
-        if (is?.isHost || is?.reported) return;
+        if (is?.isHost) {
+            handToHost();
+            return;
+        }
+        if (is?.reported) {
+            focusDone.current = true;
+            return;
+        }
         setOpen(true);
     };
 
