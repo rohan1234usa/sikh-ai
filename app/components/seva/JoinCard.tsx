@@ -209,6 +209,9 @@ export default function JoinCard({ copy, words, contactFallback }: {
         }
     };
 
+    // The host's tools stand in for the card.
+    if (is?.isHost && !joined) return null;
+
     const capacityLine = <p className="text-ink-muted">{line.mode === 'limited' ? `${line.text} · ${line.left}` : line.text}</p>;
 
     const shared = is?.volunteer;
@@ -273,9 +276,6 @@ export default function JoinCard({ copy, words, contactFallback }: {
             </div>
         </form>
     );
-
-    // The host's tools stand in for the card.
-    if (is?.isHost && !joined) return null;
 
     let body: React.ReactNode;
     if (joined && !editing) {
