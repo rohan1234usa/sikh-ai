@@ -12,20 +12,30 @@ import type { Lang } from '@/lib/i18n/config';
 import { formatDate } from '@/lib/i18n/date';
 import { fmt } from '@/lib/i18n/fmt';
 import type { SevaCopy } from '@/lib/i18n/seva';
-import { room, takesSignups } from '@/lib/seva/event';
+import { room, signupLine, takesSignups, type SignupWords } from '@/lib/seva/event';
 import { SEVA_TEXT } from '@/lib/seva/limits';
 import { telUrl } from '@/lib/seva/links';
 import type { Volunteer } from '@/lib/seva/model';
 import { textLength, validateCancelNote } from '@/lib/seva/validate';
+import CapacityLine from './CapacityLine';
 import { useEvent } from './EventContext';
 import { loadSeva, refreshPages } from './sevaClient';
 
+// The tools' heading, which takes the focus when they replace the Join
+// button a host just pressed (JoinCard).
+export const HOST_TOOLS_ID = 'host-tools';
+
 // The host's own tools, on their event's page: edit, see who's coming, post
-// it again, cancel or reopen. Only the host sees them; the rules are what
-// keep everyone else out.
-export default function HostTools({ lang, copy, cancelCopy, volunteersCopy, retry, cancelledMessage, editHref, postAgainHref }: {
+// it again, cancel or reopen. They come first beside the event's details, in
+// the Join card's place (it steps aside for a host who hasn't joined), so
+// on a phone they're just under When and Where, not below everything else.
+// Only the host sees them; the rules are what keep everyone else out.
+export default function HostTools({ lang, heading, copy, words, cancelCopy, volunteersCopy, retry, cancelledMessage, editHref, postAgainHref }: {
     lang: Lang;
+    heading: string;
     copy: SevaCopy['host'];
+    // Who may sign up and how many have, as the Join card would say it.
+    words: SignupWords;
     // Said once the event is cancelled.
     cancelledMessage: string;
     retry: string;
@@ -66,12 +76,15 @@ export default function HostTools({ lang, copy, cancelCopy, volunteersCopy, retr
     };
 
     return (
-        <section aria-labelledby="host-tools" className="rounded-xl border border-edge bg-surface-raised p-5 shadow-sm">
-            <h2 id="host-tools" className="text-lg font-bold text-ink">{copy.heading}</h2>
+        <section aria-labelledby={HOST_TOOLS_ID} className="rounded-xl border border-edge bg-surface-raised p-5 shadow-sm">
+            <h2 id={HOST_TOOLS_ID} tabIndex={-1} className="text-lg font-bold text-ink">{heading}</h2>
             <p className="mt-1 text-sm text-ink-muted">{copy.intro}</p>
+            <p className="mt-3 text-ink-muted">
+                <CapacityLine signup={signupLine(event, words)} anyJoined={event.volunteerCount > 0} />
+            </p>
             {event.hidden && <p className="mt-3 rounded-lg border border-edge-strong p-3 text-ink">{copy.hiddenNotice}</p>}
             <div className="mt-4 flex flex-wrap gap-3">
-                <IntentLink href={editHref} className={SECONDARY_BUTTON}>{copy.edit}</IntentLink>
+                <IntentLink href={editHref} className={PRIMARY_BUTTON}>{copy.edit}</IntentLink>
                 {signups && (
                     <button type="button" onClick={() => setVolunteersOpen(true)} className={SECONDARY_BUTTON}>
                         {fmt(copy.volunteers, { n: event.volunteerCount })}

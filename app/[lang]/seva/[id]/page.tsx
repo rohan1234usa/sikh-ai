@@ -23,7 +23,7 @@ import { getServerT } from '@/lib/i18n/server';
 import { SITE_URL, pageMetadata } from '@/lib/metadata';
 import { ADMIN_HREF, editHref, eventHref, isEventId, postAgainHref } from '@/lib/seva/config';
 import { describeEvent } from '@/lib/seva/display';
-import { hasEnded, isFull } from '@/lib/seva/event';
+import { hasEnded, isFull, type SignupWords } from '@/lib/seva/event';
 import { eventJsonLd, serializeJsonLd } from '@/lib/seva/jsonld';
 import { CALENDAR_LINK_CHARS, calendarText, contactHref, googleCalendarUrl, mapsUrl, whatsappUrl } from '@/lib/seva/links';
 import { clip, indexable } from '@/lib/seva/meta';
@@ -91,6 +91,12 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
   const contactLink = event.contact ? contactHref(event.contact) : null;
   const shareMessage = fmt(copy.event.shareMessage, { title: event.title, when: display.when, place: display.placeShort, url });
   const calendarDetails = fmt(copy.calendar.details, { name: event.organizer, url });
+  // Who may sign up and how many have: for the Join card, or the host's tools
+  // in its place. Only these words go to the browser, not all of `common`.
+  const signupWords: SignupWords = {
+    capacity: copy.common.capacity, spotsLeft: copy.common.spotsLeft, full: copy.common.full,
+    capacityNoLimit: copy.common.capacityNoLimit, noSignup: copy.common.noSignup,
+  };
   const jsonLd = indexable(event, now)
     ? serializeJsonLd(eventJsonLd(event, { url, image: `${SITE_URL}/og.jpg`, description: clip(event.description || display.when, 300), inLanguage: LANG_META[lang].htmlLang }))
     : null;
@@ -155,13 +161,21 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
             </div>
 
             <div className="space-y-6 lg:col-start-2 lg:row-span-2 lg:row-start-1">
+              <HostTools
+                lang={lang}
+                heading={copy.event.youAreHosting}
+                copy={copy.host}
+                words={signupWords}
+                cancelCopy={copy.cancelDialog}
+                volunteersCopy={copy.volunteers}
+                retry={copy.common.retry}
+                cancelledMessage={copy.actions.cancelledFlash}
+                editHref={to(editHref(id))}
+                postAgainHref={to(postAgainHref(id))}
+              />
               <JoinCard
                 copy={copy.actions}
-                words={{
-                  capacity: copy.common.capacity, spotsLeft: copy.common.spotsLeft, full: copy.common.full,
-                  capacityNoLimit: copy.common.capacityNoLimit, noSignup: copy.common.noSignup,
-                }}
-                hostingLabel={copy.event.youAreHosting}
+                words={signupWords}
                 contactFallback={event.contact ? fmt(copy.event.noAccountContact, { contact: event.contact }) : null}
               />
               <CalendarCard
@@ -185,16 +199,6 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
                   <p className="mt-2 whitespace-pre-line text-ink [overflow-wrap:anywhere]"><Mixed text={event.description} /></p>
                 </section>
               )}
-              <HostTools
-                lang={lang}
-                copy={copy.host}
-                cancelCopy={copy.cancelDialog}
-                volunteersCopy={copy.volunteers}
-                retry={copy.common.retry}
-                cancelledMessage={copy.actions.cancelledFlash}
-                editHref={to(editHref(id))}
-                postAgainHref={to(postAgainHref(id))}
-              />
               <AdminTools copy={copy.admin} adminHref={to(ADMIN_HREF)} />
               <ReportControl copy={copy.report} />
             </div>
