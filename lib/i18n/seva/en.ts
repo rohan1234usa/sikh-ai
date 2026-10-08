@@ -246,8 +246,9 @@ const seva = {
         },
     },
 
-    // The host's tools on their event's page.
+    // The host's tools on their event's page, headed event.youAreHosting.
     host: {
+        // The edit page's breadcrumb back to the event.
         heading: 'Your event',
         intro: 'Only you can see these.',
         edit: 'Edit details',

@@ -22,17 +22,17 @@ type Form = { name: string; shareEmail: boolean; sharePhone: boolean; phone: str
 // Joining, and everything after: the details the host sees, changing them,
 // and leaving. Whatever replaces the control that was pressed takes the
 // focus, so no one is left on a button that vanished. An event that takes no
-// sign-ups has no Join: the card says to just come along.
-export default function JoinCard({ copy, words, hostingLabel, contactFallback }: {
+// sign-ups has no Join: the card says to just come along. Its host gets their
+// tools in its place (HostTools).
+export default function JoinCard({ copy, words, contactFallback }: {
     copy: SevaCopy['actions'];
-    hostingLabel: string;
     // Who may sign up and how many have, as the board's cards say it.
     words: SignupWords;
     contactFallback: string | null;
 }) {
     const { signIn, signInIntent, user } = useAuth();
     const router = useRouter();
-    const { event, viewer, ended, update, setIs, whenViewer } = useEvent();
+    const { event, viewer, ended, update, setIs, whenViewer, handToHost } = useEvent();
     const [mode, setMode] = useState<Mode>('idle');
     const [editing, setEditing] = useState(false);
     const [form, setForm] = useState<Form>({ name: '', shareEmail: false, sharePhone: false, phone: '' });
@@ -108,6 +108,9 @@ export default function JoinCard({ copy, words, hostingLabel, contactFallback }:
             setMode('idle');
         } else if (!is.isHost) {
             openForm({ name: account.displayName ?? '', shareEmail: false, sharePhone: false, phone: '' });
+        } else {
+            // Their own event: the card makes way for their tools.
+            handToHost();
         }
     };
 
@@ -206,6 +209,9 @@ export default function JoinCard({ copy, words, hostingLabel, contactFallback }:
         }
     };
 
+    // The host's tools stand in for the card.
+    if (is?.isHost && !joined) return null;
+
     const capacityLine = <p className="text-ink-muted">{line.mode === 'limited' ? `${line.text} · ${line.left}` : line.text}</p>;
 
     const shared = is?.volunteer;
@@ -272,14 +278,7 @@ export default function JoinCard({ copy, words, hostingLabel, contactFallback }:
     );
 
     let body: React.ReactNode;
-    if (is?.isHost && !joined) {
-        body = (
-            <div className="space-y-2">
-                <p className="font-semibold text-ink">{hostingLabel}</p>
-                {capacityLine}
-            </div>
-        );
-    } else if (joined && !editing) {
+    if (joined && !editing) {
         const stillOn = open;
         body = (
             <div className="space-y-3">
