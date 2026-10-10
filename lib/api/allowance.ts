@@ -42,6 +42,11 @@ export type Verdict = { ok: true } | { ok: false; window: Window; retryAfter: nu
 // - The quote check: one per reply at most, and each can make 12 GurbaniNow
 //   calls, so 100 spends at most 1,200 of quote checking's 3,000 a day.
 // - The translator: short lookups come quicker than questions.
+// - The live translator: the lines shown while someone types, one call at
+//   each pause. The page holds itself to 10 a minute (LIVE_CALLS_PER_MINUTE
+//   in lib/translate/live.ts), so with the firewall's 20 posts a minute
+//   there's room left for the Translate button. 500 a day, at about $0.0012
+//   a call, is at most about $0.60 per visitor per server.
 // - Compare with Google Translate: up to 2,000 characters each, from its own
 //   10,000 a day (lib/translate/cloud.ts).
 // - Shabad Search: at most 4 GurbaniNow calls each, so 300 spends at most
@@ -51,6 +56,7 @@ export const VISITOR_LIMITS = {
     verify: { perMinute: 10, perDay: 100 },
     learn: { perMinute: 10, perDay: 300 },
     translate: { perMinute: 15, perDay: 300 },
+    translateLive: { perMinute: 12, perDay: 500 },
     crosscheck: { perMinute: 5, perDay: 50 },
     search: { perMinute: 20, perDay: 300 },
 } as const satisfies Record<string, Limits>;
@@ -77,6 +83,12 @@ export const REFUSALS: Record<Feature, Record<Window, { code: string; error: str
     translate: {
         minute: { code: 'translate_busy', error: 'The translator is busy right now. Please wait a moment and try again.' },
         day: { code: 'translate_limit', error: "Your connection has reached today's limit for the translator. Please come back later." },
+    },
+    // The page doesn't show these: past either, live lines pause for the
+    // Retry-After seconds, and the Translate button still works.
+    translateLive: {
+        minute: { code: 'translate_live_busy', error: 'Too many live translations. Please wait a minute.' },
+        day: { code: 'translate_live_limit', error: "Today's limit for live translation is reached." },
     },
     crosscheck: {
         minute: { code: 'crosscheck_busy', error: 'Too many comparisons. Please wait a minute.' },
@@ -169,6 +181,7 @@ export const allowances: Record<Feature, Allowance> = {
     verify: visitorAllowance(VISITOR_LIMITS.verify),
     learn: visitorAllowance(VISITOR_LIMITS.learn),
     translate: visitorAllowance(VISITOR_LIMITS.translate),
+    translateLive: visitorAllowance(VISITOR_LIMITS.translateLive),
     crosscheck: visitorAllowance(VISITOR_LIMITS.crosscheck),
     search: visitorAllowance(VISITOR_LIMITS.search),
 };

@@ -5,6 +5,8 @@ import {
     CHAT_FIRST_TEXT_MS,
     LEARN_BUDGET_MS,
     LEARN_FIRST_TEXT_MS,
+    LIVE_TRANSLATE_BUDGET_MS,
+    LIVE_TRANSLATE_FIRST_TEXT_MS,
     TRANSLATE_ATTEMPT_MS,
     TRANSLATE_BUDGET_MS,
 } from '@/lib/gemini/budgets';
@@ -25,6 +27,7 @@ test('a hung primary still leaves the fallback model room to answer', () => {
         ['translate', TRANSLATE_BUDGET_MS, TRANSLATE_ATTEMPT_MS],
         ['chat', CHAT_BUDGET_MS, CHAT_FIRST_TEXT_MS],
         ['learn', LEARN_BUDGET_MS, LEARN_FIRST_TEXT_MS],
+        ['translate live', LIVE_TRANSLATE_BUDGET_MS, LIVE_TRANSLATE_FIRST_TEXT_MS],
     ] as const) {
         assert.ok(
             budget - attempt >= MIN_FALLBACK_MS,
@@ -40,4 +43,5 @@ test('the budgets fit inside the function limit', () => {
     assert.ok(TRANSLATE_BUDGET_MS + CLOUD_FALLBACK_MS <= MAX_DURATION_MS, 'Cloud Translation still gets its turn');
     assert.ok(CHAT_BUDGET_MS <= MAX_DURATION_MS);
     assert.ok(LEARN_BUDGET_MS <= MAX_DURATION_MS);
+    assert.ok(LIVE_TRANSLATE_BUDGET_MS <= MAX_DURATION_MS);
 });
