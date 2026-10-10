@@ -94,8 +94,8 @@ test('an error log line becomes an exception with its frames, grouped without li
         { filename: 'node_modules/next/dist/compiled/next-server/app-route.js', lineno: 6, colno: 100, in_app: false },
         { function: 'handlePost', filename: '.next/server/app/api/chat/route.js', lineno: 1, colno: 2345, in_app: true },
     ]);
-    assert.deepEqual(event.fingerprint, ['route_error', 'route=/api/chat', 'TypeError', 'handlePost']);
-    assert.equal(key, 'route_error|route=/api/chat|TypeError|handlePost');
+    assert.deepEqual(event.fingerprint, ['route_error', 'route=/api/chat', 'TypeError', 'failed for "…"']);
+    assert.equal(key, 'route_error|route=/api/chat|TypeError|failed for "…"');
     assert.equal(event.request, undefined);
 });
 
@@ -109,7 +109,8 @@ test('a line without an error of its own becomes a message', () => {
         feature: 'chat', model: 'gemini-x', outcome: 'error', status: 402, error: 'Prepaid credit is used up for "my question"', ms: 120,
     }, T0, {}).event;
     assert.deepEqual(gemini.logentry, { formatted: 'gemini_call: Prepaid credit is used up for "…"' });
-    assert.deepEqual(gemini.fingerprint, ['gemini_call', 'feature=chat', 'model=gemini-x', 'status=402']);
+    assert.deepEqual(gemini.fingerprint,
+        ['gemini_call', 'feature=chat', 'model=gemini-x', 'status=402', 'Prepaid credit is used up for "…"']);
     assert.equal(gemini.tags.ms, undefined, 'only the fields that name what failed become tags');
 });
 
@@ -121,7 +122,16 @@ test("Next's request error keeps its scrubbed path and method", () => {
     assert.deepEqual(event.request, { url: '/seva/:id', method: 'GET' });
     assert.equal(event.transaction, '/[lang]/seva/[id]');
     assert.deepEqual(event.exception!.values[0].mechanism, { type: 'request_error', handled: false });
-    assert.deepEqual(event.fingerprint, ['request_error', 'routePath=/[lang]/seva/[id]', 'Error']);
+    assert.deepEqual(event.fingerprint, ['request_error', 'routePath=/[lang]/seva/[id]', 'Error', 'Seva events are unavailable']);
+});
+
+test("one failure on many pages is one issue: no frame and no number tells them apart", () => {
+    const at = (line: number, fn: string) => [`at ${fn} (/var/task/.next/server/chunks/ssr/x.js:1:${line})`];
+    const one = logLineEvent('request_error', { routePath: '/[lang]/shabad/[ang]', error: 'Error: Ang 1 is unavailable', stack: at(10, 'b') }, T0, {});
+    const two = logLineEvent('request_error', { routePath: '/[lang]/shabad/[ang]', error: 'Error: Ang 1430 is unavailable', stack: at(99, 'q') }, T0, {});
+    assert.deepEqual(one.event.fingerprint, two.event.fingerprint);
+    assert.equal(one.key, two.key);
+    assert.deepEqual(one.event.fingerprint, ['request_error', 'routePath=/[lang]/shabad/[ang]', 'Error', 'Ang 0 is unavailable']);
 });
 
 test('an envelope is a header, an item header and the event, a line each', () => {

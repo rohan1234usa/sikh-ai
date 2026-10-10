@@ -149,9 +149,14 @@ const TAG_FIELDS = [
     'feature', 'model', 'status', 'upstream', 'op', 'missing', 'outcome', 'digest', 'requestId',
 ];
 // Of those, what tells one error from another, beside the line's event name
-// and the error's type and function. Never a line or column number, which
-// every deploy changes.
+// and the error's type and message. Never a frame: the server's code is
+// minified, so its function names, lines and columns change with every
+// deploy.
 const GROUPED_BY = ['route', 'routePath', 'feature', 'model', 'status', 'upstream', 'op', 'missing'];
+
+// A message as it groups: its start, with every number the same, so the
+// failure of Ang 1 and of Ang 1430 is one issue.
+const groupedMessage = (message: string) => message.slice(0, 80).replace(/\d+/g, '0');
 
 // Where a server frame's file is, from the deployment's root: the path
 // before .next/ or node_modules/ says only where the server keeps it.
@@ -188,7 +193,7 @@ export function logLineEvent(evt: string, fields: Record<string, unknown>, now =
         evt,
         ...GROUPED_BY.flatMap((name) => (tags[name] ? [`${name}=${tags[name]}`] : [])),
         ...(type ? [type] : []),
-        ...(frames[0]?.function ? [frames[0].function] : []),
+        ...(message ? [groupedMessage(message)] : []),
     ];
     const event: SentryEvent = {
         ...basics(env, now),
