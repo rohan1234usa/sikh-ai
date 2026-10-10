@@ -25,6 +25,9 @@ function requestIdOf(req: Request): string {
     return req.headers.get('x-vercel-id')?.slice(0, 120) || crypto.randomUUID();
 }
 
+// The ID of the request this is running for, inside withRequestLog.
+export const currentRequestId = (): string | undefined => requests.getStore()?.requestId;
+
 // Wraps an API route's handler, so its log lines carry the request's ID.
 export function withRequestLog<Req extends Request, Res>(route: string, handler: (req: Req) => Promise<Res>) {
     return (req: Req): Promise<Res> => requests.run({ requestId: requestIdOf(req), route }, () => handler(req));
