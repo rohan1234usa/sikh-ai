@@ -643,6 +643,16 @@ const en = {
         historyClearPrompt: 'Clear translation history?',
         historyClearConfirm: 'Clear',
         cancel: 'Cancel',
+        // The live translation under the text box (#37), and its switch.
+        liveSwitch: 'Live',
+        liveSwitchHint: 'Live translation as you type',
+        liveLabel: 'Live translation',
+        liveMissing: 'didn’t come through',
+        liveCut: 'Cut off. Press Translate for the whole translation.',
+        liveTooLong: 'Too long to translate as you type. Press Translate.',
+        livePaused: 'Live translation is paused for a minute. Translate still works.',
+        livePausedToday: 'Live translation has reached today’s limit. Translate still works.',
+        liveFailed: 'Live translation isn’t available right now. Translate still works.',
     },
 
     // /learn (app/[lang]/learn): the Learn Punjabi section's own words. The

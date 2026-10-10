@@ -19,6 +19,13 @@ export const CHAT_FIRST_TEXT_MS = 10_000;
 export const TRANSLATE_BUDGET_MS = 20_000;
 export const TRANSLATE_ATTEMPT_MS = 12_000;
 
+// The live translator streams three short lines while the user types, so an
+// answer that is slow is already stale: the page asks again at the next
+// pause. A first line that hasn't come after 4 s means the call is stuck,
+// and the 6 s left are the fallback model's minimum.
+export const LIVE_TRANSLATE_BUDGET_MS = 10_000;
+export const LIVE_TRANSLATE_FIRST_TEXT_MS = 4_000;
+
 // The Punjabi tutor streams like the chat. Its first word came in about a
 // second in testing (a smaller prompt than the chat's, LOW thinking), so one
 // that hasn't come after 8 s means the call is stuck, and 19 s remain for

@@ -35,6 +35,14 @@ const MODELS = {
         env: 'GEMINI_TRANSLATE_MODEL', pinned: 'gemini-3.8-flash',
         fallbackEnv: 'GEMINI_TRANSLATE_FALLBACK_MODEL', fallback: 'gemini-3.7-flash',
     },
+    // The live translator (/api/translate/live), which answers while the
+    // user types. Its own entry, so a preview can try a faster, cheaper
+    // model (Flash-Lite, say) on live lines alone while the Translate
+    // button's full result stays on the model it was tuned for.
+    translateLive: {
+        env: 'GEMINI_TRANSLATE_LIVE_MODEL', pinned: 'gemini-3.8-flash',
+        fallbackEnv: 'GEMINI_TRANSLATE_LIVE_FALLBACK_MODEL', fallback: 'gemini-3.7-flash',
+    },
     // The Punjabi tutor (/api/learn). Its own entry, so a preview can try
     // another model on the tutor alone, and on the free tier an override
     // gives it a daily quota of its own.

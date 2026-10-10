@@ -17,7 +17,8 @@
 //   MOCK_REPLY:<name> a canned chat reply (CANNED below, or a citation fixture id)
 //   MOCK_LONG         a reply as long as a whole Ang explained line by line,
 //                     in small pieces (for profiling the chat's rendering)
-// Anything else gets a normal reply naming the model that served it.
+// Anything else gets a normal reply naming the model that served it; a
+// streamed translator request (/api/translate/live) gets its four lines.
 
 import { readFileSync } from 'node:fs';
 import http from 'node:http';
@@ -132,6 +133,13 @@ function translation(userText: string) {
     };
 }
 
+// The live translator's four lines for the fenced input, in the shape
+// lib/translate/live.ts reads.
+function liveLines(userText: string): string {
+    const { detectedInput, gurmukhi, roman, english } = translation(userText);
+    return `INPUT: ${detectedInput}\nGURMUKHI: ${gurmukhi}\nROMAN: ${roman}\nENGLISH: ${english}`;
+}
+
 // A reply in `count` pieces, split between words.
 function pieces(text: string, count = 4): string[] {
     const words = text.split(/(?<=\s)/);
@@ -214,7 +222,10 @@ export async function startMockGemini(opts: MockOptions = {}): Promise<MockGemin
             }
             const canned = /MOCK_REPLY:([\w:-]+)/.exec(text)?.[1];
             const long = text.includes('MOCK_LONG');
+            // Only the translators fence their text, and only the live one streams.
+            const live = /--- BEGIN TEXT [0-9a-f]+ ---/.test(text);
             const reply = (long ? longReply() : canned && cannedReply(canned))
+                || (live ? liveLines(text) : '')
                 || `Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh. This is a **mock** reply from \`${model}\`.`;
             // A long reply comes in about as many pieces as Gemini sends: one
             // every ~80 characters.

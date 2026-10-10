@@ -625,6 +625,15 @@ const paLatn: Dictionary = {
         historyClearPrompt: 'Anuvaad itihaas mitauna hai?',
         historyClearConfirm: 'Mitao',
         cancel: 'Radd karo',
+        liveSwitch: 'Live',
+        liveSwitchHint: 'Likhde-likhde live anuvaad',
+        liveLabel: 'Live anuvaad',
+        liveMissing: 'nahi pahunchia',
+        liveCut: 'Adhura reh gaya. Pure anuvaad layi “Anuvaad karo” dabao.',
+        liveTooLong: 'Likhde-likhde anuvaad layi bahut lamma hai. “Anuvaad karo” dabao.',
+        livePaused: 'Live anuvaad ik minute layi rukia hai. “Anuvaad karo” hale vi kamm karda hai.',
+        livePausedToday: 'Live anuvaad ajj di hadd tak pahunch gaya hai. “Anuvaad karo” hale vi kamm karda hai.',
+        liveFailed: 'Live anuvaad is vele uplabdh nahi hai. “Anuvaad karo” hale vi kamm karda hai.',
     },
 
     // /learn — the lessons and vocabulary are English in every UI language
