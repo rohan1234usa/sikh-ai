@@ -31,6 +31,11 @@ const SECURITY_HEADERS = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // A .map beside each script, so Sentry can show an error report's frames
+  // (lib/errors, #20) as the source it came from: it fetches them from the
+  // site, as any browser's developer tools can. The code is public on GitHub
+  // already, so they show nothing new. Browsers never load them otherwise.
+  productionBrowserSourceMaps: true,
   // app/global-not-found.tsx: the 404 for every language (pages live under
   // app/[lang], whose layout can't serve one of its own; a language prefix in
   // the wrong case gets Next's plain 404 from that layout).

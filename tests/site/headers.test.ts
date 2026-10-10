@@ -32,3 +32,7 @@ test('the Content-Security-Policy is enforced, and still reports what it blocks'
     assert.deepEqual(policy.get('report-uri'), ['/api/csp-report']);
     assert.equal(headers.get('reporting-endpoints'), 'csp="/api/csp-report"');
 });
+
+test("each script's source map is published, for error reports' frames", () => {
+    assert.equal(nextConfig.productionBrowserSourceMaps, true);
+});
