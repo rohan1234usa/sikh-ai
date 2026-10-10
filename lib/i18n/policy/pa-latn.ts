@@ -34,7 +34,7 @@ const policy: PolicyDictionary = {
                     'Tuhade aakhri {maxTranslations} anuvaad. “Haalia anuvaad” vich tusi ik-ik karke jaan saare hata sakde ho.',
                     'Tuhadi “Punjabi Sikho” tarakki: poore keete sabak, quiz de sab ton vadhia ank, ate har flashcard kadon dubara aavega.',
                     'Punjabi tutor naal tuhadi gallbaat, tab band hon tak.',
-                    'Tuhadian chat settings (Drishtikon, Jawab di shaili ate Jawab di bhasha), tuhadi theme, ki tusi pheriaan di ginti band kiti hai, ate ki tusi sign in si, taan jo tuhada session chheti vapas aa jave.',
+                    'Tuhadian chat settings (Drishtikon, Jawab di shaili ate Jawab di bhasha), ki anuvadak da live anuvaad chaalu hai, tuhadi theme, ki tusi pheriaan di ginti band kiti hai, ate ki tusi sign in si, taan jo tuhada session chheti vapas aa jave.',
                     'Seva samagaman vale panne utte tuhada aakhri chuniaa desh; ate jo samagam tusi likhna shuru kita par paaya nahi, tab band hon tak.',
                     'Ik cookie, {langCookie}, jo sirf bhasha badlan vele lagdi hai. Ih tuhadi chon ik saal layi rakhdi hai, taan jo link tuhadi bhasha vich khulle.',
                     'Jadon tusi sign in hunde ho, Google di sign-in seva Firebase tuhada session ithe rakhdi hai: tuhade khaate di ID, naam, email pata, tuhadi profile photo da pata, ate sign-in token. Sign out karan naal ih hat jaanda hai. Firebase ih vi darj karda hai ki usda code is browser vich kehre din chaliaa, apni varton di ginti layi.',
@@ -63,7 +63,7 @@ const policy: PolicyDictionary = {
             services: {
                 heading: 'Hor sevavan nu bhejia jaanda',
                 items: [
-                    'Google Gemini jawab likhda hai. Har chat suneha gallbaat de {maxEarlierMessages} tak pichhle sunehian, tuhade jode kise paath (jo har sunehe naal dubara jaanda hai), ate tuhadian chat settings samet usnu jaanda hai. Jis likhat da tusi anuvaad karde ho, oh vi usnu jaandi hai.',
+                    'Google Gemini jawab likhda hai. Har chat suneha gallbaat de {maxEarlierMessages} tak pichhle sunehian, tuhade jode kise paath (jo har sunehe naal dubara jaanda hai), ate tuhadian chat settings samet usnu jaanda hai. Jis likhat da tusi anuvaad karde ho, oh vi usnu jaandi hai: jadon tusi “Anuvaad karo” dabaunde ho, ate jadon live anuvaad chaalu hove, likhde-likhde, har vaar jadon tusi rukde ho.',
                     'Punjabi tutor nu bheje sunehe vi Gemini nu jaande han, gallbaat de {maxTutorMessages} tak pichhle sunehian ate us sabak samet jithon tusi tutor kholia.',
                     'Inhan naal tuhadi pachhaan baare kujh nahi jaanda: na tuhada naam, na khaate di ID, na IP pata. Jo tusi likhde ho oh jiven likhia uven jaanda hai, is layi jo gall tusi niji rakhni chahunde ho oh na likho.',
                     'SikhAI Gemini di adaigi vali seva vartda hai. Us layi Google dian shartan heth, Google site da bhejia apne utpaad sudharan layi nahi vartda. Ih usnu 55 dinan tak rakhda hai, sirf durvarton phadan layi ate kanoon valon lorhinde khulasian layi.',

@@ -32,7 +32,7 @@ const policy = {
                     'Your last {maxTranslations} translations. You can remove one, or all of them, under Recent translations.',
                     'Your Learn Punjabi progress: the lessons you finished, your best quiz scores, and when each flashcard comes back.',
                     'Your conversation with the Punjabi tutor, until you close the tab.',
-                    'Your chat settings (perspective, response style and reply language), your theme, whether you turned off visit counting, and whether you were signed in, so your session comes back quickly.',
+                    'Your chat settings (perspective, response style and reply language), whether the translator\'s live translation is on, your theme, whether you turned off visit counting, and whether you were signed in, so your session comes back quickly.',
                     'On the Seva board, the country you last chose; and an event you\'ve started writing but not posted, until you close the tab.',
                     'One cookie, {langCookie}, set only when you change the language. It keeps your choice for a year, so a link opens in your language.',
                     'While you are signed in, Firebase, Google\'s sign-in service, keeps your session here: your account ID, name, email address, the address of your profile photo, and sign-in tokens. Signing out removes it. Firebase also notes which days its code ran in this browser, for its own usage counts.',
@@ -61,7 +61,7 @@ const policy = {
             services: {
                 heading: 'Sent to other services',
                 items: [
-                    'Google Gemini writes the answers. Each chat message goes to it with up to {maxEarlierMessages} earlier messages from the chat, any passage you attached (sent again with every message), and your chat settings. Text you translate goes to it too.',
+                    'Google Gemini writes the answers. Each chat message goes to it with up to {maxEarlierMessages} earlier messages from the chat, any passage you attached (sent again with every message), and your chat settings. Text you translate goes to it too: when you press Translate, and, while live translation is on, as you type, each time you pause.',
                     'Messages to the Punjabi tutor go to Gemini too, with up to {maxTutorMessages} earlier messages from the conversation and the lesson you opened it from.',
                     'Nothing about who you are goes with them: not your name, account ID or IP address. What you write goes as you wrote it, so leave out anything you want to keep private.',
                     'SikhAI uses Gemini\'s paid service. Under Google\'s terms for it, Google doesn\'t use what the site sends to improve its products. It keeps it for up to 55 days, only to detect misuse and for disclosures the law requires.',
