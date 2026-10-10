@@ -57,6 +57,12 @@ test('sends the live request: the fenced text, the live instruction, a small cap
     assert.equal('responseSchema' in body.generationConfig, false);
 });
 
+test('the text is trimmed before it is fenced', async () => {
+    const { result: res, requests } = await captured(mock, () => live('  \n main theek haan \n '));
+    await readStream(res);
+    assert.match((requests[0].body as WireBody).contents[0].parts[0].text, /---\nmain theek haan\n---/);
+});
+
 test('the script is checked on the server, and the hint shapes the instruction', async () => {
     const cases: [string, string, RegExp][] = [
         ['ਤੁਸੀਂ ਕਿਵੇਂ ਹੋ', 'english', /Set the INPUT line to "punjabi-gurmukhi"/],

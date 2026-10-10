@@ -70,7 +70,8 @@ async function handlePost(req: Request) {
 
     // As in /api/translate: an unknown hint is 'auto', and the script is
     // checked here rather than taken from the page.
-    const opts = { sourceHint: isSourceHint(sourceHint) ? sourceHint : "auto", detectedScript: detectScript(text) } as const;
+    const input = text.trim();
+    const opts = { sourceHint: isSourceHint(sourceHint) ? sourceHint : "auto", detectedScript: detectScript(input) } as const;
 
     const ai = new GoogleGenAI({ apiKey });
     const deadline = Date.now() + LIVE_TRANSLATE_BUDGET_MS;
@@ -79,7 +80,7 @@ async function handlePost(req: Request) {
     try {
       attempt = await withModelFallback(
         "translateLive",
-        model => openTextStream(ai, buildLiveTranslateRequest(model, text, opts), {
+        model => openTextStream(ai, buildLiveTranslateRequest(model, input, opts), {
           signal: req.signal,
           deadline,
           firstTextMs: LIVE_TRANSLATE_FIRST_TEXT_MS,

@@ -2,11 +2,15 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { SOURCE_HINTS } from '@/lib/translate/config';
 import {
+    LIVE_CALLS_PER_MINUTE,
     LIVE_LABELS,
+    LIVE_PAUSE_AFTER_REFUSAL_MS,
     MAX_LIVE_CHARS,
     liveEligible,
     liveFieldsFor,
+    nextLiveCall,
     parseLiveLines,
+    refusalPauseMs,
 } from '@/lib/translate/live';
 import { buildLiveTranslateRequest, composeLiveTranslateInstruction, composeTranslateInstruction } from '@/lib/translate/prompts';
 import { ROMANIZATION_CAPITALS, ROMANIZATION_RULES } from '@/lib/translate/romanization';
@@ -70,6 +74,29 @@ test('live lines start at two words or eight characters, and stop past the cap',
     assert.equal(liveEligible('wonderful'), 'ok');
     assert.equal(liveEligible('a'.repeat(MAX_LIVE_CHARS)), 'ok');
     assert.equal(liveEligible(`${'a'.repeat(MAX_LIVE_CHARS + 1)}`), 'long');
+});
+
+test('a page makes at most LIVE_CALLS_PER_MINUTE calls in any minute', () => {
+    const t = 1_000_000;
+    assert.deepEqual(nextLiveCall([], 0, t), { recent: [], at: t });
+    // One call a second: the next is free once the first is a minute old.
+    const calls = Array.from({ length: LIVE_CALLS_PER_MINUTE }, (_, i) => t + i * 1000);
+    const now = calls.at(-1)! + 500;
+    assert.deepEqual(nextLiveCall(calls, 0, now), { recent: calls, at: t + 60_000 });
+    assert.equal(nextLiveCall(calls.slice(1), 0, now).at, now, 'one fewer: free now');
+    // Calls more than a minute old are dropped, and no longer count.
+    const later = nextLiveCall(calls, 0, t + 60_500);
+    assert.deepEqual(later.recent, calls.slice(1));
+    assert.equal(later.at, t + 60_500);
+});
+
+test('a refusal’s wait holds even when the minute has room', () => {
+    assert.equal(nextLiveCall([], 5000, 1000).at, 5000);
+    assert.equal(nextLiveCall([], 500, 1000).at, 1000, 'a wait that is over');
+    assert.equal(refusalPauseMs('42'), 42_000);
+    for (const missing of [null, '', 'soon', '0', '-5', 'Wed, 21 Oct 2026 07:28:00 GMT']) {
+        assert.equal(refusalPauseMs(missing), LIVE_PAUSE_AFTER_REFUSAL_MS, String(missing));
+    }
 });
 
 test('the live instruction keeps the translator’s rules and asks for the four labelled lines', () => {

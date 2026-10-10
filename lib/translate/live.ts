@@ -31,6 +31,25 @@ export const LIVE_CALLS_PER_MINUTE = 10;
 // When a refusal (a 429) carries no Retry-After, live lines pause this long.
 export const LIVE_PAUSE_AFTER_REFUSAL_MS = 60_000;
 
+const MINUTE_MS = 60_000;
+
+// When the next live call may start (epoch ms): now; or once the oldest of
+// the last minute's calls is a minute old, if there were
+// LIVE_CALLS_PER_MINUTE of them; or once a refusal's wait is over. `calls`
+// are when recent calls started; `recent` is those still within the minute.
+export function nextLiveCall(calls: readonly number[], pausedUntil: number, now: number): { recent: number[]; at: number } {
+    const recent = calls.filter(t => now - t < MINUTE_MS);
+    const capped = recent.length >= LIVE_CALLS_PER_MINUTE ? recent[recent.length - LIVE_CALLS_PER_MINUTE] + MINUTE_MS : 0;
+    return { recent, at: Math.max(now, pausedUntil, capped) };
+}
+
+// How long a 429 pauses live lines: its Retry-After seconds (the allowance
+// always sends them), else LIVE_PAUSE_AFTER_REFUSAL_MS.
+export function refusalPauseMs(retryAfter: string | null): number {
+    const seconds = Number(retryAfter);
+    return retryAfter !== null && Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : LIVE_PAUSE_AFTER_REFUSAL_MS;
+}
+
 export type LiveField = 'gurmukhi' | 'roman' | 'english';
 export const LIVE_FIELDS: readonly LiveField[] = ['gurmukhi', 'roman', 'english'];
 

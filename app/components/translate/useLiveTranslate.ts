@@ -1,15 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SourceHint, TranslationResult } from '@/lib/translate/config';
 import { normalizeInput } from '@/lib/translate/history';
 import {
-    LIVE_CALLS_PER_MINUTE,
-    LIVE_PAUSE_AFTER_REFUSAL_MS,
-    LIVE_PAUSE_MS,
     LIVE_FIELDS,
+    LIVE_PAUSE_MS,
     liveEligible,
+    nextLiveCall,
     parseLiveLines,
+    refusalPauseMs,
     type LiveLines,
 } from '@/lib/translate/live';
 
@@ -45,7 +45,6 @@ export type LiveView = {
 
 // Answered texts kept for this page, newest last.
 const CACHE_SIZE = 50;
-const MINUTE_MS = 60_000;
 // A runaway reply: four lines of a few sentences never come near this.
 const MAX_REPLY_CHARS = 4000;
 
@@ -59,12 +58,6 @@ const linesOf = (r: TranslationResult): LiveLines =>
 
 const complete = (lines: LiveLines) => LIVE_FIELDS.every(f => lines[f]);
 const anything = (lines: LiveLines) => LIVE_FIELDS.some(f => lines[f]);
-
-// Seconds from a 429's Retry-After, else a minute.
-function pauseFor(res: Response): number {
-    const seconds = Number(res.headers.get('retry-after'));
-    return Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : LIVE_PAUSE_AFTER_REFUSAL_MS;
-}
 
 export function useLiveTranslate({ text, hint, enabled, lookup }: {
     text: string;
@@ -83,9 +76,21 @@ export function useLiveTranslate({ text, hint, enabled, lookup }: {
     const trimmed = text.trim();
     const eligible = liveEligible(trimmed);
     const key = keyOf(trimmed, hint);
+    // The history hands back the same entry until it changes, so these
+    // lines keep their identity from one render to the next.
     const saved = enabled && eligible === 'ok' ? lookup(trimmed, hint) : undefined;
-    const known = saved ? linesOf(saved.result) : cache.get(key);
+    const savedLines = useMemo(() => (saved ? linesOf(saved.result) : undefined), [saved]);
+    const known = savedLines ?? cache.get(key);
     const needsCall = enabled && eligible === 'ok' && !known;
+
+    // The lines on screen last, shown dimmed while the next call is due, and
+    // forgotten once the box is cleared or Live is off. Kept in state, set
+    // while rendering, the way React adjusts state to a changed input, so a
+    // remembered answer counts as much as one that just streamed in.
+    const current = known ?? (answer?.key === key ? answer.lines : null);
+    const [held, setHeld] = useState<LiveLines | null>(null);
+    const nextHeld = enabled && eligible === 'ok' ? current ?? held : null;
+    if (nextHeld !== held) setHeld(nextHeld);
 
     useEffect(() => {
         if (!needsCall) return;
@@ -95,16 +100,12 @@ export function useLiveTranslate({ text, hint, enabled, lookup }: {
 
         const call = async () => {
             const now = Date.now();
-            const recent = callsRef.current.filter(t => now - t < MINUTE_MS);
+            const { recent, at } = nextLiveCall(callsRef.current, pausedUntilRef.current, now);
             callsRef.current = recent;
-            const freeAt = Math.max(
-                pausedUntilRef.current,
-                recent.length >= LIVE_CALLS_PER_MINUTE ? recent[0] + MINUTE_MS : 0,
-            );
-            if (freeAt > now) {
+            if (at > now) {
                 // Asked again once the pause is over, if the text is still this.
                 setAnswer({ key, status: 'paused', lines: null });
-                timer = setTimeout(call, freeAt - now);
+                timer = setTimeout(call, at - now);
                 return;
             }
             recent.push(now);
@@ -120,7 +121,7 @@ export function useLiveTranslate({ text, hint, enabled, lookup }: {
                 if (!live()) return;
                 if (res.status === 429) {
                     // The allowance's or the firewall's: wait as long as it says.
-                    pausedUntilRef.current = Date.now() + pauseFor(res);
+                    pausedUntilRef.current = Date.now() + refusalPauseMs(res.headers.get('retry-after'));
                     void res.body?.cancel();
                     setAnswer({ key, status: 'paused', lines: null });
                     timer = setTimeout(call, pausedUntilRef.current - Date.now());
@@ -179,7 +180,9 @@ export function useLiveTranslate({ text, hint, enabled, lookup }: {
     if (eligible !== 'ok') return { status: eligible, lines: null, stale: false };
     if (known) return { status: 'done', lines: known, stale: false };
     if (answer?.key === key) return { status: answer.status, lines: answer.lines, stale: false };
+    // Typing on through a pause: it most likely still holds, and the note
+    // shouldn't blink off at every keystroke.
+    if (answer?.status === 'paused') return { status: 'paused', lines: null, stale: false };
     // Due at the next pause: the last lines stay up, marked as for older text.
-    const last = answer?.lines ?? null;
-    return { status: 'waiting', lines: last, stale: last !== null };
+    return { status: 'waiting', lines: held, stale: held !== null };
 }

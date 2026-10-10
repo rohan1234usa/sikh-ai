@@ -63,12 +63,12 @@ export default function TranslateInput({ text, onText, hint, onHint, loading, ag
                 <LiveStrip view={liveView} />
                 <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-200">
                     <div className="flex items-center gap-3 min-w-0">
+                        {/* Named by the hint, which holds the visible word. */}
                         <button
                             type="button"
                             role="switch"
                             aria-checked={live}
                             onClick={() => onLive(!live)}
-                            // Names the switch with its visible word in it.
                             aria-label={t.translate.liveSwitchHint}
                             title={t.translate.liveSwitchHint}
                             className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 text-xs font-semibold text-slate-600 hover:text-navy transition-colors"
