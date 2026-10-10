@@ -5,6 +5,7 @@ import {
     FIRESTORE_COLLECTIONS, MAX_FRAMES, MAX_MESSAGE_CHARS, frameLines, parseFrameLine, readsAsWords, scrubMessage,
     scrubName, scrubPath,
 } from '@/lib/errors/scrub';
+import { readClientReport } from '@/lib/errors/report';
 
 const SITE = 'https://sikhai.vercel.app';
 const CHUNK = `${SITE}/_next/static/chunks/0a1b2c3d4e5f.js`;
@@ -152,4 +153,41 @@ test('a frame line reads back into its parts, its function only if it reads as c
     assert.deepEqual(parseFrameLine(`at my private question (${CHUNK}:9:9)`), { file: CHUNK, line: 9, column: 9 });
     assert.equal(parseFrameLine('at Array.map (<anonymous>)'), null);
     assert.equal(parseFrameLine('[native code]'), null);
+});
+
+test("the server reads a browser's report field by field, keeping only this site's frames", () => {
+    const posted = {
+        kind: 'uncaught',
+        name: 'TypeError',
+        message: 'Unknown lens "my private question"',
+        page: `/pa/share/${SHARE_ID}?q=x`,
+        frames: [
+            `at Foo (${CHUNK}?dpl=1:1:2)`,
+            `at inline (${SITE}/pa/share/${SHARE_ID}:3:4)`,
+            'at injected (chrome-extension://abcdefghijklmnop/content.js:5:6)',
+            42,
+        ],
+        extra: 'ignored',
+    };
+    assert.deepEqual(readClientReport(posted, SITE), {
+        kind: 'uncaught',
+        name: 'TypeError',
+        message: 'Unknown lens "…"',
+        page: '/pa/share/:id',
+        frames: [
+            { fn: 'Foo', file: CHUNK, line: 1, column: 2 },
+            { fn: 'inline', file: '/pa/share/:id', line: 3, column: 4 },
+        ],
+    });
+});
+
+test('a report with no frame on this site, or that is not one, is dropped', () => {
+    const base = { kind: 'page', name: 'Error', message: 'x', page: '/', frames: [`at f (${CHUNK}:1:1)`] };
+    assert.ok(readClientReport(base, SITE));
+    assert.equal(readClientReport({ ...base, frames: ['at f (https://other.example/x.js:1:1)'] }, SITE), null);
+    assert.equal(readClientReport({ ...base, frames: [] }, SITE), null);
+    assert.equal(readClientReport({ ...base, kind: 'other' }, SITE), null);
+    assert.equal(readClientReport({ ...base, page: 42 }, SITE), null);
+    for (const body of [null, 'text', [base]]) assert.equal(readClientReport(body, SITE), null);
+    assert.equal(readClientReport({ ...base, name: 'my private question' }, SITE)?.name, 'Error');
 });
