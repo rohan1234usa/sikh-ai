@@ -841,8 +841,8 @@ const en = {
     // lib/i18n/policy, which only the server reads.
     analyticsSwitch: {
         label: 'Count my visits',
-        on: 'On. Visits from this browser are counted, without cookies.',
-        off: 'Off. This browser sends no visit counts or page-speed measurements.',
+        on: 'On. Visits from this browser are counted, without cookies, and its error reports are sent.',
+        off: 'Off. This browser sends no visit counts, page-speed measurements or error reports.',
         gpc: 'Off. Your browser sends Global Privacy Control, and this site follows it.',
         noScript: 'With JavaScript off, nothing is counted.',
     },

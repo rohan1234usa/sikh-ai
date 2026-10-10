@@ -72,6 +72,7 @@ const policy: PolicyDictionary = {
                     'Google da app platform Firebase sign-in chalaunda hai ate khaate, sambhalian gallbaatan, saanjhe link, ate seva samagam unhan vich shamil naaman ate shikayatan samet rakhda hai. Sign in karan layi, sign in rehndian, ate saanjhe link utte tuhada browser sidha is naal judda hai, is layi odon Google tuhada IP pata dekhda hai. Seva de panne is site de server utte bande han, is layi samagam dekhan naal tuhada browser Firebase naal nahi judda. Nahi taan tuhada browser sirf is site naal judda hai.',
                     'Kise samagam tak pahunchan de raah ate calendar vale link Google Maps jaan Google Calendar kholde han, ate isnu WhatsApp utte saanjha karan naal WhatsApp khulda hai, samagam de vervian samet. Phir oh sevavan ih verve ate tuhada IP pata apnian nijjta nitian heth laindian han. Hor calendaran layi calendar file isse site ton aundi hai.',
                     'Vercel site nu chalaunda hai. Isde log thorhe samay layi tuhada IP pata ate mange panne darj karde han. Site de apne logan vich tuhada likhia kade nahi hunda, bhaven unhan vich kise panne da pata ho sakda hai.',
+                    'Jadon site utte kujh kharab hunda hai, tuhade browser vich jaan isde server utte, taan ik chhoti galti report Sentry nu jaandi hai, jo galtiaan darj karan vali ik seva hai, taan jo kharabi da pata lag sake. Is vich dassia hunda hai ki ki kharab hoia ate site de code vich kithe, panne da pata (kise ID ton bina, ate tusi jo khojia us ton bina), site da version, ate tuhada browser ate operating system. Is vich tuhada likhia, tuhade khaate di ID jaan tuhada IP pata kade nahi hunda: tuhada browser apnian reportan is site nu bhejda hai, jisda server agge bhejan ton pehlan unhan nu dubara jaanchda hai. Kise report nu tuhade naal nahi jodia ja sakda, is layi ih benti karan utte hatai nahi ja sakdi; Sentry isnu 30 dinan baad mita dinda hai.',
                     'Kise ik aun vale nu AI vartan valian sahulatan jaan Shabad Khoj muka den ton rokan layi, site da server ginda hai ki har IP pata inhan nu is minute ate ajj kinni vaar vartda hai. Ih pate ton bane ik code heth ginda hai, jo har roz badlan vali ik gupt kunji naal banda hai, ih code sirf apni memory vich rakhda hai, ate isnu kade na likhda hai na kithe bhejda hai.',
                 ],
             },
@@ -81,7 +82,7 @@ const policy: PolicyDictionary = {
                     'Vercel Web Analytics pheriaan ginda hai, taan jo site dekh sake ki lok kehre panne vartde han. Har panna khulan utte ih darj karda hai ki kehra panna si (saanjhe link di ID kade nahi), tusi kis site ton aaye, samaan, tuhada lagbhag tikana (desh, ilaaka ate shehar), ate tuhada browser, operating system ate device di kism.',
                     'Ih koi cookie nahi vartda ate tuhade browser vich kujh nahi rakhda. Aun valian nu vakh karan layi ih tuhadi benti ton ik code banaunda hai jo 24 ghantian de andar sutt ditta jaanda hai, is layi tuhadian pheriaan ik din ton duje din naal nahi jodian ja sakdian. Site nu sirf kull gintian disdian han.',
                     'Vercel Speed Insights mapda hai ki panne kinni tezi naal khulhde han: kehra panna si, tuhade connection di raftaar, browser, operating system, device di kism ate desh. Ih vi koi cookie nahi vartda.',
-                    'Je tuhada browser Global Privacy Control sanket bhejda hai, taan dohan vichon koi vi tuhanu nahi ginda. Tusi hethan ditte switch naal dove band vi kar sakde ho; tuhadi chon is browser vich rakhi jaandi hai.',
+                    'Je tuhada browser Global Privacy Control sanket bhejda hai, taan dohan vichon koi vi tuhanu nahi ginda, ate tuhada browser koi galti report nahi bhejda. Tusi hethan ditte switch naal tinne band vi kar sakde ho; tuhadi chon is browser vich rakhi jaandi hai.',
                 ],
             },
             age: {
@@ -94,7 +95,7 @@ const policy: PolicyDictionary = {
             location: {
                 heading: 'Ih kithe sambhalia jaanda hai',
                 items: [
-                    'SikhAI America ton chalda hai: Vercel site da server code uthe chalaunda hai, ate Firebase khaate, sambhalian gallbaatan, saanjhe link ate seva samagam uthe rakhda hai. Je tusi kise hor desh ton aunde ho, taan tuhadi jaankari America jaandi hai.',
+                    'SikhAI America ton chalda hai: Vercel site da server code uthe chalaunda hai, Firebase khaate, sambhalian gallbaatan, saanjhe link ate seva samagam uthe rakhda hai, ate Sentry galti reportan uthe rakhda hai. Je tusi kise hor desh ton aunde ho, taan tuhadi jaankari America jaandi hai.',
                     'Google site valon Gemini ate Cloud Translation nu bheji likhat unhan hor deshan vich vi sambhal sakda hai jithe usde data center han.',
                 ],
             },
