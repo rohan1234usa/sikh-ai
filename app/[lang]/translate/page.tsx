@@ -22,6 +22,8 @@ import TranslateSkeleton from '@/app/components/translate/TranslateSkeleton';
 import Phrasebook from '@/app/components/translate/Phrasebook';
 import TranslateHistory from '@/app/components/translate/TranslateHistory';
 import { useTranslateHistory, type TranslateHistoryEntry } from '@/app/components/translate/useTranslateHistory';
+import { useLiveTranslate } from '@/app/components/translate/useLiveTranslate';
+import { useLiveSwitch } from '@/app/components/translate/useLiveSwitch';
 
 export default function TranslatePage() {
   const t = useT();
@@ -165,6 +167,11 @@ export default function TranslatePage() {
   const showingThis = result !== null && shown !== null && sameRequest(shown, { input: text, sourceHint: hint });
   const handleSubmit = () => translate(text, hint, showingThis);
 
+  // The lines under the text box while typing. Hidden, and no call made,
+  // while the full result for exactly this text is on screen below.
+  const [liveOn, setLiveOn] = useLiveSwitch();
+  const liveView = useLiveTranslate({ text, hint, enabled: liveOn && !showingThis, lookup: history.lookup });
+
   const handleRetryAs = (as: DetectedInput) => translate(shown?.input ?? text, as);
 
   // The phrasebook and history sit below the results, so a selection there
@@ -230,6 +237,9 @@ export default function TranslatePage() {
           loading={loading}
           again={showingThis}
           onSubmit={handleSubmit}
+          live={liveOn}
+          onLive={setLiveOn}
+          liveView={liveView}
         />
       </div>
 

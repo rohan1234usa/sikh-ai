@@ -4,6 +4,8 @@ import { useT } from '../../context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import { MAX_TRANSLATE_CHARS, SOURCE_HINTS, type SourceHint } from '@/lib/translate/config';
 import { detectScript } from '@/lib/translate/detect';
+import LiveStrip from './LiveStrip';
+import type { LiveView } from './useLiveTranslate';
 
 type Props = {
     text: string;
@@ -15,11 +17,16 @@ type Props = {
     // submit asks for a fresh translation rather than the saved one.
     again?: boolean;
     onSubmit: () => void;
+    // The Live switch, and the lines it shows under the text box.
+    live: boolean;
+    onLive: (on: boolean) => void;
+    liveView: LiveView;
 };
 
-// Input card for the navy page header: textarea + source-hint chips + the
-// live "Detected:" helper line driven by the client-side script heuristic.
-export default function TranslateInput({ text, onText, hint, onHint, loading, again = false, onSubmit }: Props) {
+// Input card for the navy page header: textarea, the live translation under
+// it, source-hint chips, and the "Detected:" helper line driven by the
+// client-side script heuristic.
+export default function TranslateInput({ text, onText, hint, onHint, loading, again = false, onSubmit, live, onLive, liveView }: Props) {
     const t = useT();
 
     const chipLabels: Record<SourceHint, string> = {
@@ -53,13 +60,34 @@ export default function TranslateInput({ text, onText, hint, onHint, loading, ag
                     placeholder={t.translate.inputPlaceholder}
                     className="w-full resize-none p-2 text-navy bg-white rounded-lg outline-none border-2 border-transparent focus:border-kesri transition-all placeholder:text-slate-400"
                 />
+                <LiveStrip view={liveView} />
                 <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-200">
-                    <span
-                        aria-hidden={!nearCap}
-                        className={`text-xs ${overCap ? 'text-red-600 font-semibold' : 'text-slate-500'} ${nearCap ? '' : 'invisible'}`}
-                    >
-                        {fmt(t.translate.charCount, { n: text.length, max: MAX_TRANSLATE_CHARS })}
-                    </span>
+                    <div className="flex items-center gap-3 min-w-0">
+                        <button
+                            type="button"
+                            role="switch"
+                            aria-checked={live}
+                            onClick={() => onLive(!live)}
+                            // Names the switch with its visible word in it.
+                            aria-label={t.translate.liveSwitchHint}
+                            title={t.translate.liveSwitchHint}
+                            className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 text-xs font-semibold text-slate-600 hover:text-navy transition-colors"
+                        >
+                            <span
+                                aria-hidden
+                                className={`relative inline-block h-4 w-7 shrink-0 rounded-full transition-colors ${live ? 'bg-kesri' : 'bg-slate-300'}`}
+                            >
+                                <span className={`absolute top-0.5 size-3 rounded-full bg-white shadow transition-[left] ${live ? 'left-3.5' : 'left-0.5'}`} />
+                            </span>
+                            {t.translate.liveSwitch}
+                        </button>
+                        <span
+                            aria-hidden={!nearCap}
+                            className={`text-xs ${overCap ? 'text-red-600 font-semibold' : 'text-slate-500'} ${nearCap ? '' : 'invisible'}`}
+                        >
+                            {fmt(t.translate.charCount, { n: text.length, max: MAX_TRANSLATE_CHARS })}
+                        </span>
+                    </div>
                     <button
                         type="submit"
                         disabled={loading || !hasText}
