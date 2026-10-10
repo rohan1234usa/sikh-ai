@@ -11,6 +11,8 @@ export async function startRouteMock(): Promise<MockGemini> {
     process.env.GOOGLE_GEMINI_BASE_URL = mock.url;
     process.env.GEMINI_API_KEY = 'test-key';
     process.env.APP_LOG = 'off';
+    // Never Sentry, whatever the shell running the tests has set.
+    delete process.env.SENTRY_DSN;
     return mock;
 }
 

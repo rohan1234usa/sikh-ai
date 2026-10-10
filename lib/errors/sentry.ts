@@ -269,12 +269,13 @@ export function waitFrom({ status, headers }: Answer): number {
     return Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : DEFAULT_WAIT_MS;
 }
 
-export type SendResult = 'sent' | 'skipped' | 'failed';
+// What came of a send: sent, held back (nowhere to send it, the same error
+// sent recently, the hour's share used up, or Sentry asked to wait), or
+// failed, with Sentry's status when it answered.
+export type SendResult = { result: 'sent' | 'skipped' } | { result: 'failed'; status?: number };
 
 export type Sender = {
-    // Sends an event unless there's nowhere to send it, the same one went
-    // recently, the hour's share is used up, or Sentry asked to wait. Never
-    // throws; never retries.
+    // Never throws, and never retries.
     send(outgoing: Outgoing, now?: number): Promise<SendResult>;
     // Resolves once every send started so far has finished: for tests.
     settled(): Promise<void>;
@@ -309,13 +310,15 @@ export function createSender(env: Env = process.env, { timeoutMs = TIMEOUT_MS } 
             // Not while the site builds (an error line from a page prerendered
             // at build time), and not on the edge, where there's no node:https.
             const away = env.NEXT_PHASE === 'phase-production-build' || env.NEXT_RUNTIME === 'edge';
-            if (!dsn || away || !admit(key, now)) return Promise.resolve('skipped');
-            const sending: Promise<SendResult> = post(dsn, envelope(event, now), timeoutMs).then(
-                (answer) => {
+            if (!dsn || away || !admit(key, now)) return Promise.resolve({ result: 'skipped' });
+            const sending = post(dsn, envelope(event, now), timeoutMs).then(
+                (answer): SendResult => {
                     waitUntil = Math.max(waitUntil, now + waitFrom(answer));
-                    return answer.status >= 200 && answer.status < 300 ? 'sent' : 'failed';
+                    return answer.status >= 200 && answer.status < 300
+                        ? { result: 'sent' }
+                        : { result: 'failed', status: answer.status };
                 },
-                () => 'failed',
+                (): SendResult => ({ result: 'failed' }),
             );
             inFlight.add(sending);
             void sending.finally(() => inFlight.delete(sending));

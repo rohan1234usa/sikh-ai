@@ -1,11 +1,10 @@
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
-import http from 'node:http';
-import type { AddressInfo } from 'node:net';
 import type { ReadReport } from '@/lib/errors/report';
 import {
     PER_HOUR, REPEAT_MS, browserEvent, createSender, envelope, logLineEvent, parseDsn, waitFrom, type Outgoing,
 } from '@/lib/errors/sentry';
+import { startSentryMock, type SentryMock } from '../helpers/sentryMock';
 
 const ORIGIN = 'https://sikhai.vercel.app';
 const CHUNK = `${ORIGIN}/_next/static/chunks/0a1b2c3d4e5f.js`;
@@ -13,33 +12,14 @@ const HOUR = 3_600_000;
 // Far from today, so these times never meet a real clock's.
 const T0 = 20_000 * 86_400_000;
 
-// A stand-in for Sentry: records each envelope, and answers as told.
-type Received = { path: string; headers: http.IncomingHttpHeaders; body: string };
-let received: Received[] = [];
-let answer: { status: number; headers?: Record<string, string>; hang?: boolean } = { status: 200 };
-let server: http.Server;
-let dsn = '';
-
-before(async () => {
-    server = http.createServer((req, res) => {
-        let body = '';
-        req.on('data', (chunk) => { body += chunk; });
-        req.on('end', () => {
-            received.push({ path: req.url ?? '', headers: req.headers, body });
-            if (answer.hang) return;
-            res.writeHead(answer.status, answer.headers);
-            res.end('{}');
-        });
-    });
-    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
-    dsn = `http://publickey@127.0.0.1:${(server.address() as AddressInfo).port}/42`;
-});
-after(() => new Promise<void>((resolve) => { server.closeAllConnections(); server.close(() => resolve()); }));
+let sentry: SentryMock;
+before(async () => { sentry = await startSentryMock(); });
+after(() => sentry.close());
 
 const fresh = () => {
-    received = [];
-    answer = { status: 200 };
-    return createSender({ SENTRY_DSN: dsn, VERCEL_ENV: 'production', VERCEL_GIT_COMMIT_SHA: 'abc123' }, { timeoutMs: 200 });
+    sentry.received.length = 0;
+    sentry.answer = { status: 200 };
+    return createSender({ SENTRY_DSN: sentry.dsn, VERCEL_ENV: 'production', VERCEL_GIT_COMMIT_SHA: 'abc123' }, { timeoutMs: 200 });
 };
 
 const report = (over: Partial<ReadReport> = {}): ReadReport => ({
@@ -155,26 +135,26 @@ test('an envelope is a header, an item header and the event, a line each', () =>
 
 test('an event reaches Sentry with its key, and the same one waits ten minutes', async () => {
     const sender = fresh();
-    assert.equal(await sender.send(outgoing('same'), T0), 'sent');
-    assert.equal(received.length, 1);
-    const [{ path, headers, body }] = received;
+    assert.equal((await sender.send(outgoing('same'), T0)).result, 'sent');
+    assert.equal(sentry.received.length, 1);
+    const [{ path, headers, body }] = sentry.received;
     assert.equal(path, '/api/42/envelope/');
     assert.equal(headers['content-type'], 'application/x-sentry-envelope');
     assert.equal(headers['x-sentry-auth'], 'Sentry sentry_version=7, sentry_key=publickey, sentry_client=sikhai.relay/1.0.0');
     assert.equal(headers.cookie, undefined);
     assert.equal(JSON.parse(body.split('\n')[2]).release, 'abc123');
 
-    assert.equal(await sender.send(outgoing('same'), T0 + REPEAT_MS - 1), 'skipped');
-    assert.equal(await sender.send(outgoing('other'), T0 + 1), 'sent');
-    assert.equal(await sender.send(outgoing('same'), T0 + REPEAT_MS), 'sent');
-    assert.equal(received.length, 3);
+    assert.equal((await sender.send(outgoing('same'), T0 + REPEAT_MS - 1)).result, 'skipped');
+    assert.equal((await sender.send(outgoing('other'), T0 + 1)).result, 'sent');
+    assert.equal((await sender.send(outgoing('same'), T0 + REPEAT_MS)).result, 'sent');
+    assert.equal(sentry.received.length, 3);
 });
 
 test('a server sends at most 20 an hour', async () => {
     const sender = fresh();
-    for (let i = 0; i < PER_HOUR; i++) assert.equal(await sender.send(outgoing(`k${i}`), T0 + i), 'sent');
-    assert.equal(await sender.send(outgoing('one more'), T0 + PER_HOUR), 'skipped');
-    assert.equal(await sender.send(outgoing('next hour'), T0 + HOUR), 'sent');
+    for (let i = 0; i < PER_HOUR; i++) assert.equal((await sender.send(outgoing(`k${i}`), T0 + i)).result, 'sent');
+    assert.equal((await sender.send(outgoing('one more'), T0 + PER_HOUR)).result, 'skipped');
+    assert.equal((await sender.send(outgoing('next hour'), T0 + HOUR)).result, 'sent');
 });
 
 test("Sentry's rate limits hold sends back for as long as it says", async () => {
@@ -186,11 +166,11 @@ test("Sentry's rate limits hold sends back for as long as it says", async () => 
     ];
     for (const { status, headers, wait } of cases) {
         const sender = fresh();
-        answer = { status, headers };
-        assert.equal(await sender.send(outgoing('first'), T0), status === 200 ? 'sent' : 'failed');
-        answer = { status: 200 };
-        assert.equal(await sender.send(outgoing('second'), T0 + wait - 1), 'skipped', `${status} ${JSON.stringify(headers)}`);
-        assert.equal(await sender.send(outgoing('third'), T0 + wait), 'sent');
+        sentry.answer = { status, headers };
+        assert.equal((await sender.send(outgoing('first'), T0)).result, status === 200 ? 'sent' : 'failed');
+        sentry.answer = { status: 200 };
+        assert.equal((await sender.send(outgoing('second'), T0 + wait - 1)).result, 'skipped', `${status} ${JSON.stringify(headers)}`);
+        assert.equal((await sender.send(outgoing('third'), T0 + wait)).result, 'sent');
     }
     assert.equal(waitFrom({ status: 200, headers: { 'x-sentry-rate-limits': '60:transaction:key' } }), 0, 'not for errors');
     assert.equal(waitFrom({ status: 400, headers: {} }), 0);
@@ -198,22 +178,22 @@ test("Sentry's rate limits hold sends back for as long as it says", async () => 
 
 test('a refusal, a dead end or no answer is a failure, never a retry or a throw', async () => {
     const sender = fresh();
-    answer = { status: 400 };
-    assert.equal(await sender.send(outgoing('a'), T0), 'failed');
-    answer = { status: 200, hang: true };
-    assert.equal(await sender.send(outgoing('b'), T0 + 1), 'failed');
-    assert.equal(received.length, 2);
+    sentry.answer = { status: 400 };
+    assert.deepEqual(await sender.send(outgoing('a'), T0), { result: 'failed', status: 400 });
+    sentry.answer = { status: 200, hang: true };
+    assert.deepEqual(await sender.send(outgoing('b'), T0 + 1), { result: 'failed' });
+    assert.equal(sentry.received.length, 2);
 
     const nowhere = createSender({ SENTRY_DSN: 'http://k@127.0.0.1:9/1' }, { timeoutMs: 200 });
-    assert.equal(await nowhere.send(outgoing('c'), T0), 'failed');
+    assert.equal((await nowhere.send(outgoing('c'), T0)).result, 'failed');
 });
 
 test('without a DSN, while the site builds, or on the edge, nothing is sent', async () => {
-    received = [];
-    for (const env of [{}, { SENTRY_DSN: dsn, NEXT_PHASE: 'phase-production-build' }, { SENTRY_DSN: dsn, NEXT_RUNTIME: 'edge' }]) {
-        assert.equal(await createSender(env).send(outgoing('x'), T0), 'skipped', JSON.stringify(env));
+    sentry.received.length = 0;
+    for (const env of [{}, { SENTRY_DSN: sentry.dsn, NEXT_PHASE: 'phase-production-build' }, { SENTRY_DSN: sentry.dsn, NEXT_RUNTIME: 'edge' }]) {
+        assert.equal((await createSender(env).send(outgoing('x'), T0)).result, 'skipped', JSON.stringify(env));
     }
-    assert.equal(received.length, 0);
+    assert.equal(sentry.received.length, 0);
 });
 
 test('settled() waits for every send in flight', async () => {
@@ -221,5 +201,5 @@ test('settled() waits for every send in flight', async () => {
     void sender.send(outgoing('a'), T0);
     void sender.send(outgoing('b'), T0);
     await sender.settled();
-    assert.equal(received.length, 2);
+    assert.equal(sentry.received.length, 2);
 });

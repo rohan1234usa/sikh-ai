@@ -39,8 +39,23 @@ export type GeminiCallLog = {
     error?: string;         // SDK/API error message, never user text
 };
 
+// "Try again in a minute" conditions, as opposed to a broken request
+// (lib/gemini/fallback.ts retries only these).
+export const CAPACITY_STATUS = new Set([429, 500, 502, 503, 504]);
+
+// How loud a call's line is. A failure the owner has to fix is an error,
+// which reaches Sentry (lib/log.ts): an HTTP status that waiting won't change,
+// such as a bad or revoked key (Gemini answers 400), prepaid credit run out
+// (402), or a pinned model Google retired (404, even when the fallback model
+// then answers). Busy, rate-limited, timed out or cancelled calls pass on
+// their own, and stay warnings.
+export function geminiCallLevel({ outcome, status }: Pick<GeminiCallLog, 'outcome' | 'status'>): 'info' | 'warn' | 'error' {
+    if (outcome === 'ok') return 'info';
+    return outcome === 'error' && status !== undefined && !CAPACITY_STATUS.has(status) ? 'error' : 'warn';
+}
+
 export function logGeminiCall(entry: GeminiCallLog): void {
-    logEvent('gemini_call', entry, entry.outcome === 'ok' ? 'info' : 'warn');
+    logEvent('gemini_call', entry, geminiCallLevel(entry));
 }
 
 export function usageFields(usage?: GenerateContentResponseUsageMetadata) {

@@ -7,8 +7,16 @@
 // client, GurbaniNow, Cloud Translation). The ID is Vercel's own x-vercel-id,
 // the same one Vercel's request log and the response's x-vercel-id header
 // show, so a line leads straight to its request. Elsewhere it's a new UUID.
+//
+// An error line is one the owner has to act on, so it goes to Sentry too
+// (lib/errors/sentry.ts, #20), when SENTRY_DSN is set: a route's unexpected
+// failure, a missing key, a Firestore query that needs an index, a Gemini call
+// that waiting won't fix, a page that failed to render (instrumentation.ts).
+// What passes on its own is a warning, and stays in the logs.
 
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { after } from 'next/server';
+import { logLineEvent, sentry, type Outgoing } from './errors/sentry';
 
 type RequestContext = { requestId: string; route: string };
 const requests = new AsyncLocalStorage<RequestContext>();
@@ -26,12 +34,53 @@ export function withRequestLog<Req extends Request, Res>(route: string, handler:
 // stays readable.
 const silenced = () => process.env.APP_LOG === 'off';
 
-export function logEvent(evt: string, fields: object, level: 'info' | 'warn' | 'error' = 'info'): void {
-    if (silenced()) return;
-    const line = JSON.stringify({ evt, ...requests.getStore(), ...fields });
-    if (level === 'error') console.error(line);
-    else if (level === 'warn') console.warn(line);
-    else console.log(line);
+type Level = 'info' | 'warn' | 'error';
+
+// Writes a line: the line as written, or null with logging off.
+function write(evt: string, fields: object, level: Level): Record<string, unknown> | null {
+    if (silenced()) return null;
+    const line = { evt, ...requests.getStore(), ...fields };
+    const text = JSON.stringify(line);
+    if (level === 'error') console.error(text);
+    else if (level === 'warn') console.warn(text);
+    else console.log(text);
+    return line;
+}
+
+export function logEvent(evt: string, fields: object, level: Level = 'info'): void {
+    if (level === 'error') void logError(evt, fields);
+    else write(evt, fields, level);
+}
+
+// An error line, which goes on to Sentry. Resolves once the send is done (or
+// held back, or failed), for instrumentation.ts, which waits for it.
+export function logError(evt: string, fields: object): Promise<void> {
+    const line = write(evt, fields, 'error');
+    return line ? sendInBackground(logLineEvent(evt, line)) : Promise.resolve();
+}
+
+// A send that failed: said once in five minutes at most, and as a warning,
+// since an error line would try to send again.
+const FAILED_SEND_NOTE_MS = 5 * 60_000;
+let failedSendNoted = -Infinity;
+
+// Sends an event to Sentry without holding up the response: after() hands
+// the send to the platform straight away (Vercel's waitUntil), so it can
+// finish after the response has gone. Outside a request (a test, a script)
+// after() throws, and the send just runs. Never rejects.
+export function sendInBackground(outgoing: Outgoing): Promise<void> {
+    const sending = sentry.send(outgoing).then((sent) => {
+        const now = Date.now();
+        if (sent.result !== 'failed' || now - failedSendNoted < FAILED_SEND_NOTE_MS) return;
+        failedSendNoted = now;
+        write('error_report_failed', sent.status === undefined ? {} : { status: sent.status }, 'warn');
+    });
+    try {
+        after(sending);
+    } catch {
+        // not in a request
+    }
+    return sending;
 }
 
 // An error, for a log line: its name and message. A SyntaxError's message can
@@ -46,7 +95,7 @@ export function describeError(error: unknown): string {
 // Where an error was thrown: the top of its stack, frames only. A frame names
 // a function and a file. The stack opens with the message, which may quote
 // user text and run over several lines, so frames are read from below it.
-function stackFrames(error: unknown, max = 6): string[] | undefined {
+export function stackFrames(error: unknown, max = 6): string[] | undefined {
     if (!(error instanceof Error) || typeof error.stack !== 'string') return undefined;
     const at = error.message ? error.stack.indexOf(error.message) : -1;
     const below = at === -1 ? error.stack : error.stack.slice(at + error.message.length);
