@@ -37,7 +37,7 @@ const MAX_REMEMBERED = 500;
 type Env = Record<string, string | undefined>;
 type Dsn = { endpoint: string; key: string };
 
-// Plain http only for a mock on this machine (README, local testing).
+// Plain http only for a mock on this machine (README, Getting Started, step 5).
 const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]']);
 
 // SENTRY_DSN, https://<key>@<host>[/<path>]/<project>, as the address events
