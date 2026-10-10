@@ -126,3 +126,56 @@ export function liveEligible(text: string): 'short' | 'ok' | 'long' {
     const words = trimmed.split(/\s+/).filter(Boolean).length;
     return words >= MIN_LIVE_WORDS || trimmed.length >= MIN_LIVE_CHARS ? 'ok' : 'short';
 }
+
+// ── What the strip shows ────────────────────────────────────────────────────
+// Derived by liveView from the hook's state (useLiveTranslate), kept here so
+// tests can pin it.
+
+export type LiveStatus =
+    | 'off'        // the Live switch is off
+    | 'short'      // too little text yet (or none)
+    | 'long'       // past MAX_LIVE_CHARS: the Translate button's job
+    | 'waiting'    // a call is due at the next pause, or on its way
+    | 'streaming'
+    | 'done'
+    | 'cut'        // the reply stopped early: what came is kept
+    | 'paused'     // the per-minute cap, or a 429, until it passes
+    | 'failed';
+
+// The latest call's outcome, for the text it was for (`key`). A pause says
+// whether it lasts past a few minutes: the day's limit, not the minute's.
+export type LiveAnswer =
+    | { key: string; status: 'streaming' | 'done' | 'cut' | 'failed'; lines: LiveLines | null }
+    | { key: string; status: 'paused'; lines: null; long: boolean };
+
+export type LiveView = {
+    status: LiveStatus;
+    // For the text in the box, or while 'waiting', the last lines shown
+    // (`stale`), so the strip doesn't flicker empty between pauses.
+    lines: LiveLines | null;
+    stale: boolean;
+    long?: boolean; // a 'paused' that lasts past a few minutes
+};
+
+// A pause longer than this is the day's limit, and is said so.
+export const LONG_PAUSE_MS = 5 * MINUTE_MS;
+
+export function liveView(s: {
+    enabled: boolean;
+    eligible: 'short' | 'ok' | 'long';
+    key: string;
+    known: LiveLines | undefined; // answered before, here or in the history
+    answer: LiveAnswer | null;    // cleared once a pause it reports is over
+    held: LiveLines | null;       // the lines on screen last
+}): LiveView {
+    const { answer } = s;
+    if (!s.enabled) return { status: 'off', lines: null, stale: false };
+    if (s.eligible !== 'ok') return { status: s.eligible, lines: null, stale: false };
+    if (s.known) return { status: 'done', lines: s.known, stale: false };
+    // Typing on through a pause: it still holds (the hook clears the answer
+    // when it ends), and the note shouldn't blink off at every keystroke.
+    if (answer?.status === 'paused') return { status: 'paused', lines: null, stale: false, long: answer.long };
+    if (answer?.key === s.key) return { status: answer.status, lines: answer.lines, stale: false };
+    // Due at the next pause: the last lines stay up, marked as for older text.
+    return { status: 'waiting', lines: s.held, stale: s.held !== null };
+}

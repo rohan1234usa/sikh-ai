@@ -5,7 +5,7 @@ import { fmt } from '@/lib/i18n/fmt';
 import { MAX_TRANSLATE_CHARS, SOURCE_HINTS, type SourceHint } from '@/lib/translate/config';
 import { detectScript } from '@/lib/translate/detect';
 import LiveStrip from './LiveStrip';
-import type { LiveView } from './useLiveTranslate';
+import type { LiveView } from '@/lib/translate/live';
 
 type Props = {
     text: string;

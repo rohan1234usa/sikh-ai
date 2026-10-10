@@ -1,8 +1,8 @@
 'use client';
 
+import { useId } from 'react';
 import { useT } from '../../context/LanguageContext';
-import { liveFieldsFor, type LiveField } from '@/lib/translate/live';
-import type { LiveView } from './useLiveTranslate';
+import { liveFieldsFor, type LiveField, type LiveView } from '@/lib/translate/live';
 
 // The live lines, inside the input card under the text box: the
 // translation only, never the input echoed back (liveFieldsFor). Not a live
@@ -10,6 +10,7 @@ import type { LiveView } from './useLiveTranslate';
 // The full result below is announced as before.
 export default function LiveStrip({ view }: { view: LiveView }) {
     const t = useT();
+    const titleId = useId();
     const { status, lines, stale } = view;
     if (status === 'off' || status === 'short') return null;
 
@@ -28,7 +29,7 @@ export default function LiveStrip({ view }: { view: LiveView }) {
 
     const note =
         status === 'long' ? t.translate.liveTooLong
-            : status === 'paused' ? t.translate.livePaused
+            : status === 'paused' ? (view.long ? t.translate.livePausedToday : t.translate.livePaused)
                 : status === 'failed' ? t.translate.liveFailed
                     : status === 'cut' ? t.translate.liveCut
                         : null;
@@ -36,11 +37,11 @@ export default function LiveStrip({ view }: { view: LiveView }) {
     return (
         <div
             role="group"
-            aria-label={t.translate.liveAria}
+            aria-labelledby={titleId}
             aria-busy={status === 'waiting' || status === 'streaming'}
             className="mx-2 mb-2 border-t border-slate-200 pt-2 text-left"
         >
-            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-slate-500">
+            <p id={titleId} className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-slate-500">
                 <span
                     aria-hidden
                     className={`inline-block size-1.5 rounded-full ${status === 'waiting' || status === 'streaming'

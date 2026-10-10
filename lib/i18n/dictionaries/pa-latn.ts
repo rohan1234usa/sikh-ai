@@ -628,11 +628,11 @@ const paLatn: Dictionary = {
         liveSwitch: 'Live',
         liveSwitchHint: 'Likhde-likhde live anuvaad',
         liveLabel: 'Live anuvaad',
-        liveAria: 'Live anuvaad',
         liveMissing: 'nahi pahunchia',
         liveCut: 'Adhura reh gaya. Pure anuvaad layi “Anuvaad karo” dabao.',
         liveTooLong: 'Likhde-likhde anuvaad layi bahut lamma hai. “Anuvaad karo” dabao.',
         livePaused: 'Live anuvaad ik minute layi rukia hai. “Anuvaad karo” hale vi kamm karda hai.',
+        livePausedToday: 'Live anuvaad ajj di hadd tak pahunch gaya hai. “Anuvaad karo” hale vi kamm karda hai.',
         liveFailed: 'Live anuvaad is vele uplabdh nahi hai. “Anuvaad karo” hale vi kamm karda hai.',
     },
 

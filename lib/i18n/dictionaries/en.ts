@@ -647,11 +647,11 @@ const en = {
         liveSwitch: 'Live',
         liveSwitchHint: 'Live translation as you type',
         liveLabel: 'Live translation',
-        liveAria: 'Live translation',
         liveMissing: 'didn’t come through',
         liveCut: 'Cut off. Press Translate for the whole translation.',
         liveTooLong: 'Too long to translate as you type. Press Translate.',
         livePaused: 'Live translation is paused for a minute. Translate still works.',
+        livePausedToday: 'Live translation has reached today’s limit. Translate still works.',
         liveFailed: 'Live translation isn’t available right now. Translate still works.',
     },
 

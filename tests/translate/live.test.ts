@@ -8,6 +8,7 @@ import {
     MAX_LIVE_CHARS,
     liveEligible,
     liveFieldsFor,
+    liveView,
     nextLiveCall,
     parseLiveLines,
     refusalPauseMs,
@@ -97,6 +98,27 @@ test('a refusal’s wait holds even when the minute has room', () => {
     for (const missing of [null, '', 'soon', '0', '-5', 'Wed, 21 Oct 2026 07:28:00 GMT']) {
         assert.equal(refusalPauseMs(missing), LIVE_PAUSE_AFTER_REFUSAL_MS, String(missing));
     }
+});
+
+test('what the strip shows: off, too short or long, remembered, the answer for this text', () => {
+    const lines = { input: 'english', gurmukhi: 'ਹਾਂਜੀ', roman: 'Haanji', english: 'Yes' } as const;
+    const base = { enabled: true, eligible: 'ok', key: 'k', known: undefined, answer: null, held: null } as const;
+    assert.equal(liveView({ ...base, enabled: false }).status, 'off');
+    assert.equal(liveView({ ...base, eligible: 'short' }).status, 'short');
+    assert.equal(liveView({ ...base, eligible: 'long', held: lines }).lines, null, 'no old lines past the cap');
+    assert.deepEqual(liveView({ ...base, known: lines }), { status: 'done', lines, stale: false });
+    assert.deepEqual(liveView({ ...base, answer: { key: 'k', status: 'streaming', lines } }), { status: 'streaming', lines, stale: false });
+    assert.deepEqual(liveView({ ...base, answer: { key: 'k', status: 'failed', lines: null }, held: lines }), { status: 'failed', lines: null, stale: false });
+});
+
+test('while the next call is due, the last lines stay up, dimmed; a pause stays said until it ends', () => {
+    const lines = { english: 'Yes' };
+    const base = { enabled: true, eligible: 'ok', key: 'new', known: undefined, held: null } as const;
+    assert.deepEqual(liveView({ ...base, answer: { key: 'old', status: 'done', lines }, held: lines }), { status: 'waiting', lines, stale: true });
+    assert.deepEqual(liveView({ ...base, answer: null }), { status: 'waiting', lines: null, stale: false });
+    const paused = { key: 'old', status: 'paused', lines: null, long: false } as const;
+    assert.deepEqual(liveView({ ...base, answer: paused, held: lines }), { status: 'paused', lines: null, stale: false, long: false });
+    assert.equal(liveView({ ...base, answer: { ...paused, long: true } }).long, true, 'the day’s limit says so');
 });
 
 test('the live instruction keeps the translator’s rules and asks for the four labelled lines', () => {

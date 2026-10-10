@@ -6,11 +6,15 @@ import { normalizeInput } from '@/lib/translate/history';
 import {
     LIVE_FIELDS,
     LIVE_PAUSE_MS,
+    LONG_PAUSE_MS,
     liveEligible,
+    liveView,
     nextLiveCall,
     parseLiveLines,
     refusalPauseMs,
+    type LiveAnswer,
     type LiveLines,
+    type LiveView,
 } from '@/lib/translate/live';
 
 // The live translator's lines for what is in the text box: asked for at
@@ -22,33 +26,13 @@ import {
 // (the history), is shown again without one; and the page makes at most
 // LIVE_CALLS_PER_MINUTE in any minute, then waits, as it does after a 429.
 // Live lines stay in memory only: saving each would fill the history with
-// the beginnings of one sentence.
-
-export type LiveStatus =
-    | 'off'        // the Live switch is off
-    | 'short'      // too little text yet (or none)
-    | 'long'       // past MAX_LIVE_CHARS: the Translate button's job
-    | 'waiting'    // a call is due at the next pause, or on its way
-    | 'streaming'
-    | 'done'
-    | 'cut'        // the reply stopped early: what came is kept
-    | 'paused'     // the per-minute cap, or a 429, until it passes
-    | 'failed';
-
-export type LiveView = {
-    status: LiveStatus;
-    // For the text in the box, or while 'waiting', the last lines shown
-    // (`stale`), so the strip doesn't flicker empty between pauses.
-    lines: LiveLines | null;
-    stale: boolean;
-};
+// the beginnings of one sentence. What the strip shows is lib/translate/
+// live.ts's liveView.
 
 // Answered texts kept for this page, newest last.
 const CACHE_SIZE = 50;
 // A runaway reply: four lines of a few sentences never come near this.
 const MAX_REPLY_CHARS = 4000;
-
-type Answer = { key: string; status: 'streaming' | 'done' | 'cut' | 'paused' | 'failed'; lines: LiveLines | null };
 
 // "Ki haal hai?" and "ki  haal hai? " are the same request, as in the history.
 const keyOf = (text: string, hint: SourceHint) => `${hint}\u0000${normalizeInput(text)}`;
@@ -66,7 +50,8 @@ export function useLiveTranslate({ text, hint, enabled, lookup }: {
     // A full result saved for exactly this request (useTranslateHistory).
     lookup: (input: string, sourceHint: SourceHint) => { result: TranslationResult } | undefined;
 }): LiveView {
-    const [answer, setAnswer] = useState<Answer | null>(null);
+    // A pause also says when it ends, so it can be cleared then.
+    const [answer, setAnswer] = useState<(LiveAnswer & { until?: number }) | null>(null);
     const [cache, setCache] = useState<ReadonlyMap<string, LiveLines>>(() => new Map());
     // When each recent call started, for the per-minute cap.
     const callsRef = useRef<number[]>([]);
@@ -92,20 +77,38 @@ export function useLiveTranslate({ text, hint, enabled, lookup }: {
     const nextHeld = enabled && eligible === 'ok' ? current ?? held : null;
     if (nextHeld !== held) setHeld(nextHeld);
 
+    // The text a call sends, read when it goes. Edits that keep the key
+    // (a capital, a doubled space) leave the call in flight alone.
+    const textRef = useRef(trimmed);
+    useEffect(() => { textRef.current = trimmed; });
+
+    // A pause is forgotten once it's over, even if the text it was for has
+    // gone, so it isn't reported for the next text.
+    useEffect(() => {
+        if (answer?.status !== 'paused' || answer.until === undefined) return;
+        const timer = setTimeout(() => setAnswer(a => (a === answer ? null : a)), Math.max(0, answer.until - Date.now()));
+        return () => clearTimeout(timer);
+    }, [answer]);
+
     useEffect(() => {
         if (!needsCall) return;
         const controller = new AbortController();
         let timer: ReturnType<typeof setTimeout> | undefined;
         const live = () => !controller.signal.aborted;
 
+        // Asked again once the pause is over, if the text is still this.
+        const pauseUntil = (at: number) => {
+            const ms = at - Date.now();
+            setAnswer({ key, status: 'paused', lines: null, long: ms > LONG_PAUSE_MS, until: at });
+            timer = setTimeout(call, ms);
+        };
+
         const call = async () => {
             const now = Date.now();
             const { recent, at } = nextLiveCall(callsRef.current, pausedUntilRef.current, now);
             callsRef.current = recent;
             if (at > now) {
-                // Asked again once the pause is over, if the text is still this.
-                setAnswer({ key, status: 'paused', lines: null });
-                timer = setTimeout(call, at - now);
+                pauseUntil(at);
                 return;
             }
             recent.push(now);
@@ -115,7 +118,7 @@ export function useLiveTranslate({ text, hint, enabled, lookup }: {
                 const res = await fetch('/api/translate/live', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: trimmed, sourceHint: hint }),
+                    body: JSON.stringify({ text: textRef.current, sourceHint: hint }),
                     signal: controller.signal,
                 });
                 if (!live()) return;
@@ -123,8 +126,7 @@ export function useLiveTranslate({ text, hint, enabled, lookup }: {
                     // The allowance's or the firewall's: wait as long as it says.
                     pausedUntilRef.current = Date.now() + refusalPauseMs(res.headers.get('retry-after'));
                     void res.body?.cancel();
-                    setAnswer({ key, status: 'paused', lines: null });
-                    timer = setTimeout(call, pausedUntilRef.current - Date.now());
+                    pauseUntil(pausedUntilRef.current);
                     return;
                 }
                 if (!res.ok || !res.body) {
@@ -174,15 +176,7 @@ export function useLiveTranslate({ text, hint, enabled, lookup }: {
             clearTimeout(timer);
             controller.abort();
         };
-    }, [needsCall, key, trimmed, hint]);
+    }, [needsCall, key, hint]);
 
-    if (!enabled) return { status: 'off', lines: null, stale: false };
-    if (eligible !== 'ok') return { status: eligible, lines: null, stale: false };
-    if (known) return { status: 'done', lines: known, stale: false };
-    if (answer?.key === key) return { status: answer.status, lines: answer.lines, stale: false };
-    // Typing on through a pause: it most likely still holds, and the note
-    // shouldn't blink off at every keystroke.
-    if (answer?.status === 'paused') return { status: 'paused', lines: null, stale: false };
-    // Due at the next pause: the last lines stay up, marked as for older text.
-    return { status: 'waiting', lines: held, stale: held !== null };
+    return liveView({ enabled, eligible, key, known, answer, held });
 }
