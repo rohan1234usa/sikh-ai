@@ -45,8 +45,9 @@ export type Verdict = { ok: true } | { ok: false; window: Window; retryAfter: nu
 // - The live translator: the lines shown while someone types, one call at
 //   each pause. The page holds itself to 10 a minute (LIVE_CALLS_PER_MINUTE
 //   in lib/translate/live.ts), so with the firewall's 20 posts a minute
-//   there's room left for the Translate button. 500 a day, at about $0.0012
-//   a call, is at most about $0.60 per visitor per server.
+//   there's room left for the Translate button. 500 a day, at about $0.0014
+//   a call (measured: 1,600 tokens in, 50 out), is at most about $0.70 per
+//   visitor per server (twice that from 2027).
 // - Compare with Google Translate: up to 2,000 characters each, from its own
 //   10,000 a day (lib/translate/cloud.ts).
 // - Shabad Search: at most 4 GurbaniNow calls each, so 300 spends at most
