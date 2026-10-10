@@ -1,10 +1,12 @@
 // What a browser's CSP violation report says, reduced to what the log needs:
 // the directive, where the blocked thing came from (an origin, or a keyword
-// such as inline or eval), and the page's path. Never a full URL (a query
-// string can hold user text) and never the code sample.
+// such as inline or eval), and the page's path, without IDs. Never a full URL
+// (a query string can hold user text), a share link's ID, or the code sample.
 //
 // Two formats arrive: report-uri's { "csp-report": {…} } and the Reporting
 // API's [{ type: "csp-violation", body: {…} }].
+
+import { scrubPath } from './errors/scrub';
 
 export type CspViolation = { directive: string; blocked: string; page: string };
 
@@ -25,13 +27,10 @@ function origin(value: unknown): string {
     }
 }
 
+// The page's path as an error report gives it (lib/errors/scrub.ts): a
+// share link's, a chat's or an event's ID replaced, and no query.
 function path(value: unknown): string {
-    if (typeof value !== 'string') return 'unknown';
-    try {
-        return new URL(value).pathname.slice(0, 120);
-    } catch {
-        return 'unknown';
-    }
+    return (typeof value === 'string' && scrubPath(value)?.slice(0, 120)) || 'unknown';
 }
 
 function directive(value: unknown): string {

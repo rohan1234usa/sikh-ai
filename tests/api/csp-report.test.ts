@@ -26,6 +26,17 @@ test('Reporting API batches are read too, keywords kept, and floods cut short', 
     assert.equal(summarizeCspReports(Array.from({ length: 50 }, () => report('eval'))).length, MAX_REPORTS_PER_REQUEST);
 });
 
+test("a page's path loses a share link's ID and an event's, as error reports do", () => {
+    const report = (documentURL: string) => ({
+        type: 'csp-violation',
+        body: { documentURL, effectiveDirective: 'img-src', blockedURL: 'https://evil.example/x.png' },
+    });
+    assert.deepEqual(summarizeCspReports([
+        report('https://sikhai.vercel.app/pa/share/AbCdEfGhIjKlMnOpQrSt'),
+        report('https://sikhai.vercel.app/seva/AbCdEfGhIjKlMnOpQrSt/edit?from=x'),
+    ]).map((v) => v.page), ['/pa/share/:id', '/seva/:id/edit']);
+});
+
 test('anything else yields nothing, or unknown fields', () => {
     assert.deepEqual(summarizeCspReports(null), []);
     assert.deepEqual(summarizeCspReports('nope'), []);
