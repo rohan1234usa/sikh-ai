@@ -8,6 +8,7 @@ import { PRIMARY_BUTTON, StatusPage } from './components/StatusPage';
 import { DEFAULT_LANG, LANG_META } from '@/lib/i18n/config';
 import { localePath, splitLocale } from '@/lib/i18n/paths';
 import { getDictionary } from '@/lib/i18n';
+import { sendErrorReport } from '@/lib/errors/client';
 import { watchTheme } from '@/lib/theme';
 
 // Shown in place of the root layout when the layout itself fails, so none of
@@ -15,7 +16,8 @@ import { watchTheme } from '@/lib/theme';
 // script. It still reads as the site. The language comes from the address
 // (lib/i18n/paths.ts), and the stored light or dark choice is put back on
 // <html>, which this page renders afresh. A failure in any single page is
-// app/[lang]/error.tsx's job, inside the layout.
+// app/[lang]/error.tsx's job, inside the layout. Both report what they catch
+// (lib/errors/client.ts).
 
 // This page must not fail in turn: anything odd just means English.
 function readLang() {
@@ -38,6 +40,7 @@ export default function GlobalError({ error, retry }: {
 
     useEffect(() => {
         console.error(error);
+        sendErrorReport(error, 'root');
     }, [error]);
 
     useEffect(() => watchTheme(), []);
