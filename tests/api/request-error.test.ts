@@ -1,6 +1,7 @@
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { logRequestError } from '@/lib/errors/requestError';
+import { SourceUnavailable } from '@/lib/errors/unavailable';
 import { startSentryMock, type SentryMock } from '../helpers/sentryMock';
 
 let mock: SentryMock;
@@ -71,4 +72,24 @@ test("Vercel's ID may come as a list, and a request without one is logged all th
     assert.equal('requestId' in lines[1], false);
     assert.equal(lines[1].path, '/seva/:id');
     assert.equal(lines[1].error, 'string');
+});
+
+test("a page whose source is down is a warning, and isn't sent, however many ids fail", async () => {
+    process.env.SENTRY_DSN = mock.dsn;
+    mock.received.length = 0;
+    const shabadPage = { ...render, routePath: '/[lang]/shabad/s/[shabadId]' };
+    try {
+        const lines = await capture(async () => {
+            for (const id of ['ZZZZZZ', 'ZZZZZY', 'ABCDEF'])
+                await logRequestError(new SourceUnavailable(`GurbaniNow gave no usable answer for shabad ${id}`), { path: `/shabad/s/${id}`, method: 'GET', headers: {} }, shabadPage);
+        });
+        assert.deepEqual(lines.map((l) => [l.evt, l.error]), [
+            ['request_error', 'SourceUnavailable: GurbaniNow gave no usable answer for shabad ZZZZZZ'],
+            ['request_error', 'SourceUnavailable: GurbaniNow gave no usable answer for shabad ZZZZZY'],
+            ['request_error', 'SourceUnavailable: GurbaniNow gave no usable answer for shabad ABCDEF'],
+        ]);
+        assert.equal(mock.received.length, 0);
+    } finally {
+        delete process.env.SENTRY_DSN;
+    }
 });

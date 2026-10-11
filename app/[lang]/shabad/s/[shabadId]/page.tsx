@@ -6,6 +6,7 @@ import LineHighlight from '@/app/components/shabad/LineHighlight';
 import ShabadHeader from '@/app/components/shabad/ShabadHeader';
 import SourceNote from '@/app/components/shabad/SourceNote';
 import ShabadVerse from '@/app/components/shabad/ShabadVerse';
+import { SourceUnavailable } from '@/lib/errors/unavailable';
 import { SGGS_SOURCE_ID } from '@/lib/gurbani/citations';
 import { fetchShabad } from '@/lib/gurbani/gurbaninow';
 import { localName, parseShabadIdParam, shabadPath, shabadSections } from '@/lib/gurbani/shabad';
@@ -52,7 +53,7 @@ export default async function ShabadPage({ params }: PageProps<'/[lang]/shabad/s
   // Thrown rather than shown, so a passing outage isn't cached as this
   // shabad's page: the error page offers Try again. GurbaniNow answers an id
   // it doesn't know just as it answers a fault, so that ends up here too.
-  if (!shabad) throw new Error(`GurbaniNow gave no usable answer for shabad ${id}`);
+  if (!shabad) throw new SourceUnavailable(`GurbaniNow gave no usable answer for shabad ${id}`);
   // Only Sri Guru Granth Sahib Ji's shabads, whose Angs this site reads. A
   // shabad's source never changes, so this answer can be kept.
   if (shabad.source.id !== SGGS_SOURCE_ID) redirect(localePath(lang, '/shabad'));

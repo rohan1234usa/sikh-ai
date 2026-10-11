@@ -1,17 +1,18 @@
 // SERVER-ONLY: what instrumentation.ts's onRequestError writes down. Next calls
 // it for a server error nothing else caught: a page or layout that failed to
-// render (the Seva and Shabad pages throw on purpose while their source is
-// down, so an outage isn't cached), a route without its own try/catch
-// (seva/ics, shabad), a server action. Next has already printed the raw error
-// itself; this is the line the logs can be searched by, and it goes to Sentry
-// as an error line does (lib/log.ts, #20).
+// render, a route without its own try/catch (seva/ics, shabad), a server
+// action. Next has already printed the raw error itself; this is the line the
+// logs can be searched by, and it goes to Sentry as an error line does
+// (lib/log.ts, #20). The Seva and Shabad pages also throw on purpose while
+// their source is down, so an outage isn't cached (SourceUnavailable): that
+// passes on its own, so it's a warning, and isn't sent.
 //
 // Of the request, only its method, its path (scrubbed: Next's path includes
 // the query) and Vercel's ID for it are read. Its other headers, cookies
 // among them, are never touched.
 
 import type { Instrumentation } from 'next';
-import { describeError, logError, stackFrames } from '../log';
+import { describeError, logError, logEvent, stackFrames } from '../log';
 import { scrubPath } from './scrub';
 
 type OnRequestError = Instrumentation.onRequestError;
@@ -39,7 +40,7 @@ function digestOf(error: unknown): string | undefined {
 // failed route's 500, so the send must not be waited for here.
 export function logRequestError(error: unknown, request: RequestInfo, context: ErrorContext): Promise<void> {
     const requestId = requestIdOf(request.headers);
-    return logError('request_error', {
+    const fields = {
         ...(requestId ? { requestId } : {}),
         path: scrubPath(request.path, 'http://request.invalid') ?? 'unknown',
         method: request.method,
@@ -50,5 +51,10 @@ export function logRequestError(error: unknown, request: RequestInfo, context: E
         digest: digestOf(error),
         error: describeError(error),
         stack: stackFrames(error),
-    });
+    };
+    if (error instanceof Error && error.name === 'SourceUnavailable') {
+        logEvent('request_error', fields, 'warn');
+        return Promise.resolve();
+    }
+    return logError('request_error', fields);
 }
