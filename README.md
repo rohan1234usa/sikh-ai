@@ -419,6 +419,7 @@ Answers are cached in `scripts/phrasebook-build/cache.json`, so a rebuild only p
 
 *   [ ] **Real-time translator** ([#37](https://github.com/rohan1234usa/sikh-ai/issues/37)): translation as you type, in both directions, then a voice conversation mode for talking with relatives.
 *   [ ] **Voice Mode**: Text-to-speech playback for translator pronunciation tips, phrasebook entries and lesson examples, plus speech-to-text for audio queries in Punjabi; the voice half of #37.
+*   [ ] **Pothi redesign**: the look chosen on 10 October 2026, eggshell by day and ink by night, with Gurbani set in a face made for Gurmukhi and quoted Gurbani set apart from the AI's words. The palette, type and build plan are in [docs/design/pothi.md](docs/design/pothi.md).
 *   [ ] **A fluent review of Learn Punjabi**: every lesson file lists its open questions, starting with the tones, the vowel carriers and the past tense.
 *   [ ] **Localized phrasebook notes**: the phrasebook's cultural notes are English-only in every UI language. `npm run audit:i18n -- --localize-notes` generates Gurmukhi drafts ready to hand-apply; romanized Punjabi has no machine path and needs a fluent speaker.
 *   [ ] **Retrieval grounding**: A real citation/retrieval layer over Gurbani texts to anchor answers to specific Shabads.
