@@ -58,7 +58,7 @@ export default function TranslateInput({ text, onText, hint, onHint, loading, ag
                         }
                     }}
                     placeholder={t.translate.inputPlaceholder}
-                    className="w-full resize-none p-2 text-navy bg-white rounded-lg outline-none border-2 border-transparent focus:border-kesri transition-all placeholder:text-slate-400"
+                    className="w-full resize-none p-2 text-navy bg-white rounded-lg outline-none border-2 border-transparent focus:border-focus-ring transition-all placeholder:text-slate-400"
                 />
                 <LiveStrip view={liveView} />
                 <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-200">

@@ -86,7 +86,7 @@ export default function ShabadSearchBox({ initial, inline }: { initial?: string;
                     autoCapitalize="none"
                     autoCorrect="off"
                     spellCheck={false}
-                    className="w-full p-4 pl-12 pr-16 sm:pr-28 rounded-xl text-navy bg-white border-2 border-transparent focus:border-kesri shadow-xl transition-all placeholder:text-slate-400 [&::-webkit-search-cancel-button]:hidden"
+                    className="w-full p-4 pl-12 pr-16 sm:pr-28 rounded-xl text-navy bg-white border-2 border-transparent focus:border-focus-ring shadow-xl transition-all placeholder:text-slate-400 [&::-webkit-search-cancel-button]:hidden"
                 />
                 <MagnifyingGlassIcon className="w-6 h-6 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" aria-hidden="true" />
                 <button

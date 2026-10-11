@@ -83,7 +83,7 @@ export default function ChatHistoryRow({ chat, active, replying, initialFocus, o
                             }
                         }}
                         onBlur={(e) => commitRename(e.currentTarget.value)}
-                        className="m-1 min-w-0 flex-1 rounded-md border border-kesri bg-surface px-2 py-1.5 text-sm text-ink outline-none"
+                        className="m-1 min-w-0 flex-1 rounded-md border border-focus-ring bg-surface px-2 py-1.5 text-sm text-ink outline-none"
                     />
                 ) : mode === 'delete' ? (
                     <div

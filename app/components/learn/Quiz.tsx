@@ -126,7 +126,7 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                             onChange={(e) => setAnswer(i, e.target.value)}
                                             onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                             placeholder={t.learn.quiz.typedPlaceholder}
-                                            className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-base text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-kesri sm:max-w-md"
+                                            className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-base text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-focus-ring sm:max-w-md"
                                         />
                                     </div>
                                 )}

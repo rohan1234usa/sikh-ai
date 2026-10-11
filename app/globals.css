@@ -56,6 +56,10 @@
   --color-edge: var(--edge);
   --color-edge-strong: var(--edge-strong);
   --color-accent-text: var(--accent-text);
+  --color-focus-ring: var(--focus-ring);
+  --color-link: var(--link);
+  --color-rule-gold: var(--rule-gold);
+  --color-good: var(--good);
 }
 
 :root {
@@ -69,6 +73,9 @@
   --edge-strong: #64748B;     /* a field's or button's outline: 3:1 or more (WCAG 1.4.11) */
   --accent-text: #B45309;     /* kesri-deep on light */
   --focus-ring: #B45309;      /* kesri-deep: 5.0:1 on white; kesri is 2.1:1 (WCAG 1.4.11 asks 3:1) */
+  --link: #B45309;            /* anything you can press */
+  --rule-gold: #FF9933;       /* gold rules, the border band, progress */
+  --good: #047857;            /* a quote that matches the source */
 }
 
 .dark {
@@ -82,6 +89,9 @@
   --edge-strong: #64748B;
   --accent-text: #FF9933;     /* full kesri passes on dark */
   --focus-ring: #FF9933;
+  --link: #FF9933;
+  --rule-gold: #FF9933;
+  --good: #34D399;
 }
 
 body {

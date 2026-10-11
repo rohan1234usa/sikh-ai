@@ -12,6 +12,7 @@ import { db } from '@/lib/firebase/firestore';
 import { formatDate } from '@/lib/i18n/date';
 import { fmt } from '@/lib/i18n/fmt';
 import { useLanguage } from '../../context/LanguageContext';
+import { PRIMARY_FILL } from '../buttons';
 import ContextChip from '../chat/ContextChip';
 import { QuestionBubble } from '../chat/Bubbles';
 import ReplyMessage from '../chat/ChatMessage';
@@ -24,7 +25,7 @@ type State = { status: 'loading' } | { status: 'missing' } | { status: 'error' }
 // try again, rather than loading for ever.
 const LOAD_TIMEOUT_MS = 15_000;
 
-const PRIMARY = 'rounded-lg bg-kesri px-4 py-2 text-sm font-bold text-navy transition-colors hover:bg-kesri-hover disabled:opacity-60';
+const PRIMARY = `rounded-lg px-4 py-2 text-sm transition-colors disabled:opacity-60 ${PRIMARY_FILL}`;
 
 // A shared chat, read-only, for anyone holding the link — signed in or not.
 // Read with the ordinary client (public reads are allowed on shared_chats),

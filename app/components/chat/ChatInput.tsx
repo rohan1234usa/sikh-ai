@@ -124,7 +124,7 @@ export default function ChatInput({
                 <div
                     data-pad
                     onMouseDown={focusFromPadding}
-                    className="cursor-text rounded-2xl border border-edge bg-surface-raised has-[textarea:focus]:outline-2 has-[textarea:focus]:outline-offset-2 has-[textarea:focus]:outline-kesri"
+                    className="cursor-text rounded-2xl border border-edge bg-surface-raised has-[textarea:focus]:outline-2 has-[textarea:focus]:outline-offset-2 has-[textarea:focus]:outline-focus-ring"
                 >
                     {(context || contextLoading || contextError) && (
                         <div data-pad className="flex min-w-0 px-2.5 pt-2.5">

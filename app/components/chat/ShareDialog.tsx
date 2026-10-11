@@ -11,6 +11,7 @@ import { formatDate } from '@/lib/i18n/date';
 import { fmt } from '@/lib/i18n/fmt';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { PRIMARY_FILL } from '../buttons';
 import { useModalDialog } from '../useModalDialog';
 import { getAccountChatStore, getLocalChatStore, getReplyRuntime } from './chatStores';
 import { storeFor, useChatHomes } from './useChatHomes';
@@ -29,7 +30,7 @@ const getReplies = () => getReplyRuntime().getSnapshot();
 
 type Note = { tone: 'status' | 'alert'; text: string } | null;
 
-const PRIMARY = 'rounded-lg bg-kesri px-4 py-2 text-sm font-bold text-navy transition-colors hover:bg-kesri-hover disabled:opacity-60';
+const PRIMARY = `rounded-lg px-4 py-2 text-sm transition-colors disabled:opacity-60 ${PRIMARY_FILL}`;
 const SECONDARY = 'rounded-lg border border-edge px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-edge/60 disabled:opacity-60';
 
 // A chat's public, read-only link: made, copied, refreshed with what the chat

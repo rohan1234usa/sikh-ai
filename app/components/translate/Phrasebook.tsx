@@ -41,7 +41,7 @@ export default function Phrasebook({ onUsePhrase }: Props) {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder={t.translate.phrasebookSearchPlaceholder}
-                    className="w-full py-2 pl-9 pr-3 rounded-lg bg-surface-raised border border-edge text-ink placeholder:text-ink-faint focus:border-kesri outline-none transition-colors"
+                    className="w-full py-2 pl-9 pr-3 rounded-lg bg-surface-raised border border-edge text-ink placeholder:text-ink-faint focus:border-focus-ring outline-none transition-colors"
                 />
             </div>
 

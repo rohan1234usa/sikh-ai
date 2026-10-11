@@ -4,6 +4,7 @@ import { CloudArrowUpIcon } from '@heroicons/react/24/outline';
 import { useT } from '../../context/LanguageContext';
 import { MAX_ACCOUNT_CHATS } from '@/lib/chat/config';
 import { fmt } from '@/lib/i18n/fmt';
+import { PRIMARY_FILL } from '../buttons';
 import type { MoveProgress } from './useMoveOffer';
 
 type Props = { progress: MoveProgress; onMove: () => void; onDismiss: () => void };
@@ -37,7 +38,7 @@ export default function MoveChatsBanner({ progress, onMove, onDismiss }: Props) 
                         type="button"
                         onClick={onMove}
                         disabled={phase === 'moving'}
-                        className="rounded-lg bg-kesri px-3 py-1.5 font-bold text-navy transition-colors hover:bg-kesri-hover disabled:opacity-60"
+                        className={`rounded-lg px-3 py-1.5 transition-colors disabled:opacity-60 ${PRIMARY_FILL}`}
                     >
                         {h.moveAction}
                     </button>

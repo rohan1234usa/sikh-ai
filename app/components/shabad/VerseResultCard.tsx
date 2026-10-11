@@ -22,7 +22,7 @@ export default function VerseResultCard({ hit, truncated }: { hit: VerseHit; tru
         localName(lang, hit.raag, hit.raagGurmukhi),
     ].filter(Boolean).join(' · ');
     return (
-        <li className="relative rounded-xl border border-edge bg-surface-raised p-4 sm:p-6 shadow-sm transition-colors hover:border-kesri/60 focus-within:ring-2 focus-within:ring-kesri">
+        <li className="relative rounded-xl border border-edge bg-surface-raised p-4 sm:p-6 shadow-sm transition-colors hover:border-kesri/60 focus-within:ring-2 focus-within:ring-focus-ring">
             <IntentLink
                 href={href(shabadPath(hit.shabadId, hit.lineId))}
                 className="block outline-none after:absolute after:inset-0 after:rounded-xl after:content-['']"

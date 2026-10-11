@@ -2,6 +2,7 @@
 
 import { useAuth } from '../../context/AuthContext';
 import { useT } from '../../context/LanguageContext';
+import { PRIMARY_FILL } from '../buttons';
 import { useChatHomes } from './useChatHomes';
 
 // /chat/{id} for a chat that isn't here: deleted, saved in another browser
@@ -19,7 +20,7 @@ export default function ChatUnavailable({ onNewChat }: { onNewChat: () => void }
                 <button
                     type="button"
                     onClick={onNewChat}
-                    className="inline-flex items-center rounded-lg bg-kesri px-4 py-2 text-sm font-bold text-navy transition-colors hover:bg-kesri-hover"
+                    className={`inline-flex items-center rounded-lg px-4 py-2 text-sm transition-colors ${PRIMARY_FILL}`}
                 >
                     {t.chat.newChat}
                 </button>
