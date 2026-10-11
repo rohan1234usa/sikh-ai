@@ -189,12 +189,8 @@ export function logLineEvent(evt: string, fields: Record<string, unknown>, now =
         .map(serverFrame);
     const type = named?.[1];
     const message = scrubMessage(type ?? 'Error', named ? (named[2] ?? '') : error);
-    const fingerprint = [
-        evt,
-        ...GROUPED_BY.flatMap((name) => (tags[name] ? [`${name}=${tags[name]}`] : [])),
-        ...(type ? [type] : []),
-        ...(message ? [groupedMessage(message)] : []),
-    ];
+    const grouped = GROUPED_BY.flatMap((name) => (tags[name] ? [`${name}=${tags[name]}`] : []));
+    const fingerprint = [evt, ...grouped, ...(type ? [type] : []), ...(message ? [groupedMessage(message)] : [])];
     const event: SentryEvent = {
         ...basics(env, now),
         platform: 'node',
@@ -215,7 +211,10 @@ export function logLineEvent(evt: string, fields: Record<string, unknown>, now =
             }],
         };
     } else {
-        event.logentry = { formatted: message ? `${evt}: ${message}` : evt };
+        // The issue's title in Sentry, and its alert's subject: what failed,
+        // and where (gemini_call: API key not valid. (feature=chat, status=400)).
+        const where = grouped.length > 0 ? ` (${grouped.join(', ')})` : '';
+        event.logentry = { formatted: `${evt}${message ? `: ${message}` : ''}${where}` };
     }
     return { event, key: fingerprint.join('|') };
 }

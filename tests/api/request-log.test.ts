@@ -97,7 +97,7 @@ test("an error line goes to Sentry too, once, when it's set up; warnings and the
         assert.deepEqual(lines.map((l) => l.evt), ['config_error', 'upstream_error', 'gemini_call']);
         assert.equal(mock.received.length, 1);
         const { event } = mock.received[0];
-        assert.deepEqual(event.logentry, { formatted: 'config_error' });
+        assert.deepEqual(event.logentry, { formatted: 'config_error (route=/api/test, missing=GEMINI_API_KEY)' });
         assert.deepEqual(event.tags, { evt: 'config_error', runtime: 'server', route: '/api/test', missing: 'GEMINI_API_KEY', requestId: 'iad1::sent-1' });
     } finally {
         delete process.env.SENTRY_DSN;

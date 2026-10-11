@@ -101,14 +101,15 @@ test('an error log line becomes an exception with its frames, grouped without li
 
 test('a line without an error of its own becomes a message', () => {
     const config = logLineEvent('config_error', { route: '/api/chat', missing: 'GEMINI_API_KEY' }, T0, {}).event;
-    assert.deepEqual(config.logentry, { formatted: 'config_error' });
+    assert.deepEqual(config.logentry, { formatted: 'config_error (route=/api/chat, missing=GEMINI_API_KEY)' });
     assert.equal(config.tags.missing, 'GEMINI_API_KEY');
     assert.deepEqual(config.fingerprint, ['config_error', 'route=/api/chat', 'missing=GEMINI_API_KEY']);
 
     const gemini = logLineEvent('gemini_call', {
         feature: 'chat', model: 'gemini-x', outcome: 'error', status: 402, error: 'Prepaid credit is used up for "my question"', ms: 120,
     }, T0, {}).event;
-    assert.deepEqual(gemini.logentry, { formatted: 'gemini_call: Prepaid credit is used up for "…"' });
+    assert.deepEqual(gemini.logentry,
+        { formatted: 'gemini_call: Prepaid credit is used up for "…" (feature=chat, model=gemini-x, status=402)' });
     assert.deepEqual(gemini.fingerprint,
         ['gemini_call', 'feature=chat', 'model=gemini-x', 'status=402', 'Prepaid credit is used up for "…"']);
     assert.equal(gemini.tags.ms, undefined, 'only the fields that name what failed become tags');
