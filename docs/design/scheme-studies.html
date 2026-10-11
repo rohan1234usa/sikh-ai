@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- SikhAI UI scheme studies, 10 October 2026. Pothi was chosen: eggshell by day, ink by night.
+     The spec for building it is pothi.md, beside this file. Fonts load from Google Fonts. -->
+<title>SikhAI Scheme Studies</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiro+Gurmukhi:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Anek+Gurmukhi:wdth,wght@75..125,100..800&family=Anek+Latin:wdth,wght@75..125,100..800&family=Noto+Serif+Gurmukhi:wght@400..700&family=Noto+Sans+Gurmukhi:wght@400;700&family=Mukta+Mahee:wght@400;500;700&family=Cormorant+Garamond:wght@500;600;700&family=Baloo+Paaji+2:wght@500;700&display=swap">
+<style>
+/* Layout: a quiet study document. The page chrome stays neutral so each scheme's
+   framed mockups carry their own palette and type. */
+:root{--bg:#F6F5F1;--fg:#191917;--mut:#5E5D58;--line:#DBD9D1;--card:#FFFFFF;--acc:#1E3F8F;--accbg:#E8EDF9;--warn:#8A4B12}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#141412;--fg:#ECEAE4;--mut:#A9A79F;--line:#2C2B27;--card:#1C1B18;--acc:#9DB4F0;--accbg:#1E2437;--warn:#E0A06A;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141412;--fg:#ECEAE4;--mut:#A9A79F;--line:#2C2B27;--card:#1C1B18;--acc:#9DB4F0;--accbg:#1E2437;--warn:#E0A06A;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.55;margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px;padding-block:36px 72px}
+.eyebrow-page{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+h1{font-size:clamp(30px,4.5vw,44px);letter-spacing:-.02em;line-height:1.1;margin:8px 0 12px;text-wrap:balance}
+.lede{max-width:66ch;color:var(--mut);font-size:17px;margin:0}
+section{margin-top:64px;border-top:1px solid var(--line);padding-top:28px}
+h2{font-size:26px;letter-spacing:-.015em;margin:0 0 4px;text-wrap:balance}
+h2 .pa{font-family:"Tiro Gurmukhi",serif;font-weight:400;color:var(--mut);margin-left:10px;font-size:22px}
+.tag{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--acc);background:var(--accbg);padding:3px 8px;margin-bottom:10px}
+.thesis{max-width:66ch;font-size:16px;margin:8px 0 0}
+p{margin:0}
+.frames{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin-top:22px}
+.fwrap{min-width:0}
+.flabel{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.info{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px;margin-top:26px}
+.info h3,.cols h3{font-size:11.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--mut);margin:0 0 8px}
+.info ul{padding-left:18px;margin:0;font-size:14px}
+.info li,.cols li{margin:5px 0}
+.sw{display:grid;gap:5px;font-size:12.5px}
+.sw span{display:flex;align-items:center;gap:8px;color:var(--mut)}
+.sw i{width:18px;height:18px;flex:none;border:1px solid var(--line)}
+.sw b{color:var(--fg);font-weight:600;min-width:7.5em}
+.sw code{font-family:ui-monospace,Menlo,monospace;font-size:11.5px}
+.spec{display:grid;gap:4px}
+.spec .d{font-family:var(--f-disp);font-size:26px;line-height:1.15}
+.spec .g{font-family:var(--f-gm);font-size:24px;line-height:1.3}
+.spec .b{font-family:var(--f-body);font-size:14.5px}
+.spec small{display:block;font-size:11.5px;color:var(--mut);margin-top:2px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px;margin-top:26px}
+.cols ul{padding-left:18px;margin:0;font-size:14px}
+dl.surf{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;margin:0;font-size:14px}
+dl.surf dt{color:var(--mut);font-weight:600}
+dl.surf dd{margin:0;min-width:0}
+table.values{width:100%;border-collapse:collapse;font-size:14px;margin-top:18px}
+table.values th{text-align:left;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);font-weight:600;padding:8px 10px 8px 0;border-bottom:1px solid var(--line)}
+table.values td{vertical-align:top;padding:9px 10px 9px 0;border-bottom:1px solid var(--line)}
+table.values td:first-child{font-weight:600;white-space:nowrap}
+.tbl{overflow-x:auto}
+.verdict{background:var(--card);border:1px solid var(--line);padding:22px 24px;margin-top:22px}
+.verdict h3{margin:0 0 8px;font-size:18px}
+.verdict ol{padding-left:20px;margin:10px 0 0}
+.verdict li{margin:6px 0}
+.note{font-size:13px;color:var(--mut);margin-top:12px;max-width:66ch}
+nav.toc{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:22px;font-size:14px}
+nav.toc a{color:var(--acc);text-decoration:none;border-bottom:1px solid transparent}
+nav.toc a:hover,nav.toc a:focus-visible{border-bottom-color:var(--acc);outline:none}
+a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+
+/* ---------- The framed mockups. Every scheme renders the same content. ---------- */
+.frame{--f-r:0px;background:var(--f-bg);color:var(--f-ink);font-family:var(--f-body);border:1px solid var(--line);overflow:hidden;font-size:12.5px;line-height:1.5;min-width:0}
+.frame .gm{font-family:var(--f-gm)}
+.fnav{display:flex;align-items:center;gap:9px;padding:10px 14px;border-bottom:1px solid var(--f-rule);font-size:10.5px;background:var(--f-nav);color:var(--f-navink);flex-wrap:wrap}
+.fnav .brand{margin-right:auto;font-family:var(--f-disp);font-weight:700;font-size:14px;display:flex;align-items:center;gap:5px}
+.fnav .ik{color:var(--f-navacc);font-size:15px;font-family:var(--f-gm)}
+.fnav a{color:var(--f-navink);opacity:.78;text-decoration:none}
+.fnav a.on{opacity:1;font-weight:600;color:var(--f-navacc)}
+.fnav .btn{background:var(--f-field);color:var(--f-onfield);padding:4px 9px;font-weight:700;border-radius:var(--f-r)}
+.fhero{padding:16px 16px 16px;position:relative}
+.frame .eyebrow{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--f-ink2)}
+.raag{margin-top:8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--f-rubric);font-weight:600}
+.raag .ang{font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+.tukk{margin-top:12px}
+.tukk .g{font-family:var(--f-gm);font-size:21px;line-height:1.5}
+.tukk .r{font-size:10.5px;color:var(--f-ink2);margin-top:3px}
+.tukk .t{font-style:italic;color:var(--f-ink2);margin-top:3px;font-size:12px}
+.cta{display:inline-block;margin-top:14px;padding:7px 12px;background:var(--f-field);color:var(--f-onfield);font-weight:700;font-size:11px;border-radius:var(--f-r)}
+.fchat{padding:14px 16px;border-top:1px solid var(--f-rule);display:grid;gap:10px}
+.mark{display:block;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--f-ink2);margin-bottom:3px}
+.quote{margin:8px 0;padding:6px 0 6px 10px;border-left:2px solid var(--f-gold)}
+.quote .g{font-size:16px;line-height:1.5}
+.quote .t{font-style:italic;color:var(--f-ink2);font-size:11.5px;margin-top:2px}
+.check{font-size:10.5px;color:var(--f-ink2);margin-top:7px}
+.check .ok{color:var(--f-good);font-weight:600}
+.input{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--f-rule);padding:7px 10px;color:var(--f-ink2);font-size:11px;border-radius:var(--f-r);background:var(--f-bg2)}
+.input .send{background:var(--f-field);color:var(--f-onfield);width:20px;height:20px;display:grid;place-items:center;border-radius:var(--f-r);font-weight:700;font-size:11px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 16px 16px;border-top:1px solid var(--f-rule)}
+.fseva,.flearn{min-width:0;background:var(--f-bg2);border:1px solid var(--f-rule);padding:10px;border-radius:var(--f-r);font-size:10.5px;color:var(--f-ink2)}
+.fseva h4{margin:5px 0 4px;font-size:12.5px;color:var(--f-ink);font-family:var(--f-disp);line-height:1.3}
+.chip{display:inline-block;font-size:9.5px;padding:2px 7px;border:1px solid var(--f-rule);color:var(--f-ink);border-radius:999px}
+.cap{margin-top:4px;font-size:10px}
+.tiles{display:flex;gap:5px;margin-top:8px}
+.tile{flex:1;aspect-ratio:1;display:grid;place-items:center;font-size:16px;border:1px solid var(--f-rule);color:var(--f-ink);border-radius:var(--f-r);min-width:0}
+.tile:first-child{background:var(--f-field);color:var(--f-onfield);border-color:transparent}
+.prog{height:3px;background:var(--f-rule);margin-top:8px}
+.prog span{display:block;width:22%;height:100%;background:var(--f-accent)}
+@media (max-width:360px){.frow{grid-template-columns:1fr}}
+
+/* ---------- Today: the live site's own tokens (globals.css), dark mode ---------- */
+.s-today{--f-disp:system-ui,-apple-system,"Segoe UI",sans-serif;--f-body:system-ui,-apple-system,"Segoe UI",sans-serif;--f-gm:"Noto Sans Gurmukhi",system-ui,sans-serif;--f-r:12px;--f-bg:#020617;--f-bg2:#0F172A;--f-ink:#F1F5F9;--f-ink2:#94A3B8;--f-rule:#1E293B;--f-accent:#FF9933;--f-rubric:#FF9933;--f-gold:#FF9933;--f-field:#FF9933;--f-onfield:#0F172A;--f-nav:#0F172A;--f-navink:#FFFFFF;--f-navacc:#FF9933;--f-good:#34D399}
+.s-today .fhero{text-align:center;background:var(--f-bg2);border-top:6px solid #FF9933;margin:14px;border-radius:14px;box-shadow:0 18px 36px rgba(0,0,0,.45)}
+.s-today .raag{justify-content:center;color:var(--f-ink);font-family:var(--f-gm);font-weight:700;font-size:15px}
+.s-today .raag .ang{color:var(--f-ink2);font-family:var(--f-body)}
+.s-today .tukk .g{font-weight:700;font-size:22px}
+.s-today .cta{border-radius:10px}
+.s-today .you{justify-self:end;max-width:85%;background:#0F172A;color:#fff;padding:10px 12px;border-radius:14px 14px 0 14px;border:1px solid #1E293B}
+.s-today .you .mark,.s-today .ai .mark{display:none}
+.s-today .ai{max-width:85%;background:#0F172A;border:1px solid #1E293B;padding:10px 12px;border-radius:14px 14px 14px 0}
+.s-today .quote{border-left:none;padding-left:0}
+.s-today .quote .g{font-weight:700}
+.s-today .check{border:1px solid #1E293B;border-radius:10px;padding:6px 8px;background:#0F172A}
+.s-today .input{border-radius:12px}
+.s-today .input .send{border-radius:8px}
+.s-today .tile{border-radius:8px}
+
+/* ---------- Pothi ---------- */
+.s-pothi{--f-disp:"Newsreader",Georgia,serif;--f-body:"Tiro Gurmukhi",Georgia,serif;--f-gm:"Tiro Gurmukhi",serif;--f-r:0px}
+.s-pothi.egg{--f-bg:#F6F2EB;--f-bg2:#F9F6F2;--f-ink:#1D1711;--f-ink2:#61564B;--f-rule:#DAD5CD;--f-accent:#1E3F8F;--f-rubric:#A5281F;--f-gold:#9A7620;--f-field:#1E3F8F;--f-onfield:#F9F6F2;--f-nav:#F6F2EB;--f-navink:#1D1711;--f-navacc:#A5281F;--f-good:#2F5E2A}
+.s-pothi.ink{--f-bg:#171512;--f-bg2:#1F1D1A;--f-ink:#EAE6DF;--f-ink2:#B4AFA7;--f-rule:#3E3B37;--f-accent:#A0BAF2;--f-rubric:#E9745C;--f-gold:#CDA65A;--f-field:#A0BAF2;--f-onfield:#171512;--f-nav:#171512;--f-navink:#EAE6DF;--f-navacc:#E9745C;--f-good:#99CE9A}
+.s-pothi .fnav{border-bottom:1px solid var(--f-gold);letter-spacing:.08em;text-transform:uppercase;font-size:9.5px}
+.s-pothi .fnav .brand{text-transform:none;letter-spacing:0;font-size:15px;font-weight:600}
+.s-pothi .fnav .btn{background:transparent;color:var(--f-accent);border:1px solid var(--f-accent);font-weight:600}
+.s-pothi .fhero{text-align:center;border-bottom:1px solid var(--f-gold)}
+.s-pothi .band{height:3px;margin:-16px -16px 14px;background:repeating-linear-gradient(90deg,var(--f-gold) 0 10px,transparent 10px 14px,var(--f-rubric) 14px 17px,transparent 17px 21px);opacity:.75}
+.s-pothi .raag{justify-content:center;font-size:13px}
+.s-pothi .tukk .g{font-size:23px}
+.s-pothi .tukk .t{font-family:var(--f-disp);font-size:13px}
+.s-pothi .cta{background:none;color:var(--f-accent);border-bottom:1px solid var(--f-accent);padding:0 0 1px;font-weight:500;font-family:var(--f-disp);font-style:italic;font-size:13px}
+.s-pothi .fchat{border-top:none}
+.s-pothi .mark{color:var(--f-rubric);font-family:var(--f-disp);font-style:italic;text-transform:none;letter-spacing:0;font-size:11px}
+.s-pothi .you p{font-family:var(--f-disp);font-size:14.5px;line-height:1.4}
+.s-pothi .quote{border-left:2px solid var(--f-gold);padding-left:12px}
+.s-pothi .quote .g{font-size:17px}
+.s-pothi .quote .t{font-family:var(--f-disp);font-size:12.5px}
+.s-pothi .check{border-top:1px solid var(--f-rule);padding-top:5px;font-size:10px}
+.s-pothi .check::before{content:"1  ";color:var(--f-rubric);font-weight:600}
+.s-pothi .input{border:none;border-bottom:1px solid var(--f-ink2);background:transparent;border-radius:0;padding-left:0;font-style:italic;font-family:var(--f-disp)}
+.s-pothi .input .send{background:transparent;color:var(--f-accent);border:1px solid var(--f-accent)}
+.s-pothi .frow{border-top:none;padding-top:4px}
+.s-pothi .fseva,.s-pothi .flearn{background:transparent;border:1px solid var(--f-rule);outline:1px solid var(--f-rule);outline-offset:2px;margin:3px}
+.s-pothi .chip{border:none;padding:0;color:var(--f-rubric);text-transform:uppercase;letter-spacing:.12em;font-weight:600;border-radius:0}
+.s-pothi .fseva h4{font-weight:500;font-size:13.5px}
+.s-pothi .tile:first-child{background:var(--f-rubric);color:var(--f-bg)}
+.s-pothi .prog{height:1px}
+.s-pothi .prog span{background:var(--f-gold);height:3px;margin-top:-1px}
+
+/* ---------- Nishan ---------- */
+.s-nishan{--f-disp:"Anek Latin","Anek Gurmukhi",sans-serif;--f-body:"Anek Latin","Anek Gurmukhi",sans-serif;--f-gm:"Anek Gurmukhi",sans-serif;--f-r:0px}
+.s-nishan.day{--f-bg:#FFFFFF;--f-bg2:#F2F4FA;--f-ink:#0E1B4D;--f-ink2:#46507A;--f-rule:#0E1B4D;--f-accent:#1A2E8C;--f-rubric:#B45309;--f-gold:#FF9933;--f-field:#FF9933;--f-onfield:#101010;--f-nav:#1A2E8C;--f-navink:#FFFFFF;--f-navacc:#FF9933;--f-good:#1F6B3A;--f-hero:#FF9933;--f-heroink:#0E1B4D;--f-airule:#1A2E8C}
+.s-nishan.night{--f-bg:#0A1240;--f-bg2:#121C55;--f-ink:#FFFFFF;--f-ink2:#B9C1E6;--f-rule:#FF9933;--f-accent:#FF9933;--f-rubric:#FF9933;--f-gold:#FF9933;--f-field:#FF9933;--f-onfield:#0A1240;--f-nav:#0A1240;--f-navink:#FFFFFF;--f-navacc:#FF9933;--f-good:#8FD6A3;--f-hero:#FF9933;--f-heroink:#0A1240;--f-airule:#B9C1E6}
+.s-nishan .fnav{border-bottom:4px solid var(--f-navacc);text-transform:uppercase;letter-spacing:.08em;font-variation-settings:"wdth" 85;font-weight:600}
+.s-nishan .fnav .brand{font-variation-settings:"wdth" 125;font-weight:800;text-transform:none;letter-spacing:0;font-size:15px}
+.s-nishan .fhero{background:var(--f-hero);color:var(--f-heroink);padding-top:14px;overflow:hidden}
+.s-nishan .fhero::after{content:"ੴ";position:absolute;right:-6px;bottom:-34px;font-family:var(--f-gm);font-size:120px;font-weight:800;color:var(--f-heroink);opacity:.12;line-height:1;pointer-events:none}
+.s-nishan .fhero .eyebrow,.s-nishan .fhero .tukk .r,.s-nishan .fhero .tukk .t,.s-nishan .fhero .raag{color:var(--f-heroink)}
+.s-nishan .fhero .eyebrow,.s-nishan .fhero .tukk .r{opacity:.8}
+.s-nishan .tukk .g{font-size:26px;font-weight:700;font-variation-settings:"wdth" 110;line-height:1.3}
+.s-nishan .tukk .t{font-style:normal;font-weight:500}
+.s-nishan .cta{background:var(--f-heroink);color:var(--f-hero);text-transform:uppercase;letter-spacing:.08em;position:relative;z-index:1}
+.s-nishan .fchat{border-top:none;gap:12px}
+.s-nishan .you,.s-nishan .ai{padding-left:12px;border-left:4px solid var(--f-field)}
+.s-nishan .ai{border-left-color:var(--f-airule)}
+.s-nishan .mark{font-weight:700;color:var(--f-ink)}
+.s-nishan .quote{border-left:none;padding-left:0}
+.s-nishan .quote .g{font-weight:800;font-size:18px;font-variation-settings:"wdth" 110}
+.s-nishan .input{border:2px solid var(--f-ink)}
+.s-nishan .fseva,.s-nishan .flearn{border:1px solid var(--f-rule);background:var(--f-bg)}
+.s-nishan .chip{border-radius:0;background:var(--f-field);color:var(--f-onfield);border:none;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.s-nishan .fseva h4{font-variation-settings:"wdth" 110;font-weight:700}
+.s-nishan .tile{font-weight:700}
+.s-nishan .prog{height:4px}
+.s-nishan .prog span{background:var(--f-field)}
+
+/* ---------- Sarovar ---------- */
+.s-sarovar{--f-disp:"Cormorant Garamond",Georgia,serif;--f-body:"Mukta Mahee",system-ui,sans-serif;--f-gm:"Noto Serif Gurmukhi",serif;--f-r:14px}
+.s-sarovar.day{--f-bg:#F6F4EF;--f-bg2:#FFFFFF;--f-ink:#14262B;--f-ink2:#4E6166;--f-rule:#D9D3C4;--f-accent:#2C6E7F;--f-rubric:#84600F;--f-gold:#C39A3A;--f-field:#2C6E7F;--f-onfield:#FFFFFF;--f-nav:#F6F4EF;--f-navink:#14262B;--f-navacc:#84600F;--f-good:#2F6B4F;--f-dawn:linear-gradient(180deg,#E6ECEE 0%,#F6F4EF 55%,#F3E6D0 100%);--f-youink:#FFFFFF}
+.s-sarovar.night{--f-bg:#0B1A20;--f-bg2:#12252C;--f-ink:#EDE8DF;--f-ink2:#A9B6B8;--f-rule:#243B42;--f-accent:#6FB3C3;--f-rubric:#D9A441;--f-gold:#D9A441;--f-field:#D9A441;--f-onfield:#0B1A20;--f-nav:#0B1A20;--f-navink:#EDE8DF;--f-navacc:#D9A441;--f-good:#8FCFAE;--f-dawn:linear-gradient(180deg,#0F2A33 0%,#0B1A20 60%,#1C2730 100%);--f-youink:#0B1A20}
+.s-sarovar .fnav{border-bottom:none}
+.s-sarovar .fnav .brand{font-size:17px;font-weight:600}
+.s-sarovar .fnav .btn{border-radius:999px}
+.s-sarovar .fhero{background:var(--f-dawn);text-align:center;padding:20px 16px 20px}
+.s-sarovar .band{width:44px;height:1px;background:var(--f-gold);margin:0 auto 12px;box-shadow:0 3px 0 var(--f-gold)}
+.s-sarovar .raag{justify-content:center;font-family:var(--f-disp);font-size:16px;font-weight:600}
+.s-sarovar .raag .gm{font-family:var(--f-gm);font-size:14px}
+.s-sarovar .tukk .g{font-size:22px;font-weight:400;line-height:1.6}
+.s-sarovar .tukk + .tukk{position:relative;padding-top:12px}
+.s-sarovar .tukk + .tukk::before{content:"";position:absolute;top:0;left:50%;width:36px;margin-left:-18px;height:1px;background:var(--f-gold)}
+.s-sarovar .cta{border-radius:999px;padding:7px 14px}
+.s-sarovar .fchat{border-top:none;padding-top:16px}
+.s-sarovar .you{justify-self:end;max-width:85%;background:var(--f-accent);color:var(--f-youink);padding:9px 12px;border-radius:16px 16px 4px 16px}
+.s-sarovar .you .mark{display:none}
+.s-sarovar .ai{max-width:92%;background:var(--f-bg2);padding:10px 12px;border-radius:16px 16px 16px 4px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.s-sarovar .ai .mark{color:var(--f-rubric)}
+.s-sarovar .quote{border-left:none;border-top:1px solid var(--f-gold);border-bottom:1px solid var(--f-gold);padding:8px 0;text-align:center}
+.s-sarovar .input{border-radius:999px}
+.s-sarovar .input .send{border-radius:999px}
+.s-sarovar .frow{border-top:none}
+.s-sarovar .fseva,.s-sarovar .flearn{border:none;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.s-sarovar .chip{border:none;padding:0;color:var(--f-rubric);text-transform:uppercase;letter-spacing:.12em;font-size:9px;font-weight:600}
+.s-sarovar .fseva h4{font-size:15px;font-weight:600}
+.s-sarovar .tile{border-radius:8px;background:var(--f-bg);border:none}
+.s-sarovar .tile:first-child{background:var(--f-field);color:var(--f-onfield)}
+.s-sarovar .prog{border-radius:2px;overflow:hidden}
+.s-sarovar .prog span{background:var(--f-gold)}
+
+/* ---------- Phulkari ---------- */
+.s-phulkari{--f-disp:"Baloo Paaji 2","Mukta Mahee",sans-serif;--f-body:"Mukta Mahee",system-ui,sans-serif;--f-gm:"Mukta Mahee",sans-serif;--f-r:3px}
+.s-phulkari.day{--f-bg:#F8F1DF;--f-bg2:#FFFBF0;--f-ink:#1E2260;--f-ink2:#4A4E86;--f-rule:#D9CBA3;--f-accent:#A3272B;--f-rubric:#A3272B;--f-gold:#E0A21B;--f-field:#E0A21B;--f-onfield:#1E2260;--f-nav:#1E2260;--f-navink:#F8F1DF;--f-navacc:#E0A21B;--f-good:#2F6B3F;--f-mag:#B2306B;--f-onmag:#FFFFFF;--f-madder:#A3272B}
+.s-phulkari.night{--f-bg:#15163A;--f-bg2:#1E2050;--f-ink:#F6ECD2;--f-ink2:#BFB8E0;--f-rule:#353874;--f-accent:#F2B33D;--f-rubric:#F2B33D;--f-gold:#F2B33D;--f-field:#F2B33D;--f-onfield:#15163A;--f-nav:#0F1030;--f-navink:#F6ECD2;--f-navacc:#F2B33D;--f-good:#9CD6A8;--f-mag:#E07AB0;--f-onmag:#15163A;--f-madder:#C94F4F}
+.s-phulkari .fnav{border-bottom:none}
+.s-phulkari .fnav .brand{font-size:17px}
+.s-phulkari .band{height:12px;margin:-16px -16px 14px;background-color:var(--f-madder);background-image:linear-gradient(45deg,var(--f-gold) 25%,transparent 25%),linear-gradient(-45deg,var(--f-gold) 25%,transparent 25%),linear-gradient(45deg,transparent 75%,var(--f-gold) 75%),linear-gradient(-45deg,transparent 75%,var(--f-gold) 75%);background-size:12px 12px;background-position:0 0,0 6px,6px -6px,-6px 0}
+.s-phulkari .raag{font-family:var(--f-disp);font-size:14px}
+.s-phulkari .tukk .g{font-size:22px;font-weight:500}
+.s-phulkari .cta{clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);border-radius:0;font-family:var(--f-disp);font-size:12px}
+.s-phulkari .fchat{border-top:3px dashed var(--f-rule)}
+.s-phulkari .you{justify-self:end;max-width:85%;background:var(--f-field);color:var(--f-onfield);padding:9px 12px;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+.s-phulkari .you .mark{display:none}
+.s-phulkari .ai{max-width:92%;background:var(--f-bg2);padding:10px 12px;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+.s-phulkari .ai .mark{color:var(--f-mag);font-family:var(--f-disp);text-transform:none;letter-spacing:0;font-size:11px}
+.s-phulkari .quote{border-left:3px dashed var(--f-madder)}
+.s-phulkari .input{border:2px dashed var(--f-rule)}
+.s-phulkari .frow{border-top:3px dashed var(--f-rule)}
+.s-phulkari .fseva{border-left:4px dashed var(--f-madder)}
+.s-phulkari .chip{background:var(--f-field);color:var(--f-onfield);border:none;font-weight:600;border-radius:2px}
+.s-phulkari .fseva h4{font-size:14px;font-weight:700}
+.s-phulkari .tile{background:var(--f-bg2)}
+.s-phulkari .tile:first-child{background:var(--f-mag);color:var(--f-onmag)}
+.s-phulkari .prog{height:0;border-top:3px dashed var(--f-rule);background:none;position:relative}
+.s-phulkari .prog span{position:absolute;top:-3px;left:0;height:0;border-top:3px dashed var(--f-madder);background:none}
+</style>
+<style>[hidden]{display:none!important}</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow-page">SikhAI · UI scheme studies · October 2026</p>
+    <h1>Four directions, read against what the site is for</h1>
+    <p class="lede">Each scheme below renders the same real content: the Hukamnama of Assu 26, 558 from Ang 685, a chat reply with its Gurbani check, a Seva event from the live board, and a Gurmukhi lesson. The first frames show the site as it is, so the comparison is honest.</p>
+    <nav class="toc" aria-label="Sections">
+      <a href="#values">What the site is</a>
+      <a href="#today">As it is today</a>
+      <a href="#pothi">1 · Pothi</a>
+      <a href="#nishan">2 · Nishan</a>
+      <a href="#sarovar">3 · Sarovar</a>
+      <a href="#phulkari">4 · Phulkari</a>
+      <a href="#verdict">Recommendation</a>
+    </nav>
+  </header>
+
+  <section id="values">
+    <h2>What the site is, in its own words</h2>
+    <p class="thesis">The values are not aspirational. They are enforced in code: in the system prompt, the citation checker, the privacy switch, the WCAG notes in the stylesheet. A fitting UI makes the same commitments visible without labels.</p>
+    <div class="tbl">
+    <table class="values">
+      <thead><tr><th>Value</th><th>Where the code commits to it</th><th>What the UI must therefore do</th></tr></thead>
+      <tbody>
+        <tr><td>The Word above the machine</td><td>"You are never a Guru." "Never fabricate Gurbani." The Gurbani check says its lines come "word for word from GurbaniNow, not from the AI."</td><td>Make source text look senior to AI text through typography and placement, so the hierarchy of trust is seen before it is read.</td></tr>
+        <tr><td>Seva and humility</td><td>SikhAI calls itself "a digital seva". The Seva board exists for the sangat, not for the product.</td><td>The chrome recedes. The vendor and the technology do not get the hero.</td></tr>
+        <tr><td>Sangat and pangat</td><td>Langar and equality run through the Guru lenses; one experience for everyone, no tiers.</td><td>Nothing sits above anything else. Equal cells, no premium badges, no "pro" states.</td></tr>
+        <tr><td>Honesty about limits</td><td>"SikhAI can make mistakes." Lessons are "AI-drafted and waiting for review by fluent speakers." Four citation statuses.</td><td>A visible register for verified, machine-made and human-reviewed, built into type and rules, not only into labels.</td></tr>
+        <tr><td>Calm and privacy</td><td>"A space designed for peace." No cookies, Global Privacy Control honoured, chats local by default, reduced motion respected.</td><td>No attention devices: no glow, no bounce, no gradients that sell. Motion only where it explains.</td></tr>
+        <tr><td>Three scripts, one people</td><td>English, Gurmukhi and romanized Punjabi are peers in the URL. Learn is "for Punjabi Americans who grew up hearing it."</td><td>Gurmukhi is a first-class typeface, chosen first; the Latin is chosen to match it, not the other way round.</td></tr>
+        <tr><td>Daily ritual</td><td>The Hukamnama comes from Darbar Sahib every day and the home page rebuilds around it every five minutes.</td><td>Time is a dimension. The day's Hukam is the front page, not a feature card.</td></tr>
+        <tr><td>Accessibility first</td><td>WCAG references in the CSS; kesri-deep exists only because kesri fails AA on white.</td><td>Every token clears AA in both modes before anything is called beautiful.</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="note">One structural fact runs through every surface: the three-line unit of Gurmukhi, romanization and English. The Hukamnama, each Ang, the citation cards, the translator's result and every vocabulary word are all that unit. Whatever scheme wins, it should be designed as one component, once.</p>
+  </section>
+
+  <section id="today">
+    <h2>As it is today</h2>
+    <p class="thesis">The current tokens are the Nishan Sahib's colours, which is right. The idiom they are used in is the 2023 AI start-up: a navy gradient hero with blurred glow orbs, a floating mock chat window with macOS traffic lights, a "Powered by Google Gemini" badge, rounded cards with shadows, and bouncing dots.</p>
+    <div class="frames" data-scheme="today" data-modes="now"></div>
+    <div class="cols">
+      <div><h3>What it says against the values</h3><ul>
+        <li>The first screen shows the vendor and a fake conversation. It shows no Gurbani at all.</li>
+        <li>Gurmukhi is a fallback font bolted onto a developer typeface, then set bold and centred on every page. It shouts rather than reads.</li>
+        <li>Quoted Gurbani inside a reply looks exactly like the AI's own words. The check box has to say what the type should already show.</li>
+        <li>Every page opens with the same navy band and centred title; the surfaces have no distinct register.</li>
+        <li>Dark mode is Tailwind's slate-950, which every other app also has.</li>
+      </ul></div>
+      <div><h3>What is already right</h3><ul>
+        <li>Kesri and navy belong to the site and to the logo, favicon and share image. A scheme can keep them.</li>
+        <li>The accessibility rigour: contrast-checked tokens, focus rings, scroll padding, reduced motion.</li>
+        <li>The three-line tukk is already consistent in content, if not yet in form.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section id="pothi">
+    <span class="tag">Scheme 1 · chosen</span>
+    <h2>Pothi<span class="pa" lang="pa">ਪੋਥੀ</span></h2>
+    <p class="thesis"><strong>The Word is the interface.</strong> Every screen is treated as a page of a bir. Gurbani is set in the manuscript register: a text face made for Gurmukhi, a generous measure, rubrics in vermilion for the raag and the Ang, gold hairlines instead of boxes. Everything else, the AI's replies, the tools and the chrome, is marginalia: smaller, quieter, in the same family. The hierarchy of trust the system prompt enforces becomes visible without a single label.</p>
+    <div class="frames" data-scheme="pothi" data-modes="egg ink"></div>
+    <div class="info">
+      <div><h3>Palette · day</h3><div class="sw">
+        <span><i style="background:#F6F2EB"></i><b>Eggshell</b><code>#F6F2EB</code></span>
+        <span><i style="background:#1D1711"></i><b>Ink</b><code>#1D1711</code></span>
+        <span><i style="background:#A5281F"></i><b>Vermilion rubric</b><code>#A5281F</code></span>
+        <span><i style="background:#1E3F8F"></i><b>Lapis (links)</b><code>#1E3F8F</code></span>
+        <span><i style="background:#9A7620"></i><b>Gold rule</b><code>#9A7620</code></span>
+      </div><h3 style="margin-top:14px">Palette · night</h3><div class="sw">
+        <span><i style="background:#171512"></i><b>Ink ground</b><code>#171512</code></span>
+        <span><i style="background:#EAE6DF"></i><b>Eggshell text</b><code>#EAE6DF</code></span>
+        <span><i style="background:#E9745C"></i><b>Vermilion</b><code>#E9745C</code></span>
+        <span><i style="background:#A0BAF2"></i><b>Lapis (links)</b><code>#A0BAF2</code></span>
+        <span><i style="background:#CDA65A"></i><b>Gold rule</b><code>#CDA65A</code></span>
+      </div></div>
+      <div class="s-pothi"><h3>Type</h3><div class="spec">
+        <p class="g" lang="pa">ਗੁਰੁ ਸਾਗਰੁ ਰਤਨੀ ਭਰਪੂਰੇ ॥</p>
+        <p class="d">Wisdom of the Gurus</p>
+        <p class="b">Tiro Gurmukhi carries both scripts in one family, so a quoted tukk inside an English sentence no longer changes voice.</p>
+        <small>Gurbani, Punjabi and running Latin: Tiro Gurmukhi. Display: Newsreader.</small>
+      </div></div>
+      <div><h3>System</h3><ul>
+        <li>No cards, no shadows. Hairline rules, margins and a folio header do the structuring.</li>
+        <li>Square corners. One ornament only, a border motif from illuminated birs, at the top of a page.</li>
+        <li>Chat is a transcript, not bubbles. Your line is marked in vermilion; quoted Gurbani is indented on a gold rule; the Gurbani check becomes numbered footnotes.</li>
+        <li>Motion: a fade. Nothing floats, bounces or glows.</li>
+      </ul></div>
+    </div>
+    <div class="cols">
+      <div><h3>On each surface</h3><dl class="surf">
+        <dt>Reading</dt><dd>Date, raag and Ang as a folio header; the tukk block; translation beneath in the display face.</dd>
+        <dt>Chat</dt><dd>Source quotes look like the Hukamnama page; the AI's prose looks like a commentary.</dd>
+        <dt>Tools</dt><dd>Same family at small sizes; results as ruled rows, three scripts in three columns.</dd>
+        <dt>Learn</dt><dd>Letter tiles as ruled boxes; progress as a gold rule that fills.</dd>
+        <dt>Seva</dt><dd>Notices on a board, double-hairline frames, the category stamped in vermilion.</dd>
+      </dl></div>
+      <div><h3>Why it fits</h3><ul>
+        <li>It is the only scheme whose structure, not its labels, says "source above machine".</li>
+        <li>Most of the site is reading. A text face made for Gurmukhi, at a real measure, is the biggest comfort gain available.</li>
+        <li>Calm enough for the hardship and grief prompts; night mode suits Amrit Vela reading.</li>
+        <li>One family for three scripts solves the fallback-font problem at the root.</li>
+        <li>Ink and eggshell clear AA with room to spare, by day and by night.</li>
+      </ul></div>
+      <div><h3>Risks</h3><ul>
+        <li>Drifts toward the cream-and-serif look every design tool now produces, and eggshell sits close to that cream. Lapis and vermilion rather than terracotta, the gold band, square geometry and modern density are what keep it a manuscript rather than a template.</li>
+        <li>Forms and the translator need discipline so they feel like the apparatus of a scholarly edition, not an antique.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section id="nishan">
+    <span class="tag">Scheme 2</span>
+    <h2>Nishan<span class="pa" lang="pa">ਨਿਸ਼ਾਨ</span></h2>
+    <p class="thesis"><strong>The flag, at poster scale.</strong> Keep the site's own colours, the Nishan Sahib's kesri and blue, but use them the way a flag does: flat fields, hard edges, no gradient, no glow, no shadow. Type carries the ornament, set in a variable superfamily designed for Gurmukhi and Latin together. The home page's feature grid becomes a pangat: every cell the same size, nothing above anything else.</p>
+    <div class="frames" data-scheme="nishan"></div>
+    <div class="info">
+      <div><h3>Palette · day</h3><div class="sw">
+        <span><i style="background:#FFFFFF"></i><b>White</b><code>#FFFFFF</code></span>
+        <span><i style="background:#0E1B4D"></i><b>Blue ink</b><code>#0E1B4D</code></span>
+        <span><i style="background:#1A2E8C"></i><b>Blue field</b><code>#1A2E8C</code></span>
+        <span><i style="background:#FF9933"></i><b>Kesri field</b><code>#FF9933</code></span>
+        <span><i style="background:#B45309"></i><b>Kesri-deep text</b><code>#B45309</code></span>
+      </div><h3 style="margin-top:14px">Palette · night</h3><div class="sw">
+        <span><i style="background:#0A1240"></i><b>Surmai ground</b><code>#0A1240</code></span>
+        <span><i style="background:#FFFFFF"></i><b>Text</b><code>#FFFFFF</code></span>
+        <span><i style="background:#B9C1E6"></i><b>Muted</b><code>#B9C1E6</code></span>
+        <span><i style="background:#FF9933"></i><b>Kesri</b><code>#FF9933</code></span>
+      </div></div>
+      <div class="s-nishan"><h3>Type</h3><div class="spec">
+        <p class="g" lang="pa" style="font-weight:800;font-variation-settings:'wdth' 110">ਗੁਰੁ ਸਾਗਰੁ ਰਤਨੀ ਭਰਪੂਰੇ ॥</p>
+        <p class="d" style="font-weight:800;font-variation-settings:'wdth' 125">Wisdom of the Gurus</p>
+        <p class="b">Anek was drawn as one family across nine Indian scripts and Latin, with a width axis, so labels can go narrow and headlines wide without changing face.</p>
+        <small>Everything: Anek Gurmukhi and Anek Latin (Ek Type), weight 100 to 800, width 75 to 125.</small>
+      </div></div>
+      <div><h3>System</h3><ul>
+        <li>Zero radius. Four-pixel kesri rules. One-pixel blue gridlines.</li>
+        <li>Gurmukhi letterforms at architectural size, cropped at the edge, as the only graphic.</li>
+        <li>Chat is a transcript with a kesri rule for your turns and a blue rule for SikhAI's; quoted Gurbani in the heaviest cut.</li>
+        <li>Motion: an underline that sweeps in kesri. Nothing else.</li>
+      </ul></div>
+    </div>
+    <div class="cols">
+      <div><h3>On each surface</h3><dl class="surf">
+        <dt>Reading</dt><dd>The tukk huge on a kesri field; translation in blue on white beneath.</dd>
+        <dt>Chat</dt><dd>White and blue only; kesri marks you, never the AI.</dd>
+        <dt>Tools</dt><dd>Dense ruled tables, numerals tabular, labels narrow and uppercase.</dd>
+        <dt>Learn</dt><dd>Flat blue squares that turn kesri when learned.</dd>
+        <dt>Seva</dt><dd>Grid cells, category as a solid tag, dates in the heavy cut.</dd>
+      </dl></div>
+      <div><h3>Why it fits</h3><ul>
+        <li>Identity-proud and in chardi kala; the colours are already the brand, so the logo, icons and share image survive untouched.</li>
+        <li>Flat, high-contrast fields are the easiest system to keep at AA in both modes.</li>
+        <li>Strong at phone width, where most Sangat will read it.</li>
+        <li>It removes the start-up gloss without borrowing anyone else's heritage.</li>
+      </ul></div>
+      <div><h3>Risks</h3><ul>
+        <li>Loud for grief and hardship conversations. Kesri must be a signal on one element per view, never wallpaper; conversation and reading stay white and blue.</li>
+        <li>Kesri at field scale can read as political rather than devotional. The giant Gurmukhi, not a khanda, is what keeps it about the Word.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section id="sarovar">
+    <span class="tag">Scheme 3</span>
+    <h2>Sarovar<span class="pa" lang="pa">ਸਰੋਵਰ</span></h2>
+    <p class="thesis"><strong>Marble, water and gold at Amrit Vela.</strong> The Hukamnama arrives each morning from Darbar Sahib; the interface becomes the parikrama at first light. Marble white, the sarovar's teal for anything you can touch, gold as light rather than colour. One dawn gradient, on the Hukamnama only. Everywhere else, air and thin gold rules.</p>
+    <div class="frames" data-scheme="sarovar"></div>
+    <div class="info">
+      <div><h3>Palette · day</h3><div class="sw">
+        <span><i style="background:#F6F4EF"></i><b>Marble</b><code>#F6F4EF</code></span>
+        <span><i style="background:#14262B"></i><b>Ink</b><code>#14262B</code></span>
+        <span><i style="background:#2C6E7F"></i><b>Water (controls)</b><code>#2C6E7F</code></span>
+        <span><i style="background:#84600F"></i><b>Gold text</b><code>#84600F</code></span>
+        <span><i style="background:#C39A3A"></i><b>Gold rule</b><code>#C39A3A</code></span>
+      </div><h3 style="margin-top:14px">Palette · night</h3><div class="sw">
+        <span><i style="background:#0B1A20"></i><b>Water at night</b><code>#0B1A20</code></span>
+        <span><i style="background:#EDE8DF"></i><b>Marble text</b><code>#EDE8DF</code></span>
+        <span><i style="background:#6FB3C3"></i><b>Water</b><code>#6FB3C3</code></span>
+        <span><i style="background:#D9A441"></i><b>Gold</b><code>#D9A441</code></span>
+      </div></div>
+      <div class="s-sarovar"><h3>Type</h3><div class="spec">
+        <p class="g" lang="pa">ਗੁਰੁ ਸਾਗਰੁ ਰਤਨੀ ਭਰਪੂਰੇ ॥</p>
+        <p class="d" style="font-weight:600">Wisdom of the Gurus</p>
+        <p class="b">A serif Gurmukhi gives the tukk an inscribed, carved quality; the humanist body face stays open and quiet around it.</p>
+        <small>Gurbani: Noto Serif Gurmukhi. Body in both scripts: Mukta Mahee. Display: Cormorant Garamond.</small>
+      </div></div>
+      <div><h3>System</h3><ul>
+        <li>Open space; large radius on the few containers that need one; thin gold rules.</li>
+        <li>A pietra dura inlay motif as a one-pixel ornament, never as a background.</li>
+        <li>Soft bubbles with a lot of air; quoted Gurbani between two gold hairlines.</li>
+        <li>Motion: a slow light sweep across the Hukamnama header, off under reduced motion.</li>
+      </ul></div>
+    </div>
+    <div class="cols">
+      <div><h3>On each surface</h3><dl class="surf">
+        <dt>Reading</dt><dd>Centred serif Gurmukhi, translation beneath, a short gold rule between lines.</dd>
+        <dt>Chat</dt><dd>Teal for you, white for SikhAI, gold for the Guru's words.</dd>
+        <dt>Tools</dt><dd>White panels on marble, controls in water teal.</dd>
+        <dt>Learn</dt><dd>Tiles like inlay stones; progress as a gold line.</dd>
+        <dt>Seva</dt><dd>White cards, a gold eyebrow for the category.</dd>
+      </dl></div>
+      <div><h3>Why it fits</h3><ul>
+        <li>"A space designed for peace" is the site's own promise; this is the scheme that keeps it most literally.</li>
+        <li>The Hukamnama page becomes a place, the one the Hukam actually comes from.</li>
+        <li>Gentlest register for the hardship and grief prompts.</li>
+        <li>Carries diaspora memory of Darbar Sahib without a single photograph.</li>
+      </ul></div>
+      <div><h3>Risks</h3><ul>
+        <li>Slides easily into the wellness-app look. The serif Gurmukhi and the inlay geometry are what hold it to Sikhi.</li>
+        <li>Gold fails AA at text sizes unless deepened, which is why there are two golds.</li>
+        <li>Too soft for the translator and the Seva forms unless those borrow a plainer register.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section id="phulkari">
+    <span class="tag">Scheme 4</span>
+    <h2>Phulkari<span class="pa" lang="pa">ਫੁਲਕਾਰੀ</span></h2>
+    <p class="thesis"><strong>Thread, geometry and the grandmother's craft.</strong> For people who grew up hearing Punjabi at home, the interface draws on the home's textile rather than a classroom. The darning stitch of phulkari gives a geometry, lozenges, bands and stitched edges, and a palette, mustard floss on madder and indigo. Pattern lives in bands and edges; text always sits on plain ground.</p>
+    <div class="frames" data-scheme="phulkari"></div>
+    <div class="info">
+      <div><h3>Palette · day</h3><div class="sw">
+        <span><i style="background:#F8F1DF"></i><b>Khaddar</b><code>#F8F1DF</code></span>
+        <span><i style="background:#1E2260"></i><b>Indigo ink</b><code>#1E2260</code></span>
+        <span><i style="background:#A3272B"></i><b>Madder</b><code>#A3272B</code></span>
+        <span><i style="background:#E0A21B"></i><b>Mustard field</b><code>#E0A21B</code></span>
+        <span><i style="background:#B2306B"></i><b>Magenta (sparingly)</b><code>#B2306B</code></span>
+      </div><h3 style="margin-top:14px">Palette · night</h3><div class="sw">
+        <span><i style="background:#15163A"></i><b>Indigo ground</b><code>#15163A</code></span>
+        <span><i style="background:#F6ECD2"></i><b>Text</b><code>#F6ECD2</code></span>
+        <span><i style="background:#F2B33D"></i><b>Mustard</b><code>#F2B33D</code></span>
+        <span><i style="background:#C94F4F"></i><b>Madder</b><code>#C94F4F</code></span>
+        <span><i style="background:#E07AB0"></i><b>Magenta</b><code>#E07AB0</code></span>
+      </div></div>
+      <div class="s-phulkari"><h3>Type</h3><div class="spec">
+        <p class="g" lang="pa" style="font-weight:500">ਗੁਰੁ ਸਾਗਰੁ ਰਤਨੀ ਭਰਪੂਰੇ ॥</p>
+        <p class="d" style="font-weight:700">Wisdom of the Gurus</p>
+        <p class="b">Baloo Paaji is named for the Punjabi honorific and drawn for both scripts; it is warm at display size and would be too playful for running text, which stays in Mukta Mahee.</p>
+        <small>Display: Baloo Paaji 2. Body and Gurbani: Mukta Mahee.</small>
+      </div></div>
+      <div><h3>System</h3><ul>
+        <li>Lozenge geometry: cut corners, stitched (dashed) edges, embroidered bands as section dividers.</li>
+        <li>Progress is a row of stitches that fills.</li>
+        <li>Mustard for controls, madder for emphasis, magenta for one thing per screen.</li>
+        <li>Motion: a stitch that runs along a progress bar.</li>
+      </ul></div>
+    </div>
+    <div class="cols">
+      <div><h3>On each surface</h3><dl class="surf">
+        <dt>Reading</dt><dd>Plain indigo on khaddar with one band at the top; no pattern near the tukk.</dd>
+        <dt>Chat</dt><dd>Cut-corner bubbles; quoted Gurbani on a stitched edge.</dd>
+        <dt>Tools</dt><dd>Mustard controls, dashed field borders.</dd>
+        <dt>Learn</dt><dd>Tiles like embroidered squares; flashcards as cloth that flips.</dd>
+        <dt>Seva</dt><dd>Cards with a stitched edge and a mustard category.</dd>
+      </dl></div>
+      <div><h3>Why it fits</h3><ul>
+        <li>Warmth, family and community: Learn and Seva are the surfaces that shine here.</li>
+        <li>Joy and chardi kala in the palette itself.</li>
+        <li>Unmistakably Punjabi and unlike any AI product on the market.</li>
+      </ul></div>
+      <div><h3>Risks</h3><ul>
+        <li>Pattern fights reading; the folk register can feel too casual for scripture. Gurbani pages must stay plain.</li>
+        <li>Five hues mean five times the contrast work across two modes.</li>
+        <li>Cut-corner bubbles clip borders; the construction needs care.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Recommendation</h2>
+    <div class="verdict">
+      <h3>Pothi as the backbone, in the Nishan Sahib's colours.</h3>
+      <p>Take Pothi's structure and type whole: Tiro Gurmukhi with Newsreader, an eggshell ground with ink, rules instead of cards, a transcript instead of bubbles, the Gurbani check as footnotes. Then swap its vermilion for kesri and keep a deep blue as the interactive colour. At night it turns inside out: eggshell text on an ink ground, with gold rules and light lapis links. Kesri then needs two values. By day, deepen the site's kesri-deep a touch to #AD4E08, because the current value only just reaches 4.5:1 on eggshell. At night, use the full kesri, which reaches 8.5:1 on ink, where kesri-deep would fail. Kesri stays the brand's colour, so the logo, favicon and share image still belong, and the brand reads as the same site grown up.</p>
+      <ol>
+        <li><strong>It is the only scheme that encodes the deepest value structurally.</strong> Source above machine is a typographic hierarchy here, not a caption on a box.</li>
+        <li><strong>Most of the product is reading.</strong> The Hukamnama, every Ang, every citation and every translation result benefit from a face made for Gurmukhi at a real measure.</li>
+        <li><strong>It stays calm where the site must be calm</strong>: the hardship and grief prompts, and night reading at Amrit Vela.</li>
+        <li><strong>One family for three scripts</strong> ends the fallback-font arrangement that currently makes Gurmukhi look like a guest.</li>
+        <li><strong>It is the furthest from the AI start-up look</strong> while remaining the easiest to keep at AA.</li>
+      </ol>
+      <p class="note">Borrow two moments from the others: Nishan's equal-cell pangat grid for the home page's features, and Sarovar's single dawn gradient for the Hukamnama header only. Nothing else from them.</p>
+    </div>
+    <div class="cols">
+      <div><h3>Moves that hold whichever scheme wins</h3><ul>
+        <li>The hero becomes the day's Hukamnama, live. Retire the mock chat window, the traffic lights and the Gemini badge; Gemini belongs in the footer and the privacy page.</li>
+        <li>Build the tukk once, as one component with a fixed rhythm, and use it on the Hukamnama, Angs, citations, translator results and vocabulary words.</li>
+        <li>Three voices with three registers: Source, SikhAI, you. Gurbani quoted inside a reply must look like Source.</li>
+        <li>Choose the Gurmukhi face first and the Latin to match it. Never the reverse.</li>
+        <li>Retire the navy band every page currently opens with; let each surface open with its content.</li>
+      </ul></div>
+      <div><h3>How to get there without a rewrite</h3><ul>
+        <li>Tokens first: the semantic variables in globals.css already carry about 850 class uses across the site, so most of the palette changes in one file. About 150 literal navy, kesri and slate classes in 45 files wait for the chrome step.</li>
+        <li>Fonts second: fonts.ts loads three families; swapping them and the sans and Gurmukhi tokens re-sets every page. Tiro Gurmukhi has a single weight, so the five places that set Gurmukhi in bold drop it rather than get a synthesised bold.</li>
+        <li>The tukk component third, replacing the per-page markup on the Hukamnama, Ang and citation views.</li>
+        <li>Chrome fourth: navbar, footer, buttons.ts and the seva styles file.</li>
+        <li>Chat last: the transcript layout is the one structural change; everything before it is skin.</li>
+      </ul></div>
+    </div>
+  </section>
+</div>
+
+<template id="frame-tpl">
+  <div class="frame">
+    <div class="fnav"><span class="brand"><span class="ik" aria-hidden="true">ੴ</span><span>SikhAI</span></span><a>Hukamnama</a><a class="on">Ask</a><a>Seva</a><a>Shabad</a><a>Learn</a><span class="btn">Sign in</span></div>
+    <div class="fhero">
+      <div class="band" aria-hidden="true"></div>
+      <p class="eyebrow">Today's Hukamnama · Assu 26, 558 · Darbar Sahib</p>
+      <div class="raag"><span class="gm" lang="pa">ਧਨਾਸਰੀ ਮਹਲਾ ੧ ਘਰੁ ੨ ਅਸਟਪਦੀਆ</span><span class="ang">Ang 685</span></div>
+      <div class="tukk"><p class="g" lang="pa">ਗੁਰੁ ਸਾਗਰੁ ਰਤਨੀ ਭਰਪੂਰੇ ॥</p><p class="r" lang="pa-Latn">gur saagar ratanee bharapoore</p><p class="t">The Guru is the ocean, filled with pearls.</p></div>
+      <div class="tukk"><p class="g" lang="pa">ਅੰਮ੍ਰਿਤੁ ਸੰਤ ਚੁਗਹਿ ਨਹੀ ਦੂਰੇ ॥</p><p class="r" lang="pa-Latn">amrit sant chugeh nahee doore</p><p class="t">The Saints gather in the Ambrosial Nectar; they do not go far away from there.</p></div>
+      <span class="cta">Discuss today's Hukamnama</span>
+    </div>
+    <div class="fchat">
+      <div class="you"><span class="mark">You</span><p>What does Gurbani teach about facing hardship?</p></div>
+      <div class="ai"><span class="mark">SikhAI · Balanced · English</span>
+        <p>Gurbani meets hardship with acceptance of Hukam rather than denial of pain. Guru Arjan Dev Ji sings:</p>
+        <blockquote class="quote"><p class="g gm" lang="pa">ਤੇਰਾ ਕੀਆ ਮੀਠਾ ਲਾਗੈ ॥</p><p class="t">Your actions seem so sweet to me.</p></blockquote>
+        <p>Sweetness here is not resignation. It is trust that the One who gives also holds.</p>
+        <p class="check"><span class="ok">Matches the source</span> · Ang 394 · Guru Arjan Dev Ji · Raag Aasaa</p>
+      </div>
+      <div class="input"><span>Ask a question…</span><span class="send">↑</span></div>
+    </div>
+    <div class="frow">
+      <div class="fseva"><span class="chip">Langar</span><h4>Langar at Orange County Gurudwara</h4><p>Sun, Oct 25 · 2:00 to 3:00 PM PT</p><p>Orange County Sikh Center, Santa Ana</p><p class="cap">Volunteers: 0 of 1 · Spots left: 1</p></div>
+      <div class="flearn"><p class="eyebrow">Gurmukhi script · lesson 2</p><div class="tiles" lang="pa"><span class="tile gm">ੳ</span><span class="tile gm">ਅ</span><span class="tile gm">ੲ</span><span class="tile gm">ਸ</span><span class="tile gm">ਹ</span></div><div class="prog"><span></span></div><p class="cap">Lessons done: 2 of 9</p></div>
+    </div>
+  </div>
+</template>
+
+<script>
+(function(){
+  var tpl=document.getElementById('frame-tpl');
+  var labels={day:'Day',egg:'Day · eggshell',ink:'Night · ink',night:'Night',now:'The live site, dark mode'};
+  document.querySelectorAll('.frames[data-scheme]').forEach(function(box){
+    var s=box.getAttribute('data-scheme');
+    (box.getAttribute('data-modes')||'day night').split(' ').forEach(function(m){
+      var wrap=document.createElement('div');wrap.className='fwrap';
+      var lab=document.createElement('div');lab.className='flabel';lab.textContent=labels[m]||m;
+      var f=tpl.content.firstElementChild.cloneNode(true);
+      f.classList.add('s-'+s);if(m!=='now')f.classList.add(m);
+      wrap.appendChild(lab);wrap.appendChild(f);box.appendChild(wrap);
+    });
+  });
+})();
+</script>
+</body>
+</html>
