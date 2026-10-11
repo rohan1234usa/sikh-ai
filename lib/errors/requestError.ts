@@ -26,6 +26,13 @@ function digestOf(error: unknown): string | undefined {
     return typeof digest === 'string' ? digest.slice(0, 64) : undefined;
 }
 
+// Next can report one failure twice, under two names: the render reports
+// /[lang]/seva/[id], and when the error stops the page altogether (an ISR
+// page's render), the page's handler reports it again as
+// /[lang]/seva/[id]/page; a route handler's name ends in /route. One name
+// makes the two one issue, and the sender holds the second back as a repeat.
+const routeOf = (routePath: string) => routePath.replace(/\/(?:page|route)$/, '') || '/';
+
 // Resolves once its line is written and its send is handed to the platform
 // (lib/log.ts, sendInBackground). Next awaits this hook before it sends a
 // failed route's 500, so the send must not be waited for here.
@@ -37,7 +44,7 @@ export function logRequestError(error: unknown, request: RequestInfo, context: E
         ...(requestId ? { requestId } : {}),
         path: scrubPath(request.path, 'http://request.invalid') ?? 'unknown',
         method: request.method,
-        routePath: context.routePath,
+        routePath: routeOf(context.routePath),
         routeType: context.routeType,
         renderSource: context.renderSource,
         revalidateReason: context.revalidateReason,

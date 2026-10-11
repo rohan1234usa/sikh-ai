@@ -93,3 +93,28 @@ test("a page whose source is down is a warning, and isn't sent, however many ids
         delete process.env.SENTRY_DSN;
     }
 });
+
+test("a failure Next reports twice, from the render and from the page's handler, is one route and one send", async () => {
+    process.env.SENTRY_DSN = mock.dsn;
+    mock.received.length = 0;
+    const error = Object.assign(new Error('Firestore gave no usable answer'), { digest: '1957412093' });
+    const request = { path: '/seva/AbCdEfGhIjKlMnOpQrSt', method: 'GET', headers: {} };
+    try {
+        const lines = await capture(async () => {
+            await logRequestError(error, request, { ...render, routePath: '/[lang]/seva/[id]', renderSource: 'react-server-components', revalidateReason: 'stale' });
+            await logRequestError(error, request, { routerKind: 'App Router', routePath: '/[lang]/seva/[id]/page', routeType: 'render', revalidateReason: 'stale' });
+        });
+        assert.deepEqual(lines.map((l) => l.routePath), ['/[lang]/seva/[id]', '/[lang]/seva/[id]']);
+        assert.equal(mock.received.length, 1);
+    } finally {
+        delete process.env.SENTRY_DSN;
+    }
+});
+
+test("a route handler's name loses its /route, and the home page's its /page", async () => {
+    const lines = await capture(async () => {
+        await logRequestError(new Error('x'), { path: '/api/shabad', method: 'GET', headers: {} }, { ...render, routePath: '/api/shabad/route', routeType: 'route' });
+        await logRequestError(new Error('x'), { path: '/', method: 'GET', headers: {} }, { ...render, routePath: '/page' });
+    });
+    assert.deepEqual(lines.map((l) => l.routePath), ['/api/shabad', '/']);
+});
