@@ -31,7 +31,7 @@ export default function ErrorPage({ error, retry }: {
       <button type="button" onClick={() => retry()} className={PRIMARY_BUTTON}>
         {t.errorPage.retry}
       </button>
-      <Link href={href('/')} className="text-sm font-semibold text-accent-text hover:underline">
+      <Link href={href('/')} className="text-sm font-semibold text-link hover:underline">
         {t.notFound.home}
       </Link>
     </StatusPage>

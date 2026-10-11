@@ -81,7 +81,7 @@ export default async function ShabadPage({ params }: PageProps<'/[lang]/shabad/s
             {about && <p lang={lang === 'pa' ? 'pa' : undefined} className="text-ink font-semibold">{about}</p>}
             <p className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm font-semibold">
               {shabadAngList(shabad).map((n) => (
-                <IntentLink key={n} href={to(`/shabad/${n}`)} className="text-accent-text hover:underline">
+                <IntentLink key={n} href={to(`/shabad/${n}`)} className="text-link hover:underline">
                   {fmt(t.shabad.angLabel, { n })}
                 </IntentLink>
               ))}
@@ -94,7 +94,7 @@ export default async function ShabadPage({ params }: PageProps<'/[lang]/shabad/s
                 {sections.length > 1 && section.ang !== null && (
                   <h2 className="flex items-center gap-3 my-4 text-xs font-bold uppercase tracking-widest">
                     <span className="h-px flex-1 bg-edge" aria-hidden="true" />
-                    <IntentLink href={to(`/shabad/${section.ang}`)} className="text-accent-text hover:underline">
+                    <IntentLink href={to(`/shabad/${section.ang}`)} className="text-link hover:underline">
                       {fmt(t.shabad.angLabel, { n: section.ang })}
                     </IntentLink>
                     <span className="h-px flex-1 bg-edge" aria-hidden="true" />
@@ -111,12 +111,12 @@ export default async function ShabadPage({ params }: PageProps<'/[lang]/shabad/s
             {(previousId || nextId) && (
               <nav aria-label={t.shabad.page.navAria} className="flex justify-between gap-4 text-sm font-semibold">
                 {previousId ? (
-                  <IntentLink rel="prev" href={to(shabadPath(previousId))} className="text-accent-text hover:underline">
+                  <IntentLink rel="prev" href={to(shabadPath(previousId))} className="text-link hover:underline">
                     ← {t.shabad.page.previous}
                   </IntentLink>
                 ) : <span />}
                 {nextId && (
-                  <IntentLink rel="next" href={to(shabadPath(nextId))} className="text-accent-text hover:underline">
+                  <IntentLink rel="next" href={to(shabadPath(nextId))} className="text-link hover:underline">
                     {t.shabad.page.next} →
                   </IntentLink>
                 )}

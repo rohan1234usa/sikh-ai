@@ -136,7 +136,7 @@ export default function ChatInput({
                             ) : context ? (
                                 <ContextChip context={context} onDismiss={refocus(onDismissContext)} />
                             ) : (
-                                <p role="alert" className="flex items-center gap-2 px-1 text-xs text-red-600 dark:text-red-400">
+                                <p role="alert" className="flex items-center gap-2 px-1 text-xs text-red-700 dark:text-red-400">
                                     {t.errors.contextLoad}
                                     <button type="button" onClick={refocus(onDismissContextError)} className="underline font-semibold">
                                         {t.chat.dismiss}
@@ -197,12 +197,12 @@ export default function ChatInput({
             <div className="max-w-3xl mx-auto mt-2 flex items-start justify-between gap-3 text-[11px] text-ink-muted">
                 <p>
                     {disclaimer}{' '}
-                    <Link href={to('/privacy')} className="underline hover:text-accent-text">{t.footer.privacy}</Link>
+                    <Link href={to('/privacy')} className="underline hover:text-link">{t.footer.privacy}</Link>
                     {' · '}
-                    <Link href={to('/terms')} className="underline hover:text-accent-text">{t.footer.terms}</Link>
+                    <Link href={to('/terms')} className="underline hover:text-link">{t.footer.terms}</Link>
                 </p>
                 {nearCap && (
-                    <span id={countId} className={`shrink-0 tabular-nums ${atCap ? 'text-red-600 dark:text-red-400 font-semibold' : ''}`}>
+                    <span id={countId} className={`shrink-0 tabular-nums ${atCap ? 'text-red-700 dark:text-red-400 font-semibold' : ''}`}>
                         {fmt(t.chat.charCount, { n: value.length, max: MAX_MESSAGE_CHARS })}
                     </span>
                 )}

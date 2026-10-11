@@ -103,7 +103,7 @@ function ReplyMessage({ reply, onRetry, onRegenerate, unsaved, actions = true }:
             {reply.status === 'interrupted' && (
                 <p className="text-xs text-ink-muted italic mt-1">{t.chat.interrupted}</p>
             )}
-            {unsaved && <p className="text-xs text-red-600 dark:text-red-400 mt-1">{t.chat.notSaved}</p>}
+            {unsaved && <p className="text-xs text-red-700 dark:text-red-400 mt-1">{t.chat.notSaved}</p>}
 
             {reply.citations && <Citations citations={reply.citations} replyText={reply.text} />}
 

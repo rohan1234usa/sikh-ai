@@ -34,7 +34,7 @@ export default function TranslateHistory({ entries, hydrated, onSelect, onRemove
                             <button
                                 type="button"
                                 onClick={() => { onClear(); setConfirming(false); }}
-                                className="font-semibold text-red-600 dark:text-red-400 hover:underline"
+                                className="font-semibold text-red-700 dark:text-red-400 hover:underline"
                             >
                                 {t.translate.historyClearConfirm}
                             </button>

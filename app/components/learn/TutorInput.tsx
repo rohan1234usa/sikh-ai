@@ -121,12 +121,12 @@ export default function TutorInput({ value, onChange, onSend, onStop, isStreamin
             <div className="mx-auto mt-2 flex max-w-3xl items-start justify-between gap-3 text-[11px] text-ink-muted">
                 <p>
                     {t.learn.tutor.disclaimer}{' '}
-                    <Link href={to('/privacy')} className="underline hover:text-accent-text">{t.footer.privacy}</Link>
+                    <Link href={to('/privacy')} className="underline hover:text-link">{t.footer.privacy}</Link>
                     {' · '}
-                    <Link href={to('/terms')} className="underline hover:text-accent-text">{t.footer.terms}</Link>
+                    <Link href={to('/terms')} className="underline hover:text-link">{t.footer.terms}</Link>
                 </p>
                 {nearCap && (
-                    <span id={countId} className={`shrink-0 tabular-nums ${atCap ? 'font-semibold text-red-600 dark:text-red-400' : ''}`}>
+                    <span id={countId} className={`shrink-0 tabular-nums ${atCap ? 'font-semibold text-red-700 dark:text-red-400' : ''}`}>
                         {fmt(t.learn.tutor.charCount, { n: value.length, max: MAX_TUTOR_MESSAGE_CHARS })}
                     </span>
                 )}

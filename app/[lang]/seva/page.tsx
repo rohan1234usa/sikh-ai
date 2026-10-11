@@ -88,7 +88,7 @@ export default async function SevaBoardPage() {
           <div className="rounded-xl border border-edge bg-surface-raised p-6 text-center shadow-sm">
             <h2 className="text-lg font-bold text-ink">{copy.board.unavailableTitle}</h2>
             <p className="mt-1 text-ink-muted">{copy.board.unavailableBody}</p>
-            <a href={to('/seva')} className="mt-4 inline-block font-semibold text-accent-text underline">{copy.common.retry}</a>
+            <a href={to('/seva')} className="mt-4 inline-block font-semibold text-link underline">{copy.common.retry}</a>
           </div>
         ) : events.length === 0 ? (
           <div className="rounded-xl border border-edge bg-surface-raised p-6 text-center shadow-sm">
@@ -113,7 +113,7 @@ export default async function SevaBoardPage() {
         {events !== null && events.length > 0 && (
           <p className="rounded-xl border border-dashed border-edge-strong p-5 text-center text-ink-muted">
             {copy.board.hostPrompt}{' '}
-            <IntentLink href={to(CREATE_HREF)} className="font-semibold text-accent-text underline">{copy.board.hostPromptCta}</IntentLink>
+            <IntentLink href={to(CREATE_HREF)} className="font-semibold text-link underline">{copy.board.hostPromptCta}</IntentLink>
           </p>
         )}
       </div>

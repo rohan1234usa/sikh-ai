@@ -141,7 +141,7 @@ function PhraseRow({ phrase, expanded, showCategory, onToggle, onUse }: {
                         <button
                             type="button"
                             onClick={onUse}
-                            className="text-sm font-semibold text-accent-text hover:underline"
+                            className="text-sm font-semibold text-link hover:underline"
                         >
                             {t.translate.usePhrase}
                         </button>

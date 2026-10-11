@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import { PRIMARY_FILL } from '@/app/components/buttons';
 import { getServerT } from '@/lib/i18n/server';
 import { pageMetadata } from '@/lib/metadata';
 
@@ -58,7 +59,7 @@ export default async function AboutPage() {
                                     {t.about.bio1Before}<span className="text-ink font-bold">{t.about.bio1School}</span>{t.about.bio1After}
                                 </p>
                                 <p className="text-ink-faint text-sm leading-relaxed">
-                                    {t.about.bio2Before}<span className="text-emerald-600 dark:text-emerald-400 font-semibold">{t.about.bio2Highlight}</span>{t.about.bio2After}
+                                    {t.about.bio2Before}<span className="text-accent-text font-semibold">{t.about.bio2Highlight}</span>{t.about.bio2After}
                                 </p>
                             </div>
 
@@ -68,7 +69,7 @@ export default async function AboutPage() {
                                     href="https://built-by-rohan.vercel.app/"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="bg-navy hover:bg-slate-800 text-white dark:bg-kesri dark:text-navy dark:hover:bg-kesri-hover text-xs font-bold tracking-wider uppercase px-8 rounded flex items-center justify-center gap-2 transition-colors h-full"
+                                    className={`${PRIMARY_FILL} text-xs tracking-wider uppercase px-8 rounded flex items-center justify-center gap-2 transition-colors h-full`}
                                 >
                                     {t.about.portfolioCta}
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4" aria-hidden="true">

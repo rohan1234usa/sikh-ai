@@ -135,7 +135,7 @@ export default function TranslationCard({ result, onRetryAs, onRetry }: Props) {
                             <button
                                 type="button"
                                 onClick={onRetry}
-                                className="font-semibold text-accent-text underline underline-offset-2 hover:text-ink transition-colors"
+                                className="font-semibold text-link underline underline-offset-2 hover:text-ink transition-colors"
                             >
                                 {t.translate.retryFull}
                             </button>
@@ -192,7 +192,7 @@ export default function TranslationCard({ result, onRetryAs, onRetry }: Props) {
                             {/* Inline, never the page-level alert: a failed comparison
                                 must not look like a failed translation. */}
                             {cross.status === 'error' && (
-                                <span className="text-xs text-red-600 dark:text-red-400">
+                                <span className="text-xs text-red-700 dark:text-red-400">
                                     {t.translate.crosscheckError}
                                 </span>
                             )}

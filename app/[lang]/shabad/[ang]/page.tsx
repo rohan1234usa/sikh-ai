@@ -102,7 +102,7 @@ export default async function AngPage({ params }: PageProps<'/[lang]/shabad/[ang
           <h1 className="text-ink font-bold">{angTitle(t, ang)}</h1>
           <Link
             href={to(`/chat?context=shabad&ang=${ang}`)}
-            className="ml-auto inline-flex items-center gap-1.5 text-sm font-semibold text-accent-text hover:underline"
+            className="ml-auto inline-flex items-center gap-1.5 text-sm font-semibold text-link hover:underline"
           >
             <ChatBubbleLeftRightIcon className="w-4 h-4" aria-hidden="true" />
             {t.shabad.askAboutAng}
@@ -120,7 +120,7 @@ export default async function AngPage({ params }: PageProps<'/[lang]/shabad/[ang
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-edge pb-2">
                 <p lang={lang === 'pa' ? 'pa' : undefined} className="text-xs font-bold uppercase tracking-wider text-ink-muted">{about}</p>
                 {isGurbaniId(group.shabadId) && (
-                  <IntentLink href={to(shabadPath(group.shabadId))} className="ml-auto text-sm font-semibold text-accent-text hover:underline">
+                  <IntentLink href={to(shabadPath(group.shabadId))} className="ml-auto text-sm font-semibold text-link hover:underline">
                     {t.shabad.page.fullShabad} →
                   </IntentLink>
                 )}
@@ -150,12 +150,12 @@ export default async function AngPage({ params }: PageProps<'/[lang]/shabad/[ang
 
         <div className="flex justify-between gap-4 pt-2 text-sm font-semibold">
           {ang > 1 ? (
-            <Link rel="prev" href={to(`/shabad/${ang - 1}`)} className="text-accent-text hover:underline">
+            <Link rel="prev" href={to(`/shabad/${ang - 1}`)} className="text-link hover:underline">
               ← {fmt(t.shabad.angLabel, { n: ang - 1 })}
             </Link>
           ) : <span />}
           {ang < MAX_ANG && (
-            <Link rel="next" href={to(`/shabad/${ang + 1}`)} className="text-accent-text hover:underline">
+            <Link rel="next" href={to(`/shabad/${ang + 1}`)} className="text-link hover:underline">
               {fmt(t.shabad.angLabel, { n: ang + 1 })} →
             </Link>
           )}

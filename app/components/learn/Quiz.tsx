@@ -134,7 +134,7 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
 
                             {checked && (
                                 <div className="mt-2 space-y-1 text-sm">
-                                    <p className={`flex items-center gap-1.5 font-semibold ${right ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                                    <p className={`flex items-center gap-1.5 font-semibold ${right ? 'text-good' : 'text-red-700 dark:text-red-400'}`}>
                                         {right
                                             ? <CheckCircleIcon className="h-5 w-5" aria-hidden="true" />
                                             : <XCircleIcon className="h-5 w-5" aria-hidden="true" />}

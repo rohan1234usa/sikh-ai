@@ -403,7 +403,7 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
             {notice === 'restored' && (
                 <p role="status" className="flex flex-wrap items-center gap-3 rounded-lg border border-edge-strong p-3 text-ink">
                     {copy.draftRestored}
-                    <button type="button" onClick={reset} className="font-semibold text-accent-text underline">{copy.clearForm}</button>
+                    <button type="button" onClick={reset} className="font-semibold text-link underline">{copy.clearForm}</button>
                 </p>
             )}
             {notice === 'copied' && source && (
@@ -411,13 +411,13 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
             )}
             {mode === 'edit' && source && source.endsAt <= now && eventId && (
                 <p className="rounded-lg border border-edge-strong p-3">
-                    <IntentLink href={`${hrefs.create}?from=${eventId}`} className="font-semibold text-accent-text underline">{copy.endedOffer}</IntentLink>
+                    <IntentLink href={`${hrefs.create}?from=${eventId}`} className="font-semibold text-link underline">{copy.endedOffer}</IntentLink>
                 </p>
             )}
             {!user && mode === 'create' && (
                 <p className="rounded-lg border border-edge-strong p-3 text-ink">
                     {copy.signInNotice}{' '}
-                    <button type="button" onClick={() => void signIn()} {...signInIntent} className="font-semibold text-accent-text underline">{copy.signIn}</button>
+                    <button type="button" onClick={() => void signIn()} {...signInIntent} className="font-semibold text-link underline">{copy.signIn}</button>
                 </p>
             )}
 
@@ -545,7 +545,7 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
                                 {' '}
                                 <span className="whitespace-nowrap">
                                     <span aria-hidden="true">· </span>
-                                    <button type="button" onClick={openZone} className="font-semibold text-accent-text underline">{copy.changeZone}</button>
+                                    <button type="button" onClick={openZone} className="font-semibold text-link underline">{copy.changeZone}</button>
                                 </span>
                             </>
                         )}
@@ -574,7 +574,7 @@ function FormBody({ mode, eventId, lang, copy, categories, optional, newTab, whe
                     )}
                 </Field>
                 {(draft.venue || draft.address) && draft.city && (
-                    <ExternalLink href={mapsUrl(place)} newTab={newTab} className="inline-flex items-center gap-1 font-semibold text-accent-text underline">
+                    <ExternalLink href={mapsUrl(place)} newTab={newTab} className="inline-flex items-center gap-1 font-semibold text-link underline">
                         {copy.checkMap}
                     </ExternalLink>
                 )}

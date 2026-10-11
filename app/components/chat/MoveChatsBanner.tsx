@@ -29,7 +29,7 @@ export default function MoveChatsBanner({ progress, onMove, onDismiss }: Props) 
                 <>
                     <p className="mt-1 text-ink-muted">{h.moveBody}</p>
                     {phase === 'moving' && <p role="status" className="mt-1 text-ink-muted">{fmt(h.moving, { done, total })}</p>}
-                    {phase === 'error' && <p role="alert" className="mt-1 text-red-600 dark:text-red-400">{h.moveError}</p>}
+                    {phase === 'error' && <p role="alert" className="mt-1 text-red-700 dark:text-red-400">{h.moveError}</p>}
                 </>
             )}
             <div className="mt-2 flex flex-wrap gap-2">

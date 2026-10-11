@@ -13,7 +13,7 @@ import { extractQuotes } from '@/lib/gurbani/extract';
 // translation, Ang, writer, raag — is the source's own text, never the model's.
 
 const STATUS = {
-    'verified': { Icon: CheckBadgeIcon, tone: 'text-emerald-700 dark:text-emerald-400' },
+    'verified': { Icon: CheckBadgeIcon, tone: 'text-good' },
     // Verified, but matched only once vowel signs were set aside.
     'respelled': { Icon: CheckBadgeIcon, tone: 'text-accent-text' },
     'wrong-ang': { Icon: ExclamationTriangleIcon, tone: 'text-accent-text' },
@@ -31,7 +31,7 @@ function AngLink({ ang }: { ang: number }) {
             href={href(`/shabad/${ang}`)}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs font-semibold text-accent-text hover:underline"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-link hover:underline"
         >
             {fmt(t.chat.citations.openAng, { n: ang })}
             <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" aria-hidden="true" />

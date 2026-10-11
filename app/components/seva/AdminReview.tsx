@@ -75,7 +75,7 @@ export default function AdminReview({ lang, copy, reasons, hostedBy, retry, even
         return (
             <p className="mt-6 text-ink">
                 <span role="alert">{copy.failed}</span>{' '}
-                <button type="button" onClick={() => { setLoaded(null); setAttempt((n) => n + 1); }} className="font-semibold text-accent-text underline">{retry}</button>
+                <button type="button" onClick={() => { setLoaded(null); setAttempt((n) => n + 1); }} className="font-semibold text-link underline">{retry}</button>
             </p>
         );
     }

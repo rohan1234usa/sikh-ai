@@ -182,7 +182,7 @@ function ShareBody({ chat, onClose }: { chat: ChatListItem; onClose: () => void 
                                     type="button"
                                     onClick={() => void unshare()}
                                     disabled={busy !== null}
-                                    className="font-semibold text-red-600 dark:text-red-400 hover:underline disabled:opacity-60"
+                                    className="font-semibold text-red-700 dark:text-red-400 hover:underline disabled:opacity-60"
                                 >
                                     {busy === 'unshare' ? s.unsharing : s.unshare}
                                 </button>
@@ -204,7 +204,7 @@ function ShareBody({ chat, onClose }: { chat: ChatListItem; onClose: () => void 
                                     type="button"
                                     onClick={() => setConfirmingUnshare(true)}
                                     disabled={busy !== null}
-                                    className="ml-auto text-sm font-semibold text-red-600 dark:text-red-400 hover:underline disabled:opacity-60"
+                                    className="ml-auto text-sm font-semibold text-red-700 dark:text-red-400 hover:underline disabled:opacity-60"
                                 >
                                     {s.unshare}
                                 </button>
@@ -216,7 +216,7 @@ function ShareBody({ chat, onClose }: { chat: ChatListItem; onClose: () => void 
                 // Still reading the chat (or, mid-move, reading it in its new home).
                 <p role="status" className="text-sm text-ink-muted">{busy === 'share' ? s.creating : t.chat.loadingChat}</p>
             ) : state.status === 'error' ? (
-                <p role="alert" className="text-sm text-red-600 dark:text-red-400">{s.error}</p>
+                <p role="alert" className="text-sm text-red-700 dark:text-red-400">{s.error}</p>
             ) : !snapshot ? (
                 <p className="text-sm text-ink-muted">{s.nothingYet}</p>
             ) : (
@@ -239,7 +239,7 @@ function ShareBody({ chat, onClose }: { chat: ChatListItem; onClose: () => void 
 
             {streaming && uid && <p className="text-xs text-ink-muted">{s.waitForReply}</p>}
             {note && (
-                <p role={note.tone} className={`text-xs ${note.tone === 'alert' ? 'text-red-600 dark:text-red-400' : 'text-ink-muted'}`}>
+                <p role={note.tone} className={`text-xs ${note.tone === 'alert' ? 'text-red-700 dark:text-red-400' : 'text-ink-muted'}`}>
                     {note.text}
                 </p>
             )}

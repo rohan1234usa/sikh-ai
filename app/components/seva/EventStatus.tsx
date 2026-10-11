@@ -54,7 +54,7 @@ export function FlashPanel({ copy }: { copy: SevaCopy['actions'] }) {
                     dismissFlash();
                     document.getElementById('event-title')?.focus();
                 }}
-                className="mt-3 font-semibold text-accent-text underline"
+                className="mt-3 font-semibold text-link underline"
             >
                 {copy.done}
             </button>

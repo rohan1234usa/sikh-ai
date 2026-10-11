@@ -28,7 +28,7 @@ export default function TopicList({ topics }: { topics: TopicLink[] }) {
                         >
                             <span className="flex items-center justify-between gap-2">
                                 <span className="font-semibold text-ink">{t.learn.topics[id]}</span>
-                                <ArrowRightIcon className="h-4 w-4 shrink-0 text-accent-text transition-transform motion-safe:group-hover:translate-x-0.5" aria-hidden="true" />
+                                <ArrowRightIcon className="h-4 w-4 shrink-0 text-link transition-transform motion-safe:group-hover:translate-x-0.5" aria-hidden="true" />
                             </span>
                             <span className="text-sm text-ink-muted">{fmt(t.learn.vocab.wordCount, { n: wordIds.length })}</span>
                             <span className="text-xs font-semibold text-accent-text">

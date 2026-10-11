@@ -64,7 +64,7 @@ export default function ChatActionsMenu({ label, actions }: { label: string; act
                             role="menuitem"
                             onClick={() => choose(onSelect)}
                             className={`flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-sm transition-colors hover:bg-edge/60 ${
-                                danger ? 'text-red-600 dark:text-red-400' : 'text-ink'
+                                danger ? 'text-red-700 dark:text-red-400' : 'text-ink'
                             }`}
                         >
                             <Icon className="h-4 w-4 shrink-0" />

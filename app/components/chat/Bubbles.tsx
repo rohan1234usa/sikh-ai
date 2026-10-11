@@ -14,7 +14,7 @@ import { markdownComponents } from './markdownComponents';
 export const BUBBLE = {
     user: 'bg-navy text-white rounded-br-none',
     ai: 'bg-surface-raised border border-edge text-ink rounded-bl-none',
-    error: 'bg-red-50 border border-red-200 text-red-600 dark:bg-red-950/40 dark:border-red-900 dark:text-red-400 rounded-bl-none',
+    error: 'bg-red-50 border border-red-200 text-red-700 dark:bg-red-950/40 dark:border-red-900 dark:text-red-400 rounded-bl-none',
 };
 export const SHAPE = 'max-w-[85%] md:max-w-[75%] p-4 rounded-2xl shadow-sm text-sm md:text-base leading-relaxed';
 

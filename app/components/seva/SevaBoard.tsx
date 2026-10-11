@@ -134,7 +134,7 @@ export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, cop
                         {timesLocal}
                     </p>
                     {active && (
-                        <button type="button" onClick={clear} className="min-h-6 font-semibold text-accent-text underline">
+                        <button type="button" onClick={clear} className="min-h-6 font-semibold text-link underline">
                             {copy.clear}
                         </button>
                     )}
@@ -148,10 +148,10 @@ export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, cop
                     <p className="mt-1 text-ink-muted">{copy.noMatchesHint}</p>
                     <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
                         {active && (
-                            <button type="button" onClick={clear} className="font-semibold text-accent-text underline">{copy.clear}</button>
+                            <button type="button" onClick={clear} className="font-semibold text-link underline">{copy.clear}</button>
                         )}
                         {place && (
-                            <IntentLink href={hostHere} className="font-semibold text-accent-text underline">{fmt(copy.hostHere, { place })}</IntentLink>
+                            <IntentLink href={hostHere} className="font-semibold text-link underline">{fmt(copy.hostHere, { place })}</IntentLink>
                         )}
                     </div>
                 </div>

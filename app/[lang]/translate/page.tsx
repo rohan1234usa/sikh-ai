@@ -258,7 +258,7 @@ export default function TranslatePage() {
           {loading && <TranslateSkeleton />}
 
           {error && !loading && (
-            <div role="alert" className="text-center py-10 text-red-600 bg-red-50 rounded-xl border border-red-100 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900">
+            <div role="alert" className="text-center py-10 text-red-700 bg-red-50 rounded-xl border border-red-100 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900">
               {error}
             </div>
           )}

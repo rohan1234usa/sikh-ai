@@ -92,7 +92,7 @@ export default async function LessonPage({ params }: PageProps<'/[lang]/learn/[t
               <span lang="en" className="block font-semibold text-ink"><Mixed text={next.title} /></span>
             </Link>
           ) : (
-            <Link href={to(`/learn/${meta.track}`)} className="rounded-xl border border-edge p-3 text-right font-semibold text-accent-text transition-colors hover:border-accent-text/40">
+            <Link href={to(`/learn/${meta.track}`)} className="rounded-xl border border-edge p-3 text-right font-semibold text-link transition-colors hover:border-accent-text/40">
               {t.learn.lesson.allLessons}
             </Link>
           )}

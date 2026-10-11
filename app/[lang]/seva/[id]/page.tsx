@@ -154,7 +154,7 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
                   <div>
                     <dt className="text-sm font-semibold text-ink-muted">{copy.common.contactLabel}</dt>
                     <dd className="mt-1 text-ink [overflow-wrap:anywhere]">
-                      {contactLink ? <a href={contactLink} className="text-accent-text underline">{event.contact}</a> : <Mixed text={event.contact} />}
+                      {contactLink ? <a href={contactLink} className="text-link underline">{event.contact}</a> : <Mixed text={event.contact} />}
                     </dd>
                   </div>
                 )}
@@ -206,7 +206,7 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
           </div>
 
           <p className="mt-10">
-            <IntentLink href={to('/seva')} className="font-semibold text-accent-text underline">← {copy.event.backToList}</IntentLink>
+            <IntentLink href={to('/seva')} className="font-semibold text-link underline">← {copy.event.backToList}</IntentLink>
           </p>
         </div>
       </EventProvider>

@@ -2,7 +2,7 @@ import type { Components } from 'react-markdown';
 
 // Shared renderer map for AI messages. Styled with semantic tokens so
 // dark mode works without per-usage overrides.
-const LINK = 'text-accent-text underline underline-offset-2 hover:opacity-80 break-words';
+const LINK = 'text-link underline underline-offset-2 hover:opacity-80 break-words';
 
 export const markdownComponents: Components = {
     strong: ({ node, ...props }) => <span className="font-bold" {...props} />,

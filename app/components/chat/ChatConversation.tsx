@@ -289,7 +289,7 @@ export default function ChatConversation({
                     {(blocked || session.full) && (
                         <p
                             role={blocked ? 'alert' : 'status'}
-                            className="mx-auto w-full max-w-3xl px-4 pb-2 text-xs text-red-600 dark:text-red-400"
+                            className="mx-auto w-full max-w-3xl px-4 pb-2 text-xs text-red-700 dark:text-red-400"
                         >
                             {blocked ?? t.chat.chatFull}
                         </p>

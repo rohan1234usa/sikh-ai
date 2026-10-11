@@ -97,7 +97,7 @@ export default function ChatHistoryRow({ chat, active, replying, initialFocus, o
                         className="flex w-full flex-wrap items-center gap-x-2 gap-y-1 px-2.5 py-2 text-sm"
                     >
                         <span className="text-ink-muted">{h.deletePrompt}</span>
-                        <button type="button" onClick={onDelete} className="font-semibold text-red-600 dark:text-red-400 hover:underline">
+                        <button type="button" onClick={onDelete} className="font-semibold text-red-700 dark:text-red-400 hover:underline">
                             {h.delete}
                         </button>
                         {/* Cancel takes focus: Enter right after choosing Delete doesn't delete. */}

@@ -158,10 +158,10 @@ export default function SharedChatView({ shareId }: { shareId: string }) {
                     <button type="button" onClick={() => void continueChat(chat)} disabled={opening} className={PRIMARY}>
                         {opening ? t.share.continuing : t.share.continue}
                     </button>
-                    <Link href={href('/chat')} className="text-sm font-semibold text-accent-text hover:underline">
+                    <Link href={href('/chat')} className="text-sm font-semibold text-link hover:underline">
                         {t.share.newChat}
                     </Link>
-                    {failed && <p role="alert" className="w-full text-center text-xs text-red-600 dark:text-red-400">{t.share.continueError}</p>}
+                    {failed && <p role="alert" className="w-full text-center text-xs text-red-700 dark:text-red-400">{t.share.continueError}</p>}
                 </div>
             </div>
         </main>
