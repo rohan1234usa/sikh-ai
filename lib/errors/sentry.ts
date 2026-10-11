@@ -2,9 +2,9 @@
 // set. There's no Sentry SDK anywhere: a browser's report reaches this site
 // first (app/api/error-report, lib/errors/report.ts), and every event is built
 // here from what lib/errors/scrub.ts lets through. So Sentry never sees a
-// visitor's IP address, cookies or headers, or anything they wrote: it sees
-// what failed, where in the site's code, on which page, in which browser, and
-// in which release.
+// visitor's IP address, cookies, request ID or any header but the browser's
+// User-Agent, nor anything they wrote: it sees what failed, where in the
+// site's code, on which page, in which browser, and in which release.
 //
 // Sent with node:https, not fetch. Next patches fetch: a send while a page
 // renders (an error line from a Seva page's Firestore read, say) would make
@@ -110,7 +110,7 @@ function basics(env: Env, now: number) {
 // out old browsers' and crawlers' errors (its inbound filters).
 export function browserEvent(
     report: ReadReport,
-    ctx: { origin: string; userAgent?: string | null; requestId?: string },
+    ctx: { origin: string; userAgent?: string | null },
     now = Date.now(),
     env: Env = process.env,
 ): Outgoing {
@@ -127,7 +127,7 @@ export function browserEvent(
             ...basics(env, now),
             platform: 'javascript',
             transaction: report.page,
-            tags: { kind: report.kind, runtime: 'browser', ...(ctx.requestId ? { requestId: ctx.requestId } : {}) },
+            tags: { kind: report.kind, runtime: 'browser' },
             request: {
                 url: `${ctx.origin}${report.page}`,
                 ...(ctx.userAgent ? { headers: { 'User-Agent': ctx.userAgent.slice(0, 300) } } : {}),
@@ -148,10 +148,12 @@ export function browserEvent(
 
 // The fields of a log line that become tags: short words and numbers. A log
 // line holds no user text (lib/log.ts); everything else in it stays in the
-// log.
+// log. Its request ID stays too: it names the visitor's nearest Vercel region
+// and finds their IP address in Vercel's request log, and /privacy says a
+// report can't be traced back to anyone.
 const TAG_FIELDS = [
     'route', 'routePath', 'routeType', 'renderSource', 'revalidateReason', 'method',
-    'feature', 'model', 'status', 'upstream', 'op', 'missing', 'outcome', 'digest', 'requestId',
+    'feature', 'model', 'status', 'upstream', 'op', 'missing', 'outcome', 'digest',
 ];
 // Of those, what tells one error from another, beside the line's event name
 // and the error's type and message. Never a frame: the server's code is

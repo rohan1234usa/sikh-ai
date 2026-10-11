@@ -19,7 +19,7 @@
 | cumulative characters billed | 0 |
 | cache entries | 0 |
 
-> **Dry run** — no API calls were made. A full run would translate roughly **50560 characters** that are not yet cached.
+> **Dry run** — no API calls were made. A full run would translate roughly **50597 characters** that are not yet cached.
 
 ## Free checks
 

@@ -77,7 +77,8 @@ test("a page's report is logged and sent on to Sentry, without anything the visi
         assert.equal(event.platform, 'javascript');
         assert.equal(event.transaction, '/pa/share/:id');
         assert.deepEqual(event.request, { url: `${SITE}/pa/share/:id`, headers: { 'User-Agent': 'Mozilla/5.0 (Test)' } });
-        assert.deepEqual(event.tags, { kind: 'page', runtime: 'browser', requestId: 'iad1::rep-1' });
+        assert.deepEqual(event.tags, { kind: 'page', runtime: 'browser' });
+        assert.equal(body.includes('iad1::rep-1'), false, 'the request ID stays in the log');
         assert.deepEqual(event.exception!.values[0].stacktrace!.frames.map((f) => f.abs_path ?? f.filename), ['/pa/share/:id', CHUNK]);
         for (const text of [JSON.stringify(lines), body])
             for (const leak of SENTINELS) assert.equal(text.includes(leak), false, leak);

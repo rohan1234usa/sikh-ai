@@ -49,7 +49,7 @@ test('a DSN gives the envelope address and the key; anything else gives nothing'
 });
 
 test("a browser's report becomes an event with nothing but what the report allows", () => {
-    const { event } = browserEvent(report(), { origin: ORIGIN, userAgent: 'Mozilla/5.0 '.padEnd(400, 'x'), requestId: 'iad1::r1' }, T0,
+    const { event } = browserEvent(report(), { origin: ORIGIN, userAgent: 'Mozilla/5.0 '.padEnd(400, 'x') }, T0,
         { VERCEL_ENV: 'production', VERCEL_GIT_COMMIT_SHA: 'abc123' });
     assert.deepEqual(Object.keys(event).sort(),
         ['environment', 'event_id', 'exception', 'level', 'platform', 'release', 'request', 'sdk', 'tags', 'timestamp', 'transaction']);
@@ -58,7 +58,7 @@ test("a browser's report becomes an event with nothing but what the report allow
     assert.equal(event.environment, 'production');
     assert.equal(event.release, 'abc123');
     assert.equal(event.transaction, '/pa/chat/:id');
-    assert.deepEqual(event.tags, { kind: 'uncaught', runtime: 'browser', requestId: 'iad1::r1' });
+    assert.deepEqual(event.tags, { kind: 'uncaught', runtime: 'browser' });
     assert.deepEqual(Object.keys(event.request!), ['url', 'headers']);
     assert.equal(event.request!.url, `${ORIGIN}/pa/chat/:id`);
     assert.deepEqual(Object.keys(event.request!.headers!), ['User-Agent']);
@@ -87,7 +87,7 @@ test('an error log line becomes an exception with its frames, grouped without li
     assert.equal(event.platform, 'node');
     assert.equal(event.environment, 'local');
     assert.equal(event.transaction, '/api/chat');
-    assert.deepEqual(event.tags, { evt: 'route_error', runtime: 'server', route: '/api/chat', requestId: 'iad1::r2' });
+    assert.deepEqual(event.tags, { evt: 'route_error', runtime: 'server', route: '/api/chat' }, 'no request ID: it leads to an IP address');
     const [value] = event.exception!.values;
     assert.equal(value.type, 'TypeError');
     assert.equal(value.value, 'failed for "…"');

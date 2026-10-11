@@ -2,14 +2,15 @@ import { limitVisitor } from '@/lib/api/allowance';
 import { refuseCrossSite } from '@/lib/api/guard';
 import { readClientReport, type ReadReport } from '@/lib/errors/report';
 import { browserEvent, browserSentry } from '@/lib/errors/sentry';
-import { currentRequestId, logEvent, sendInBackground, withRequestLog } from '@/lib/log';
+import { logEvent, sendInBackground, withRequestLog } from '@/lib/log';
 
 // The site's pages post their own errors here (lib/errors/client.ts, #20).
 // Each report is read again from scratch (lib/errors/report.ts), since anyone
 // can post anything, then logged as a client_error line and sent on to Sentry
 // when it's set up (lib/errors/sentry.ts). So the browser talks only to this
-// site, and Sentry never sees a visitor's address, cookies or text. The line
-// is a warning, so lib/log.ts doesn't send it a second time.
+// site, and Sentry never sees a visitor's address, cookies or text, or any
+// header but the User-Agent. The line is a warning, so lib/log.ts doesn't
+// send it a second time.
 
 // A report's worth; anything bigger isn't the site's reporter.
 const MAX_BODY_CHARS = 16_000;
@@ -51,11 +52,7 @@ async function handlePost(req: Request) {
     }, 'warn');
     // Its own sender: anyone can post a report, so reports mustn't use up
     // what the site's own errors need (lib/errors/sentry.ts).
-    void sendInBackground(browserEvent(report, {
-        origin,
-        userAgent: req.headers.get('user-agent'),
-        requestId: currentRequestId(),
-    }), browserSentry);
+    void sendInBackground(browserEvent(report, { origin, userAgent: req.headers.get('user-agent') }), browserSentry);
     return done();
 }
 
