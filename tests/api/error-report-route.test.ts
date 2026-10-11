@@ -136,3 +136,20 @@ test('one visitor gets 10 reports a minute', async () => {
     const refused = await POST(postJson(`${SITE}/api/error-report`, report(), from));
     assert.deepEqual(await refused.json(), { code: 'error_report_busy', error: 'Too many error reports. Please wait a minute.' });
 });
+
+test("a page opened at another of the server's addresses reports too (next start on 127.0.0.1 or the network)", async () => {
+    process.env.SENTRY_DSN = mock.dsn;
+    mock.received.length = 0;
+    try {
+        const local = 'http://127.0.0.1:3000';
+        const res = await POST(postJson(`${SITE}/api/error-report`, report({ message: 'local check', frames: [`at Foo (${local}/_next/static/chunks/a.js:1:2)`] }), {
+            host: '127.0.0.1:3000', 'x-forwarded-for': '203.0.113.50',
+        }));
+        assert.equal(res.status, 204);
+        await browserSentry.settled();
+        assert.equal(mock.received.length, 1);
+        assert.equal(mock.received[0].event.request?.url, `${local}/pa/share/:id`);
+    } finally {
+        delete process.env.SENTRY_DSN;
+    }
+});

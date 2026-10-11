@@ -12,21 +12,12 @@
 // among them, are never touched.
 
 import type { Instrumentation } from 'next';
-import { describeError, logError, logEvent, stackFrames } from '../log';
+import { describeError, logError, logEvent, stackFrames, vercelRequestId } from '../log';
 import { scrubPath } from './scrub';
 
 type OnRequestError = Instrumentation.onRequestError;
 type RequestInfo = Parameters<OnRequestError>[1];
 type ErrorContext = Parameters<OnRequestError>[2];
-
-// Vercel's ID for the request, the one its request log shows. Outside a
-// route's withRequestLog (lib/log.ts), which isn't running here, it has to be
-// read from the header.
-function requestIdOf(headers: RequestInfo['headers']): string | undefined {
-    const id = headers['x-vercel-id'];
-    const value = Array.isArray(id) ? id[0] : id;
-    return value ? value.slice(0, 120) : undefined;
-}
 
 // A server error's digest, which the error page's browser also gets, so the
 // two can be matched up.
@@ -39,7 +30,9 @@ function digestOf(error: unknown): string | undefined {
 // (lib/log.ts, sendInBackground). Next awaits this hook before it sends a
 // failed route's 500, so the send must not be waited for here.
 export function logRequestError(error: unknown, request: RequestInfo, context: ErrorContext): Promise<void> {
-    const requestId = requestIdOf(request.headers);
+    // Vercel's ID for the request: outside a route's withRequestLog
+    // (lib/log.ts), which isn't running here, it's read from the header.
+    const requestId = vercelRequestId(request.headers['x-vercel-id']);
     const fields = {
         ...(requestId ? { requestId } : {}),
         path: scrubPath(request.path, 'http://request.invalid') ?? 'unknown',

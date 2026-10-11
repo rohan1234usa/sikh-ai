@@ -17,6 +17,16 @@ const MAX_BODY_CHARS = 16_000;
 // Taken or not, a report gets no answer worth reading.
 const done = () => new Response(null, { status: 204 });
 
+// The site's address as the visitor's browser had it, which its frames name:
+// req.url's on Vercel; under `next start`, req.url always says localhost, so
+// the Host header, which every browser sends, says how the page was opened
+// (127.0.0.1, the machine's network address).
+function siteOrigin(req: Request): string {
+    const url = new URL(req.url);
+    const host = req.headers.get('host');
+    return host ? `${url.protocol}//${host}` : url.origin;
+}
+
 // A frame as a log line shows it: function, file, line and column.
 const frameText = ({ fn, file, line, column }: ReadReport['frames'][number]) =>
     `${fn ? `${fn} ` : ''}${file}:${line}:${column}`;
@@ -41,7 +51,7 @@ async function handlePost(req: Request) {
     } catch {
         return new Response(null, { status: 400 });
     }
-    const origin = new URL(req.url).origin;
+    const origin = siteOrigin(req);
     const report = readClientReport(body, origin);
     if (!report) return done();
     logEvent('client_error', {

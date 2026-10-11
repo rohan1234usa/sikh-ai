@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { MAX_REPORTS_PER_PAGE, errorReporter, sendErrorReport, type ReporterDeps } from '@/lib/errors/client';
+import { MAX_REPORTS_PER_PAGE, errorReporter, reportingAllowed, sendErrorReport, type ReporterDeps } from '@/lib/errors/client';
+import { ANALYTICS_CHOICE_KEY } from '@/lib/analytics';
 import type { ClientReport } from '@/lib/errors/report';
 
 const SITE = 'https://sikhai.vercel.app';
@@ -82,6 +83,45 @@ test('the reporter never throws, whatever fails inside it', () => {
     assert.doesNotThrow(() => report(thrown('x'), 'uncaught'));
     const { report: failingPost } = reporter({ post: () => { throw new Error('offline'); } });
     assert.doesNotThrow(() => failingPost(thrown('x'), 'uncaught'));
-    // The page's own, outside a production build, does nothing at all.
-    assert.doesNotThrow(() => sendErrorReport(thrown('x'), 'page'));
+});
+
+test('an error that keeps being thrown is looked at once, not scrubbed every time', () => {
+    let looked = 0;
+    const { report, posted } = reporter({ counted: () => { looked++; return true; } });
+    for (let i = 0; i < 1000; i++) report(thrown('same every scroll'), 'uncaught');
+    assert.equal(looked, 1);
+    assert.equal(posted.length, 1);
+});
+
+// The browser's storage and navigator, on fakes: this file runs in its own process.
+function installBrowser({ gpc = false, choice }: { gpc?: boolean; choice?: string } = {}) {
+    const storage = new Map(choice ? [[ANALYTICS_CHOICE_KEY, choice]] : []);
+    const localStorage = { getItem: (k: string) => storage.get(k) ?? null, setItem: (k: string, v: string) => { storage.set(k, v); } };
+    for (const [name, value] of Object.entries({ localStorage, navigator: { globalPrivacyControl: gpc } }))
+        Object.defineProperty(globalThis, name, { value, configurable: true, writable: true });
+}
+
+test("the page's own reporter asks the /privacy switch and Global Privacy Control, every time", () => {
+    installBrowser();
+    assert.equal(reportingAllowed(), true);
+    installBrowser({ choice: 'off' });
+    assert.equal(reportingAllowed(), false, 'switched off on /privacy');
+    installBrowser({ gpc: true });
+    assert.equal(reportingAllowed(), false, 'Global Privacy Control');
+    installBrowser({ gpc: true, choice: 'on' });
+    assert.equal(reportingAllowed(), false, 'GPC wins over the switch');
+});
+
+test('outside a production build the page sends nothing at all', async () => {
+    const realFetch = globalThis.fetch;
+    let calls = 0;
+    globalThis.fetch = (async () => { calls++; return new Response(null, { status: 204 }); }) as typeof fetch;
+    try {
+        installBrowser();
+        sendErrorReport(thrown('development'), 'page');
+        await new Promise((resolve) => setTimeout(resolve, 10));
+    } finally {
+        globalThis.fetch = realFetch;
+    }
+    assert.equal(calls, 0);
 });

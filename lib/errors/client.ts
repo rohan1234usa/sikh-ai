@@ -28,6 +28,10 @@ export type ReporterDeps = {
 
 export function errorReporter({ enabled, counted, href, origin, post }: ReporterDeps) {
     const seen = new Set<string>();
+    // Errors already looked at, as thrown: one that repeats (a handler on
+    // every scroll) is skipped before any scrubbing. Never sent; kept to a
+    // hundred.
+    const looked = new Set<string>();
     return (error: unknown, kind: ErrorKind): void => {
         try {
             if (!enabled || !(error instanceof Error) || seen.size >= MAX_REPORTS_PER_PAGE) return;
@@ -37,6 +41,9 @@ export function errorReporter({ enabled, counted, href, origin, post }: Reporter
             // A request the page cancelled, and a browser's notice about resize
             // observers, are no one's error.
             if (error.name === 'AbortError' || /ResizeObserver loop/.test(error.message)) return;
+            const thrown = `${error.name}|${error.message}|${String(error.stack).slice(0, 300)}`;
+            if (looked.has(thrown)) return;
+            if (looked.size < 100) looked.add(thrown);
             if (!counted()) return;
             const name = scrubName(error.name);
             const frames = frameLines(error.stack, error.message);
@@ -73,10 +80,14 @@ function post(body: string): void {
     }).catch(() => {});
 }
 
+// Whether this browser's errors may be reported: as visits are counted, so
+// never with the /privacy switch off or Global Privacy Control on.
+export const reportingAllowed = (): boolean => analyticsState() === 'on';
+
 // Not reportError, the browser's own (window.reportError), which Next calls.
 export const sendErrorReport = errorReporter({
     enabled: process.env.NODE_ENV === 'production',
-    counted: () => analyticsState() === 'on',
+    counted: reportingAllowed,
     href: () => location.href,
     origin: () => location.origin,
     post,

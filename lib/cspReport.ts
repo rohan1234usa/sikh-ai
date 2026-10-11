@@ -28,9 +28,13 @@ function origin(value: unknown): string {
 }
 
 // The page's path as an error report gives it (lib/errors/scrub.ts): a
-// share link's, a chat's or an event's ID replaced, and no query.
+// share link's, a chat's or an event's ID replaced, and no query. A document
+// with no address of its own (a sign-in popup's about:blank, a srcdoc frame,
+// a blob:) is named by its kind.
 function path(value: unknown): string {
-    return (typeof value === 'string' && scrubPath(value)?.slice(0, 120)) || 'unknown';
+    if (typeof value !== 'string') return 'unknown';
+    const kind = /^(about:(?:blank|srcdoc)|blob:|data:)/i.exec(value)?.[1];
+    return kind ? kind.toLowerCase() : scrubPath(value)?.slice(0, 120) || 'unknown';
 }
 
 function directive(value: unknown): string {

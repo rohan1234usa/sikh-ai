@@ -21,8 +21,15 @@ import { cutWords, frameLines } from './errors/scrub';
 type RequestContext = { requestId: string; route: string };
 const requests = new AsyncLocalStorage<RequestContext>();
 
+// Vercel's ID for a request (its x-vercel-id header), as its request log
+// shows it; undefined without one.
+export function vercelRequestId(header: string | string[] | null | undefined): string | undefined {
+    const id = Array.isArray(header) ? header[0] : header;
+    return id ? id.slice(0, 120) : undefined;
+}
+
 function requestIdOf(req: Request): string {
-    return req.headers.get('x-vercel-id')?.slice(0, 120) || crypto.randomUUID();
+    return vercelRequestId(req.headers.get('x-vercel-id')) ?? crypto.randomUUID();
 }
 
 // Wraps an API route's handler, so its log lines carry the request's ID.
