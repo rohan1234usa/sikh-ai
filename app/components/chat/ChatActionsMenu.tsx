@@ -54,7 +54,7 @@ export default function ChatActionsMenu({ label, actions }: { label: string; act
                     role="menu"
                     aria-label={label}
                     onKeyDown={onMenuKeyDown}
-                    className="absolute right-0 top-full z-20 mt-1 w-44 rounded-xl border border-edge bg-surface-raised py-1.5 shadow-xl dark:shadow-black/40"
+                    className="absolute right-0 top-full z-20 mt-1 w-44 rounded-xl border border-edge-strong bg-surface-raised py-1.5"
                 >
                     {actions.map(({ id, label: actionLabel, icon: Icon, danger, onSelect }, i) => (
                         <button

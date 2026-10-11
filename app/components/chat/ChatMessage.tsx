@@ -86,9 +86,12 @@ function ReplyMessage({ reply, onRetry, onRegenerate, unsaved, actions = true }:
     // SikhAI itself, so it isn't said twice.
     const shownSettings = label && reply.settings?.lensId === 'sikhai' ? label.slice(1) : label;
     const finished = reply.status === 'done' || reply.status === 'interrupted';
-    // In a reply written in Punjabi, Gurmukhi is prose; in one in English it's
-    // quoted Gurbani, set in the Gurbani face wherever it sits.
-    const gurbani = reply.settings && reply.settings.languageId !== 'punjabi' ? 'all' : 'quotes';
+    // Only a reply written in Punjabi in Gurmukhi has Gurmukhi prose; in any
+    // other (English, bilingual, romanized Punjabi, or one saved before replies
+    // kept their settings) Gurmukhi is quoted Gurbani, set in the Gurbani face
+    // wherever it sits.
+    const prose = reply.settings?.languageId === 'punjabi' && reply.settings.script !== 'latin';
+    const gurbani = prose ? 'quotes' : 'all';
 
     return (
         <div className="group">

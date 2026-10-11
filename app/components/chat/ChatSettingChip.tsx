@@ -88,7 +88,7 @@ export default function ChatSettingChip<T extends string>({ heading, note, icon:
                     ref={panelRef}
                     tabIndex={-1}
                     onKeyDown={onMenuKeyDown}
-                    className="absolute bottom-full left-0 z-50 mb-2 flex w-[min(20rem,calc(100vw-1rem))] flex-col rounded-xl border border-edge bg-surface-raised shadow-xl focus:outline-none dark:shadow-black/40"
+                    className="absolute bottom-full left-0 z-50 mb-2 flex w-[min(20rem,calc(100vw-1rem))] flex-col rounded-xl border border-edge-strong bg-surface-raised focus:outline-none"
                 >
                     <div className="shrink-0 border-b border-edge px-3.5 pt-3 pb-2">
                         <p id={`${id}-heading`} className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">{heading}</p>
