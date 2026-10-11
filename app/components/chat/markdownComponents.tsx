@@ -10,10 +10,14 @@ export const markdownComponents: Components = {
     ol: ({ node, ...props }) => <ol className="list-decimal pl-4 space-y-2 my-2" {...props} />,
     p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
     // Replies put Gurbani in blockquotes, so no italics (Gurmukhi has no italic
-    // face; the browser would slant it) and full-contrast text.
+    // face; the browser would slant it) and full-contrast text. Indented on a
+    // gold rule; its Gurmukhi, wrapped by lib/chat/gurmukhiRuns.ts, is set in
+    // the Gurbani face a little larger than the prose around it.
     blockquote: ({ node, ...props }) => (
-        <blockquote className="border-l-2 border-rule-gold pl-3 py-1 my-2 text-ink bg-surface rounded-r leading-loose" {...props} />
+        <blockquote className="my-3 border-l-2 border-rule-gold py-1 pl-4 text-ink leading-loose [&_.font-gurmukhi]:text-[1.15em]" {...props} />
     ),
+    // A rule between parts of a reply is a hairline, as everywhere else.
+    hr: ({ node, ...props }) => <hr className="my-4 border-edge" {...props} />,
     a: ({ node, ...props }) => (
         <a
             target="_blank"

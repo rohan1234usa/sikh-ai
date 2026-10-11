@@ -112,9 +112,9 @@ export default function SharedChatView({ shareId }: { shareId: string }) {
         return (
             <main className="flex-1">
                 <div className="mx-auto w-full max-w-3xl px-4 py-12 space-y-6" aria-hidden="true">
-                    <div className="h-8 w-2/3 rounded-lg bg-edge/60 animate-pulse" />
-                    <div className="ml-auto h-12 w-1/2 rounded-2xl bg-edge/60 animate-pulse" />
-                    <div className="h-24 w-3/4 rounded-2xl bg-edge/60 animate-pulse" />
+                    <div className="h-8 w-2/3 bg-edge/60 animate-pulse" />
+                    <div className="h-6 w-1/2 border-l-2 border-edge bg-edge/60 animate-pulse" />
+                    <div className="h-24 w-full bg-edge/60 animate-pulse" />
                 </div>
                 <p className="sr-only" role="status">{t.share.loading}</p>
             </main>
@@ -140,7 +140,7 @@ export default function SharedChatView({ shareId }: { shareId: string }) {
 
                 {chat.truncated && <p className="mb-6 text-center text-xs text-ink-muted">{t.share.truncated}</p>}
 
-                <div className="space-y-6">
+                <div className="space-y-8">
                     {toDisplayItems(chat.transcript).map((item) =>
                         item.kind === 'notice' ? (
                             <NoticeDivider key={item.notice.id} notice={item.notice} />

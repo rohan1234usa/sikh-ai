@@ -3,53 +3,85 @@
 import { memo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { rehypeGurmukhiRuns, type GurbaniIn } from '@/lib/chat/gurmukhiRuns';
 import { splitMarkdownBlocks } from '@/lib/chat/markdownBlocks';
 import { markdownComponents } from './markdownComponents';
 
-// The message bubbles and Markdown rendering, shared by the chat
-// (./ChatMessage.tsx) and the Punjabi tutor (app/components/learn/), so the
-// tutor's replies look like the chat's. Kept apart from ChatMessage, whose
-// citations the tutor doesn't use and shouldn't download.
+// The transcript's pieces, shared by the chat (./ChatMessage.tsx) and the
+// Punjabi tutor (app/components/learn/), so the tutor's replies read like the
+// chat's. Kept apart from ChatMessage, whose citations the tutor doesn't use
+// and shouldn't download.
+//
+// A transcript, not bubbles (docs/design/pothi.md): each turn is its label
+// and its text, the full width of the column. Three voices, three registers:
+// the reader's turn hangs on a kesri rule; the assistant's is plain prose
+// under its name; and Gurbani quoted in a reply is set like the source
+// (lib/chat/gurmukhiRuns.ts). The names keep "Bubble" for their callers.
 
-export const BUBBLE = {
-    user: 'bg-navy text-white rounded-br-none',
-    ai: 'bg-surface-raised border border-edge text-ink rounded-bl-none',
-    error: 'bg-red-50 border border-red-200 text-red-700 dark:bg-red-950/40 dark:border-red-900 dark:text-red-400 rounded-bl-none',
-};
-export const SHAPE = 'max-w-[85%] md:max-w-[75%] p-4 rounded-2xl shadow-sm text-sm md:text-base leading-relaxed';
+export const TURN_LABEL = 'text-sm italic text-accent-text';
+export const TURN_TEXT = 'text-base leading-relaxed md:text-[1.0625rem]';
+// A reply that failed, in the reply's place. No role="alert" here: see
+// ChatMessage.
+export const ERROR_TURN = 'border-l-2 border-red-700 pl-4 text-red-700 dark:border-red-400 dark:text-red-400';
 
-export function QuestionBubble({ text }: { text: string }) {
+// The reader's turn. The label is "You" in the chat and the tutor; a shared
+// chat shows someone else's questions, so there the rule alone marks them.
+export function QuestionBubble({ text, label }: { text: string; label?: string }) {
     return (
-        <div className="flex flex-col items-end">
-            <div className={`${SHAPE} ${BUBBLE.user}`}>
-                <p className="whitespace-pre-wrap">{text}</p>
-            </div>
+        <div className="border-l-2 border-accent-text pl-4">
+            {label && <p className={TURN_LABEL}>{label}</p>}
+            <p className={`whitespace-pre-wrap text-ink ${TURN_TEXT}`}>{text}</p>
         </div>
     );
 }
 
 const REMARK_PLUGINS = [remarkGfm];
+// Fixed lists, one per choice, so a memoized block keeps its props.
+const REHYPE_PLUGINS: Record<GurbaniIn, [typeof rehypeGurmukhiRuns, { gurbani: GurbaniIn }][]> = {
+    quotes: [[rehypeGurmukhiRuns, { gurbani: 'quotes' }]],
+    all: [[rehypeGurmukhiRuns, { gurbani: 'all' }]],
+};
 
-export function Markdown({ text }: { text: string }) {
-    return <ReactMarkdown remarkPlugins={REMARK_PLUGINS} components={markdownComponents}>{text}</ReactMarkdown>;
+// `gurbani` says which of the text's Gurmukhi is Gurbani (lib/chat/gurmukhiRuns.ts):
+// only what's quoted (the default), or all of it, in a reply in English.
+export function Markdown({ text, gurbani = 'quotes' }: { text: string; gurbani?: GurbaniIn }) {
+    return (
+        <ReactMarkdown remarkPlugins={REMARK_PLUGINS} rehypePlugins={REHYPE_PLUGINS[gurbani]} components={markdownComponents}>
+            {text}
+        </ReactMarkdown>
+    );
 }
 
 // A reply that is still streaming, a block at a time (lib/chat/markdownBlocks.ts):
 // finished blocks keep what they rendered, so each new piece re-parses only
 // the unfinished end, not the whole reply.
 const MarkdownBlock = memo(Markdown);
-export function StreamingMarkdown({ text }: { text: string }) {
-    return splitMarkdownBlocks(text).map((block, i) => <MarkdownBlock key={i} text={block} />);
+export function StreamingMarkdown({ text, gurbani = 'quotes' }: { text: string; gurbani?: GurbaniIn }) {
+    return splitMarkdownBlocks(text).map((block, i) => <MarkdownBlock key={i} text={block} gurbani={gurbani} />);
 }
 
-// Memoized, like the replies: the chat redraws with every streamed piece, and
-// none of that concerns the greeting.
-export const GreetingBubble = memo(function GreetingBubble({ text }: { text: string }) {
+// The assistant's opening words, under its name. Memoized, like the replies:
+// the chat redraws with every streamed piece, and none of that concerns the
+// greeting.
+export const GreetingBubble = memo(function GreetingBubble({ text, label }: { text: string; label: string }) {
     return (
-        <div className="flex flex-col items-start">
-            <div className={`${SHAPE} ${BUBBLE.ai}`}>
+        <div>
+            <p className={TURN_LABEL}>{label}</p>
+            <div className={`mt-1 text-ink ${TURN_TEXT}`}>
                 <Markdown text={text} />
             </div>
         </div>
     );
 });
+
+// "Thinking", while a reply has started and has no words yet: three dots that
+// fade in turn (nothing bounces), named for a screen reader by the caller.
+export function Waiting({ label }: { label: string }) {
+    return (
+        <span className="flex items-center gap-1.5 py-2" role="img" aria-label={label}>
+            <span className="h-1.5 w-1.5 rounded-full bg-ink-faint animate-pulse" />
+            <span className="h-1.5 w-1.5 rounded-full bg-ink-faint animate-pulse [animation-delay:300ms]" />
+            <span className="h-1.5 w-1.5 rounded-full bg-ink-faint animate-pulse [animation-delay:600ms]" />
+        </span>
+    );
+}

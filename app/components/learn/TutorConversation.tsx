@@ -143,14 +143,14 @@ export default function TutorConversation() {
 
             <div className="relative min-h-0 flex-1">
                 <div ref={scrollRef} onScroll={onScroll} className="relative h-full overflow-y-auto p-4 md:p-8">
-                    <div className="mx-auto w-full max-w-3xl space-y-6">
+                    <div className="mx-auto w-full max-w-3xl space-y-8">
                         {tutor.lessonNotFound && (
                             <p className="text-center text-sm text-ink-muted">{t.learn.tutor.lessonNotFound}</p>
                         )}
-                        <GreetingBubble text={t.learn.tutor.greeting} />
+                        <GreetingBubble text={t.learn.tutor.greeting} label={t.learn.tracks.tutor.title} />
                         {session.exchanges.map((exchange) => (
                             <Fragment key={exchange.id}>
-                                <QuestionBubble text={exchange.question} />
+                                <QuestionBubble text={exchange.question} label={t.chat.you} />
                                 <TutorMessage
                                     reply={exchange.reply}
                                     onRetry={exchange === last && canRetry ? retry : undefined}

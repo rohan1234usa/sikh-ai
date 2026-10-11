@@ -338,6 +338,8 @@ const en = {
 
     chat: {
         title: 'Ask SikhAI',
+        // The label on the reader's own turns in the transcript (chat and tutor)
+        you: 'You',
         newChat: 'New chat',
         share: 'Share',
         cancel: 'Cancel',

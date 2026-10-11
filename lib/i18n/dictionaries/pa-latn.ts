@@ -333,6 +333,8 @@ const paLatn: Dictionary = {
 
     chat: {
         title: 'SikhAI nu Puchho',
+        // The label on the reader's own turns in the transcript (chat and tutor)
+        you: 'Tusi',
         newChat: 'Navin gallbaat',
         share: 'Saanjha karo',
         cancel: 'Radd karo',

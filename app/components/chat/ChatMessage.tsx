@@ -5,7 +5,7 @@ import { ClipboardIcon, CheckIcon, ArrowPathIcon, StopCircleIcon } from '@heroic
 import type { Reply, ReplySettings } from '@/lib/chat/transcript';
 import type { Dictionary } from '@/lib/i18n';
 import { fmt } from '@/lib/i18n/fmt';
-import { BUBBLE, Markdown, SHAPE, StreamingMarkdown } from './Bubbles';
+import { ERROR_TURN, Markdown, StreamingMarkdown, TURN_LABEL, TURN_TEXT, Waiting } from './Bubbles';
 import Citations from './Citations';
 import { useT } from '../../context/LanguageContext';
 
@@ -72,7 +72,7 @@ function ReplyMessage({ reply, onRetry, onRegenerate, unsaved, actions = true }:
     if (reply.status === 'error') {
         return (
             <div className="flex flex-col items-start gap-1">
-                <div className={`${SHAPE} ${BUBBLE.error}`}>
+                <div className={`${ERROR_TURN} ${TURN_TEXT}`}>
                     <p>{t.errors[reply.errorCode ?? 'generic']}</p>
                 </div>
                 {actions && onRetry && <RetryButton onRetry={onRetry} />}
@@ -82,21 +82,33 @@ function ReplyMessage({ reply, onRetry, onRegenerate, unsaved, actions = true }:
 
     const waiting = reply.status === 'streaming' && reply.text === '';
     const label = reply.settings ? settingsParts(t, reply.settings) : null;
+    // Beside the name, the settings that shaped the answer. The default lens is
+    // SikhAI itself, so it isn't said twice.
+    const shownSettings = label && reply.settings?.lensId === 'sikhai' ? label.slice(1) : label;
     const finished = reply.status === 'done' || reply.status === 'interrupted';
+    // In a reply written in Punjabi, Gurmukhi is prose; in one in English it's
+    // quoted Gurbani, set in the Gurbani face wherever it sits.
+    const gurbani = reply.settings && reply.settings.languageId !== 'punjabi' ? 'all' : 'quotes';
 
     return (
-        <div className="flex flex-col items-start group">
-            <div id={`reply-${reply.id}`} className={`${SHAPE} ${BUBBLE.ai}`}>
+        <div className="group">
+            {/* The turn is always SikhAI's, never a Guru's, whatever lens it was
+                asked through (rule 1 of lib/chat/prompts.ts): the lens is a
+                setting, said after the name. */}
+            <p className={TURN_LABEL}>
+                {t.chat.config.lenses.sikhai.name}
+                {shownSettings && shownSettings.length > 0 && (
+                    <span className="not-italic text-ink-faint" aria-hidden="true"> · {shownSettings.join(' · ')}</span>
+                )}
+                {label && <span className="sr-only">{fmt(t.chat.answeredWith, { settings: label.join(', ') })}</span>}
+            </p>
+            <div id={`reply-${reply.id}`} className={`mt-1 text-ink ${TURN_TEXT}`}>
                 {waiting ? (
-                    <span className="flex items-center gap-1.5 py-1" aria-label={t.chat.thinking}>
-                        <span className="w-2 h-2 rounded-full bg-ink-faint animate-bounce" />
-                        <span className="w-2 h-2 rounded-full bg-ink-faint animate-bounce [animation-delay:150ms]" />
-                        <span className="w-2 h-2 rounded-full bg-ink-faint animate-bounce [animation-delay:300ms]" />
-                    </span>
+                    <Waiting label={t.chat.thinking} />
                 ) : reply.status === 'streaming' ? (
-                    <StreamingMarkdown text={reply.text} />
+                    <StreamingMarkdown text={reply.text} gurbani={gurbani} />
                 ) : (
-                    <Markdown text={reply.text} />
+                    <Markdown text={reply.text} gurbani={gurbani} />
                 )}
             </div>
 
@@ -107,36 +119,25 @@ function ReplyMessage({ reply, onRetry, onRegenerate, unsaved, actions = true }:
 
             {reply.citations && <Citations citations={reply.citations} replyText={reply.text} />}
 
-            {(label || (actions && finished)) && (
-                <div className="mt-1 flex max-w-[85%] md:max-w-[75%] flex-wrap items-center gap-x-2 gap-y-0.5">
-                    {/* The settings that shaped this answer, always in view. */}
-                    {label && (
-                        <p className="text-[11px] text-ink-muted">
-                            <span aria-hidden="true">{label.join(' · ')}</span>
-                            <span className="sr-only">{fmt(t.chat.answeredWith, { settings: label.join(', ') })}</span>
-                        </p>
-                    )}
-                    {actions && finished && (
-                        <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100 transition-opacity">
-                            <button
-                                type="button"
-                                onClick={copy}
-                                aria-label={copied ? t.chat.copiedAria : t.chat.copyAria}
-                                className="p-1.5 rounded-lg text-ink-faint hover:text-ink hover:bg-edge/60 transition-colors"
-                            >
-                                {copied ? <CheckIcon className="w-4 h-4" /> : <ClipboardIcon className="w-4 h-4" />}
-                            </button>
-                            {onRegenerate && (
-                                <button
-                                    type="button"
-                                    onClick={onRegenerate}
-                                    aria-label={t.chat.regenerateAria}
-                                    className="p-1.5 rounded-lg text-ink-faint hover:text-ink hover:bg-edge/60 transition-colors"
-                                >
-                                    <ArrowPathIcon className="w-4 h-4" />
-                                </button>
-                            )}
-                        </div>
+            {actions && finished && (
+                <div className="mt-1 flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100 transition-opacity">
+                    <button
+                        type="button"
+                        onClick={copy}
+                        aria-label={copied ? t.chat.copiedAria : t.chat.copyAria}
+                        className="p-1.5 rounded-lg text-ink-faint hover:text-ink hover:bg-edge/60 transition-colors"
+                    >
+                        {copied ? <CheckIcon className="w-4 h-4" /> : <ClipboardIcon className="w-4 h-4" />}
+                    </button>
+                    {onRegenerate && (
+                        <button
+                            type="button"
+                            onClick={onRegenerate}
+                            aria-label={t.chat.regenerateAria}
+                            className="p-1.5 rounded-lg text-ink-faint hover:text-ink hover:bg-edge/60 transition-colors"
+                        >
+                            <ArrowPathIcon className="w-4 h-4" />
+                        </button>
                     )}
                 </div>
             )}

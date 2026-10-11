@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useId, useMemo } from 'react';
 import Link from 'next/link';
 import { ArrowTopRightOnSquareIcon, CheckBadgeIcon, ExclamationTriangleIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import { useLanguage } from '../../context/LanguageContext';
@@ -72,7 +72,7 @@ function CitationItem({ citation }: { citation: Citation }) {
     const { line } = citation;
 
     return (
-        <li className="px-4 py-3 space-y-2">
+        <li className="space-y-2 pl-1">
             <p className={`flex items-center gap-1.5 text-xs font-bold ${tone}`}>
                 <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
                 {respelled ? c.respelled : c.statusLabels[citation.status]}
@@ -127,22 +127,24 @@ export default function Citations({ citations, replyText }: { citations: unknown
     // rest must not pass for checked. Counted with the verifier's own
     // extractor, so the two agree on what a quote is.
     const quoted = useMemo(() => extractQuotes(replyText, { limit: Infinity }).length, [replyText]);
+    const headingId = useId();
     if (list.length === 0) return null;
+    // Numbered like footnotes, in a hairline frame (so the note's "this box"
+    // still holds). Not marked in the reply's text: the checks follow neither
+    // its order nor its exact wording (lib/gurbani/verify.ts). A labelled group
+    // rather than a landmark, since every answer may have one.
     return (
-        <aside
-            aria-label={t.chat.citations.heading}
-            className="max-w-[85%] md:max-w-[75%] w-full mt-2 rounded-xl border border-edge bg-surface-raised text-sm"
-        >
-            <p className="px-4 pt-3 text-[11px] uppercase tracking-widest text-ink-muted font-bold">{t.chat.citations.heading}</p>
-            <ul className="divide-y divide-edge">
+        <div role="group" aria-labelledby={headingId} className="mt-4 border border-edge px-4 py-3 text-sm">
+            <p id={headingId} className="text-[11px] uppercase tracking-widest text-ink-muted font-bold">{t.chat.citations.heading}</p>
+            <ol className="mt-3 list-decimal space-y-4 pl-5 marker:font-semibold marker:text-accent-text">
                 {list.map((citation, i) => <CitationItem key={`${i}:${citation.quote}`} citation={citation} />)}
-            </ul>
+            </ol>
             {quoted > MAX_CITATIONS && (
-                <p className="px-4 py-2 border-t border-edge text-xs text-ink-muted">
+                <p className="mt-3 border-t border-edge pt-2 text-xs text-ink-muted">
                     {fmt(t.chat.citations.moreQuoted, { max: MAX_CITATIONS, total: quoted })}
                 </p>
             )}
-            <p className="px-4 py-2 border-t border-edge text-xs text-ink-muted">{t.chat.citations.sourceNote}</p>
-        </aside>
+            <p className="mt-3 border-t border-edge pt-2 text-xs text-ink-muted">{t.chat.citations.sourceNote}</p>
+        </div>
     );
 }

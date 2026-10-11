@@ -333,6 +333,8 @@ const pa: Dictionary = {
 
     chat: {
         title: 'SikhAI ਨੂੰ ਪੁੱਛੋ',
+        // The label on the reader's own turns in the transcript (chat and tutor)
+        you: 'ਤੁਸੀਂ',
         newChat: 'ਨਵੀਂ ਗੱਲਬਾਤ',
         share: 'ਸਾਂਝਾ ਕਰੋ',
         cancel: 'ਰੱਦ ਕਰੋ',
