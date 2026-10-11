@@ -18,8 +18,9 @@ import { redactAnalyticsUrl } from '../analytics';
 export const MAX_MESSAGE_CHARS = 300;
 export const MAX_FRAMES = 30;
 const MAX_FRAME_CHARS = 300;
-// Longer than any message worth reading; the rules run on this much at most.
-const MAX_SCANNED_CHARS = 2_000;
+// Plenty to fill a message's 300 characters once the rules have taken their
+// share; the rules read this much at most, so a long message costs no more.
+const MAX_SCANNED_CHARS = 1_000;
 
 // What stands in for anything taken out, and for an ID, as lib/analytics.ts
 // writes one in an address.
