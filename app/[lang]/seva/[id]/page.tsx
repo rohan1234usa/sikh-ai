@@ -14,7 +14,7 @@ import HostTools from '@/app/components/seva/HostTools';
 import JoinCard from '@/app/components/seva/JoinCard';
 import { AdminTools, ReportControl } from '@/app/components/seva/ReportControl';
 import { CalendarCard, ShareCard } from '@/app/components/seva/ShareCard';
-import { CHIP } from '@/app/components/seva/styles';
+import { CHIP, STATE_CHIP } from '@/app/components/seva/styles';
 import { SourceUnavailable } from '@/lib/errors/unavailable';
 import { LANG_META } from '@/lib/i18n/config';
 import { fmt } from '@/lib/i18n/fmt';
@@ -118,7 +118,7 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
           <header className="mt-3">
             <p className="flex flex-wrap items-center gap-2">
               <span className={CHIP}>{copy.common.categories[event.category]}</span>
-              {isFull(event) && <span className={CHIP}>{copy.common.full}</span>}
+              {isFull(event) && <span className={STATE_CHIP}>{copy.common.full}</span>}
             </p>
             <h1 id="event-title" tabIndex={-1} className="mt-3 text-3xl font-bold text-ink md:text-4xl [overflow-wrap:anywhere]"><Mixed text={event.title} /></h1>
             <p className="mt-2 text-ink-muted [overflow-wrap:anywhere]"><Mixed text={fmt(copy.common.hostedBy, { name: event.organizer })} /></p>

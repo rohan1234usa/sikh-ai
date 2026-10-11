@@ -13,7 +13,7 @@ import type { Hosting, SevaEvent, Signup } from '@/lib/seva/model';
 import { formatDate } from '@/lib/seva/time';
 import { setMyEvents, useMinute } from './hooks';
 import { loadSeva } from './sevaClient';
-import { CHIP, PANEL } from './styles';
+import { PANEL, STATE_CHIP } from './styles';
 
 const SHOWN = 5;
 
@@ -97,9 +97,9 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
     const line = (e: SevaEvent) => fmt(copy.whenWhere, { when: formatDate(e.startsAt, e.timeZone, lang), city: e.city });
     const badges = (e: SevaEvent) => (
         <>
-            {e.status === 'cancelled' && <span className={CHIP}>{labels.cancelled}</span>}
-            {e.hidden && <span className={CHIP}>{labels.hidden}</span>}
-            {isFull(e) && e.status === 'open' && <span className={CHIP}>{labels.full}</span>}
+            {e.status === 'cancelled' && <span className={STATE_CHIP}>{labels.cancelled}</span>}
+            {e.hidden && <span className={STATE_CHIP}>{labels.hidden}</span>}
+            {isFull(e) && e.status === 'open' && <span className={STATE_CHIP}>{labels.full}</span>}
         </>
     );
 
@@ -150,7 +150,7 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
                                                     <p className="text-ink-muted">{line(event)}</p>
                                                     <p className="mt-1 flex flex-wrap gap-2">
                                                         {badges(event)}
-                                                        {event.updatedAt > signup.joinedAt && <span className={CHIP}>{copy.changed}</span>}
+                                                        {event.updatedAt > signup.joinedAt && <span className={STATE_CHIP}>{copy.changed}</span>}
                                                     </p>
                                                 </>
                                             ) : (
