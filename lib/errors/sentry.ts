@@ -4,7 +4,8 @@
 // here from what lib/errors/scrub.ts lets through. So Sentry never sees a
 // visitor's IP address, cookies, request ID or any header but the browser's
 // User-Agent, nor anything they wrote: it sees what failed, where in the
-// site's code, on which page, in which browser, and in which release.
+// site's code, on which page, and in which browser (for the server's own
+// errors, in which release).
 //
 // Sent with node:https, not fetch. Next patches fetch: a send while a page
 // renders (an error line from a Seva page's Firestore read, say) would make
