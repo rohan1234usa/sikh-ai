@@ -11,7 +11,7 @@ The site's values are already enforced in code. The chat's system prompt says Si
 Pothi treats every screen as a page of a bir:
 - Gurbani is set in a text face made for Gurmukhi, at a reading measure.
 - The raag and the Ang are rubrics, and gold hairlines take the place of boxes.
-- Everything else is set smaller and quieter in the same family: the AI's replies, the tools and the chrome.
+- Everything else is set smaller and quieter: the AI's replies, the tools and the chrome.
 
 So the Guru's words look senior to the machine's.
 
@@ -31,7 +31,8 @@ The semantic tokens in `app/globals.css` already carry about 850 class uses, so 
 | `--edge` | hairline rules | `#DAD5CD` | `#3E3B37` |
 | `--edge-strong` | field and button outlines | `#837C73` | `#78746E` |
 | `--accent-text` | kesri rubrics | `#AD4E08` | `#FF9933` |
-| `--link` (new) | links, the focus ring | `#1E3F8F` | `#A0BAF2` |
+| `--link` (new) | links | `#1E3F8F` | `#A0BAF2` |
+| `--focus-ring` | keyboard focus outline | `#1E3F8F` | `#A0BAF2` |
 | `--gold` (new) | gold rules, the border band, progress | `#9A7620` | `#CDA65A` |
 | `--good` (new) | a quote that matches the source | `#2F5E2A` | `#99CE9A` |
 
@@ -60,7 +61,7 @@ The site already switches kesri between modes: `--accent-text` is kesri-deep `#B
 
 ### Links get their own colour
 
-About a third of the 106 uses of `text-accent-text` are links. Pothi keeps kesri for rubrics: the raag, the Ang and labels. Anything you can press takes `--link`, which also draws the focus ring.
+About a third of the 106 uses of `text-accent-text` are links. Pothi keeps kesri for rubrics: the raag, the Ang and labels. Anything you can press takes `--link`, and the existing `--focus-ring` token moves from kesri to the same blue.
 
 ## Type
 
@@ -97,10 +98,10 @@ Setting `font-synthesis-weight: none` on the `font-gurmukhi` utility stops any b
 
 Commit once per step, in this order:
 
-1. **Tokens.** Put the values above in `app/globals.css` under `:root` and `.dark`, add `--link`, `--gold` and `--good`, and update `THEME_COLORS` in `lib/theme.ts`.
+1. **Tokens.** Put the values above in `app/globals.css` under `:root` and `.dark`, add `--link`, `--gold` and `--good`, repoint `--focus-ring` from kesri to the link blue, and update `THEME_COLORS` in `lib/theme.ts`.
 2. **Fonts.** In `app/fonts.ts`, replace Geist and Noto Sans Gurmukhi with Newsreader, Noto Serif Gurmukhi and Tiro Gurmukhi. Point `--font-sans` at Newsreader with Noto Serif Gurmukhi as its Gurmukhi fallback, and `--font-gurmukhi` at Tiro. Repoint the `html[lang='pa'] body` rule in `app/globals.css` from `--font-gurmukhi` to Noto Serif Gurmukhi, or the whole Punjabi interface turns into single-weight Tiro. Drop the weight from Gurbani in the six places above.
-3. **The tukk component.** Build one component with a fixed rhythm. It goes on the Hukamnama page, the Ang and shabad pages (`ShabadVerse.tsx`), search results (`VerseResultCard.tsx`), the Gurbani check (`Citations.tsx`), the translator (`TranslationCard.tsx`) and Learn (`ExampleRow.tsx`, `WordList.tsx`).
-4. **Chrome.** Restyle the navbar, the footer, `app/components/buttons.ts` and `app/components/seva/styles.ts`. Then replace the 150 literal navy, kesri and slate classes in 45 files. These include the navy bands that open the home, Shabad, Translator, Learn and Seva pages, and the five `[--focus-ring:var(--color-kesri)]` overrides they carry.
+3. **The tukk component.** Build one component with a fixed rhythm. It goes on the Hukamnama page, the Ang pages (`app/[lang]/shabad/[ang]/page.tsx`, which renders its own lines), the shabad pages (`ShabadVerse.tsx`), search results (`VerseResultCard.tsx`), the Gurbani check (`Citations.tsx`), the translator (`TranslationCard.tsx`) and Learn (`ExampleRow.tsx`, `WordList.tsx`).
+4. **Chrome.** Restyle the navbar, the footer, `app/components/buttons.ts` and `app/components/seva/styles.ts`. Then replace the 150 literal colour classes in 45 files: navy, kesri, slate and gold go to the tokens above, and emerald, which marks a verified quote in `Citations.tsx`, goes to `--good`. These include the navy bands that open the home, Shabad, Translator, Learn and Seva pages, and the five `[--focus-ring:var(--color-kesri)]` overrides they carry.
 5. **Home.** The hero becomes the day's Hukamnama, live. The mock chat window and the Gemini badge go. Gemini stays named where it matters: the chat's disclaimer and /privacy.
 6. **Chat.** Move to the transcript layout in `Bubbles.tsx` and `ChatMessage.tsx`, which the Punjabi tutor shares. Turn the Gurbani check in `Citations.tsx` into footnotes.
 
