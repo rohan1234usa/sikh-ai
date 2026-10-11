@@ -3,15 +3,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* Brand. The pages use the semantic tokens below; these named colours are
-     what's left for the few places that still name one. */
-  --color-navy: #0F172A;
-  --color-navy-light: #1E293B;
-  --color-kesri: #FF9933;        /* graphics and large text only on light grounds */
-  --color-kesri-hover: #E68A00;
-  --color-kesri-deep: #B45309;
-  --color-gold: #F59E0B;
-  --color-offwhite: #F8FAFC;
+  /* The brand's colours live in the semantic tokens below (kesri is
+     --accent-text), so no page names a colour of its own. */
 
   /* Pothi's geometry: square corners (2px, so an edge still reads as finished)
      and no shadows. Tailwind reads every rounded-* and shadow-* from these, so
