@@ -10,6 +10,7 @@ import type {
     TranslationResult,
 } from '@/lib/translate/config';
 import CopyButton from './CopyButton';
+import { tukkClasses } from '../gurbani/Tukk';
 
 type CrossState =
     | { status: 'idle' }
@@ -80,21 +81,21 @@ export default function TranslationCard({ result, onRetryAs, onRetry }: Props) {
             label: t.translate.gurmukhiLabel,
             text: result.gurmukhi,
             lang: 'pa',
-            className: 'font-gurmukhi text-2xl md:text-3xl text-ink leading-relaxed',
+            className: tukkClasses('page', 'learn').gurmukhi,
         },
         {
             key: 'roman',
             label: t.translate.romanLabel,
             text: result.roman,
             lang: 'pa-Latn',
-            className: 'text-lg text-ink',
+            className: 'font-sans text-lg text-ink',
         },
         {
             key: 'english',
             label: t.translate.englishLabel,
             text: result.english,
             lang: 'en',
-            className: 'text-ink-muted',
+            className: 'font-sans text-ink-muted',
         },
         // A Cloud Translation fallback has no roman rendition — dropping empty
         // entries here also keeps copy-all from emitting a blank line.

@@ -7,6 +7,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import { MAX_ANG, MAX_CITATIONS, SGGS_SOURCE_ID, sanitizeCitations, type Citation, type CitationLine } from '@/lib/gurbani/citations';
 import { extractQuotes } from '@/lib/gurbani/extract';
+import { TukkLines } from '../gurbani/Tukk';
 
 // Cards under an AI reply showing what GurbaniNow says about each line the
 // reply quoted. Everything in a card's source line — the Gurmukhi, the
@@ -53,8 +54,7 @@ function SourceLine({ line }: { line: CitationLine }) {
     ].filter(Boolean);
     return (
         <div className="space-y-1">
-            <p lang="pa" className="font-gurmukhi text-lg text-ink leading-relaxed">{line.gurmukhi}</p>
-            {line.translation && <p lang="en" className="text-ink-muted italic">{line.translation}</p>}
+            <TukkLines size="compact" gurmukhi={line.gurmukhi} translation={line.translation} />
             <p className="text-xs text-ink-muted">{meta.join(' · ')}</p>
             {isSggsAng(line) && <AngLink ang={line.ang as number} />}
         </div>

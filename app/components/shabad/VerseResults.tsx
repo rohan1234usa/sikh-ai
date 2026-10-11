@@ -169,7 +169,7 @@ export default function VerseResults() {
                     {data.hits.length === 0 && data.complete && <p className="text-ink-muted">{t.shabad.results.noneTips}</p>}
                     {data.truncated && data.hits.length > 0 && <p className="text-sm text-ink-muted">{t.shabad.results.truncated}</p>}
                     {data.hits.length > 0 && (
-                        <ol className="space-y-3">
+                        <ol className="border-t border-edge">
                             {data.hits.map((hit) => <VerseResultCard key={hit.lineId} hit={hit} truncated={data.truncated} />)}
                         </ol>
                     )}

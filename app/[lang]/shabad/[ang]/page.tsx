@@ -8,6 +8,7 @@ import LineHighlight from '@/app/components/shabad/LineHighlight';
 import ShabadHeader from '@/app/components/shabad/ShabadHeader';
 import SourceNote from '@/app/components/shabad/SourceNote';
 import { LINE_TARGET_STYLE } from '@/app/components/shabad/ShabadVerse';
+import { TukkLines } from '@/app/components/gurbani/Tukk';
 import { SourceUnavailable } from '@/lib/errors/unavailable';
 import { parseAngParam } from '@/lib/gurbani/ang';
 import { MAX_ANG } from '@/lib/gurbani/citations';
@@ -130,15 +131,18 @@ export default async function AngPage({ params }: PageProps<'/[lang]/shabad/[ang
                   key={line.id}
                   id={lineAnchor(line.id)}
                   tabIndex={-1}
-                  className={`bg-surface-raised p-4 sm:p-6 rounded-xl shadow-sm border border-edge transition-colors ${LINE_TARGET_STYLE}`}
+                  className={`border-b border-edge px-3 py-6 text-center transition-colors ${LINE_TARGET_STYLE}`}
                 >
-                  <p lang="pa" className="text-2xl md:text-3xl text-ink text-center leading-relaxed mb-4 font-gurmukhi">
-                    {line.gurmukhi}
-                  </p>
-                  <p lang="en" className="text-ink-muted text-center italic text-lg mb-4">
-                    {line.translation || t.shabad.translationUnavailable}
-                  </p>
-                  <div className="flex justify-between items-center text-xs text-ink-faint border-t border-edge pt-4 mt-2">
+                  <TukkLines
+                    kind={line.isHeader ? 'header' : 'verse'}
+                    size="page"
+                    gurmukhi={line.gurmukhi}
+                    transliteration={line.transliteration}
+                    translation={line.translation}
+                  />
+                  {/* In the reader's language, so not tagged as English. */}
+                  {!line.translation && <p className="mt-2 text-sm italic text-ink-faint">{t.shabad.translationUnavailable}</p>}
+                  <div className="mt-4 flex justify-between items-center text-xs text-ink-faint">
                     <span>{fmt(t.shabad.lineN, { n: number.get(line.id) ?? 0 })}</span>
                     <span className="uppercase tracking-widest text-accent-text font-bold">{t.shabad.granth}</span>
                   </div>
