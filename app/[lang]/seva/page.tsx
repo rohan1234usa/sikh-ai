@@ -6,6 +6,7 @@ import MyPartChip from '@/app/components/seva/MyPartChip';
 import SevaBoard, { type BoardGroup } from '@/app/components/seva/SevaBoard';
 import SevaHero from '@/app/components/seva/SevaHero';
 import YourSevaPanel from '@/app/components/seva/YourSevaPanel';
+import { SourceUnavailable } from '@/lib/errors/unavailable';
 import { localePath } from '@/lib/i18n/paths';
 import { getSevaCopy } from '@/lib/i18n/seva';
 import { getServerT } from '@/lib/i18n/server';
@@ -42,7 +43,7 @@ export default async function SevaBoardPage() {
   // there keeps being served; while building (CI has no network) or with no
   // project set up, it's shown as unavailable.
   if (read.kind === 'failed' && !isBuilding() && sevaProject()) {
-    throw new Error('Firestore gave no usable answer for the Seva board');
+    throw new SourceUnavailable('Firestore gave no usable answer for the Seva board');
   }
   const events = read.kind === 'ok' ? upcoming(read.value, now) : null;
 

@@ -175,3 +175,24 @@ test('a body that isn’t a JSON object is a 400 on the translator and Compare, 
         }
     }
 });
+
+test("an unreachable Gemini is a gemini_call warning only: no route_error, which would reach Sentry", async () => {
+    const base = process.env.GOOGLE_GEMINI_BASE_URL;
+    process.env.GOOGLE_GEMINI_BASE_URL = 'http://127.0.0.1:9'; // nothing listens there
+    delete process.env.APP_LOG;
+    const lines: { evt: string; level: string }[] = [];
+    const saved = { log: console.log, warn: console.warn, error: console.error };
+    console.log = (line: string) => { lines.push({ evt: JSON.parse(line).evt, level: 'info' }); };
+    console.warn = (line: string) => { lines.push({ evt: JSON.parse(line).evt, level: 'warn' }); };
+    console.error = (line: string) => { lines.push({ evt: JSON.parse(line).evt, level: 'error' }); };
+    try {
+        const res = await translate('Hello, how are you?', 'english');
+        assert.equal(res.status, 200, 'Cloud Translation answers instead');
+    } finally {
+        Object.assign(console, saved);
+        process.env.APP_LOG = 'off';
+        process.env.GOOGLE_GEMINI_BASE_URL = base;
+    }
+    assert.deepEqual(lines.filter((l) => l.level === 'error'), []);
+    assert.ok(lines.some((l) => l.evt === 'gemini_call' && l.level === 'warn'), JSON.stringify(lines));
+});

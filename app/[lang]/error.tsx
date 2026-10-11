@@ -4,11 +4,14 @@ import Link from 'next/link';
 import { useEffect } from 'react';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { PRIMARY_BUTTON, StatusPage } from '@/app/components/StatusPage';
+import { sendErrorReport } from '@/lib/errors/client';
 
 // Catches a render error in any page and shows it inside the root layout, so
 // the navbar, the theme and the language all survive. Without it Next's
 // default error page replaces the whole layout with English text on a bare,
 // unthemed page. An error in the root layout itself is app/global-error.tsx's.
+// The error goes into an error report too (lib/errors/client.ts), unless it
+// came from the server, which reported it already.
 export default function ErrorPage({ error, retry }: {
   error: Error & { digest?: string };
   retry: () => void;
@@ -17,6 +20,7 @@ export default function ErrorPage({ error, retry }: {
 
   useEffect(() => {
     console.error(error);
+    sendErrorReport(error, 'page');
   }, [error]);
 
   return (

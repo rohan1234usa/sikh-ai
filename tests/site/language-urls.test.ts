@@ -82,7 +82,8 @@ test('a Punjabi cookie redirects pages, never files, the API or Next and Vercel 
         // rules run.)
         for (const path of ['/og.jpg', '/robots.txt', '/sitemap.xml', '/favicon.ico', '/manifest.webmanifest',
             '/icon-192.png', '/icons/app.png', '/fonts/a/b.woff2', '/api/chat', '/api/shabad', '/api/shabad/search',
-            '/_next/static/chunks/a.js', '/_vercel/speed-insights/script.js', '/_vercel/speed-insights/vitals',
+            '/api/error-report', '/_next/static/chunks/a.js', '/_next/static/chunks/a.js.map',
+            '/_vercel/speed-insights/script.js', '/_vercel/speed-insights/vitals',
             '/_vercel/insights/script.js', '/_vercel/insights/view', '/_vercel/insights/event',
             '/pa/about', '/pa-latn', '/en/about'])
             assert.ok(!redirected(path), `${path} (${lang})`);

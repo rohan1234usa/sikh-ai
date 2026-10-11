@@ -15,6 +15,7 @@ import JoinCard from '@/app/components/seva/JoinCard';
 import { AdminTools, ReportControl } from '@/app/components/seva/ReportControl';
 import { CalendarCard, ShareCard } from '@/app/components/seva/ShareCard';
 import { CHIP } from '@/app/components/seva/styles';
+import { SourceUnavailable } from '@/lib/errors/unavailable';
 import { LANG_META } from '@/lib/i18n/config';
 import { fmt } from '@/lib/i18n/fmt';
 import { localePath } from '@/lib/i18n/paths';
@@ -74,7 +75,7 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
   if (read.kind === 'failed' && !isBuilding() && sevaProject()) {
     // Thrown rather than shown, so a passing outage isn't cached as this
     // event's page: the error page offers Try again.
-    throw new Error('Firestore gave no usable answer for a Seva event');
+    throw new SourceUnavailable('Firestore gave no usable answer for a Seva event');
   }
   if (read.kind !== 'ok') {
     return (

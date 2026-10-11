@@ -8,6 +8,7 @@ import LineHighlight from '@/app/components/shabad/LineHighlight';
 import ShabadHeader from '@/app/components/shabad/ShabadHeader';
 import SourceNote from '@/app/components/shabad/SourceNote';
 import { LINE_TARGET_STYLE } from '@/app/components/shabad/ShabadVerse';
+import { SourceUnavailable } from '@/lib/errors/unavailable';
 import { parseAngParam } from '@/lib/gurbani/ang';
 import { MAX_ANG } from '@/lib/gurbani/citations';
 import { fetchAngPayload, parseAngPayload, type GurbaniLine } from '@/lib/gurbani/gurbaninow';
@@ -82,7 +83,7 @@ export default async function AngPage({ params }: PageProps<'/[lang]/shabad/[ang
   const lines = await angLines(ang);
   // Thrown rather than shown, so a passing outage isn't cached as this Ang's
   // page: the error page offers Try again, and the next visit asks afresh.
-  if (!lines) throw new Error(`GurbaniNow gave no usable answer for Ang ${ang}`);
+  if (!lines) throw new SourceUnavailable(`GurbaniNow gave no usable answer for Ang ${ang}`);
 
   const description = fmt(t.meta.angDescription, { line: opening(lines[0].gurmukhi), n: ang });
   const to = (path: string) => localePath(lang, path);

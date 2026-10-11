@@ -5,29 +5,8 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { importsOf, reaches } from '../helpers/clientImports';
-
-// What loads at the start, following static imports of the app's own code
-// (a package is as far as it goes). Dynamic imports are where it stops.
-function staticReach(entries: string[]): Map<string, string> {
-    const seen = new Map<string, string>(); // module → who imported it
-    const resolve = (target: string) =>
-        [`${target}.ts`, `${target}.tsx`, target, join(target, 'index.ts'), join(target, 'index.tsx')]
-            .find((f) => /\.tsx?$/.test(f) && existsSync(f));
-    const queue = [...entries];
-    while (queue.length > 0) {
-        const file = queue.shift()!;
-        for (const i of importsOf(file, readFileSync(file, 'utf8'))) {
-            if (i.dynamic || seen.has(i.target)) continue;
-            seen.set(i.target, file);
-            const next = resolve(i.target);
-            if (next) queue.push(next);
-        }
-    }
-    return seen;
-}
+import { importsOf, reaches, staticReach } from '../helpers/clientImports';
 
 const DELETION_ONLY = [
     'firebase/firestore',

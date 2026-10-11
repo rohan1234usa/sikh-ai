@@ -820,8 +820,8 @@ const paLatn: Dictionary = {
     // lib/i18n/policy, which only the server reads.
     analyticsSwitch: {
         label: 'Meriaan pheriaan gino',
-        on: 'Chaalu. Is browser dian pheriaan ginian jaandian han, bina cookies de.',
-        off: 'Band. Ih browser na pheriaan di ginti bhejda hai, na panneyan di raftaar de maap.',
+        on: 'Chaalu. Is browser dian pheriaan ginian jaandian han, bina cookies de, ate isdian galti reportan bhejian jaandian han.',
+        off: 'Band. Ih browser na pheriaan di ginti bhejda hai, na panneyan di raftaar de maap, na galti reportan.',
         gpc: 'Band. Tuhada browser Global Privacy Control bhejda hai, ate ih site usnu mannadi hai.',
         noScript: 'JavaScript band hove taan kujh nahi ginia jaanda.',
     },

@@ -208,8 +208,19 @@ async function main(): Promise<void> {
             const cspReport: Probe = { method: 'POST', path: '/api/csp-report', headers: { 'content-type': 'application/reports+json' }, body: '[]' };
             run = await burst(base, cspReport, BURST, PACE_MS);
             report('firewall leaves out /api/csp-report', judgeLeftOut(run.answers, { status: 204 }), run);
+
+            // Sent as a browser with Global Privacy Control, which the route
+            // answers before it counts the visitor (app/api/error-report), so
+            // a 429 here can only be the firewall's.
+            await startAt(run.to + GAP_MS);
+            const errorReport: Probe = {
+                method: 'POST', path: '/api/error-report', headers: { ...JSON_TYPE, 'sec-gpc': '1' }, body: '{}',
+            };
+            run = await burst(base, errorReport, BURST, PACE_MS);
+            report('firewall leaves out /api/error-report', judgeLeftOut(run.answers, { status: 204 }), run);
         } else {
-            report('firewall leaves out /api/csp-report', { ok: null, detail: 'skipped: it shows something only once the rule is seen limiting the posts' });
+            for (const path of ['/api/csp-report', '/api/error-report'])
+                report(`firewall leaves out ${path}`, { ok: null, detail: 'skipped: it shows something only once the rule is seen limiting the posts' });
         }
     }
 

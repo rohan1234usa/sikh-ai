@@ -1,5 +1,6 @@
 // SERVER-ONLY: how many requests one visitor makes to the AI routes, quote
-// checking and Shabad Search, in a minute and in a UTC day, on this server.
+// checking, Shabad Search and error reports, in a minute and in a UTC day, on
+// this server.
 // A backup for the firewall's rate limit (README, Running in production,
 // step 3): it holds while that rule is off or only logging, and it counts a
 // whole day, which the firewall can't on the Hobby plan.
@@ -52,6 +53,11 @@ export type Verdict = { ok: true } | { ok: false; window: Window; retryAfter: nu
 //   10,000 a day (lib/translate/cloud.ts).
 // - Shabad Search: at most 4 GurbaniNow calls each, so 300 spends at most
 //   1,200 of its 5,000. An answer the CDN keeps never reaches the server.
+// - Error reports (app/api/error-report): a page sends at most 5
+//   (lib/errors/client.ts), so 10 a minute is a crash loop at most. Every
+//   post counts, report or not, and the server sends at most 30 visitors'
+//   reports a day on to Sentry (lib/errors/sentry.ts), which takes 5,000 a
+//   month.
 export const VISITOR_LIMITS = {
     chat: { perMinute: 10, perDay: 300 },
     verify: { perMinute: 10, perDay: 100 },
@@ -60,6 +66,7 @@ export const VISITOR_LIMITS = {
     translateLive: { perMinute: 12, perDay: 500 },
     crosscheck: { perMinute: 5, perDay: 50 },
     search: { perMinute: 20, perDay: 300 },
+    errorReport: { perMinute: 10, perDay: 100 },
 } as const satisfies Record<string, Limits>;
 export type Feature = keyof typeof VISITOR_LIMITS;
 
@@ -67,7 +74,8 @@ export type Feature = keyof typeof VISITOR_LIMITS;
 // (try again in a minute), the limit code past the day's. The English is the
 // dictionary's for the same code (lib/i18n/dictionaries/en.ts; a test holds
 // them equal), for the logs and for a page loaded before a code existed. The
-// quote check and Compare don't show their errors, so theirs are for logs.
+// quote check, Compare and error reports don't show their errors, so theirs
+// are for logs.
 export const REFUSALS: Record<Feature, Record<Window, { code: string; error: string }>> = {
     chat: {
         minute: { code: 'chat_busy', error: 'SikhAI is very busy right now. Please wait a minute and try again.' },
@@ -98,6 +106,10 @@ export const REFUSALS: Record<Feature, Record<Window, { code: string; error: str
     search: {
         minute: { code: 'search_busy', error: 'Shabad Search is very busy right now. Please try again in a minute.' },
         day: { code: 'search_limit', error: "Your connection has reached today's limit for Shabad Search. Please come back later." },
+    },
+    errorReport: {
+        minute: { code: 'error_report_busy', error: 'Too many error reports. Please wait a minute.' },
+        day: { code: 'error_report_limit', error: "Today's limit for error reports is reached." },
     },
 };
 
@@ -185,6 +197,7 @@ export const allowances: Record<Feature, Allowance> = {
     translateLive: visitorAllowance(VISITOR_LIMITS.translateLive),
     crosscheck: visitorAllowance(VISITOR_LIMITS.crosscheck),
     search: visitorAllowance(VISITOR_LIMITS.search),
+    errorReport: visitorAllowance(VISITOR_LIMITS.errorReport),
 };
 
 let unaddressed = false;

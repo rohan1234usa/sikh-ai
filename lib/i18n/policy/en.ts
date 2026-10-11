@@ -70,7 +70,8 @@ const policy = {
                     'Firebase, Google\'s app platform, runs sign-in and keeps accounts, saved chats, share links, and Seva events with their sign-ups and reports. Your browser connects to it directly for signing in, while you\'re signed in, and on a share link, so Google sees your IP address then. The Seva pages are built on this site\'s server, so looking at events doesn\'t connect your browser to Firebase. Otherwise your browser connects only to this site.',
                     'An event\'s directions and calendar links open Google Maps or Google Calendar, and sharing it on WhatsApp opens WhatsApp, with the event\'s details. Those services then get the details, and your IP address, under their own privacy policies. The calendar file for other calendars comes from this site.',
                     'Vercel hosts the site. Its logs record your IP address and the pages you request, for a short time. The site\'s own logs never contain what you write, though they can contain a page\'s address.',
-                    'To keep any one visitor from using up the AI features or Shabad Search, the site\'s server counts how often each IP address uses them, this minute and today. It counts under a code made from the address with a secret that changes every day, keeps the code only in its memory, and never writes it down or sends it anywhere.',
+                    'When something on the site fails, in your browser or on its server, a short error report goes to Sentry, an error-tracking service, so the site\'s owner hears about it. It says what failed and where in the site\'s code, the page\'s address (without any ID, and without what you searched for), the site\'s version, and your browser and operating system. It never contains what you write, your account ID or your IP address: your browser sends its reports to this site, whose server checks them again before passing them on. A report can\'t be traced back to you, so it can\'t be removed on request; Sentry deletes it after 30 days.',
+                    'To keep any one visitor from using up the AI features or Shabad Search, or flooding the site with error reports, the site\'s server counts how often each IP address uses them, this minute and today. It counts under a code made from the address with a secret that changes every day, keeps the code only in its memory, and never writes it down or sends it anywhere.',
                 ],
             },
             analytics: {
@@ -79,7 +80,7 @@ const policy = {
                     'Vercel Web Analytics counts visits, so the site can see which pages people use. For each page view it records which page it was (never a share link\'s ID), the site you came from, the time, your approximate location (country, region and city), and your browser, operating system and kind of device.',
                     'It uses no cookies and keeps nothing in your browser. To tell visitors apart, it makes a code from your request that is thrown away within 24 hours, so your visits can\'t be linked from one day to the next. The site sees only totals.',
                     'Vercel Speed Insights measures how fast pages load: which page it was, your connection speed, browser, operating system, kind of device and country. It uses no cookies either.',
-                    'If your browser sends a Global Privacy Control signal, neither counts you. You can also turn both off with the switch below; your choice is kept in this browser.',
+                    'If your browser sends a Global Privacy Control signal, neither counts you, and your browser sends no error reports. You can also turn all three off with the switch below; your choice is kept in this browser.',
                 ],
             },
             age: {
@@ -92,7 +93,7 @@ const policy = {
             location: {
                 heading: 'Where it is handled',
                 items: [
-                    'SikhAI is run from the United States: Vercel runs the site\'s server code there, and Firebase keeps accounts, saved chats, share links and Seva events there. If you visit from another country, your information goes to the US.',
+                    'SikhAI is run from the United States: Vercel runs the site\'s server code there, Firebase keeps accounts, saved chats, share links and Seva events there, and Sentry keeps error reports there. If you visit from another country, your information goes to the US.',
                     'Google may handle what the site sends to Gemini and Cloud Translation in other countries where it has data centers.',
                 ],
             },

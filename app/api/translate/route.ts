@@ -1,4 +1,4 @@
-import { ApiError, FinishReason, GoogleGenAI } from "@google/genai";
+import { FinishReason, GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 import { limitVisitor } from "@/lib/api/allowance";
 import { refuseCrossSite } from "@/lib/api/guard";
@@ -100,6 +100,8 @@ async function handlePost(req: Request) {
   let text = '';
   let hint: SourceHint = 'auto';
   let detectedScript: 'gurmukhi' | 'latin' = 'latin';
+  // Whether the error came out of the Gemini call itself, which logged it.
+  let geminiFailed = false;
 
   try {
     // Another site's page, or a post that isn't JSON: refused before the
@@ -167,7 +169,14 @@ async function handlePost(req: Request) {
         { signal: req.signal, timeoutMs: Math.min(ATTEMPT_TIMEOUT_MS, deadline - Date.now()) },
       )),
       { signal: req.signal, deadline },
-    );
+    ).catch((error: unknown) => {
+      // Each attempt's failure is already a gemini_call line, at the level it
+      // deserves (lib/gemini/log.ts): a timeout or an unreachable Gemini
+      // passes on its own, and mustn't become a route_error, which goes to
+      // Sentry (lib/log.ts).
+      geminiFailed = true;
+      throw error;
+    });
     const finishReason = result.candidates?.[0]?.finishReason;
     const blockReason = result.promptFeedback?.blockReason;
     const logCall = (outcome: "ok" | "truncated" | "unusable" | "blocked") => logGeminiCall({
@@ -216,7 +225,7 @@ async function handlePost(req: Request) {
     // Gemini failure is already logged by logGeminiCall — but anything else
     // (a response shape the SDK changed, a bug in the code around the call)
     // would otherwise 500 with nothing in the host's log to explain it.
-    if (!text || !(error instanceof ApiError)) logRouteError(error);
+    if (!text || !geminiFailed) logRouteError(error);
 
     // Both models failed (overloaded, rate-limited, out of prepaid credit, or
     // timed out) or the request itself was rejected. Either way a basic
