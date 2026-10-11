@@ -64,19 +64,25 @@ About a third of the 106 uses of `text-accent-text` are links. Pothi keeps kesri
 
 ## Type
 
-- **Tiro Gurmukhi** sets Gurbani, Punjabi and running Latin. One family carries both scripts, so a quoted tukk inside an English sentence keeps its voice. It has one weight (400) and an italic, in the `gurmukhi`, `latin` and `latin-ext` subsets.
-- **Newsreader** sets display text: page titles, folio headers and the Hukamnama's translation. It is variable, from weight 200 to 800 and optical size 6 to 72, with an italic.
+Three faces, each with a job, so nothing ever needs a bold its font doesn't have:
+
+- **Tiro Gurmukhi** sets Gurbani and other reading text in Gurmukhi: the Hukamnama, Angs, shabads, quoted tukks and the Gurbani check. It has one weight (400) and an italic, so hierarchy comes from size, never weight.
+- **Newsreader** sets running Latin, headings and the interface. It is variable, from weight 200 to 800 and optical size 6 to 72, with an italic, so headings and buttons get real bolds.
+- **Noto Serif Gurmukhi** sets Gurmukhi interface text, which is the whole interface under `/pa`. It is variable from weight 100 to 900, so Punjabi headings, buttons and labels keep their weight too.
 - **Geist Mono** stays for inline code in chat replies.
 
-Both new faces come through `next/font/google`, which serves the files from the site itself. The Content Security Policy's `font-src 'self'` needs no new host.
+All three come through `next/font/google`, which serves the files from the site itself. The Content Security Policy's `font-src 'self'` needs no new host.
 
-Tiro Gurmukhi has no bold, and a browser fakes a missing bold by smearing the glyphs. Five places set Gurmukhi in bold today. Each one drops `font-bold` and uses size instead:
+The study sets running Latin in Tiro as well. This spec moves it to Newsreader because Tiro has no bold: the site has 252 `font-bold` and `font-semibold` uses, and a browser fakes a missing bold by smearing the glyphs. Under `/pa` every one of them is Gurmukhi, which is why the interface's Gurmukhi gets its own variable face.
+
+Tiro is applied only where Gurbani is read, through the `font-gurmukhi` utility. Six places set that text in bold or semibold today. Each one drops the weight and uses size instead:
 - `app/[lang]/hukamnama/page.tsx`, for the raag and for each line;
 - `app/[lang]/shabad/[ang]/page.tsx`;
 - `app/components/shabad/ShabadVerse.tsx`;
-- `app/components/shabad/VerseResultCard.tsx`.
+- `app/components/shabad/VerseResultCard.tsx`;
+- `app/components/learn/Quiz.tsx`, for a Gurmukhi answer choice (`font-semibold`).
 
-Setting `font-synthesis-weight: none` on the Gurmukhi stack stops any bold that slips through from being faked.
+Setting `font-synthesis-weight: none` on the `font-gurmukhi` utility stops any bold that slips through from being faked. Don't set it on the whole page: under `/pa` it would turn every Punjabi heading to regular weight.
 
 ## System
 
@@ -92,7 +98,7 @@ Setting `font-synthesis-weight: none` on the Gurmukhi stack stops any bold that 
 Commit once per step, in this order:
 
 1. **Tokens.** Put the values above in `app/globals.css` under `:root` and `.dark`, add `--link`, `--gold` and `--good`, and update `THEME_COLORS` in `lib/theme.ts`.
-2. **Fonts.** In `app/fonts.ts`, replace Geist and Noto Sans Gurmukhi with Tiro Gurmukhi and Newsreader. Point `--font-sans` and `--font-gurmukhi` at Tiro and add a display token. Drop bold from Gurmukhi in the five places above.
+2. **Fonts.** In `app/fonts.ts`, replace Geist and Noto Sans Gurmukhi with Newsreader, Noto Serif Gurmukhi and Tiro Gurmukhi. Point `--font-sans` at Newsreader with Noto Serif Gurmukhi as its Gurmukhi fallback, and `--font-gurmukhi` at Tiro. Repoint the `html[lang='pa'] body` rule in `app/globals.css` from `--font-gurmukhi` to Noto Serif Gurmukhi, or the whole Punjabi interface turns into single-weight Tiro. Drop the weight from Gurbani in the six places above.
 3. **The tukk component.** Build one component with a fixed rhythm. It goes on the Hukamnama page, the Ang and shabad pages (`ShabadVerse.tsx`), search results (`VerseResultCard.tsx`), the Gurbani check (`Citations.tsx`), the translator (`TranslationCard.tsx`) and Learn (`ExampleRow.tsx`, `WordList.tsx`).
 4. **Chrome.** Restyle the navbar, the footer, `app/components/buttons.ts` and `app/components/seva/styles.ts`. Then replace the 150 literal navy, kesri and slate classes in 45 files. These include the navy bands that open the home, Shabad, Translator, Learn and Seva pages, and the five `[--focus-ring:var(--color-kesri)]` overrides they carry.
 5. **Home.** The hero becomes the day's Hukamnama, live. The mock chat window and the Gemini badge go. Gemini stays named where it matters: the chat's disclaimer and /privacy.
