@@ -92,7 +92,8 @@ test('IDs, emails and long numbers are taken out; names from code are not', () =
 
 test('a message is one line, at most 300 characters', () => {
     assert.equal(scrubMessage('Error', 'first line\n  second   line'), 'first line second line');
-    assert.equal(scrubMessage('Error', 'word '.repeat(200)).length, MAX_MESSAGE_CHARS);
+    const long = scrubMessage('Error', 'word '.repeat(200));
+    assert.ok(long.length <= MAX_MESSAGE_CHARS && long.endsWith('…'), long);
 });
 
 test("an error's name stays only if it reads as one", () => {
@@ -210,4 +211,64 @@ test('a report with no frame on this site, or that is not one, is dropped', () =
     assert.equal(readClientReport({ ...base, page: 42 }, SITE), null);
     for (const body of [null, 'text', [base]]) assert.equal(readClientReport(body, SITE), null);
     assert.equal(readClientReport({ ...base, name: 'my private question' }, SITE)?.name, 'Error');
+});
+
+test('an email goes whatever its letters or encoding, and a cut never leaves half of one', () => {
+    for (const message of [
+        'No account for harpreet.kaur.josé@gmail.com',
+        'No account for rohan@bücher.de',
+        'No account for rohan.singh%40gmail.com',
+        'No account for jaspreet​.kaur@gmail.com',
+    ]) assert.equal(scrubMessage('Error', message), 'No account for [email]', message);
+    const cut = scrubMessage('Error', `Unknown "${'x'.repeat(980)}" for rohan.singh@gmail.com please`);
+    assert.ok(!cut.includes('rohan'), cut);
+    const id = scrubMessage('Error', `${'word '.repeat(198)}id ${SHARE_ID}`);
+    assert.ok(!id.includes('AbCd'), id);
+});
+
+test('escaped and curly quotes count as quotes', () => {
+    assert.equal(scrubMessage('Error', 'Data must be an object, but it was: "Is \\"Japji\\" for my di..."'),
+        'Data must be an object, but it was: "…"');
+    assert.equal(scrubMessage('Error', 'Unknown lens “my private question”'), 'Unknown lens "…"');
+    assert.equal(scrubMessage('Error', 'Unknown lens ‘my private question’'), "Unknown lens '…'");
+    assert.equal(scrubMessage('Error', "Can’t find variable: foo"), "Can't find variable: foo");
+});
+
+test("an address's query goes, relative or not, and whatever it holds", () => {
+    assert.equal(scrubMessage('TypeError', 'Failed to parse URL from /api/shabad/search?q=my+private+question'),
+        'Failed to parse URL from /api/shabad/search');
+    assert.equal(scrubMessage('Error', `Failed to load ${SITE}/shabad?q=sukhmani+(for+my+sick+mother)+tonight`),
+        `Failed to load ${SITE}/shabad`);
+    assert.equal(scrubMessage('Error', 'Failed sikhai.vercel.app/shabad/search?q=secret#top'), 'Failed sikhai.vercel.app/shabad/search');
+});
+
+test('an engine message that echoes a value without quote marks loses the value', () => {
+    assert.equal(scrubMessage('TypeError', "Cannot use 'in' operator to search for 'text' in What is the meaning of Japji Sahib"),
+        "Cannot use 'in' operator to search for 'text' in …");
+    assert.equal(scrubMessage('TypeError', 'Promise resolver pray for my mother is not a function'), 'Promise resolver … is not a function');
+    assert.equal(scrubMessage('TypeError', 'Iterator value call me on 4155550123 is not an entry object'),
+        'Iterator value … is not an entry object');
+    assert.equal(scrubMessage('TypeError', 'URL constructor: my private question is not a valid URL.'),
+        'URL constructor: … is not a valid URL.');
+});
+
+test("a Seva event's ID goes by its place in the address, whatever it looks like", () => {
+    for (const id of ['bhCQGESemzBcSdndhsYo', 'jszHwniiIilinIlbMVVL', SHARE_ID]) {
+        assert.equal(scrubPath(`${SITE}/pa/seva/${id}/edit`), '/pa/seva/:id/edit', id);
+        assert.equal(scrubPath(`/seva/${id}`, SITE), '/seva/:id', id);
+    }
+    assert.equal(scrubPath('/seva/create?from=x', SITE), '/seva/create');
+    assert.equal(scrubPath('/seva/admin', SITE), '/seva/admin');
+    assert.equal(scrubPath('/seva', SITE), '/seva');
+    assert.equal(readsAsWords('bhCQGESemzBcSdndhsYo'), false, 'its words average under four letters');
+});
+
+test("what's useful and private to no one is kept", () => {
+    assert.equal(scrubMessage('TypeError', "Cannot read properties of undefined (reading '0')"), "Cannot read properties of undefined (reading '0')");
+    assert.equal(scrubMessage('TypeError', "Cannot convert object to primitive value of object '#<Object>'"),
+        "Cannot convert object to primitive value of object '#<Object>'");
+    const chunk = `${SITE}/_next/static/chunks/app/layout-0a1b2c3d4e5f6789.js`;
+    assert.equal(scrubMessage('ChunkLoadError', `Loading chunk 2793 failed. (error: ${chunk})`), `Loading chunk 2793 failed. (error: ${chunk})`);
+    assert.equal(scrubMessage('Error', 'Minified React error #418; visit https://react.dev/errors/418?args[]=text for more'),
+        'Minified React error #418; visit https://react.dev/errors/418 for more');
 });

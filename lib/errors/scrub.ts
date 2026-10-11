@@ -45,8 +45,10 @@ const WORDS = /[A-Z]{2,}(?![a-z])|[A-Z]?[a-z]+|[A-Z]/g;
 // (getBoundingClientRect, NS_ERROR_FAILURE, popup-closed-by-user,
 // rows-3-4-palatal-retroflex) rather than an ID. Between its separators, an ID
 // mixes letters and digits, or flips case every letter or two (AbCdEfGhIj…);
-// a name is words, of three letters or more on average and none of one, and
-// short numbers.
+// a name is words, of four letters or more on average and none of one, and
+// short numbers. A shape can't tell every ID from a name (about 1 random
+// 20-character ID in 1,400 passes), so where IDs are known to be (an
+// address's ID segment, a Firestore path) they go by position instead.
 export function readsAsWords(token: string): boolean {
     const words: string[] = [];
     for (const part of token.split(/[-_]+/)) {
@@ -55,7 +57,16 @@ export function readsAsWords(token: string): boolean {
         words.push(...(part.match(WORDS) ?? []));
     }
     if (words.length === 0 || words.some((word) => word.length < 2)) return false;
-    return words.reduce((sum, word) => sum + word.length, 0) / words.length >= 3;
+    return words.reduce((sum, word) => sum + word.length, 0) / words.length >= 4;
+}
+
+// Text cut to at most `max` characters, without half a word at the end: an
+// email or an ID cut short no longer looks like one to the rules that take
+// them out, so its first part would go out whole.
+export function cutWords(text: string, max: number): string {
+    if (text.length <= max) return text;
+    const cut = text.slice(0, max - GONE.length);
+    return (/\S$/.test(cut) && /^\S/.test(text.slice(cut.length)) ? cut.replace(/\S+$/, '') : cut) + GONE;
 }
 
 function withoutIds(text: string): string {
@@ -68,11 +79,15 @@ function withoutIds(text: string): string {
 // A path segment no page of the site has: one that isn't plain ASCII, or is
 // percent-encoded, which means something typed into the address bar.
 const TYPED_SEGMENT = /%|[^\x20-\x7e]/;
+// Pages whose next segment is an ID, besides the share and chat pages that
+// lib/analytics.ts takes care of: a Seva event's, though not the board's own
+// pages.
+const ID_AFTER = new Map([['seva', new Set(['create', 'admin'])]]);
 
 // A page's address as a report may give it: the path alone, with a share
-// link's or a chat's ID replaced (lib/analytics.ts), and any other ID too, so
-// /seva/<event id> is /seva/:id. `base` lets a bare path through, such as
-// Next's request path. Null when the address can't be read.
+// link's, a chat's or a Seva event's ID replaced (/seva/<event id> is
+// /seva/:id), and anything else that looks like an ID. `base` lets a bare path
+// through, such as Next's request path. Null when the address can't be read.
 export function scrubPath(url: string, base?: string): string | null {
     let href: string;
     try {
@@ -82,36 +97,65 @@ export function scrubPath(url: string, base?: string): string | null {
     }
     const redacted = redactAnalyticsUrl(href);
     if (redacted === null) return null;
-    const path = new URL(redacted).pathname
-        .split('/')
-        .map((segment) => (TYPED_SEGMENT.test(segment) ? GONE : segment))
-        .join('/');
+    const segments = new URL(redacted).pathname.split('/');
+    const path = segments.map((segment, i) => {
+        if (TYPED_SEGMENT.test(segment)) return GONE;
+        const pages = ID_AFTER.get(segments[i - 1]?.toLowerCase() ?? '');
+        return pages && segment !== '' && !pages.has(segment.toLowerCase()) ? ID : segment;
+    }).join('/');
     return withoutIds(path);
 }
 
 // An address in a message: its origin and scrubbed path, nothing else. Only
-// http and https addresses keep anything.
+// http and https addresses keep anything, and one of the site's scripts keeps
+// its name, which says which chunk failed to load.
 const ADDRESS = /\b[a-z][a-z0-9+.-]*:\/\/[^\s'"`<>()]+/gi;
 function scrubAddress(href: string): string {
     try {
         const url = new URL(href);
         if (url.protocol !== 'http:' && url.protocol !== 'https:') return `${url.protocol}//${GONE}`;
+        if (url.pathname.startsWith('/_next/static/')) return `${url.origin}${url.pathname}`;
         return `${url.origin}${scrubPath(href) ?? `/${GONE}`}`;
     } catch {
         return GONE;
     }
 }
 
-const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
+// An email address, whatever its letters (an accented name, a domain in
+// Gurmukhi) or its encoding (%40): anything either side of an @.
+const EMAIL = /[^\s@'"`<>()[\]{}]+(?:@|%40)[^\s@'"`<>()[\]{}]+/gi;
+// The site's own script addresses, whose names (hashes and all) the ID rule
+// leaves alone: they're the same for every visitor.
+const SCRIPT_ADDRESS = /\bhttps?:\/\/[^\s'"`<>()/]+\/_next\/static\/[^\s'"`<>()]*/g;
+function exceptScripts(text: string, rule: (part: string) => string): string {
+    let out = '';
+    let last = 0;
+    for (const match of text.matchAll(SCRIPT_ADDRESS)) {
+        out += rule(text.slice(last, match.index)) + match[0];
+        last = match.index + match[0].length;
+    }
+    return out + rule(text.slice(last));
+}
+// A query or fragment after a path, absolute or not (/api/shabad/search?q=…),
+// up to the next space: parentheses and all, which an address can hold.
+const QUERY = /([\w/.~-])[?#][^\s'"`<>]*/g;
+// Engine messages that quote a value without quote marks around it: the
+// value goes.
+const ECHOES: [RegExp, string][] = [
+    [/^(Cannot use 'in' operator to search for '[^']*' in )[\s\S]+$/, `$1${GONE}`],
+    [/^(Promise resolver )[\s\S]+( is not a function)$/, `$1${GONE}$2`],
+    [/^(Iterator value )[\s\S]+( is not an entry object)$/, `$1${GONE}$2`],
+    [/^(URL constructor: )[\s\S]+( is not a valid URL\.?)$/, `$1${GONE}$2`],
+];
 // Where a payload starts: JSON, which an SDK's error can carry whole, model
 // output included.
 const PAYLOAD = /[{[]\s*["'{[]/;
 // A quoted stretch, its quote marks matched and its first mark not inside a
 // word (can't opens nothing).
 const QUOTED = /(^|[^A-Za-z0-9])(["'`])([^"'`]*?)\2(?![A-Za-z0-9])/g;
-// What may stay quoted: a name from code, such as 'map', 'a.b' or
-// 'auth/popup-closed-by-user'.
-const CODE_NAME = /^[A-Za-z_$#@.:/[\]-][\w$#@.:/[\]-]{0,63}$/;
+// What may stay quoted: a name from code, such as 'map', 'a.b', '0',
+// '#<Object>' or 'auth/popup-closed-by-user'.
+const CODE_NAME = /^(?:\d{1,6}|[A-Za-z_$#@.:/[\]<>-][\w$#@.:/[\]<>-]{0,63})$/;
 // A quote mark that opens something: not one inside a word (can't), and not
 // one already closed (those are blanked out before this looks).
 const OPENING_MARK = /(^|[^A-Za-z0-9])["'`]|["`]/;
@@ -120,10 +164,14 @@ const OPENING_MARK = /(^|[^A-Za-z0-9])["'`]|["`]/;
 // it was one: its message quotes the text it couldn't parse.
 export function scrubMessage(name: string, message: unknown): string {
     if (name === 'SyntaxError' || typeof message !== 'string') return '';
-    let text = message.slice(0, MAX_SCANNED_CHARS);
+    let text = cutWords(message, MAX_SCANNED_CHARS);
+    for (const [echo, keep] of ECHOES) text = text.replace(echo, keep);
+    // Curly quotes count as quotes, and a quote mark escaped inside a quoted
+    // string (as JSON writes one) doesn't end it.
+    text = text.replace(/[\u201c\u201d\u201e\u00ab\u00bb]/g, '"').replace(/[\u2018\u2019\u201a]/g, "'").replace(/\\(["'`])/g, '');
     const payload = PAYLOAD.exec(text);
     if (payload) text = text.slice(0, payload.index) + GONE;
-    text = withoutIds(text.replace(ADDRESS, scrubAddress).replace(EMAIL, '[email]'))
+    text = exceptScripts(text.replace(QUERY, '$1').replace(ADDRESS, scrubAddress).replace(EMAIL, '[email]'), withoutIds)
         .replace(/[^\x00-\x7f]+/g, GONE)
         .replace(QUOTED, (_, before: string, mark: string, inner: string) =>
             before + mark + (CODE_NAME.test(inner) ? inner : GONE) + mark);
@@ -132,7 +180,7 @@ export function scrubMessage(name: string, message: unknown): string {
     const closedBlanked = text.replace(QUOTED, (whole, before: string) => before + '_'.repeat(whole.length - before.length));
     const open = OPENING_MARK.exec(closedBlanked);
     if (open) text = text.slice(0, open.index + open[0].length - 1) + GONE;
-    return text.replace(/\s+/g, ' ').replace(/…(?: ?…)+/g, GONE).trim().slice(0, MAX_MESSAGE_CHARS);
+    return cutWords(text.replace(/\s+/g, ' ').replace(/…(?: ?…)+/g, GONE).trim(), MAX_MESSAGE_CHARS);
 }
 
 // An error's name, if it reads as one (TypeError, FirebaseError); otherwise

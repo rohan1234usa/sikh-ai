@@ -16,7 +16,7 @@
 
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { logLineEvent, sentry, type Outgoing, type Sender } from './errors/sentry';
-import { frameLines } from './errors/scrub';
+import { cutWords, frameLines } from './errors/scrub';
 
 type RequestContext = { requestId: string; route: string };
 const requests = new AsyncLocalStorage<RequestContext>();
@@ -96,11 +96,12 @@ export function sendInBackground(outgoing: Outgoing, sender: Sender = sentry): P
 
 // An error, for a log line: its name and message. A SyntaxError's message can
 // quote the text it failed to parse, which may be the user's, so only its name
-// is kept.
+// is kept. A long message is cut at a word's end, so no email or ID is left
+// half there for the scrubbing to miss (lib/errors/scrub.ts).
 export function describeError(error: unknown): string {
     if (!(error instanceof Error)) return typeof error;
     if (error instanceof SyntaxError) return error.name;
-    return `${error.name}: ${error.message}`.slice(0, 300);
+    return cutWords(`${error.name}: ${error.message}`, 300);
 }
 
 // Where an error was thrown: the top of its stack, frames only, read as error

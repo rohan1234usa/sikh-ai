@@ -54,7 +54,9 @@ test('an error is logged by name and message, except a parse error, which can qu
     try { JSON.parse('{"message": "my private question'); } catch (e) { parseError = e; }
     assert.equal(describeError(parseError), 'SyntaxError');
     assert.equal(describeError('a string'), 'string');
-    assert.equal(describeError(new Error('x'.repeat(1000))).length, 300);
+    const long = describeError(new Error(`${'word '.repeat(100)}rohan.singh@example.com`));
+    assert.ok(long.length <= 300 && long.endsWith('…'), 'cut at a word');
+    assert.equal(describeError(new Error(`${'w'.repeat(290)} rohan.singh@example.com`)), `Error: ${'w'.repeat(290)} …`, 'no half an email');
 });
 
 test("a route's unexpected error is logged with where it was thrown, never its message's user text", async () => {

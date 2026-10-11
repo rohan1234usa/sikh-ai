@@ -4,6 +4,7 @@
 
 import type { GenerateContentResponseUsageMetadata } from '@google/genai';
 import type { GeminiFeature } from './models';
+import { cutWords } from '../errors/scrub';
 import { logEvent } from '../log';
 
 export type GeminiOutcome =
@@ -39,8 +40,8 @@ export type GeminiCallLog = {
     error?: string;         // SDK/API error message, never user text
 };
 
-// "Try again in a minute" conditions, as opposed to a broken request
-// (lib/gemini/fallback.ts retries only these).
+// "Try again in a minute" conditions, as opposed to a broken request: what
+// lib/gemini/fallback.ts treats as the service being busy.
 export const CAPACITY_STATUS = new Set([429, 500, 502, 503, 504]);
 
 // How loud a call's line is. A failure the owner has to fix is an error,
@@ -79,6 +80,6 @@ export function errorFields(err: unknown): Pick<GeminiCallLog, 'status' | 'quota
     return {
         status: typeof status === 'number' ? status : undefined,
         quotaId: /"quotaId"\s*:\s*"([^"]+)"/.exec(message)?.[1],
-        error: readable.slice(0, 200),
+        error: cutWords(readable, 200),
     };
 }
