@@ -45,7 +45,7 @@ export function FlashPanel({ copy }: { copy: SevaCopy['actions'] }) {
         ? [copy.postedTitle, signups ? copy.postedBody : copy.postedBodyNoSignup]
         : [copy.savedTitle, signups ? copy.savedBody : copy.savedBodyNoSignup];
     return (
-        <div className="mt-6 rounded-xl border-2 border-kesri-deep bg-surface-raised p-4 dark:border-kesri">
+        <div className="mt-6 rounded-xl border-2 border-accent-text bg-surface-raised p-4">
             <h2 ref={ref} tabIndex={-1} className="font-bold text-ink">{title}</h2>
             <p className="mt-1 text-ink">{body}</p>
             <button

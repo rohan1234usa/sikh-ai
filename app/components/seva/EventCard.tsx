@@ -33,7 +33,7 @@ export default function EventCard({ event, display, href, copy, showDate = false
         >
             <p className="flex flex-wrap items-center gap-2">
                 <span className={CHIP}>{copy.categories[event.category]}</span>
-                {full && <span className={`${CHIP} font-semibold`}>{copy.full}</span>}
+                {full && <span className={CHIP}>{copy.full}</span>}
                 {mark?.(markId)}
             </p>
             <h3 id={titleId} className="mt-2 text-lg font-bold leading-snug text-ink [overflow-wrap:anywhere]">

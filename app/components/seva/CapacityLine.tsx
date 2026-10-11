@@ -13,7 +13,7 @@ export default function CapacityLine({ signup, anyJoined }: { signup: SignupLine
             <span>{signup.text} · {signup.left}</span>
             {anyJoined && (
                 <span aria-hidden="true" className="inline-block h-1.5 w-24 overflow-hidden rounded-full bg-edge-strong/40">
-                    <span className="block h-full min-w-1.5 rounded-full bg-kesri-deep dark:bg-kesri" style={{ width: `${signup.percent}%` }} />
+                    <span className="block h-full min-w-1.5 rounded-full bg-rule-gold" style={{ width: `${signup.percent}%` }} />
                 </span>
             )}
         </span>
