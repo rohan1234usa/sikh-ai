@@ -153,3 +153,9 @@ test("a page opened at another of the server's addresses reports too (next start
         delete process.env.SENTRY_DSN;
     }
 });
+
+test('a post with Global Privacy Control is answered before the visitor is counted, as check:limits relies on', async () => {
+    const from = { 'x-forwarded-for': '203.0.113.60', 'sec-gpc': '1' };
+    for (let i = 0; i < 2 * VISITOR_LIMITS.errorReport.perMinute; i++)
+        assert.equal((await POST(postJson(`${SITE}/api/error-report`, {}, from))).status, 204);
+});

@@ -188,7 +188,7 @@ Four settings outside the code keep a public deployment affordable and safe, a f
     *   `npx vercel@latest firewall diff --project <project>` should show nothing waiting to publish.
     *   `npx vercel@latest firewall rules inspect <rule> --project <project>` should show its action past the limit as `rate_limit`, not `log`. `rules list` shows drafts too.
 
-    To check what it does, run `npm run check:limits -- --bursts` (`scripts/limits-check/`). It sends bursts that cost nothing and expects the firewall's 429 on them. It takes about seven minutes, and afterwards the site answers your address with a 429 for up to a minute. Without `--bursts`, it checks only the refusals, with four requests.
+    To check what it does, run `npm run check:limits -- --bursts` (`scripts/limits-check/`). It sends bursts that cost nothing and expects the firewall's 429 on them, and none on the two report paths. It takes about eight minutes, and afterwards the site answers your address with a 429 for up to a minute. Without `--bursts`, it checks only the refusals, with four requests.
 4.  **Restrict the Gemini key** to the Generative Language API, but only after `GOOGLE_TRANSLATE_API_KEY` is set on its own. Until then Cloud Translation borrows the Gemini key, and restricting it would quietly break the translator's fallback.
 5.  **Saved chats in the account, and share links** (off until you do this; chats stay in the browser meanwhile):
     1.  Deploy [`firestore.rules`](firestore.rules) and its indexes, as in step 6. Rules are OR-ed, so a catch-all left in the console (`match /{document=**}`, `allow read, write: if true`, or a test-mode `request.time < …` rule) would expose every saved chat; deploying the whole file replaces them.
