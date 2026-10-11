@@ -27,7 +27,7 @@ export default function VerseResultCard({ hit, truncated }: { hit: VerseHit; tru
                 href={href(shabadPath(hit.shabadId, hit.lineId))}
                 className="block outline-none after:absolute after:inset-0 after:rounded-xl after:content-['']"
             >
-                <span lang="pa" className="block font-gurmukhi text-xl sm:text-2xl font-bold leading-relaxed text-ink">{hit.gurmukhi}</span>
+                <span lang="pa" className="block font-gurmukhi text-xl sm:text-2xl leading-relaxed text-ink">{hit.gurmukhi}</span>
             </IntentLink>
             {hit.transliteration && <p lang="pa-Latn" className="mt-1 text-sm text-ink-faint">{hit.transliteration}</p>}
             {hit.translation && <p lang="en" className="mt-2 italic text-ink-muted line-clamp-2">{hit.translation}</p>}

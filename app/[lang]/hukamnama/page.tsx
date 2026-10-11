@@ -83,7 +83,7 @@ export default async function HukamnamaPage() {
           <div className="bg-surface-raised shadow-2xl rounded-2xl overflow-hidden border-t border-rule-gold">
 
             <div className="bg-surface p-8 text-center border-b border-edge">
-              <h2 lang="pa" className="text-3xl text-ink font-gurmukhi font-bold mb-2">
+              <h2 lang="pa" className="text-3xl text-ink font-gurmukhi mb-2">
                 {data?.hukamnamainfo?.raag?.unicode}
               </h2>
               {pageno != null && (
@@ -98,7 +98,7 @@ export default async function HukamnamaPage() {
                 <div key={item.line?.id ?? index} className="text-center space-y-4">
 
                   {/* Main Shabad Lines */}
-                  <p lang="pa" className="text-2xl md:text-4xl text-ink font-bold leading-relaxed font-gurmukhi">
+                  <p lang="pa" className="text-2xl md:text-4xl text-ink leading-relaxed font-gurmukhi">
                     {item.line?.gurmukhi?.unicode}
                   </p>
 

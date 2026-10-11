@@ -143,7 +143,7 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                     {(question.kind === 'typed' || !right) && (
                                         <p className="text-ink">
                                             {answerBefore}
-                                            <span lang={question.kind === 'typed' ? 'pa-Latn' : choiceLang(question)} className={`font-semibold ${question.kind === 'choice' && question.choicesLang === 'pa' ? 'font-gurmukhi text-lg' : ''}`}>
+                                            <span lang={question.kind === 'typed' ? 'pa-Latn' : choiceLang(question)} className={question.kind === 'choice' && question.choicesLang === 'pa' ? 'font-gurmukhi text-lg' : 'font-semibold'}>
                                                 {question.kind === 'choice' && !question.choicesLang ? <Mixed text={question.answer} /> : question.answer}
                                             </span>
                                             {answerAfter}

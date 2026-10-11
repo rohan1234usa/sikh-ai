@@ -15,7 +15,7 @@ export default function ShabadVerse({ line }: {
     return (
         <div id={lineAnchor(line.id)} tabIndex={-1} className={`rounded-xl px-3 py-4 text-center transition-colors ${LINE_TARGET_STYLE}`}>
             <p lang="pa" className={verse
-                ? 'font-gurmukhi text-2xl md:text-3xl font-bold leading-relaxed text-ink'
+                ? 'font-gurmukhi text-2xl md:text-3xl leading-relaxed text-ink'
                 : 'font-gurmukhi text-lg md:text-xl leading-relaxed text-ink-muted'}>
                 {line.gurmukhi}
             </p>

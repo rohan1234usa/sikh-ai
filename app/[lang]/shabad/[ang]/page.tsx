@@ -132,7 +132,7 @@ export default async function AngPage({ params }: PageProps<'/[lang]/shabad/[ang
                   tabIndex={-1}
                   className={`bg-surface-raised p-4 sm:p-6 rounded-xl shadow-sm border border-edge transition-colors ${LINE_TARGET_STYLE}`}
                 >
-                  <p lang="pa" className="text-2xl md:text-3xl text-ink font-bold text-center leading-relaxed mb-4 font-gurmukhi">
+                  <p lang="pa" className="text-2xl md:text-3xl text-ink text-center leading-relaxed mb-4 font-gurmukhi">
                     {line.gurmukhi}
                   </p>
                   <p lang="en" className="text-ink-muted text-center italic text-lg mb-4">

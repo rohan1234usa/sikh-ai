@@ -30,13 +30,15 @@
   --radius-4xl: 2px;
   --shadow-*: initial;
 
-  /* Typography */
-  /* Geist has no Gurmukhi, so Gurmukhi characters (a quoted tukk in an English
-     reply) fall through to Noto Sans Gurmukhi instead of whatever the OS has.
-     The Noto face covers only U+0A01–0A76 and the dandas, so Latin is untouched. */
-  --font-sans: var(--font-geist-sans), var(--font-noto-gurmukhi), ui-sans-serif, system-ui, sans-serif;
+  /* Typography (app/fonts.ts). Newsreader sets running Latin and the
+     interface; Gurmukhi in it falls through to Noto Serif Gurmukhi, which has
+     the weights headings and buttons need. Punjabi pages put that face first
+     (html[lang='pa'] below). Tiro Gurmukhi sets Gurbani, through
+     font-gurmukhi: it has one weight, so that text is never bold. */
+  --font-sans: var(--font-newsreader), var(--font-noto-serif-gurmukhi), ui-serif, Georgia, serif;
+  --font-punjabi: var(--font-noto-serif-gurmukhi), var(--font-newsreader), ui-serif, Georgia, serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --font-gurmukhi: var(--font-noto-gurmukhi), var(--font-geist-sans), sans-serif;
+  --font-gurmukhi: var(--font-tiro-gurmukhi), var(--font-noto-serif-gurmukhi), serif;
 
   /* Animation (durations auto-zeroed by the reduced-motion rule below). Motion
      is a fade: nothing rises, floats, bounces or glows. */
@@ -114,11 +116,20 @@ html {
   scroll-padding-top: 5rem;
 }
 
-/* When the UI language is Gurmukhi, the body font stack must carry Gurmukhi
-   glyphs (Geist has none). Exact attribute match on purpose — :lang(pa) would
+/* When the UI language is Gurmukhi, the interface leads with Noto Serif
+   Gurmukhi, which has real weights for its headings and buttons (Tiro, the
+   Gurbani face, has one). Exact attribute match on purpose — :lang(pa) would
    prefix-match lang="pa-Latn" too, which must stay on the Latin stack. */
 html[lang='pa'] body {
-  font-family: var(--font-gurmukhi);
+  font-family: var(--font-punjabi);
+}
+
+/* Tiro Gurmukhi has no bold, and a browser fakes a missing one by smearing
+   the glyphs. Gurbani is never set bold on purpose; this stops a bold that
+   slips in (a parent's weight) from being faked. Only on this utility: on the
+   whole page it would turn every Punjabi heading to regular weight. */
+.font-gurmukhi {
+  font-synthesis-weight: none;
 }
 
 @layer components {
