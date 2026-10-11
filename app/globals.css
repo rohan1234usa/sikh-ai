@@ -3,14 +3,32 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* Brand */
+  /* Brand. The pages use the semantic tokens below; these named colours are
+     what's left for the few places that still name one. */
   --color-navy: #0F172A;
   --color-navy-light: #1E293B;
-  --color-kesri: #FF9933;        /* on-navy text, graphics, large text only */
+  --color-kesri: #FF9933;        /* graphics and large text only on light grounds */
   --color-kesri-hover: #E68A00;
-  --color-kesri-deep: #B45309;   /* AA-safe kesri for text on light surfaces (5.0:1) */
+  --color-kesri-deep: #B45309;
   --color-gold: #F59E0B;
   --color-offwhite: #F8FAFC;
+
+  /* Pothi's geometry: square corners (2px, so an edge still reads as finished)
+     and no shadows. Tailwind reads every rounded-* and shadow-* from these, so
+     the whole site follows; rounded-full (the avatar, switch tracks, dots,
+     pills) is a fixed value and stays round. Menus and dialogs carry a border
+     instead of a shadow. Shadows can only be cleared with `initial`: `none` is
+     not a valid value for the namespace. */
+  --radius: 2px;
+  --radius-xs: 2px;
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --radius-2xl: 2px;
+  --radius-3xl: 2px;
+  --radius-4xl: 2px;
+  --shadow-*: initial;
 
   /* Typography */
   /* Geist has no Gurmukhi, so Gurmukhi characters (a quoted tukk in an English
@@ -20,29 +38,17 @@
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --font-gurmukhi: var(--font-noto-gurmukhi), var(--font-geist-sans), sans-serif;
 
-  /* Animation (durations auto-zeroed by the reduced-motion rule below) */
+  /* Animation (durations auto-zeroed by the reduced-motion rule below). Motion
+     is a fade: nothing rises, floats, bounces or glows. */
   --animate-fade-up: fade-up 0.6s ease-out both;
-  --animate-float: float 6s ease-in-out infinite;
 }
 
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(12px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
   }
 }
 
@@ -62,36 +68,38 @@
   --color-good: var(--good);
 }
 
+/* Pothi (docs/design/pothi.md): eggshell by day, ink at night. Each ratio is
+   the lowest against the ground and the raised surface of its mode. */
 :root {
   color-scheme: light;
-  --surface: #F8FAFC;         /* page background; = THEME_COLORS.light in lib/theme.ts */
-  --surface-raised: #FFFFFF;  /* cards */
-  --ink: #0F172A;             /* primary text */
-  --ink-muted: #475569;       /* secondary text */
-  --ink-faint: #64748B;       /* tertiary text */
-  --edge: #E2E8F0;            /* borders */
-  --edge-strong: #64748B;     /* a field's or button's outline: 3:1 or more (WCAG 1.4.11) */
-  --accent-text: #B45309;     /* kesri-deep on light */
-  --focus-ring: #B45309;      /* kesri-deep: 5.0:1 on white; kesri is 2.1:1 (WCAG 1.4.11 asks 3:1) */
-  --link: #B45309;            /* anything you can press */
-  --rule-gold: #FF9933;       /* gold rules, the border band, progress */
-  --good: #047857;            /* a quote that matches the source */
+  --surface: #F6F2EB;         /* eggshell, the page; = THEME_COLORS.light in lib/theme.ts */
+  --surface-raised: #F9F6F2;  /* panels, fields */
+  --ink: #1D1711;             /* text, 15.9:1 */
+  --ink-muted: #61564B;       /* secondary text, 6.4:1 */
+  --ink-faint: #746C62;       /* tertiary text, 4.6:1 */
+  --edge: #DAD5CD;            /* hairline rules */
+  --edge-strong: #837C73;     /* a field's or button's outline, 3.6:1 (WCAG 1.4.11 asks 3:1) */
+  --accent-text: #AD4E08;     /* kesri for rubrics and labels, 4.8:1; kesri-deep is only 4.5 here */
+  --focus-ring: #1E3F8F;      /* the link blue, 8.7:1 */
+  --link: #1E3F8F;            /* anything you can press, 8.7:1 */
+  --rule-gold: #9A7620;       /* gold rules, the border band, progress (graphics), 3.7:1 */
+  --good: #2F5E2A;            /* a quote that matches the source, 6.8:1 */
 }
 
 .dark {
   color-scheme: dark;
-  --surface: #020617;         /* darker than navy so navy panels still read; = THEME_COLORS.dark */
-  --surface-raised: #0F172A;
-  --ink: #F1F5F9;
-  --ink-muted: #94A3B8;
-  --ink-faint: #64748B;
-  --edge: #1E293B;
-  --edge-strong: #64748B;
-  --accent-text: #FF9933;     /* full kesri passes on dark */
-  --focus-ring: #FF9933;
-  --link: #FF9933;
-  --rule-gold: #FF9933;
-  --good: #34D399;
+  --surface: #171512;         /* ink, the page; = THEME_COLORS.dark */
+  --surface-raised: #1F1D1A;
+  --ink: #EAE6DF;             /* eggshell text, 13.5:1 */
+  --ink-muted: #B4AFA7;       /* 7.7:1 */
+  --ink-faint: #928D86;       /* 5.1:1 */
+  --edge: #3E3B37;
+  --edge-strong: #78746E;     /* 3.6:1 */
+  --accent-text: #FF9933;     /* full kesri, 7.8:1; kesri-deep would fail on ink (3.6:1) */
+  --focus-ring: #A0BAF2;      /* 8.6:1 */
+  --link: #A0BAF2;
+  --rule-gold: #CDA65A;       /* 7.3:1 */
+  --good: #99CE9A;            /* 9.3:1 */
 }
 
 body {
