@@ -111,7 +111,11 @@ export async function cloudTranslate(opts: CloudTranslateOpts): Promise<CloudTra
 
         if (!res.ok) {
             // Never log the body verbatim — it can echo the request URL, key included.
-            logEvent('upstream_error', { upstream: 'cloud_translate', status: res.status }, 'warn');
+            // Busy (429) or down (5xx) passes on its own. Anything else, such as a
+            // key restricted to Gemini, the API switched off or billing off, the
+            // owner has to fix, so it's an error, which reaches Sentry (lib/log.ts).
+            const passing = res.status === 429 || res.status >= 500;
+            logEvent('upstream_error', { upstream: 'cloud_translate', status: res.status }, passing ? 'warn' : 'error');
             return null;
         }
 

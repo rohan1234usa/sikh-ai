@@ -85,6 +85,25 @@ test('the switch turns every call off, fallback and Compare alike', async () => 
     assert.equal(calls, 0);
 });
 
+test("a refusal only the owner can fix is an error line, which reaches Sentry; busy or down is a warning", async () => {
+    const levels: [number, string][] = [];
+    for (const status of [400, 403, 429, 503]) {
+        answer = () => new Response('{}', { status });
+        delete process.env.APP_LOG;
+        const saved = { log: console.log, warn: console.warn, error: console.error };
+        console.log = () => { levels.push([status, 'info']); };
+        console.warn = () => { levels.push([status, 'warn']); };
+        console.error = () => { levels.push([status, 'error']); };
+        try {
+            await cloud.cloudTranslate({ text: 'a', target: 'pa', purpose: 'fallback' });
+        } finally {
+            Object.assign(console, saved);
+            process.env.APP_LOG = 'off';
+        }
+    }
+    assert.deepEqual(levels, [[400, 'error'], [403, 'error'], [429, 'warn'], [503, 'warn']]);
+});
+
 // Last: it spends this process's Compare allowance.
 test("a day of comparisons leaves the fallback working, and the log says whose allowance ran out", async () => {
     while (cloud.cloudAllowances.compare.spend(1000));

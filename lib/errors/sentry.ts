@@ -11,16 +11,16 @@
 // that page dynamic, or fail its regeneration. It also keeps sends out of
 // Next's data cache, and out of the way of tests that stand in for fetch.
 //
-// Sentry's free plan takes 5,000 errors a month, and the key's rate limit
-// there (README, Running in production) is the real ceiling. What a server
-// holds back here is a backstop: the same error at most once in 10 minutes,
-// at most 20 an hour (10 for visitors' reports), and nothing while Sentry
+// Sentry's free plan takes 5,000 errors a month, and has no per-key rate
+// limit (that's on its paid plans), so what each server holds back here is
+// the ceiling: the same error at most once in 10 minutes, at most 20 an hour
+// and 60 a day (10 and 30 for visitors' reports), and nothing while Sentry
 // says to wait. Each running server counts on its own.
 //
 // A visitor's report can be made up: anyone can post one. So reports have a
-// sender of their own, with its own hourly share and, if SENTRY_BROWSER_DSN
-// names a second key, Sentry's own limit, and made-up reports can't use up
-// what the site's own errors need.
+// sender of their own, with shares of their own (and, on a paid plan, a key
+// of their own, SENTRY_BROWSER_DSN, with Sentry's limit on it), and made-up
+// reports can't use up what the site's own errors need.
 
 import { randomUUID } from 'node:crypto';
 import { request as httpRequest, type IncomingHttpHeaders } from 'node:http';
@@ -32,8 +32,11 @@ const SDK = { name: 'sikhai.relay', version: '1.0.0' };
 const TIMEOUT_MS = 3_000;
 export const REPEAT_MS = 10 * 60_000;
 export const PER_HOUR = 20;
+export const PER_DAY = 60;
 export const BROWSER_PER_HOUR = 10;
+export const BROWSER_PER_DAY = 30;
 const HOUR_MS = 3_600_000;
+const DAY_MS = 86_400_000;
 // How long to wait when Sentry says to without saying for how long.
 const DEFAULT_WAIT_MS = 60_000;
 // Errors whose last send is remembered; past that, the oldest is forgotten.
@@ -92,13 +95,16 @@ export type SentryEvent = {
 // the same page or route.
 export type Outgoing = { event: SentryEvent; key: string };
 
-function basics(env: Env, now: number) {
+// What every event has. The release is the server's: right for its own
+// errors, but a page left open from an earlier deploy reports to the new one,
+// so a browser's report goes without one (it would read as a regression).
+function basics(env: Env, now: number, { release = true } = {}) {
     return {
         event_id: randomUUID().replace(/-/g, ''),
         timestamp: now / 1000,
         level: 'error' as const,
         environment: env.VERCEL_ENV ?? 'local',
-        ...(env.VERCEL_GIT_COMMIT_SHA ? { release: env.VERCEL_GIT_COMMIT_SHA } : {}),
+        ...(release && env.VERCEL_GIT_COMMIT_SHA ? { release: env.VERCEL_GIT_COMMIT_SHA } : {}),
         sdk: SDK,
     };
 }
@@ -124,7 +130,7 @@ export function browserEvent(
     const top = report.frames[0];
     return {
         event: {
-            ...basics(env, now),
+            ...basics(env, now, { release: false }),
             platform: 'javascript',
             transaction: report.page,
             tags: { kind: report.kind, runtime: 'browser' },
@@ -295,17 +301,20 @@ export type Sender = {
 type SenderOptions = {
     timeoutMs?: number;
     perHour?: number;
+    perDay?: number;
     // Which DSN it sends to, read for every send.
     dsn?: (env: Env) => string | undefined;
 };
 
 export function createSender(
     env: Env = process.env,
-    { timeoutMs = TIMEOUT_MS, perHour = PER_HOUR, dsn: dsnOf = (e) => e.SENTRY_DSN }: SenderOptions = {},
+    { timeoutMs = TIMEOUT_MS, perHour = PER_HOUR, perDay = PER_DAY, dsn: dsnOf = (e) => e.SENTRY_DSN }: SenderOptions = {},
 ): Sender {
     let waitUntil = 0;
     let hourStarted = -Infinity;
     let sentThisHour = 0;
+    let dayStarted = -Infinity;
+    let sentToday = 0;
     const lastSent = new Map<string, number>(); // in the order last sent
     const inFlight = new Set<Promise<unknown>>();
 
@@ -317,8 +326,13 @@ export function createSender(
             hourStarted = now;
             sentThisHour = 0;
         }
-        if (sentThisHour >= perHour) return false;
+        if (now - dayStarted >= DAY_MS) {
+            dayStarted = now;
+            sentToday = 0;
+        }
+        if (sentThisHour >= perHour || sentToday >= perDay) return false;
         sentThisHour++;
+        sentToday++;
         lastSent.delete(key);
         lastSent.set(key, now);
         if (lastSent.size > MAX_REMEMBERED) lastSent.delete(lastSent.keys().next().value as string);
@@ -358,6 +372,7 @@ const senders = ((globalThis as { [SENDERS]?: { site: Sender; browser: Sender } 
     site: createSender(),
     browser: createSender(process.env, {
         perHour: BROWSER_PER_HOUR,
+        perDay: BROWSER_PER_DAY,
         dsn: (env) => env.SENTRY_BROWSER_DSN || env.SENTRY_DSN,
     }),
 });

@@ -2,7 +2,7 @@ import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { ReadReport } from '@/lib/errors/report';
 import {
-    BROWSER_PER_HOUR, PER_HOUR, REPEAT_MS, browserEvent, createSender, envelope, logLineEvent, parseDsn, waitFrom,
+    BROWSER_PER_HOUR, PER_DAY, PER_HOUR, REPEAT_MS, browserEvent, createSender, envelope, logLineEvent, parseDsn, waitFrom,
     type Outgoing,
 } from '@/lib/errors/sentry';
 import { startSentryMock, type SentryMock } from '../helpers/sentryMock';
@@ -52,11 +52,11 @@ test("a browser's report becomes an event with nothing but what the report allow
     const { event } = browserEvent(report(), { origin: ORIGIN, userAgent: 'Mozilla/5.0 '.padEnd(400, 'x') }, T0,
         { VERCEL_ENV: 'production', VERCEL_GIT_COMMIT_SHA: 'abc123' });
     assert.deepEqual(Object.keys(event).sort(),
-        ['environment', 'event_id', 'exception', 'level', 'platform', 'release', 'request', 'sdk', 'tags', 'timestamp', 'transaction']);
+        ['environment', 'event_id', 'exception', 'level', 'platform', 'request', 'sdk', 'tags', 'timestamp', 'transaction']);
     assert.match(event.event_id, /^[0-9a-f]{32}$/);
     assert.equal(event.platform, 'javascript');
     assert.equal(event.environment, 'production');
-    assert.equal(event.release, 'abc123');
+    assert.equal(event.release, undefined, "the server's release isn't the page's: it may be from an earlier deploy");
     assert.equal(event.transaction, '/pa/chat/:id');
     assert.deepEqual(event.tags, { kind: 'uncaught', runtime: 'browser' });
     assert.deepEqual(Object.keys(event.request!), ['url', 'headers']);
@@ -155,12 +155,24 @@ test('an event reaches Sentry with its key, and the same one waits ten minutes',
     assert.equal(headers['content-type'], 'application/x-sentry-envelope');
     assert.equal(headers['x-sentry-auth'], 'Sentry sentry_version=7, sentry_key=publickey, sentry_client=sikhai.relay/1.0.0');
     assert.equal(headers.cookie, undefined);
-    assert.equal(JSON.parse(body.split('\n')[2]).release, 'abc123');
+    assert.equal(JSON.parse(body.split('\n')[2]).environment, 'local');
 
     assert.equal((await sender.send(outgoing('same'), T0 + REPEAT_MS - 1)).result, 'skipped');
     assert.equal((await sender.send(outgoing('other'), T0 + 1)).result, 'sent');
     assert.equal((await sender.send(outgoing('same'), T0 + REPEAT_MS)).result, 'sent');
     assert.equal(sentry.received.length, 3);
+});
+
+test("a server's own errors carry its release", () => {
+    assert.equal(logLineEvent('config_error', { missing: 'X' }, T0, { VERCEL_GIT_COMMIT_SHA: 'abc123' }).event.release, 'abc123');
+});
+
+test('a server sends at most 60 a day, however the hours fall', async () => {
+    const sender = fresh();
+    const quarter = HOUR / 4;
+    for (let i = 0; i < PER_DAY; i++) assert.equal((await sender.send(outgoing(`d${i}`), T0 + Math.floor(i / 15) * HOUR + (i % 15) * quarter / 15)).result, 'sent', String(i));
+    assert.equal((await sender.send(outgoing('one more'), T0 + 5 * HOUR)).result, 'skipped');
+    assert.equal((await sender.send(outgoing('next day'), T0 + 24 * HOUR)).result, 'sent');
 });
 
 test('a server sends at most 20 an hour', async () => {

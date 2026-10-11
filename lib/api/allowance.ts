@@ -54,8 +54,10 @@ export type Verdict = { ok: true } | { ok: false; window: Window; retryAfter: nu
 // - Shabad Search: at most 4 GurbaniNow calls each, so 300 spends at most
 //   1,200 of its 5,000. An answer the CDN keeps never reaches the server.
 // - Error reports (app/api/error-report): a page sends at most 5
-//   (lib/errors/client.ts), so 10 a minute is a crash loop at most, and 100
-//   a day keeps one visitor from filling Sentry's 5,000 a month.
+//   (lib/errors/client.ts), so 10 a minute is a crash loop at most. Every
+//   post counts, report or not, and the server sends at most 30 visitors'
+//   reports a day on to Sentry (lib/errors/sentry.ts), which takes 5,000 a
+//   month.
 export const VISITOR_LIMITS = {
     chat: { perMinute: 10, perDay: 300 },
     verify: { perMinute: 10, perDay: 100 },
