@@ -110,8 +110,8 @@ export default function TutorInput({ value, onChange, onSend, onStop, isStreamin
                             onClick={isStreaming ? (e) => { if (e.detail <= 1) onStop(); } : undefined}
                             onKeyDown={isStreaming ? (e) => { if (e.repeat) e.preventDefault(); } : undefined}
                             className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl transition-colors ${isStreaming
-                                ? 'bg-navy text-white hover:opacity-90 dark:bg-kesri dark:text-navy'
-                                : 'bg-kesri text-navy aria-disabled:cursor-not-allowed aria-disabled:opacity-50 not-aria-disabled:hover:bg-navy not-aria-disabled:hover:text-white dark:not-aria-disabled:hover:bg-offwhite dark:not-aria-disabled:hover:text-navy'}`}
+                                ? 'bg-ink text-surface hover:opacity-90'
+                                : 'bg-link text-surface aria-disabled:cursor-not-allowed aria-disabled:opacity-50 not-aria-disabled:hover:bg-link/90'}`}
                         >
                             {isStreaming ? <StopIcon className="h-5 w-5" /> : <PaperAirplaneIcon className="h-5 w-5" />}
                         </button>

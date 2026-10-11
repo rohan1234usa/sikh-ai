@@ -16,7 +16,7 @@ export default async function HukamnamaLoading() {
           <span className="h-3 w-36 rounded bg-edge/60 animate-pulse" />
         </div>
 
-        <div className="bg-surface-raised shadow-2xl rounded-2xl overflow-hidden border-t-8 border-kesri" aria-hidden="true">
+        <div className="bg-surface-raised shadow-2xl rounded-2xl overflow-hidden border-t border-rule-gold" aria-hidden="true">
           <div className="bg-surface p-8 flex flex-col items-center gap-3 border-b border-edge">
             <span className="h-7 w-40 rounded bg-edge animate-pulse" />
             <span className="h-3 w-16 rounded bg-edge/60 animate-pulse" />

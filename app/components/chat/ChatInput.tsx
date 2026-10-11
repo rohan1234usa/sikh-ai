@@ -181,8 +181,8 @@ export default function ChatInput({
                             onKeyDown={isStreaming ? (e) => { if (e.repeat) e.preventDefault(); } : undefined}
                             className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl transition-colors ${
                                 isStreaming
-                                    ? 'bg-navy text-white hover:opacity-90 dark:bg-kesri dark:text-navy'
-                                    : 'bg-kesri text-navy aria-disabled:cursor-not-allowed aria-disabled:opacity-50 not-aria-disabled:hover:bg-navy not-aria-disabled:hover:text-white dark:not-aria-disabled:hover:bg-offwhite dark:not-aria-disabled:hover:text-navy'
+                                    ? 'bg-ink text-surface hover:opacity-90'
+                                    : 'bg-link text-surface aria-disabled:cursor-not-allowed aria-disabled:opacity-50 not-aria-disabled:hover:bg-link/90'
                             }`}
                         >
                             {isStreaming ? <StopIcon className="w-5 h-5" /> : <PaperAirplaneIcon className="w-5 h-5" />}

@@ -12,7 +12,7 @@ export const markdownComponents: Components = {
     // Replies put Gurbani in blockquotes, so no italics (Gurmukhi has no italic
     // face; the browser would slant it) and full-contrast text.
     blockquote: ({ node, ...props }) => (
-        <blockquote className="border-l-4 border-kesri/60 pl-3 py-1 my-2 text-ink bg-surface rounded-r leading-loose" {...props} />
+        <blockquote className="border-l-2 border-rule-gold pl-3 py-1 my-2 text-ink bg-surface rounded-r leading-loose" {...props} />
     ),
     a: ({ node, ...props }) => (
         <a
@@ -40,7 +40,7 @@ export const markdownComponents: Components = {
     ),
     pre: ({ node, ...props }) => (
         <pre
-            className="bg-navy text-offwhite rounded-lg p-3 my-2 overflow-x-auto text-sm [&_code]:bg-transparent [&_code]:p-0 [&_code]:text-inherit"
+            className="bg-ink text-surface rounded-lg p-3 my-2 overflow-x-auto text-sm [&_code]:bg-transparent [&_code]:p-0 [&_code]:text-inherit"
             {...props}
         />
     ),

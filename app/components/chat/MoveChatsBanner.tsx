@@ -16,7 +16,7 @@ export default function MoveChatsBanner({ progress, onMove, onDismiss }: Props) 
     const { phase, done, total } = progress;
     const finished = phase === 'done' || phase === 'full';
     return (
-        <div className="mb-2 rounded-xl border border-kesri/40 bg-kesri/10 p-3 text-xs">
+        <div className="mb-2 rounded-xl border border-accent-text/40 bg-accent-text/10 p-3 text-xs">
             <p className="flex items-center gap-1.5 font-semibold text-ink">
                 <CloudArrowUpIcon className="h-4 w-4 text-accent-text" aria-hidden="true" />
                 {h.moveTitle}

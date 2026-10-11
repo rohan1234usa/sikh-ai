@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import { PRIMARY_BUTTON } from '@/app/components/buttons';
 import { fetchHukamnamaPayload } from '@/lib/gurbani/gurbaninow';
 import { localePath } from '@/lib/i18n/paths';
 import { getServerT } from '@/lib/i18n/server';
@@ -79,7 +80,7 @@ export default async function HukamnamaPage() {
              <p className="text-ink">{t.hukamnama.unable}</p>
            </div>
         ) : (
-          <div className="bg-surface-raised shadow-2xl rounded-2xl overflow-hidden border-t-8 border-kesri">
+          <div className="bg-surface-raised shadow-2xl rounded-2xl overflow-hidden border-t border-rule-gold">
 
             <div className="bg-surface p-8 text-center border-b border-edge">
               <h2 lang="pa" className="text-3xl text-ink font-gurmukhi font-bold mb-2">
@@ -114,7 +115,7 @@ export default async function HukamnamaPage() {
             <div className="p-6 md:px-12 md:pb-10 pt-0 flex justify-center border-t border-edge bg-surface">
               <Link
                 href={localePath(lang, '/chat?context=hukamnama')}
-                className="inline-flex items-center gap-2 bg-kesri text-navy font-bold px-6 py-3 mt-6 rounded-xl hover:opacity-90 transition-opacity"
+                className={`mt-6 ${PRIMARY_BUTTON}`}
               >
                 <ChatBubbleLeftRightIcon className="w-5 h-5" aria-hidden="true" />
                 {t.hukamnama.discussCta}

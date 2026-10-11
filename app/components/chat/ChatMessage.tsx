@@ -22,7 +22,7 @@ function RetryButton({ onRetry }: { onRetry: () => void }) {
         <button
             type="button"
             onClick={onRetry}
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-accent-text hover:bg-kesri/10 transition-colors"
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-link hover:bg-link/10 transition-colors"
         >
             <ArrowPathIcon className="h-3.5 w-3.5" aria-hidden="true" />
             {t.chat.retry}

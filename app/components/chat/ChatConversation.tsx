@@ -274,7 +274,7 @@ export default function ChatConversation({
                     <button
                         type="button"
                         onClick={jumpToBottom}
-                        className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-navy text-white dark:bg-kesri dark:text-navy text-xs font-semibold px-3 py-2 rounded-full shadow-lg hover:opacity-90 transition-opacity"
+                        className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-ink text-surface text-xs font-semibold px-3 py-2 rounded-full shadow-lg hover:opacity-90 transition-opacity"
                     >
                         <ArrowDownIcon className="w-3.5 h-3.5" aria-hidden="true" />
                         {t.chat.latest}

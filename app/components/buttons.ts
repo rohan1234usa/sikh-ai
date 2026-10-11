@@ -11,9 +11,9 @@ const BASE =
 
 // The fill every primary action shares, whatever its size: PRIMARY_BUTTON, and
 // the smaller ones in chat's panels and dialogs, which keep their own padding.
-export const PRIMARY_FILL = 'bg-kesri text-navy font-bold hover:bg-kesri-hover';
+export const PRIMARY_FILL = 'bg-link text-surface font-bold hover:bg-link/90';
 
-export const PRIMARY_BUTTON = `${BASE} ${PRIMARY_FILL} shadow-md shadow-kesri/20`;
+export const PRIMARY_BUTTON = `${BASE} ${PRIMARY_FILL}`;
 
 export const SECONDARY_BUTTON = `${BASE} border border-edge-strong bg-surface-raised text-ink font-semibold hover:bg-edge/60`;
 

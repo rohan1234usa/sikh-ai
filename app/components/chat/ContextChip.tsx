@@ -14,7 +14,7 @@ type Props = {
 export default function ContextChip({ context, onDismiss }: Props) {
     const t = useT();
     return (
-        <div className={`flex items-center gap-2 bg-kesri/10 border border-kesri/40 text-accent-text rounded-full pl-3 ${onDismiss ? 'pr-1.5' : 'pr-3'} py-1.5 text-xs max-w-full`}>
+        <div className={`flex items-center gap-2 bg-accent-text/10 border border-accent-text/40 text-accent-text rounded-full pl-3 ${onDismiss ? 'pr-1.5' : 'pr-3'} py-1.5 text-xs max-w-full`}>
             <BookOpenIcon className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span className="truncate">{fmt(t.chat.discussing, { title: context.title })}</span>
             {onDismiss && (
@@ -22,7 +22,7 @@ export default function ContextChip({ context, onDismiss }: Props) {
                     type="button"
                     onClick={onDismiss}
                     aria-label={t.chat.stopDiscussingAria}
-                    className="p-0.5 rounded-full hover:bg-kesri/20 transition-colors shrink-0"
+                    className="p-0.5 rounded-full hover:bg-accent-text/20 transition-colors shrink-0"
                 >
                     <XMarkIcon className="w-4 h-4" />
                 </button>

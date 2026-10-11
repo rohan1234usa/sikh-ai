@@ -95,7 +95,7 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                         {orders[i].map((choice) => (
                                             <label
                                                 key={choice}
-                                                className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-edge bg-surface px-3 py-2 text-ink transition-colors hover:border-accent-text/40 has-[:checked]:border-kesri has-[:checked]:bg-kesri/10 has-[:disabled]:cursor-default"
+                                                className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-edge bg-surface px-3 py-2 text-ink transition-colors hover:border-accent-text/40 has-[:checked]:border-accent-text has-[:checked]:bg-accent-text/10 has-[:disabled]:cursor-default"
                                             >
                                                 <input
                                                     type="radio"
@@ -103,7 +103,7 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                                     value={choice}
                                                     checked={answer === choice}
                                                     onChange={() => setAnswer(i, choice)}
-                                                    className="accent-kesri"
+                                                    className="accent-accent-text"
                                                 />
                                                 <span lang={choiceLang(question)} className={question.choicesLang === 'pa' ? 'font-gurmukhi text-xl' : ''}>
                                                     {question.choicesLang ? choice : <Mixed text={choice} />}

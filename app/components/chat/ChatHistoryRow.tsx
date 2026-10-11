@@ -61,7 +61,7 @@ export default function ChatHistoryRow({ chat, active, replying, initialFocus, o
         <li data-chat-row={chat.id}>
             <div
                 ref={rowRef}
-                className="group relative flex items-center rounded-lg transition-colors hover:bg-edge/60 has-[[aria-current=page]]:bg-kesri/10"
+                className="group relative flex items-center rounded-lg transition-colors hover:bg-edge/60 has-[[aria-current=page]]:bg-accent-text/10"
             >
                 {mode === 'rename' ? (
                     <input
@@ -125,7 +125,7 @@ export default function ChatHistoryRow({ chat, active, replying, initialFocus, o
                             )}
                             {replying && (
                                 <>
-                                    <span className="ml-auto h-2 w-2 shrink-0 animate-pulse rounded-full bg-kesri" aria-hidden="true" />
+                                    <span className="ml-auto h-2 w-2 shrink-0 animate-pulse rounded-full bg-accent-text" aria-hidden="true" />
                                     <span className="sr-only">, {h.replying}</span>
                                 </>
                             )}

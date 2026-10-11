@@ -73,7 +73,7 @@ export default async function ShabadPage({ params }: PageProps<'/[lang]/shabad/s
 
       <div className="max-w-4xl mx-auto w-full p-4 md:p-8 flex-1">
         <h1 className="sr-only">{title}</h1>
-        <article className="bg-surface-raised shadow-xl rounded-2xl overflow-hidden border-t-8 border-kesri">
+        <article className="bg-surface-raised shadow-xl rounded-2xl overflow-hidden border-t border-rule-gold">
           <header className="bg-surface px-6 py-6 md:py-8 text-center border-b border-edge space-y-2">
             <p className="text-accent-text uppercase tracking-widest text-xs font-bold">
               {t.shabad.page.label} · {shabadAngs(t, shabad)}

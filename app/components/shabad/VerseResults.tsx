@@ -90,7 +90,7 @@ export default function VerseResults() {
                                     type="button"
                                     onClick={() => showSearch(to('/shabad'), { q: example })}
                                     lang={latin ? 'pa-Latn' : 'pa'}
-                                    className={`rounded-full border border-edge bg-surface-raised px-4 py-1.5 text-ink shadow-sm transition-colors hover:border-kesri/60 ${latin ? 'text-sm' : 'font-gurmukhi text-lg'}`}
+                                    className={`rounded-full border border-edge bg-surface-raised px-4 py-1.5 text-ink shadow-sm transition-colors hover:border-link/60 ${latin ? 'text-sm' : 'font-gurmukhi text-lg'}`}
                                 >
                                     {example}
                                 </button>
@@ -161,7 +161,7 @@ export default function VerseResults() {
                         </p>
                     </div>
                     {!data.complete && (
-                        <p className="rounded-lg border border-kesri/40 bg-kesri/10 px-4 py-3 text-sm text-ink">
+                        <p className="rounded-lg border border-accent-text/40 bg-accent-text/10 px-4 py-3 text-sm text-ink">
                             {t.shabad.results.incomplete}{' '}
                             <button type="button" onClick={retry} className="font-semibold text-accent-text underline">{t.shabad.results.retry}</button>
                         </p>
