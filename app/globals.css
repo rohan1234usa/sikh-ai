@@ -163,7 +163,6 @@ html[lang='pa'] body {
 }
 
 @layer base {
-  /* Navy panels set --focus-ring back to kesri, which is 8.4:1 on navy. */
   :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
     outline: 2px solid var(--focus-ring);
     outline-offset: 2px;

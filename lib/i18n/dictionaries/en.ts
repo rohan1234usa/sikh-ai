@@ -279,16 +279,12 @@ const en = {
     },
 
     home: {
-        badge: 'Powered by Google Gemini',
         heroLine1: 'Wisdom of the Gurus,',
         heroLine2: 'Illuminated by AI.',
         heroSubtitle:
             'Explore Gurbani, find local Sangat, and discover daily Hukamnamas in a space designed for peace, learning, and Seva.',
         ctaChat: 'Start Chatting',
         ctaHukamnama: "Today's Hukamnama",
-        previewWindowTitle: 'SikhAI Chat',
-        previewAiLine: 'Waheguru Ji Ka Khalsa... How can I help you understand Gurbani today?',
-        previewUserLine: 'What does the Guru Granth Sahib say about humility?',
         exploreTitle: 'Explore SikhAI',
         // No count in the copy — the Explore grid grows as features are added.
         exploreSubtitle: 'Ways to connect with Gurbani, Sangat, and the Punjabi language — all in one place.',
