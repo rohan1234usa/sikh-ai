@@ -1,7 +1,7 @@
 import { limitVisitor } from '@/lib/api/allowance';
 import { refuseCrossSite } from '@/lib/api/guard';
 import { readClientReport, type ReadReport } from '@/lib/errors/report';
-import { browserEvent } from '@/lib/errors/sentry';
+import { browserEvent, browserSentry } from '@/lib/errors/sentry';
 import { currentRequestId, logEvent, sendInBackground, withRequestLog } from '@/lib/log';
 
 // The site's pages post their own errors here (lib/errors/client.ts, #20).
@@ -49,11 +49,13 @@ async function handlePost(req: Request) {
         page: report.page,
         frames: report.frames.slice(0, 6).map(frameText),
     }, 'warn');
+    // Its own sender: anyone can post a report, so reports mustn't use up
+    // what the site's own errors need (lib/errors/sentry.ts).
     void sendInBackground(browserEvent(report, {
         origin,
         userAgent: req.headers.get('user-agent'),
         requestId: currentRequestId(),
-    }));
+    }), browserSentry);
     return done();
 }
 

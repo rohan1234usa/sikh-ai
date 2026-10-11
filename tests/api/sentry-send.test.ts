@@ -2,7 +2,8 @@ import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { ReadReport } from '@/lib/errors/report';
 import {
-    PER_HOUR, REPEAT_MS, browserEvent, createSender, envelope, logLineEvent, parseDsn, waitFrom, type Outgoing,
+    BROWSER_PER_HOUR, PER_HOUR, REPEAT_MS, browserEvent, createSender, envelope, logLineEvent, parseDsn, waitFrom,
+    type Outgoing,
 } from '@/lib/errors/sentry';
 import { startSentryMock, type SentryMock } from '../helpers/sentryMock';
 
@@ -38,10 +39,11 @@ const outgoing = (key: string): Outgoing =>
 
 test('a DSN gives the envelope address and the key; anything else gives nothing', () => {
     assert.deepEqual(parseDsn('https://abc@o123.ingest.us.sentry.io/456'),
-        { endpoint: 'https://o123.ingest.us.sentry.io/api/456/envelope/', key: 'abc' });
+        { endpoint: 'https://o123.ingest.us.sentry.io/api/456/envelope/', key: 'abc', local: false });
     assert.deepEqual(parseDsn('https://abc@sentry.example.com/base/7'),
-        { endpoint: 'https://sentry.example.com/base/api/7/envelope/', key: 'abc' });
-    assert.deepEqual(parseDsn('http://abc@127.0.0.1:8789/1'), { endpoint: 'http://127.0.0.1:8789/api/1/envelope/', key: 'abc' });
+        { endpoint: 'https://sentry.example.com/base/api/7/envelope/', key: 'abc', local: false });
+    assert.deepEqual(parseDsn('http://abc@127.0.0.1:8789/1'),
+        { endpoint: 'http://127.0.0.1:8789/api/1/envelope/', key: 'abc', local: true });
     for (const bad of [undefined, '', 'nonsense', 'http://abc@sentry.example.com/1', 'https://sentry.example.com/1', 'https://abc@sentry.example.com/x'])
         assert.equal(parseDsn(bad), null, String(bad));
 });
@@ -197,14 +199,32 @@ test('a refusal, a dead end or no answer is a failure, never a retry or a throw'
 
     const nowhere = createSender({ SENTRY_DSN: 'http://k@127.0.0.1:9/1' }, { timeoutMs: 200 });
     assert.equal((await nowhere.send(outgoing('c'), T0)).result, 'failed');
+    sentry.answer = { status: 200 };
 });
 
-test('without a DSN, while the site builds, or on the edge, nothing is sent', async () => {
-    sentry.received.length = 0;
-    for (const env of [{}, { SENTRY_DSN: sentry.dsn, NEXT_PHASE: 'phase-production-build' }, { SENTRY_DSN: sentry.dsn, NEXT_RUNTIME: 'edge' }]) {
-        assert.equal((await createSender(env).send(outgoing('x'), T0)).result, 'skipped', JSON.stringify(env));
-    }
+test('without a DSN, or while the site builds, nothing is sent; tests send only to a mock on this machine', async () => {
+    fresh();
+    for (const env of [
+        {},
+        { SENTRY_DSN: sentry.dsn, NEXT_PHASE: 'phase-production-build' },
+        // A real project's DSN in the shell running the tests.
+        { SENTRY_DSN: 'https://publickey@o1.ingest.us.sentry.io/42', NODE_TEST_CONTEXT: 'child-v8' },
+    ]) assert.equal((await createSender(env).send(outgoing('x'), T0)).result, 'skipped', JSON.stringify(env));
     assert.equal(sentry.received.length, 0);
+    assert.equal((await createSender({ SENTRY_DSN: sentry.dsn, NODE_TEST_CONTEXT: 'child-v8' }).send(outgoing('y'), T0)).result, 'sent');
+});
+
+test("visitors' reports keep a share of their own, and can go to a key of their own", async () => {
+    fresh();
+    const browser = createSender({ SENTRY_BROWSER_DSN: sentry.dsn.replace('publickey', 'browserkey'), SENTRY_DSN: sentry.dsn }, {
+        perHour: BROWSER_PER_HOUR,
+        dsn: (env) => env.SENTRY_BROWSER_DSN || env.SENTRY_DSN,
+    });
+    for (let i = 0; i < BROWSER_PER_HOUR; i++) assert.equal((await browser.send(outgoing(`r${i}`), T0 + i)).result, 'sent');
+    assert.equal((await browser.send(outgoing('one more'), T0 + BROWSER_PER_HOUR)).result, 'skipped');
+    assert.ok(sentry.received.every((r) => String(r.headers['x-sentry-auth']).includes('sentry_key=browserkey')));
+    // The site's own sender still has its whole share.
+    assert.equal((await fresh().send(outgoing('site'), T0 + BROWSER_PER_HOUR)).result, 'sent');
 });
 
 test('settled() waits for every send in flight', async () => {

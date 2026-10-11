@@ -14,9 +14,13 @@
 // Sentry's free plan takes 5,000 errors a month, and the key's rate limit
 // there (README, Running in production) is the real ceiling. What a server
 // holds back here is a backstop: the same error at most once in 10 minutes,
-// at most 20 an hour, and nothing while Sentry says to wait. Each running
-// server counts on its own, as does each copy of this module Next bundles
-// (for pages, for routes, for instrumentation.ts).
+// at most 20 an hour (10 for visitors' reports), and nothing while Sentry
+// says to wait. Each running server counts on its own.
+//
+// A visitor's report can be made up: anyone can post one. So reports have a
+// sender of their own, with its own hourly share and, if SENTRY_BROWSER_DSN
+// names a second key, Sentry's own limit, and made-up reports can't use up
+// what the site's own errors need.
 
 import { randomUUID } from 'node:crypto';
 import { request as httpRequest, type IncomingHttpHeaders } from 'node:http';
@@ -28,6 +32,7 @@ const SDK = { name: 'sikhai.relay', version: '1.0.0' };
 const TIMEOUT_MS = 3_000;
 export const REPEAT_MS = 10 * 60_000;
 export const PER_HOUR = 20;
+export const BROWSER_PER_HOUR = 10;
 const HOUR_MS = 3_600_000;
 // How long to wait when Sentry says to without saying for how long.
 const DEFAULT_WAIT_MS = 60_000;
@@ -35,14 +40,14 @@ const DEFAULT_WAIT_MS = 60_000;
 const MAX_REMEMBERED = 500;
 
 type Env = Record<string, string | undefined>;
-type Dsn = { endpoint: string; key: string };
+type Dsn = { endpoint: string; key: string; local: boolean };
 
 // Plain http only for a mock on this machine (README, Getting Started, step 5).
 const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]']);
 
-// SENTRY_DSN, https://<key>@<host>[/<path>]/<project>, as the address events
-// are posted to and the key that goes with them. Null when it's unset or
-// can't be read.
+// A DSN, https://<key>@<host>[/<path>]/<project>, as the address events are
+// posted to and the key that goes with them. Null when it's unset or can't be
+// read.
 export function parseDsn(dsn: string | undefined): Dsn | null {
     if (!dsn) return null;
     try {
@@ -50,9 +55,9 @@ export function parseDsn(dsn: string | undefined): Dsn | null {
         const key = decodeURIComponent(url.username);
         const segments = url.pathname.split('/');
         const project = segments.pop() ?? '';
-        const secure = url.protocol === 'https:' || (url.protocol === 'http:' && LOOPBACK.has(url.hostname));
-        if (!secure || !key || !/^\d+$/.test(project)) return null;
-        return { endpoint: `${url.protocol}//${url.host}${segments.join('/')}/api/${project}/envelope/`, key };
+        const local = LOOPBACK.has(url.hostname);
+        if ((url.protocol !== 'https:' && !(url.protocol === 'http:' && local)) || !key || !/^\d+$/.test(project)) return null;
+        return { endpoint: `${url.protocol}//${url.host}${segments.join('/')}/api/${project}/envelope/`, key, local };
     } catch {
         return null;
     }
@@ -285,7 +290,17 @@ export type Sender = {
     settled(): Promise<void>;
 };
 
-export function createSender(env: Env = process.env, { timeoutMs = TIMEOUT_MS } = {}): Sender {
+type SenderOptions = {
+    timeoutMs?: number;
+    perHour?: number;
+    // Which DSN it sends to, read for every send.
+    dsn?: (env: Env) => string | undefined;
+};
+
+export function createSender(
+    env: Env = process.env,
+    { timeoutMs = TIMEOUT_MS, perHour = PER_HOUR, dsn: dsnOf = (e) => e.SENTRY_DSN }: SenderOptions = {},
+): Sender {
     let waitUntil = 0;
     let hourStarted = -Infinity;
     let sentThisHour = 0;
@@ -300,7 +315,7 @@ export function createSender(env: Env = process.env, { timeoutMs = TIMEOUT_MS } 
             hourStarted = now;
             sentThisHour = 0;
         }
-        if (sentThisHour >= PER_HOUR) return false;
+        if (sentThisHour >= perHour) return false;
         sentThisHour++;
         lastSent.delete(key);
         lastSent.set(key, now);
@@ -310,10 +325,11 @@ export function createSender(env: Env = process.env, { timeoutMs = TIMEOUT_MS } 
 
     return {
         send({ event, key }, now = Date.now()) {
-            const dsn = parseDsn(env.SENTRY_DSN);
+            const dsn = parseDsn(dsnOf(env));
             // Not while the site builds (an error line from a page prerendered
-            // at build time), and not on the edge, where there's no node:https.
-            const away = env.NEXT_PHASE === 'phase-production-build' || env.NEXT_RUNTIME === 'edge';
+            // at build time), and from tests only to a mock on this machine,
+            // whatever DSN the shell running them has set.
+            const away = env.NEXT_PHASE === 'phase-production-build' || (env.NODE_TEST_CONTEXT !== undefined && !dsn?.local);
             if (!dsn || away || !admit(key, now)) return Promise.resolve({ result: 'skipped' });
             const sending = post(dsn, envelope(event, now), timeoutMs).then(
                 (answer): SendResult => {
@@ -332,5 +348,19 @@ export function createSender(env: Env = process.env, { timeoutMs = TIMEOUT_MS } 
     };
 }
 
-// This module's sender, for the site's own errors and its visitors' reports.
-export const sentry = createSender();
+// One sender of each kind per process, however many copies of this module
+// Next bundles (for pages, for routes, for instrumentation.ts), so each
+// backstop counts for the whole server.
+const SENDERS = Symbol.for('sikhai.errors.senders');
+const senders = ((globalThis as { [SENDERS]?: { site: Sender; browser: Sender } })[SENDERS] ??= {
+    site: createSender(),
+    browser: createSender(process.env, {
+        perHour: BROWSER_PER_HOUR,
+        dsn: (env) => env.SENTRY_BROWSER_DSN || env.SENTRY_DSN,
+    }),
+});
+
+// The site's own errors (lib/log.ts).
+export const sentry = senders.site;
+// Its visitors' reports (app/api/error-report).
+export const browserSentry = senders.browser;

@@ -15,7 +15,7 @@
 // What passes on its own is a warning, and stays in the logs.
 
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { logLineEvent, sentry, type Outgoing } from './errors/sentry';
+import { logLineEvent, sentry, type Outgoing, type Sender } from './errors/sentry';
 import { frameLines } from './errors/scrub';
 
 type RequestContext = { requestId: string; route: string };
@@ -81,8 +81,8 @@ const platformWaitUntil = () => (globalThis as { [PLATFORM_CONTEXT]?: PlatformCo
 // resolves at once. With no platform (a test, a script, a server run by
 // hand), it resolves when the send is done, for a caller that waits. Never
 // rejects.
-export function sendInBackground(outgoing: Outgoing): Promise<void> {
-    const sending = sentry.send(outgoing).then((sent) => {
+export function sendInBackground(outgoing: Outgoing, sender: Sender = sentry): Promise<void> {
+    const sending = sender.send(outgoing).then((sent) => {
         const now = Date.now();
         if (sent.result !== 'failed' || now - failedSendNoted < FAILED_SEND_NOTE_MS) return;
         failedSendNoted = now;

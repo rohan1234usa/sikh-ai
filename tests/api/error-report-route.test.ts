@@ -1,6 +1,6 @@
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { sentry } from '@/lib/errors/sentry';
+import { browserSentry } from '@/lib/errors/sentry';
 import { VISITOR_LIMITS } from '@/lib/api/allowance';
 import { postJson } from '../helpers/routes';
 import { startSentryMock, type SentryMock } from '../helpers/sentryMock';
@@ -60,7 +60,7 @@ test("a page's report is logged and sent on to Sentry, without anything the visi
                 referer: `${SITE}/shabad?q=private`,
             }));
             assert.equal(res.status, 204);
-            await sentry.settled();
+            await browserSentry.settled();
         });
         assert.equal(lines.length, 1);
         assert.deepEqual(lines[0], {
@@ -110,7 +110,7 @@ test('a browser sending Global Privacy Control, or something that is not a repor
                 postJson(`${SITE}/api/error-report`, report({ kind: 'nonsense' }), from),
                 postJson(`${SITE}/api/error-report`, ['not', 'a', 'report'], from),
             ]) assert.equal((await POST(req)).status, 204);
-            await sentry.settled();
+            await browserSentry.settled();
         });
         assert.deepEqual(lines, []);
         assert.equal(mock.received.length, 0);
