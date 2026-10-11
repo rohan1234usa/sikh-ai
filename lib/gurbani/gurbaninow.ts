@@ -323,7 +323,7 @@ export async function fetchHukamnama(): Promise<Hukamnama | null> {
 // no line to show.
 export function parseHukamnamaPayload(data: unknown): Hukamnama | null {
     const d = obj(data);
-    if (!Array.isArray(d.hukamnama)) return null;
+    if (d.error || !Array.isArray(d.hukamnama)) return null;
     const info = obj(d.hukamnamainfo);
     const start = num(info.pageno);
     const { lines } = shabadLines(d.hukamnama, start);

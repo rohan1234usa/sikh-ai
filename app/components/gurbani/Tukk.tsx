@@ -40,9 +40,11 @@ const GURMUKHI_SIZE: Record<TukkSize, { verse: string; heading: string }> = {
     compact: { verse: 'text-lg', heading: 'text-base' },
 };
 
+// The Hukamnama and a shabad read the same below the Gurmukhi.
+const READING_LATIN = { transliteration: 'text-sm md:text-base', translation: 'text-base md:text-lg' };
 const LATIN_SIZE: Record<TukkSize, { transliteration: string; translation: string }> = {
-    display: { transliteration: 'text-sm md:text-base', translation: 'text-base md:text-lg' },
-    page: { transliteration: 'text-sm md:text-base', translation: 'text-base md:text-lg' },
+    display: READING_LATIN,
+    page: READING_LATIN,
     list: { transliteration: 'text-sm', translation: 'text-base' },
     compact: { transliteration: 'text-xs', translation: 'text-sm' },
 };

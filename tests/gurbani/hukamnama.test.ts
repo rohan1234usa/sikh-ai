@@ -37,6 +37,8 @@ test('a payload with nothing to show is null, and a drifted one never throws', (
     assert.equal(parseHukamnamaPayload(null), null);
     assert.equal(parseHukamnamaPayload({}), null);
     assert.equal(parseHukamnamaPayload({ hukamnama: [] }), null);
+    // An answer the source flags as an error isn't shown, whatever lines it carries.
+    assert.equal(parseHukamnamaPayload({ ...(RECORDED as object), error: true }), null);
     assert.equal(parseHukamnamaPayload({ hukamnama: [{ line: { id: 'X1' } }] }), null);
     const bare = parseHukamnamaPayload({ hukamnama: [{ line: { id: 'X1', type: 4, gurmukhi: { unicode: 'ਸਤਿ' } } }], hukamnamainfo: { shabadid: 'not an id' } });
     assert.ok(bare);
