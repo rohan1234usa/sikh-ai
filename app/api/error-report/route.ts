@@ -26,6 +26,12 @@ async function handlePost(req: Request) {
     // A browser asking every site not to track it (Global Privacy Control)
     // sends no reports; one that arrives anyway is dropped unread.
     if (req.headers.get('sec-gpc') === '1') return done();
+    // Every post counts, read or not: the site's own pages send only reports
+    // that read, and this path stays out of the firewall's rate limit (README,
+    // Running in production, step 3), so nothing else holds back a script
+    // that posts junk.
+    const limited = limitVisitor(req, 'errorReport');
+    if (limited) return limited;
     const raw = await req.text();
     if (raw.length > MAX_BODY_CHARS) return new Response(null, { status: 413 });
     let body: unknown;
@@ -37,8 +43,6 @@ async function handlePost(req: Request) {
     const origin = new URL(req.url).origin;
     const report = readClientReport(body, origin);
     if (!report) return done();
-    const limited = limitVisitor(req, 'errorReport');
-    if (limited) return limited;
     logEvent('client_error', {
         kind: report.kind,
         error: report.message ? `${report.name}: ${report.message}` : report.name,

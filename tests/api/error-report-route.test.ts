@@ -87,11 +87,12 @@ test("a page's report is logged and sent on to Sentry, without anything the visi
 });
 
 test("another site's page, a body that isn't JSON or one too big is refused before it's read", async () => {
+    const from = { 'x-forwarded-for': '203.0.113.40' };
     const lines = await capture(async () => {
-        assert.equal((await POST(postJson(`${SITE}/api/error-report`, report(), { 'sec-fetch-site': 'cross-site' }))).status, 403);
-        assert.equal((await POST(postJson(`${SITE}/api/error-report`, report(), { 'content-type': 'text/plain' }))).status, 415);
-        assert.equal((await POST(postJson(`${SITE}/api/error-report`, report({ message: 'x'.repeat(20_000) })))).status, 413);
-        const notJson = new Request(`${SITE}/api/error-report`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: 'not json' });
+        assert.equal((await POST(postJson(`${SITE}/api/error-report`, report(), { ...from, 'sec-fetch-site': 'cross-site' }))).status, 403);
+        assert.equal((await POST(postJson(`${SITE}/api/error-report`, report(), { ...from, 'content-type': 'text/plain' }))).status, 415);
+        assert.equal((await POST(postJson(`${SITE}/api/error-report`, report({ message: 'x'.repeat(20_000) }), from))).status, 413);
+        const notJson = new Request(`${SITE}/api/error-report`, { method: 'POST', headers: { ...from, 'content-type': 'application/json' }, body: 'not json' });
         assert.equal((await POST(notJson)).status, 400);
     });
     assert.deepEqual(lines.map((l) => l.evt), ['request_refused', 'request_refused']);
@@ -102,11 +103,12 @@ test('a browser sending Global Privacy Control, or something that is not a repor
     mock.received.length = 0;
     try {
         const lines = await capture(async () => {
+            const from = { 'x-forwarded-for': '203.0.113.41' };
             for (const req of [
-                postJson(`${SITE}/api/error-report`, report(), { 'sec-gpc': '1' }),
-                postJson(`${SITE}/api/error-report`, report({ frames: ['at f (https://other.example/x.js:1:1)'] })),
-                postJson(`${SITE}/api/error-report`, report({ kind: 'nonsense' })),
-                postJson(`${SITE}/api/error-report`, ['not', 'a', 'report']),
+                postJson(`${SITE}/api/error-report`, report(), { ...from, 'sec-gpc': '1' }),
+                postJson(`${SITE}/api/error-report`, report({ frames: ['at f (https://other.example/x.js:1:1)'] }), from),
+                postJson(`${SITE}/api/error-report`, report({ kind: 'nonsense' }), from),
+                postJson(`${SITE}/api/error-report`, ['not', 'a', 'report'], from),
             ]) assert.equal((await POST(req)).status, 204);
             await sentry.settled();
         });
@@ -115,6 +117,13 @@ test('a browser sending Global Privacy Control, or something that is not a repor
     } finally {
         delete process.env.SENTRY_DSN;
     }
+});
+
+test("one visitor gets 10 posts a minute, whether they're reports or not", async () => {
+    const from = { 'x-forwarded-for': '203.0.113.30' };
+    for (let i = 0; i < VISITOR_LIMITS.errorReport.perMinute; i++)
+        assert.equal((await POST(postJson(`${SITE}/api/error-report`, { junk: i }, from))).status, 204);
+    assert.equal((await POST(postJson(`${SITE}/api/error-report`, report(), from))).status, 429);
 });
 
 test('one visitor gets 10 reports a minute', async () => {
