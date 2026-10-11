@@ -215,12 +215,12 @@ test('a report with no frame on this site, or that is not one, is dropped', () =
 
 test('an email goes whatever its letters or encoding, and a cut never leaves half of one', () => {
     for (const message of [
-        'No account for harpreet.kaur.josé@gmail.com',
-        'No account for rohan@bücher.de',
-        'No account for rohan.singh%40gmail.com',
-        'No account for jaspreet​.kaur@gmail.com',
+        'No account for harpreet.kaur.josé@example.com',
+        'No account for someone@bücher.example',
+        'No account for someone.else%40example.com',
+        'No account for jaspreet​.kaur@example.com',
     ]) assert.equal(scrubMessage('Error', message), 'No account for [email]', message);
-    const cut = scrubMessage('Error', `Unknown "${'x'.repeat(980)}" for rohan.singh@gmail.com please`);
+    const cut = scrubMessage('Error', `Unknown "${'x'.repeat(980)}" for rohan.singh@example.com please`);
     assert.ok(!cut.includes('rohan'), cut);
     const id = scrubMessage('Error', `${'word '.repeat(198)}id ${SHARE_ID}`);
     assert.ok(!id.includes('AbCd'), id);
