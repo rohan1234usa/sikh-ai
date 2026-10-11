@@ -6,6 +6,7 @@ import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { alternativesOf, classifyQuery, MAX_QUERY_CHARS, type InvalidReason, type SearchAs } from '@/lib/gurbani/query';
 import type { Dictionary } from '@/lib/i18n';
 import { useLocalePath, useT } from '../../context/LanguageContext';
+import { PRIMARY_FILL } from '../buttons';
 import { searchString, showSearch, useSearchQuery } from './useSearchQuery';
 
 // Why a query can't be searched, in the reader's language.
@@ -86,12 +87,12 @@ export default function ShabadSearchBox({ initial, inline }: { initial?: string;
                     autoCapitalize="none"
                     autoCorrect="off"
                     spellCheck={false}
-                    className="w-full p-4 pl-12 pr-16 sm:pr-28 rounded-xl text-navy bg-white border-2 border-transparent focus:border-focus-ring shadow-xl transition-all placeholder:text-slate-400 [&::-webkit-search-cancel-button]:hidden"
+                    className="w-full p-4 pl-12 pr-16 sm:pr-28 rounded-xl text-ink bg-surface-raised border-2 border-edge-strong focus:border-focus-ring transition-all placeholder:text-ink-faint [&::-webkit-search-cancel-button]:hidden"
                 />
-                <MagnifyingGlassIcon className="w-6 h-6 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" aria-hidden="true" />
+                <MagnifyingGlassIcon className="w-6 h-6 text-ink-faint absolute left-4 top-1/2 -translate-y-1/2" aria-hidden="true" />
                 <button
                     type="submit"
-                    className="absolute right-2 top-2 bottom-2 bg-navy text-white px-4 sm:px-6 rounded-lg font-bold hover:bg-kesri hover:text-navy transition"
+                    className={`absolute right-2 top-2 bottom-2 px-4 sm:px-6 rounded-lg transition-colors ${PRIMARY_FILL}`}
                 >
                     <MagnifyingGlassIcon className="w-5 h-5 sm:hidden" aria-hidden="true" />
                     <span className="max-sm:sr-only">{t.shabad.searchButton}</span>

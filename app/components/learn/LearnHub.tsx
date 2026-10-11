@@ -9,6 +9,7 @@ import {
     RectangleStackIcon,
 } from '@heroicons/react/24/outline';
 import IntentLink from '@/app/components/IntentLink';
+import { PRIMARY_BUTTON } from '@/app/components/buttons';
 import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { LessonTrackId, TrackId } from '@/lib/learn/config';
@@ -78,24 +79,24 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
             {!hydrated ? (
                 <div aria-hidden="true" className="h-52 animate-pulse rounded-2xl bg-edge/40 sm:h-30" />
             ) : nextLink ? (
-                <div className="flex flex-col gap-4 rounded-2xl bg-navy p-6 text-white shadow-md sm:flex-row sm:items-center [--focus-ring:var(--color-kesri)]">
+                <div className="flex flex-col gap-4 rounded-2xl border border-edge-strong bg-surface-raised p-6 text-ink sm:flex-row sm:items-center">
                     <div className="min-w-0 flex-1 space-y-1">
-                        <p className="text-xs font-bold uppercase tracking-widest text-kesri">{label}</p>
+                        <p className="text-xs font-bold uppercase tracking-widest text-accent-text">{label}</p>
                         <p lang="en" className="text-xl font-bold"><Mixed text={nextLink.title} /></p>
-                        <p className="text-sm text-slate-300">{t.learn.tracks[nextLink.track].title}</p>
+                        <p className="text-sm text-ink-muted">{t.learn.tracks[nextLink.track].title}</p>
                     </div>
                     <IntentLink
                         href={nextLink.href}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-kesri px-5 py-2.5 font-bold text-navy shadow-lg shadow-kesri/20 transition-colors hover:bg-kesri-hover"
+                        className={PRIMARY_BUTTON}
                     >
                         {t.learn.hub.openLesson}
                         <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
                     </IntentLink>
                 </div>
             ) : (
-                <div className="flex min-h-52 flex-col justify-center rounded-2xl bg-navy p-6 text-white shadow-md sm:min-h-30">
+                <div className="flex min-h-52 flex-col justify-center rounded-2xl border border-edge-strong bg-surface-raised p-6 text-ink sm:min-h-30">
                     <p className="text-xl font-bold">{t.learn.hub.allDone}</p>
-                    <p className="text-sm text-slate-300">{t.learn.hub.allDoneBody}</p>
+                    <p className="text-sm text-ink-muted">{t.learn.hub.allDoneBody}</p>
                 </div>
             )}
 
