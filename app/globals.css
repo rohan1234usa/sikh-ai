@@ -113,6 +113,25 @@ html[lang='pa'] body {
   font-family: var(--font-gurmukhi);
 }
 
+@layer components {
+  /* The one ornament: a gold and kesri band, after the borders of illuminated
+     birs, along the bottom of the header. The pattern is painted over a solid
+     gold border, so where backgrounds are dropped (forced colours) a rule is
+     still drawn. The element must be positioned (the sticky header is). */
+  .border-band {
+    border-bottom: 3px solid var(--rule-gold);
+  }
+  .border-band::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: -3px;
+    height: 3px;
+    pointer-events: none;
+    background: repeating-linear-gradient(90deg, var(--rule-gold) 0 10px, var(--surface) 10px 14px, var(--accent-text) 14px 17px, var(--surface) 17px 21px);
+  }
+}
+
 @layer base {
   /* Navy panels set --focus-ring back to kesri, which is 8.4:1 on navy. */
   :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
