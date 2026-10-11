@@ -158,3 +158,26 @@ test('a send Sentry refuses is noted once, as a warning, never as another error'
         mock.answer = { status: 200 };
     }
 });
+
+test("with the platform's waitUntil, an error line's send is handed over and nothing waits for it", async () => {
+    const PLATFORM_CONTEXT = Symbol.for('@next/request-context');
+    const handed: Promise<unknown>[] = [];
+    Object.assign(globalThis, { [PLATFORM_CONTEXT]: { get: () => ({ waitUntil: (p: Promise<unknown>) => { handed.push(p); } }) } });
+    process.env.SENTRY_DSN = mock.dsn;
+    mock.answer = { status: 200, delayMs: 300 };
+    try {
+        mock.received.length = 0;
+        await capture(async () => {
+            const started = Date.now();
+            await logError('config_error', { missing: 'HANDED' });
+            assert.ok(Date.now() - started < 200, 'resolved before Sentry answered');
+            assert.equal(handed.length, 1);
+            await handed[0];
+        });
+        assert.equal(mock.received.length, 1);
+    } finally {
+        delete (globalThis as Record<symbol, unknown>)[PLATFORM_CONTEXT];
+        delete process.env.SENTRY_DSN;
+        mock.answer = { status: 200 };
+    }
+});

@@ -7,7 +7,7 @@ import type { AddressInfo } from 'node:net';
 import type { SentryEvent } from '@/lib/errors/sentry';
 
 export type Received = { path: string; headers: http.IncomingHttpHeaders; body: string; event: SentryEvent };
-export type Answer = { status: number; headers?: Record<string, string>; hang?: boolean };
+export type Answer = { status: number; headers?: Record<string, string>; hang?: boolean; delayMs?: number };
 
 export type SentryMock = {
     dsn: string;
@@ -24,9 +24,12 @@ export async function startSentryMock(): Promise<SentryMock> {
         req.on('data', (chunk) => { body += chunk; });
         req.on('end', () => {
             mock.received.push({ path: req.url ?? '', headers: req.headers, body, event: JSON.parse(body.split('\n')[2]) });
-            if (mock.answer.hang) return;
-            res.writeHead(mock.answer.status, mock.answer.headers);
-            res.end('{}');
+            const { hang, delayMs = 0, status, headers } = mock.answer;
+            if (hang) return;
+            setTimeout(() => {
+                res.writeHead(status, headers);
+                res.end('{}');
+            }, delayMs);
         });
     });
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));

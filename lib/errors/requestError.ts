@@ -34,8 +34,9 @@ function digestOf(error: unknown): string | undefined {
     return typeof digest === 'string' ? digest.slice(0, 64) : undefined;
 }
 
-// Resolves once its line is written and its send is done; Next doesn't wait
-// for this while a page renders, so the send is also handed to after().
+// Resolves once its line is written and its send is handed to the platform
+// (lib/log.ts, sendInBackground). Next awaits this hook before it sends a
+// failed route's 500, so the send must not be waited for here.
 export function logRequestError(error: unknown, request: RequestInfo, context: ErrorContext): Promise<void> {
     const requestId = requestIdOf(request.headers);
     return logError('request_error', {

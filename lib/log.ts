@@ -15,7 +15,6 @@
 // What passes on its own is a warning, and stays in the logs.
 
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { after } from 'next/server';
 import { logLineEvent, sentry, type Outgoing } from './errors/sentry';
 import { frameLines } from './errors/scrub';
 
@@ -56,8 +55,8 @@ export function logEvent(evt: string, fields: object, level: Level = 'info'): vo
     else write(evt, fields, level);
 }
 
-// An error line, which goes on to Sentry. Resolves once the send is done (or
-// held back, or failed), for instrumentation.ts, which waits for it.
+// An error line, which goes on to Sentry (sendInBackground). instrumentation.ts
+// waits for what this returns.
 export function logError(evt: string, fields: object): Promise<void> {
     const line = write(evt, fields, 'error');
     return line ? sendInBackground(logLineEvent(evt, line)) : Promise.resolve();
@@ -68,10 +67,20 @@ export function logError(evt: string, fields: object): Promise<void> {
 const FAILED_SEND_NOTE_MS = 5 * 60_000;
 let failedSendNoted = -Infinity;
 
-// Sends an event to Sentry without holding up the response: after() hands
-// the send to the platform straight away (Vercel's waitUntil), so it can
-// finish after the response has gone. Outside a request (a test, a script)
-// after() throws, and the send just runs. Never rejects.
+// The platform's way to keep a function running after its response (Vercel's
+// waitUntil), found where Next's own after() finds it (the after() docs,
+// "supporting after for serverless platforms"). Unlike after(), it's there
+// for the whole of a request, onRequestError included, which Next awaits
+// before it sends a failed route's 500 (instrumentation.ts).
+type PlatformContext = { get(): { waitUntil?: (promise: Promise<unknown>) => void } | undefined };
+const PLATFORM_CONTEXT = Symbol.for('@next/request-context');
+const platformWaitUntil = () => (globalThis as { [PLATFORM_CONTEXT]?: PlatformContext })[PLATFORM_CONTEXT]?.get()?.waitUntil;
+
+// Sends an event to Sentry without holding up the response: the send goes to
+// the platform, which lets it finish after the response has gone, and this
+// resolves at once. With no platform (a test, a script, a server run by
+// hand), it resolves when the send is done, for a caller that waits. Never
+// rejects.
 export function sendInBackground(outgoing: Outgoing): Promise<void> {
     const sending = sentry.send(outgoing).then((sent) => {
         const now = Date.now();
@@ -79,12 +88,10 @@ export function sendInBackground(outgoing: Outgoing): Promise<void> {
         failedSendNoted = now;
         write('error_report_failed', sent.status === undefined ? {} : { status: sent.status }, 'warn');
     });
-    try {
-        after(sending);
-    } catch {
-        // not in a request
-    }
-    return sending;
+    const waitUntil = platformWaitUntil();
+    if (!waitUntil) return sending;
+    waitUntil(sending);
+    return Promise.resolve();
 }
 
 // An error, for a log line: its name and message. A SyntaxError's message can
