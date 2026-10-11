@@ -40,7 +40,7 @@ export default function Navbar() {
         // 4rem tall in all, the band included: the chat, the tutor and the scroll
         // offsets (globals.css, scroll-mt-20) count on that height.
         <header className="border-band sticky top-0 z-50 bg-surface text-ink">
-            <nav aria-label={t.nav.mainNavAria} className="mx-auto flex h-[calc(4rem-3px)] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+            <nav aria-label={t.nav.mainNavAria} className="mx-auto flex h-[calc(4rem-3px)] max-w-7xl items-center justify-between gap-2 px-4 sm:gap-4 sm:px-6">
                 <IntentLink href={to('/')} onClick={closeMenu} className="flex items-center gap-2 text-xl font-bold tracking-wide">
                     <span className="font-gurmukhi text-accent-text" aria-hidden="true">ੴ</span> SikhAI
                 </IntentLink>
@@ -61,7 +61,8 @@ export default function Navbar() {
                     ))}
                 </ul>
 
-                <div className="flex items-center gap-3">
+                {/* Tighter on a phone: under /pa, ਸਾਈਨ ਇਨ is wide enough to push the row past 360px. */}
+                <div className="flex items-center gap-1.5 sm:gap-3">
                     <LanguageToggle />
                     <ThemeToggle />
                     {user ? (
@@ -102,7 +103,7 @@ export default function Navbar() {
                                 onClick={closeMenu}
                                 aria-current={isActive(href) ? 'page' : undefined}
                                 className={`block rounded-lg px-3 py-2 ${isActive(href)
-                                    ? 'bg-accent-text/10 text-accent-text font-semibold'
+                                    ? 'text-accent-text font-semibold'
                                     : 'text-ink hover:bg-edge/60'}`}
                             >
                                 {label}

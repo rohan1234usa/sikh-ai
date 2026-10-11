@@ -29,7 +29,7 @@ export default function LessonSections({ t, sections }: { t: Dictionary; section
                         </ul>
                     )}
                     {section.tip && (
-                        <p className="rounded-lg border border-accent-text/30 bg-accent-text/10 p-3 text-sm text-ink">
+                        <p className="border-l-2 border-accent-text py-1 pl-4 text-sm text-ink">
                             <span className="font-semibold text-accent-text">{t.learn.lesson.tip}: </span>
                             <span lang="en"><Mixed text={section.tip} /></span>
                         </p>

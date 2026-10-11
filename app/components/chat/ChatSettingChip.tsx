@@ -113,7 +113,7 @@ export default function ChatSettingChip<T extends string>({ heading, note, icon:
                                     aria-describedby={option.description ? `${id}-${i}-description` : undefined}
                                     onClick={() => choose(() => onSelect(option.id))}
                                     className={`flex w-full items-start gap-3 px-3.5 py-2 text-left transition-colors ${
-                                        selected ? 'bg-accent-text/10' : 'hover:bg-edge/60'
+                                        selected ? '' : 'hover:bg-edge/60'
                                     }`}
                                 >
                                     <span className="min-w-0 flex-1">

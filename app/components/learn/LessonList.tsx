@@ -28,7 +28,7 @@ export default function LessonList({ lessons }: { lessons: LessonLink[] }) {
                         >
                             <span
                                 aria-hidden="true"
-                                className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-bold ${record ? 'bg-accent-text text-surface' : 'bg-accent-text/10 text-accent-text'}`}
+                                className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-bold ${record ? 'bg-accent-text text-surface' : 'border border-accent-text/50 text-accent-text'}`}
                             >
                                 {record ? <CheckIcon className="h-5 w-5" /> : i + 1}
                             </span>
