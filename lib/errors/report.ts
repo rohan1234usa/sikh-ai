@@ -3,7 +3,7 @@
 // report before it leaves the page (lib/errors/scrub.ts), and the server
 // scrubs it again here, since anyone can post anything.
 
-import { frameLines, parseFrameLine, scrubMessage, scrubName, scrubPath, type ParsedFrame } from './scrub';
+import { MAX_FRAMES, frameLine, parseFrameLine, scrubMessage, scrubName, scrubPath, type ParsedFrame } from './scrub';
 
 export const ERROR_REPORT_PATH = '/api/error-report';
 
@@ -26,8 +26,9 @@ export type ReadReport = Omit<ClientReport, 'frames'> & { frames: ParsedFrame[] 
 // the page, so it gets the page's treatment.
 const SCRIPTS = '/_next/static/';
 
-function readFrame(line: string, origin: string): ParsedFrame | null {
-    const frame = parseFrameLine(line);
+function readFrame(posted: unknown, origin: string): ParsedFrame | null {
+    const line = typeof posted === 'string' ? frameLine(posted) : null;
+    const frame = line === null ? null : parseFrameLine(line);
     if (!frame) return null;
     let url: URL;
     try {
@@ -49,8 +50,7 @@ export function readClientReport(body: unknown, origin: string): ReadReport | nu
     const { kind, name, message, frames, page } = body as Record<string, unknown>;
     if (!ERROR_KINDS.includes(kind as ErrorKind) || typeof page !== 'string' || !Array.isArray(frames)) return null;
     const path = scrubPath(page, origin);
-    const lines = frameLines(frames.filter((f): f is string => typeof f === 'string').join('\n'), '');
-    const read = lines.map((line) => readFrame(line, origin)).filter((f): f is ParsedFrame => f !== null);
+    const read = frames.slice(0, MAX_FRAMES).flatMap((posted) => readFrame(posted, origin) ?? []);
     if (path === null || read.length === 0) return null;
     const type = scrubName(name);
     return { kind: kind as ErrorKind, name: type, message: scrubMessage(type, message), frames: read, page: path };

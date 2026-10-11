@@ -141,16 +141,22 @@ export const scrubName = (name: unknown): string =>
     typeof name === 'string' && /^[A-Za-z_$][\w$]{0,63}$/.test(name) ? name : 'Error';
 
 // One stack frame: V8's `    at fn (url:line:col)` or `    at url:line:col`,
-// or Firefox's and Safari's `fn@url:line:col` (`async*fn@…` in Firefox).
+// or Firefox's and Safari's `fn@url:line:col`. Firefox names what led to an
+// async frame before a star: `async*fn@…`, `promise callback*fn@…`.
 const V8_FRAME = /^\s*at (?:async )?(?:(.*?) \()?(.+?):(\d+):(\d+)\)?\s*$/;
-const AT_FRAME = /^\s*(?:async\*)?([^@\s]*(?: code)?)@(.+?):(\d+):(\d+)\s*$/;
+const AT_FRAME = /^\s*(?:[^@*]*\*)?([^@\s]*(?: code)?)@(.+?):(\d+):(\d+)\s*$/;
 // A frame's address loses its query and fragment (?dpl=… on Vercel), its
 // line and column kept.
 const FRAME_QUERY = /[?#][^\s:()]*(?=:\d+:\d+\)?\s*$)/;
 
-// A stack's line as a frame, without its query; null if it isn't one.
-function asFrame(raw: string): string | null {
-    const line = raw.trim().replace(FRAME_QUERY, '');
+// A stack's line as a frame, without its query; null if it isn't one. Its
+// length is checked before any pattern runs: a report's lines come from
+// anyone, and FRAME_QUERY slows down on a long run of '?' (a 16 KB line took
+// over a second). A real frame's query is short.
+export function frameLine(raw: string): string | null {
+    const trimmed = raw.trim();
+    if (trimmed.length > 2 * MAX_FRAME_CHARS) return null;
+    const line = trimmed.replace(FRAME_QUERY, '');
     return line.length <= MAX_FRAME_CHARS && (V8_FRAME.test(line) || AT_FRAME.test(line)) ? line : null;
 }
 
@@ -162,11 +168,11 @@ function asFrame(raw: string): string | null {
 export function frameLines(stack: unknown, message: unknown): string[] {
     if (typeof stack !== 'string') return [];
     const text = typeof message === 'string' ? message : '';
-    const at = text && asFrame(stack.split('\n', 1)[0]) === null ? stack.indexOf(text) : -1;
+    const at = text && frameLine(stack.split('\n', 1)[0]) === null ? stack.indexOf(text) : -1;
     const below = at === -1 ? stack : stack.slice(at + text.length);
     const frames: string[] = [];
     for (const raw of below.split('\n')) {
-        const line = asFrame(raw);
+        const line = frameLine(raw);
         if (line) frames.push(line);
         if (frames.length === MAX_FRAMES) break;
     }

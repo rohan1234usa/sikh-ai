@@ -17,6 +17,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { after } from 'next/server';
 import { logLineEvent, sentry, type Outgoing } from './errors/sentry';
+import { frameLines } from './errors/scrub';
 
 type RequestContext = { requestId: string; route: string };
 const requests = new AsyncLocalStorage<RequestContext>();
@@ -95,15 +96,14 @@ export function describeError(error: unknown): string {
     return `${error.name}: ${error.message}`.slice(0, 300);
 }
 
-// Where an error was thrown: the top of its stack, frames only. A frame names
-// a function and a file. The stack opens with the message, which may quote
-// user text and run over several lines, so frames are read from below it.
+// Where an error was thrown: the top of its stack, frames only, read as error
+// reports read a browser's (lib/errors/scrub.ts). A frame names a function and
+// a file. The stack opens with the message, which may quote user text and run
+// over several lines, so frames are read from below it.
 export function stackFrames(error: unknown, max = 6): string[] | undefined {
-    if (!(error instanceof Error) || typeof error.stack !== 'string') return undefined;
-    const at = error.message ? error.stack.indexOf(error.message) : -1;
-    const below = at === -1 ? error.stack : error.stack.slice(at + error.message.length);
-    const frames = below.split('\n').filter((line) => /^\s+at /.test(line));
-    return frames.length ? frames.slice(0, max).map((frame) => frame.trim().slice(0, 200)) : undefined;
+    if (!(error instanceof Error)) return undefined;
+    const frames = frameLines(error.stack, error.message).slice(0, max);
+    return frames.length ? frames : undefined;
 }
 
 // An API route's unexpected failure: what went wrong and where.

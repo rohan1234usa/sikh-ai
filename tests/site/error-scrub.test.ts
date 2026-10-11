@@ -137,6 +137,20 @@ test("Firefox's and Safari's top frame stays, even when the message turns up ins
         assert.deepEqual(frameLines(firefox, message), [`Foo@${CHUNK}:1:2345`, `Bar@${CHUNK}:2:10`], message);
 });
 
+test("Firefox's async frames, named for what led to them, are kept", () => {
+    const firefox = `load@${CHUNK}:25:7\npromise callback*load@${CHUNK}:25:7\nsetTimeout handler*schedule@${CHUNK}:30:1\n`;
+    assert.deepEqual(frameLines(firefox, 'x').length, 3);
+    assert.deepEqual(parseFrameLine(`setTimeout handler*schedule@${CHUNK}:30:1`), { fn: 'schedule', file: CHUNK, line: 30, column: 1 });
+});
+
+test("a hostile line is turned away before any pattern reads it", () => {
+    for (const line of ['?'.repeat(15_900), '#'.repeat(15_900), `at f (${CHUNK}${'?'.repeat(800)}:1:1)`]) {
+        const started = performance.now();
+        assert.deepEqual(frameLines(line, ''), []);
+        assert.ok(performance.now() - started < 50, `${line.slice(0, 12)}… took ${performance.now() - started} ms`);
+    }
+});
+
 test("a message can't pose as a frame", () => {
     const message = `upstream said:\n    at my private question (${CHUNK}:9:9)`;
     const stack = `Error: ${message}\n    at real (${CHUNK}:1:2)`;
