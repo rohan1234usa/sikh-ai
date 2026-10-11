@@ -147,18 +147,26 @@ const AT_FRAME = /^\s*(?:async\*)?([^@\s]*(?: code)?)@(.+?):(\d+):(\d+)\s*$/;
 // line and column kept.
 const FRAME_QUERY = /[?#][^\s:()]*(?=:\d+:\d+\)?\s*$)/;
 
+// A stack's line as a frame, without its query; null if it isn't one.
+function asFrame(raw: string): string | null {
+    const line = raw.trim().replace(FRAME_QUERY, '');
+    return line.length <= MAX_FRAME_CHARS && (V8_FRAME.test(line) || AT_FRAME.test(line)) ? line : null;
+}
+
 // The frames of a stack, as text, top first. V8 opens its stack with the
-// message, which can quote user text over several lines, so lines are read
-// only from below it; Firefox and Safari give frames alone.
+// message, which can quote user text over several lines, so its lines are
+// read only from below the message. Firefox and Safari give frames alone,
+// and their stack opens with one: there the message isn't looked for, since
+// a short one ('x') can turn up inside a frame's address.
 export function frameLines(stack: unknown, message: unknown): string[] {
     if (typeof stack !== 'string') return [];
     const text = typeof message === 'string' ? message : '';
-    const at = text ? stack.indexOf(text) : -1;
+    const at = text && asFrame(stack.split('\n', 1)[0]) === null ? stack.indexOf(text) : -1;
     const below = at === -1 ? stack : stack.slice(at + text.length);
     const frames: string[] = [];
     for (const raw of below.split('\n')) {
-        const line = raw.trim().replace(FRAME_QUERY, '');
-        if (line.length <= MAX_FRAME_CHARS && (V8_FRAME.test(line) || AT_FRAME.test(line))) frames.push(line);
+        const line = asFrame(raw);
+        if (line) frames.push(line);
         if (frames.length === MAX_FRAMES) break;
     }
     return frames;

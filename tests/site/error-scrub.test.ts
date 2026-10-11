@@ -131,6 +131,12 @@ test("a stack's frames are read from below its message, without their queries", 
     assert.deepEqual(frameLines(safari, message), [`Foo@${CHUNK}:1:2345`, `global code@${CHUNK}:3:4`]);
 });
 
+test("Firefox's and Safari's top frame stays, even when the message turns up inside it", () => {
+    const firefox = `Foo@${CHUNK}:1:2345\nBar@${CHUNK}:2:10\n`;
+    for (const message of ['x', 'e', 'Foo', 'chunks'])
+        assert.deepEqual(frameLines(firefox, message), [`Foo@${CHUNK}:1:2345`, `Bar@${CHUNK}:2:10`], message);
+});
+
 test("a message can't pose as a frame", () => {
     const message = `upstream said:\n    at my private question (${CHUNK}:9:9)`;
     const stack = `Error: ${message}\n    at real (${CHUNK}:1:2)`;
