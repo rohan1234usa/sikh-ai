@@ -11,7 +11,8 @@ import { useLearnProgress } from './useLearnProgress';
 export type TopicLink = { id: VocabTopicId; href: string; wordIds: string[] };
 
 // Every vocabulary topic in equal cells, as the hub's tracks are, with its
-// flashcard counts once this browser's progress is read.
+// flashcard counts once this browser's progress is read. The cells draw the
+// rules, so an odd last one spans the row and the outline still closes.
 export default function TopicList({ topics }: { topics: TopicLink[] }) {
     const t = useT();
     const { progress, now } = useLearnProgress();
@@ -21,7 +22,7 @@ export default function TopicList({ topics }: { topics: TopicLink[] }) {
             {topics.map(({ id, href, wordIds }) => {
                 const counts = now !== null ? cardCounts(wordIds, progress.cards, now) : null;
                 return (
-                    <li key={id} className="border-b border-r border-edge">
+                    <li key={id} className="border-b border-r border-edge sm:last:odd:col-span-2">
                         <IntentLink
                             href={href}
                             className="flex h-full flex-col gap-1 p-4 transition-colors hover:bg-surface-raised"

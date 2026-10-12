@@ -101,13 +101,13 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
             )}
 
             {/* Equal cells, as on the home page: the four tracks fill one
-                column or two evenly. */}
+                column or two evenly, and an odd last one would span the row. */}
             <ul className="grid border-l border-t border-edge sm:grid-cols-2">
                 {tracks.map(({ id, href }) => {
                     const Icon = ICONS[id];
                     const line = progressLine(id);
                     return (
-                        <li key={id} className="border-b border-r border-edge">
+                        <li key={id} className="border-b border-r border-edge sm:last:odd:col-span-2">
                             <IntentLink
                                 href={href}
                                 className="flex h-full flex-col gap-3 p-6 transition-colors hover:bg-surface-raised"
