@@ -100,6 +100,14 @@ test('a missing Hukamnama is a 502 hukamnama_unavailable, never cached', async (
     assert.equal(res.headers.get('cache-control'), 'no-store');
 });
 
+test('a Hukamnama flagged as an error is no Hukamnama, even with lines in it', async () => {
+    upstream = async () => Response.json({ ...HUKAMNAMA_PAYLOAD, error: true });
+    const res = await hukamnama(new Request('http://local/api/hukamnama'));
+    assert.equal(res.status, 502);
+    assert.equal((await res.json()).code, 'hukamnama_unavailable');
+    assert.equal(res.headers.get('cache-control'), 'no-store');
+});
+
 test("a whole shabad spends the shabad pages' own allowance, and anything unusable is no answer", async () => {
     const { fetchShabad, meters } = await import('@/lib/gurbani/gurbaninow');
     const recorded = JSON.parse(readFileSync(resolve(import.meta.dirname, '../gurbani/fixtures/shabads.json'), 'utf8'));

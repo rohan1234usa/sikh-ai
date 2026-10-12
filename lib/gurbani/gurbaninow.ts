@@ -122,7 +122,7 @@ export function parseAngPayload(data: unknown): GurbaniLine[] | null {
 
 // Search results carry their own source each. Only a shape we recognise may
 // answer "nothing matched" ([]); anything else is no answer at all (null), or
-// a correct quote would earn a card saying it could not be found. The live
+// a correct quote would earn a note saying it could not be found. The live
 // endpoint says it as { count: 0, shabads: [], error: false }; of the worded
 // errors, only its "Nothing Found!" means that — any other is a failure.
 export function parseSearchPayload(data: unknown): GurbaniLine[] | null {
@@ -304,10 +304,13 @@ export async function fetchShabad(id: string): Promise<Shabad | null> {
     return shabad?.id === id ? shabad : null;
 }
 
+// Today's Hukamnama as GurbaniNow sends it, for /api/hukamnama and for
+// fetchHukamnama below. An answer it flags as an error is no answer, even
+// with lines in it, so neither reader shows one.
 export async function fetchHukamnamaPayload(): Promise<unknown | null> {
     const data = await request(`${BASE}/hukamnama/today`, HUKAMNAMA_REVALIDATE_SECONDS);
-    const lines = obj(data).hukamnama;
-    return Array.isArray(lines) && lines.length > 0 ? data : null;
+    const d = obj(data);
+    return !d.error && Array.isArray(d.hukamnama) && d.hukamnama.length > 0 ? data : null;
 }
 
 // Today's Hukamnama, read: null when the source is slow or down, or sends
