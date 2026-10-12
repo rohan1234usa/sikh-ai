@@ -108,6 +108,15 @@ One commit per step, in this order, so no commit put the new palette on the old 
 5. **The tukk.** `app/components/gurbani/Tukk.tsx`, and `HukamnamaHeader` on the dawn. `/hukamnama` is rebuilt on a new parser, `parseHukamnamaPayload`, with a recorded fixture. It gained the transliterations, the heading kinds, the Ang link and GurbaniNow's attribution. Search results became ruled rows.
 6. **Home.** A short masthead, then today's Hukamnama (its opening four verses), the Seva strip, and the six features in equal cells. The badge, mock chat, glows and motion went, with their four strings.
 7. **Chat.** A transcript for the chat, the tutor and shared chats. `lib/chat/gurmukhiRuns.ts` marks every stretch of Gurmukhi in a reply as Punjabi for screen readers, and sets the Gurbani ones in Tiro. That means everything in quotes, and everything in a reply in English, since an answer often puts its tukk in a bold line of its own, not in a quote. A reply written in Punjabi keeps its prose in the interface face. The check's notes aren't marked in the reply's text, because they follow neither its order nor its wording.
+8. **Refinement.** A survey of every page, in both modes and at 360 px, found six places that still fell short of "rules, not cards":
+   - A shabad's page was a raised card. It is now set open, like the Hukamnama: a header ruled in gold, then the lines.
+   - Each line on an Ang page ended with "Guru Granth Sahib Ji". The page's title says it once.
+   - A tukk's closing ॥ could fall onto a line of its own on a phone. Gurbani lines now balance when they wrap (`text-wrap: balance`), and their Latin lines avoid a one-word last line.
+   - Eighteen chips and toggles were still fully round. They now have the 2px corner.
+   - Learn's tracks and topics were cards. They sit in equal cells, and a track's lessons are ruled rows led by kesri numerals.
+   - The About page still had the old look. It is now set like the other pages.
+
+   Three smaller clean-ups are filed as [#62](https://github.com/rohan1234usa/sikh-ai/issues/62): the dead `shadow-*` classes, one weight for page titles, and the home masthead's fade.
 
 ## Checks for the build
 
