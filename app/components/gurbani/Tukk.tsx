@@ -51,18 +51,23 @@ const LATIN_SIZE: Record<TukkSize, { transliteration: string; translation: strin
 
 // The classes, for a caller that lays the three out its own way (the
 // translator's labelled rows).
+//
+// A line of Gurbani that wraps is balanced, so its closing ॥ never sits alone
+// on a line of its own on a phone, and the Latin under it avoids a one-word
+// last line. Only the wrapping changes; the text stays as GurbaniNow gives it.
 export function tukkClasses(size: TukkSize = 'page', voice: TukkVoice = 'source', kind: LineKind = 'verse') {
     const heading = kind !== 'verse';
     const g = GURMUKHI_SIZE[size];
     const l = LATIN_SIZE[size];
+    const balance = voice === 'source' ? ' text-balance' : '';
     return {
-        gurmukhi: `font-gurmukhi leading-relaxed ${heading ? `${g.heading} text-ink-muted` : `${g.verse} text-ink`}`,
+        gurmukhi: `font-gurmukhi leading-relaxed${balance} ${heading ? `${g.heading} text-ink-muted` : `${g.verse} text-ink`}`,
         transliteration: voice === 'learn'
             ? 'font-sans font-medium text-ink'
-            : `font-sans ${l.transliteration} text-ink-faint`,
+            : `font-sans ${l.transliteration} text-pretty text-ink-faint`,
         translation: voice === 'learn'
             ? 'font-sans text-sm text-ink-muted'
-            : `font-sans ${l.translation} italic text-ink-muted`,
+            : `font-sans ${l.translation} text-pretty italic text-ink-muted`,
     };
 }
 
