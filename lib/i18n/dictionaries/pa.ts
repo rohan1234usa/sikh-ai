@@ -318,7 +318,6 @@ const pa: Dictionary = {
     },
 
     about: {
-        badge: '</> ਨਿਰਮਾਤਾ',
         builtBy: 'ਬਣਾਉਣ ਵਾਲਾ',
         bio1Before: '',
         bio1School: 'UC Irvine',

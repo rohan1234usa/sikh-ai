@@ -318,7 +318,6 @@ const paLatn: Dictionary = {
     },
 
     about: {
-        badge: '</> Nirmata',
         builtBy: 'Banaun Wala',
         bio1Before: '',
         bio1School: 'UC Irvine',

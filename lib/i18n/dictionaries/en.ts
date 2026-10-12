@@ -323,7 +323,6 @@ const en = {
     },
 
     about: {
-        badge: '</> The Architect',
         builtBy: 'Built By',
         bio1Before: 'Computer Science undergraduate at ',
         bio1School: 'UC Irvine',
