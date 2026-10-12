@@ -100,27 +100,27 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
                 </div>
             )}
 
-            <ul className="grid gap-4 sm:grid-cols-2">
+            {/* Equal cells, as on the home page: the four tracks fill one
+                column or two evenly. */}
+            <ul className="grid border-l border-t border-edge sm:grid-cols-2">
                 {tracks.map(({ id, href }) => {
                     const Icon = ICONS[id];
                     const line = progressLine(id);
                     return (
-                        <li key={id}>
+                        <li key={id} className="border-b border-r border-edge">
                             <IntentLink
                                 href={href}
-                                className="group flex h-full flex-col gap-3 rounded-2xl border border-edge bg-surface-raised p-6 shadow-sm transition-all hover:border-accent-text/40 hover:shadow-md"
+                                className="flex h-full flex-col gap-3 p-6 transition-colors hover:bg-surface-raised"
                             >
-                                <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-accent-text/10 text-accent-text">
-                                    <Icon className="h-6 w-6" aria-hidden="true" />
-                                </span>
+                                <Icon className="h-6 w-6 text-accent-text" aria-hidden="true" />
                                 <span className="text-lg font-semibold text-ink">{t.learn.tracks[id].title}</span>
                                 <span className="text-sm leading-relaxed text-ink-muted">{t.learn.tracks[id].desc}</span>
                                 <span className="mt-auto flex items-center justify-between gap-2 pt-2 text-sm">
                                     {/* Reserves its line before progress is read. */}
                                     <span className="font-semibold text-accent-text">{line ?? ' '}</span>
-                                    <span className="inline-flex items-center gap-1 font-medium text-link">
+                                    <span className="inline-flex items-center gap-1 font-semibold text-link">
                                         {t.learn.hub.open}
-                                        <ArrowRightIcon className="h-4 w-4 transition-transform motion-safe:group-hover:translate-x-0.5" aria-hidden="true" />
+                                        <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
                                     </span>
                                 </span>
                             </IntentLink>
