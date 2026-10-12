@@ -73,8 +73,10 @@ export default async function ShabadPage({ params }: PageProps<'/[lang]/shabad/s
 
       <div className="max-w-4xl mx-auto w-full p-4 md:p-8 flex-1">
         <h1 className="sr-only">{title}</h1>
-        <article className="bg-surface-raised shadow-xl rounded-2xl overflow-hidden border-t border-rule-gold">
-          <header className="bg-surface px-6 py-6 md:py-8 text-center border-b border-edge space-y-2">
+        {/* Set open on the page, as the Hukamnama is: a header ruled in gold,
+            then the lines, then the way on below a hairline. */}
+        <article>
+          <header className="space-y-2 border-b border-rule-gold px-6 py-8 text-center">
             <p className="text-accent-text uppercase tracking-widest text-xs font-bold">
               {t.shabad.page.label} · {shabadAngs(t, shabad)}
             </p>
@@ -88,7 +90,7 @@ export default async function ShabadPage({ params }: PageProps<'/[lang]/shabad/s
             </p>
           </header>
 
-          <div className="px-3 py-4 md:px-10 md:py-8">
+          <div className="py-6 md:px-10 md:py-8">
             {sections.map((section, i) => (
               <section key={`${section.ang}-${i}`}>
                 {sections.length > 1 && section.ang !== null && (
@@ -107,7 +109,7 @@ export default async function ShabadPage({ params }: PageProps<'/[lang]/shabad/s
             ))}
           </div>
 
-          <footer className="border-t border-edge bg-surface px-6 py-5 space-y-4">
+          <footer className="space-y-4 border-t border-edge pt-6">
             {(previousId || nextId) && (
               <nav aria-label={t.shabad.page.navAria} className="flex justify-between gap-4 text-sm font-semibold">
                 {previousId ? (
