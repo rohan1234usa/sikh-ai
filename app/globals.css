@@ -131,6 +131,15 @@ html[lang='pa'] body {
   font-synthesis-weight: none;
 }
 
+/* Gurmukhi is never letter-spaced: its letters hang from one headline, and
+   spacing cuts it between every letter. The label styles' tracking-* would do
+   that to every stamp under /pa. Outside any layer, so it wins over those
+   utilities; :lang(pa-Latn) is excluded, so romanized Punjabi keeps its
+   tracking like English. */
+:lang(pa):not(:lang(pa-Latn)) {
+  letter-spacing: normal;
+}
+
 @layer components {
   /* The one ornament: a gold and kesri band, after the borders of illuminated
      birs, along the bottom of the header. The pattern is painted over a solid
