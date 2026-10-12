@@ -2,6 +2,7 @@
 
 import { memo, useState } from 'react';
 import { ClipboardIcon, CheckIcon, ArrowPathIcon, StopCircleIcon } from '@heroicons/react/24/outline';
+import { inGurmukhi } from '@/lib/chat/gurmukhiRuns';
 import type { Reply, ReplySettings } from '@/lib/chat/transcript';
 import type { Dictionary } from '@/lib/i18n';
 import { fmt } from '@/lib/i18n/fmt';
@@ -90,7 +91,7 @@ function ReplyMessage({ reply, onRetry, onRegenerate, unsaved, actions = true }:
     // other (English, bilingual, romanized Punjabi, or one saved before replies
     // kept their settings) Gurmukhi is quoted Gurbani, set in the Gurbani face
     // wherever it sits.
-    const prose = reply.settings?.languageId === 'punjabi' && reply.settings.script !== 'latin';
+    const prose = reply.settings?.languageId === 'punjabi' && inGurmukhi(reply.text);
     const gurbani = prose ? 'quotes' : 'all';
 
     return (

@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { markdownComponents } from '@/app/components/chat/markdownComponents';
-import { rehypeGurmukhiRuns } from '@/lib/chat/gurmukhiRuns';
+import { inGurmukhi, rehypeGurmukhiRuns } from '@/lib/chat/gurmukhiRuns';
 
 const html = (text: string) =>
     renderToStaticMarkup(createElement(ReactMarkdown, { remarkPlugins: [remarkGfm], components: markdownComponents }, text));
@@ -55,3 +55,11 @@ test("in an English reply, Gurbani is set as Gurbani wherever it sits, even in a
     assert.equal((render('> ਸਤਿ ਨਾਮੁ means True Name; ਕਰਤਾ ਪੁਰਖੁ the Creator', 'quotes').match(TIRO) ?? []).length, 2);
     assert.ok(!render('`ਸਤਿ`', 'all').includes('lang="pa"'));
 });
+
+test('a Punjabi reply counts as written in Gurmukhi by its letters, not by the script it was asked in', () => {
+    assert.equal(inGurmukhi('ਸਿਮਰਨ ਦਾ ਅਰਥ ਹੈ ਵਾਹਿਗੁਰੂ ਨੂੰ ਪਿਆਰ ਨਾਲ ਯਾਦ ਕਰਨਾ। Simran.'), true);
+    // Romanized, quoting a tukk in Gurmukhi: still romanized.
+    assert.equal(inGurmukhi('Simran da matlab hai Waheguru nu pyaar naal yaad karna. **ਸਿਮਰਿ ਸਿਮਰਿ ਸੁਖੁ ਪਾਵਉ**'), false);
+    assert.equal(inGurmukhi(''), false);
+});
+

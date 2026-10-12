@@ -73,3 +73,13 @@ function splitRuns(value: string, gurbani: boolean): Node[] {
     if (last < value.length) nodes.push({ type: 'text', value: value.slice(last) });
     return nodes;
 }
+
+// Whether a reply is written in Gurmukhi: most of its letters are. ChatMessage
+// asks this of a reply in Punjabi rather than trusting its saved script, since
+// the prompt mirrors a user who types in the other script (lib/chat/prompts.ts).
+const GURMUKHI_CHAR = new RegExp(`[${GURMUKHI}]`, 'g');
+export function inGurmukhi(text: string): boolean {
+    const gurmukhi = text.match(GURMUKHI_CHAR)?.length ?? 0;
+    const latin = text.match(/[A-Za-z]/g)?.length ?? 0;
+    return gurmukhi > latin;
+}
