@@ -90,7 +90,7 @@ export default function VerseResults() {
                                     type="button"
                                     onClick={() => showSearch(to('/shabad'), { q: example })}
                                     lang={latin ? 'pa-Latn' : 'pa'}
-                                    className={`rounded-full border border-edge bg-surface-raised px-4 py-1.5 text-ink shadow-sm transition-colors hover:border-link/60 ${latin ? 'text-sm' : 'font-gurmukhi text-lg'}`}
+                                    className={`rounded border border-edge bg-surface-raised px-4 py-1.5 text-ink shadow-sm transition-colors hover:border-link/60 ${latin ? 'text-sm' : 'font-gurmukhi text-lg'}`}
                                 >
                                     {example}
                                 </button>

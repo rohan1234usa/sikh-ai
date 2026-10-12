@@ -65,7 +65,7 @@ function WordRow({ word, expanded, onToggle }: { word: VocabWord; expanded: bool
                         </div>
                         <CopyButton text={word.gurmukhi} ariaLabel={copyLabel} />
                     </div>
-                    <p className="inline-block rounded-full bg-edge/40 px-2.5 py-0.5 text-xs text-ink-muted">{grammar}</p>
+                    <p className="inline-block rounded bg-edge/40 px-2.5 py-0.5 text-xs text-ink-muted">{grammar}</p>
                     {word.note && <p lang="en" className="rounded-lg bg-edge/30 p-3 text-sm text-ink-muted"><Mixed text={word.note} /></p>}
                     {word.example && (
                         <div className="space-y-1">

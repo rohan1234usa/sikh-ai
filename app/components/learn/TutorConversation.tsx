@@ -170,7 +170,7 @@ export default function TutorConversation() {
                     <button
                         type="button"
                         onClick={jumpToBottom}
-                        className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-ink px-3 py-2 text-xs font-semibold text-surface shadow-lg transition-opacity hover:opacity-90"
+                        className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded bg-ink px-3 py-2 text-xs font-semibold text-surface shadow-lg transition-opacity hover:opacity-90"
                     >
                         <ArrowDownIcon className="h-3.5 w-3.5" aria-hidden="true" />
                         {t.learn.tutor.latest}

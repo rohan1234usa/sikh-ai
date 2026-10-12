@@ -76,7 +76,7 @@ export default function ChatSettingChip<T extends string>({ heading, note, icon:
                 aria-haspopup="menu"
                 aria-expanded={open}
                 aria-label={`${heading} (${chipText})`}
-                className="flex h-8 max-w-full items-center gap-1 rounded-full border border-edge bg-surface pl-2.5 pr-2 text-xs sm:text-sm font-medium text-ink-muted transition-colors hover:border-accent-text/50 hover:text-ink aria-expanded:border-accent-text aria-expanded:text-ink"
+                className="flex h-8 max-w-full items-center gap-1 rounded border border-edge bg-surface pl-2.5 pr-2 text-xs sm:text-sm font-medium text-ink-muted transition-colors hover:border-accent-text/50 hover:text-ink aria-expanded:border-accent-text aria-expanded:text-ink"
             >
                 {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-accent-text" />}
                 <span className="truncate">{chipText}</span>

@@ -23,7 +23,7 @@ export default function Phrasebook({ onUsePhrase }: Props) {
     const [category, setCategory] = useState<PhraseCategoryId>('greetings');
     const [expandedId, setExpandedId] = useState<string | null>(null);
 
-    // A search spans every category, so the pills hide while one is active.
+    // A search spans every category, so the category chips hide while one is active.
     const searching = query.trim() !== '';
     const phrases = useMemo(() => searchPhrases(query, category), [query, category]);
 
@@ -53,7 +53,7 @@ export default function Phrasebook({ onUsePhrase }: Props) {
                             type="button"
                             onClick={() => setCategory(id)}
                             aria-pressed={category === id}
-                            className={`px-3 py-1 rounded-full text-sm transition-colors border ${category === id
+                            className={`px-3 py-1 rounded text-sm transition-colors border ${category === id
                                 ? 'border-ink bg-ink text-surface font-semibold'
                                 : 'bg-surface-raised text-ink-muted border-edge hover:text-ink'}`}
                         >

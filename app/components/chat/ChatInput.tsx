@@ -129,7 +129,7 @@ export default function ChatInput({
                     {(context || contextLoading || contextError) && (
                         <div data-pad className="flex min-w-0 px-2.5 pt-2.5">
                             {contextLoading ? (
-                                <p role="status" className="flex items-center gap-2 rounded-full border border-edge px-3 py-1.5 text-xs text-ink-muted">
+                                <p role="status" className="flex items-center gap-2 rounded border border-edge px-3 py-1.5 text-xs text-ink-muted">
                                     <BookOpenIcon className="h-4 w-4 shrink-0 animate-pulse" aria-hidden="true" />
                                     {t.chat.loadingPassage}
                                 </p>

@@ -11,14 +11,14 @@ export default function LessonChip({ title, onDismiss }: { title: string; onDism
     // Only the title is English: the label around it is in the site's language.
     const [before, after] = t.learn.tutor.aboutLesson.split('{title}');
     return (
-        <div className="flex max-w-full items-center gap-2 rounded-full border border-accent-text/50 py-1.5 pl-3 pr-1.5 text-xs text-accent-text">
+        <div className="flex max-w-full items-center gap-2 rounded border border-accent-text/50 py-1.5 pl-3 pr-1.5 text-xs text-accent-text">
             <AcademicCapIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="truncate">{before}<span lang="en"><Mixed text={title} /></span>{after}</span>
             <button
                 type="button"
                 onClick={onDismiss}
                 aria-label={t.learn.tutor.stopLessonAria}
-                className="shrink-0 rounded-full p-0.5 transition-colors hover:bg-edge/60"
+                className="shrink-0 rounded p-0.5 transition-colors hover:bg-edge/60"
             >
                 <XMarkIcon className="h-4 w-4" />
             </button>

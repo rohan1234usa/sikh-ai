@@ -94,7 +94,7 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
                     type="button"
                     onClick={() => setDirection(side)}
                     aria-pressed={direction === side}
-                    className={`rounded-full border px-3 py-1 text-sm transition-colors ${direction === side
+                    className={`rounded border px-3 py-1 text-sm transition-colors ${direction === side
                         ? 'border-ink bg-ink text-surface font-semibold'
                         : 'border-edge bg-surface-raised text-ink-muted hover:text-ink'}`}
                 >

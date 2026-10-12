@@ -20,7 +20,7 @@ export const CHIP = `${STAMP} text-accent-text`;
 
 export const STATE_CHIP = `${STAMP} text-ink`;
 
-export const MINE_CHIP = `${CHIP} rounded-full border border-accent-text px-2.5 py-0.5`;
+export const MINE_CHIP = `${CHIP} rounded border border-accent-text px-2.5 py-0.5`;
 
 export const PANEL = 'rounded-xl border border-edge bg-surface-raised p-4 outline outline-edge outline-offset-2 sm:p-5';
 

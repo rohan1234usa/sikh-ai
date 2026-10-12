@@ -72,7 +72,7 @@ export default function TranslateInput({ text, onText, hint, onHint, loading, ag
                             onClick={() => onLive(!live)}
                             aria-label={t.translate.liveSwitchHint}
                             title={t.translate.liveSwitchHint}
-                            className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 text-xs font-semibold text-ink-muted hover:text-ink transition-colors"
+                            className="flex items-center gap-2 rounded py-1 pl-1 pr-2 text-xs font-semibold text-ink-muted hover:text-ink transition-colors"
                         >
                             <span
                                 aria-hidden
@@ -106,7 +106,7 @@ export default function TranslateInput({ text, onText, hint, onHint, loading, ag
                         type="button"
                         onClick={() => onHint(id)}
                         aria-pressed={hint === id}
-                        className={`px-3 py-1 rounded-full border text-sm transition-colors ${hint === id
+                        className={`px-3 py-1 rounded border text-sm transition-colors ${hint === id
                             ? 'border-ink bg-ink text-surface font-semibold'
                             : 'border-edge-strong text-ink hover:bg-edge/60'}`}
                     >
