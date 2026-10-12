@@ -142,10 +142,8 @@ export default async function AngPage({ params }: PageProps<'/[lang]/shabad/[ang
                   />
                   {/* In the reader's language, so not tagged as English. */}
                   {!line.translation && <p className="mt-2 text-sm italic text-ink-faint">{t.shabad.translationUnavailable}</p>}
-                  <div className="mt-4 flex justify-between items-center text-xs text-ink-faint">
-                    <span>{fmt(t.shabad.lineN, { n: number.get(line.id) ?? 0 })}</span>
-                    <span className="uppercase tracking-widest text-accent-text font-bold">{t.shabad.granth}</span>
-                  </div>
+                  {/* Only the number: the page's title already names the Granth. */}
+                  <p className="mt-4 text-start text-xs text-ink-faint">{fmt(t.shabad.lineN, { n: number.get(line.id) ?? 0 })}</p>
                 </div>
               ))}
             </section>
