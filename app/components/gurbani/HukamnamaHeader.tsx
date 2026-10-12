@@ -23,6 +23,8 @@ export default function HukamnamaHeader({ hukamnama, lang, t, level }: {
     const month = date && ((lang === 'pa' && date.monthGurmukhi) || date.month);
     const when = date && month ? fmt(t.hukamnama.dateFormat, { month, date: date.day, year: date.year }) : t.hukamnama.today;
     const writer = (lang === 'pa' && hukamnama.writerGurmukhi) || hukamnama.writer;
+    // On /pa a writer with no Gurmukhi name falls back to English, tagged so.
+    const writerLang = lang === 'pa' && !hukamnama.writerGurmukhi ? 'en' : undefined;
     return (
         <header className="dawn border-b border-rule-gold px-6 py-8 text-center">
             <Heading className="text-sm font-semibold uppercase tracking-widest text-accent-text">{t.hukamnama.title}</Heading>
@@ -33,8 +35,8 @@ export default function HukamnamaHeader({ hukamnama, lang, t, level }: {
                 <p lang="pa" className="mt-5 font-gurmukhi text-2xl text-ink md:text-3xl">{hukamnama.raagGurmukhi}</p>
             )}
             {(writer || hukamnama.ang !== null) && (
-                <p lang={lang === 'pa' ? 'pa' : undefined} className="mt-2 text-xs font-semibold uppercase tracking-widest text-ink-faint">
-                    {writer}
+                <p className="mt-2 text-xs font-semibold uppercase tracking-widest text-ink-faint">
+                    {writer && <span lang={writerLang}>{writer}</span>}
                     {writer && hukamnama.ang !== null && ' · '}
                     {hukamnama.ang !== null && (
                         <Link href={localePath(lang, `/shabad/${hukamnama.ang}`)} className="text-link hover:underline">
