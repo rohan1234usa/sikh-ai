@@ -183,7 +183,7 @@ function VolunteersBody({ onClose, copy, retry, lang }: { onClose: () => void; c
                             setList(null);
                             setAttempt((n) => n + 1);
                         }}
-                        className="mt-2 font-semibold text-accent-text underline"
+                        className="mt-2 font-semibold text-link underline"
                     >
                         {retry}
                     </button>
@@ -202,7 +202,7 @@ function VolunteersBody({ onClose, copy, retry, lang }: { onClose: () => void; c
                                 {v.email && (
                                     <p className="mt-1 flex flex-wrap items-center gap-2 text-sm">
                                         <EnvelopeIcon className="h-4 w-4 text-ink-muted" aria-hidden="true" />
-                                        <a href={`mailto:${v.email}`} aria-label={fmt(copy.email, { name: v.name })} className="text-accent-text underline [overflow-wrap:anywhere]">{v.email}</a>
+                                        <a href={`mailto:${v.email}`} aria-label={fmt(copy.email, { name: v.name })} className="text-link underline [overflow-wrap:anywhere]">{v.email}</a>
                                         <button type="button" onClick={() => copyText(v.email, copy.copied)} aria-label={fmt(copy.copyEmail, { name: v.name })} className="rounded p-1.5 text-ink-muted hover:bg-edge/60 hover:text-ink">
                                             <ClipboardIcon className="h-4 w-4" aria-hidden="true" />
                                         </button>
@@ -211,7 +211,7 @@ function VolunteersBody({ onClose, copy, retry, lang }: { onClose: () => void; c
                                 {v.phone && (
                                     <p className="mt-1 flex flex-wrap items-center gap-2 text-sm">
                                         <PhoneIcon className="h-4 w-4 text-ink-muted" aria-hidden="true" />
-                                        <a href={telUrl(v.phone)} aria-label={fmt(copy.call, { name: v.name })} className="text-accent-text underline">{v.phone}</a>
+                                        <a href={telUrl(v.phone)} aria-label={fmt(copy.call, { name: v.name })} className="text-link underline">{v.phone}</a>
                                         <button type="button" onClick={() => copyText(v.phone, copy.copied)} aria-label={fmt(copy.copyPhone, { name: v.name })} className="rounded p-1.5 text-ink-muted hover:bg-edge/60 hover:text-ink">
                                             <ClipboardIcon className="h-4 w-4" aria-hidden="true" />
                                         </button>
@@ -297,7 +297,7 @@ function CancelBody({ onClose, copy, onSeeVolunteers, onCancelled }: {
             {takesSignups(event) ? (
                 <>
                     <p className="mt-2 text-ink">{copy.body}</p>
-                    <button type="button" onClick={onSeeVolunteers} className="mt-2 font-semibold text-accent-text underline">{copy.seeVolunteers}</button>
+                    <button type="button" onClick={onSeeVolunteers} className="mt-2 font-semibold text-link underline">{copy.seeVolunteers}</button>
                 </>
             ) : (
                 <p className="mt-2 text-ink">{copy.bodyNoSignup}</p>

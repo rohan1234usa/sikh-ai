@@ -21,7 +21,7 @@ export default function UpcomingSevaStrip({ lang, copy, events }: { lang: Lang; 
                         <h2 id="upcoming-seva" className="text-2xl font-bold text-ink md:text-3xl">{copy.home.title}</h2>
                         <p className="mt-2 text-ink-muted">{copy.home.subtitle}</p>
                     </div>
-                    <IntentLink href={to(SEVA_HREF)} className="inline-flex items-center gap-1 font-semibold text-accent-text hover:underline">
+                    <IntentLink href={to(SEVA_HREF)} className="inline-flex items-center gap-1 font-semibold text-link hover:underline">
                         {copy.home.seeAll}
                         <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
                     </IntentLink>

@@ -45,12 +45,12 @@ export default function GlobalNotFound() {
         <script dangerouslySetInnerHTML={{ __html: `${THEME_INIT_SCRIPT};${LANGUAGE_SCRIPT}` }} />
       </head>
       <body className="antialiased min-h-dvh flex flex-col">
-        <header className="bg-navy text-white shadow-md dark:border-b dark:border-white/10 [--focus-ring:var(--color-kesri)]">
-          <div className="mx-auto flex h-16 max-w-7xl items-center px-4 sm:px-6">
+        <header className="border-band relative bg-surface text-ink">
+          <div className="mx-auto flex h-[calc(4rem-3px)] max-w-7xl items-center px-4 sm:px-6">
             {LANGS.map((lang) => (
               <div key={lang} className={SHOWN[lang]}>
                 <a href={localePath(lang, '/')} className="flex items-center gap-2 text-xl font-bold tracking-wide">
-                  <span className="font-gurmukhi text-kesri" aria-hidden="true">ੴ</span> SikhAI
+                  <span className="font-gurmukhi text-accent-text" aria-hidden="true">ੴ</span> SikhAI
                 </a>
               </div>
             ))}

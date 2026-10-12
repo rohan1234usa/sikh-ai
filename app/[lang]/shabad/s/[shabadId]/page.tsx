@@ -73,28 +73,30 @@ export default async function ShabadPage({ params }: PageProps<'/[lang]/shabad/s
 
       <div className="max-w-4xl mx-auto w-full p-4 md:p-8 flex-1">
         <h1 className="sr-only">{title}</h1>
-        <article className="bg-surface-raised shadow-xl rounded-2xl overflow-hidden border-t-8 border-kesri">
-          <header className="bg-surface px-6 py-6 md:py-8 text-center border-b border-edge space-y-2">
+        {/* Set open on the page, as the Hukamnama is: a header ruled in gold,
+            then the lines, then the way on below a hairline. */}
+        <article>
+          <header className="space-y-2 border-b border-rule-gold px-6 py-8 text-center">
             <p className="text-accent-text uppercase tracking-widest text-xs font-bold">
               {t.shabad.page.label} · {shabadAngs(t, shabad)}
             </p>
             {about && <p lang={lang === 'pa' ? 'pa' : undefined} className="text-ink font-semibold">{about}</p>}
             <p className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm font-semibold">
               {shabadAngList(shabad).map((n) => (
-                <IntentLink key={n} href={to(`/shabad/${n}`)} className="text-accent-text hover:underline">
+                <IntentLink key={n} href={to(`/shabad/${n}`)} className="text-link hover:underline">
                   {fmt(t.shabad.angLabel, { n })}
                 </IntentLink>
               ))}
             </p>
           </header>
 
-          <div className="px-3 py-4 md:px-10 md:py-8">
+          <div className="py-6 md:px-10 md:py-8">
             {sections.map((section, i) => (
               <section key={`${section.ang}-${i}`}>
                 {sections.length > 1 && section.ang !== null && (
                   <h2 className="flex items-center gap-3 my-4 text-xs font-bold uppercase tracking-widest">
                     <span className="h-px flex-1 bg-edge" aria-hidden="true" />
-                    <IntentLink href={to(`/shabad/${section.ang}`)} className="text-accent-text hover:underline">
+                    <IntentLink href={to(`/shabad/${section.ang}`)} className="text-link hover:underline">
                       {fmt(t.shabad.angLabel, { n: section.ang })}
                     </IntentLink>
                     <span className="h-px flex-1 bg-edge" aria-hidden="true" />
@@ -107,16 +109,16 @@ export default async function ShabadPage({ params }: PageProps<'/[lang]/shabad/s
             ))}
           </div>
 
-          <footer className="border-t border-edge bg-surface px-6 py-5 space-y-4">
+          <footer className="space-y-4 border-t border-edge pt-6">
             {(previousId || nextId) && (
               <nav aria-label={t.shabad.page.navAria} className="flex justify-between gap-4 text-sm font-semibold">
                 {previousId ? (
-                  <IntentLink rel="prev" href={to(shabadPath(previousId))} className="text-accent-text hover:underline">
+                  <IntentLink rel="prev" href={to(shabadPath(previousId))} className="text-link hover:underline">
                     ← {t.shabad.page.previous}
                   </IntentLink>
                 ) : <span />}
                 {nextId && (
-                  <IntentLink rel="next" href={to(shabadPath(nextId))} className="text-accent-text hover:underline">
+                  <IntentLink rel="next" href={to(shabadPath(nextId))} className="text-link hover:underline">
                     {t.shabad.page.next} →
                   </IntentLink>
                 )}

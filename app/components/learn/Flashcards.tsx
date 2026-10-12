@@ -94,8 +94,8 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
                     type="button"
                     onClick={() => setDirection(side)}
                     aria-pressed={direction === side}
-                    className={`rounded-full border px-3 py-1 text-sm transition-colors ${direction === side
-                        ? 'border-navy bg-navy font-semibold text-white dark:border-kesri dark:bg-kesri dark:text-navy'
+                    className={`rounded border px-3 py-1 text-sm transition-colors ${direction === side
+                        ? 'border-ink bg-ink text-surface font-semibold'
                         : 'border-edge bg-surface-raised text-ink-muted hover:text-ink'}`}
                 >
                     {side === 'pa' ? t.learn.cards.punjabiFirst : t.learn.cards.englishFirst}

@@ -13,7 +13,7 @@ import type { Hosting, SevaEvent, Signup } from '@/lib/seva/model';
 import { formatDate } from '@/lib/seva/time';
 import { setMyEvents, useMinute } from './hooks';
 import { loadSeva } from './sevaClient';
-import { CHIP, PANEL } from './styles';
+import { PANEL, STATE_CHIP } from './styles';
 
 const SHOWN = 5;
 
@@ -97,9 +97,9 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
     const line = (e: SevaEvent) => fmt(copy.whenWhere, { when: formatDate(e.startsAt, e.timeZone, lang), city: e.city });
     const badges = (e: SevaEvent) => (
         <>
-            {e.status === 'cancelled' && <span className={CHIP}>{labels.cancelled}</span>}
-            {e.hidden && <span className={CHIP}>{labels.hidden}</span>}
-            {isFull(e) && e.status === 'open' && <span className={CHIP}>{labels.full}</span>}
+            {e.status === 'cancelled' && <span className={STATE_CHIP}>{labels.cancelled}</span>}
+            {e.hidden && <span className={STATE_CHIP}>{labels.hidden}</span>}
+            {isFull(e) && e.status === 'open' && <span className={STATE_CHIP}>{labels.full}</span>}
         </>
     );
 
@@ -115,7 +115,7 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
         body = (
             <p className="mt-3 text-ink-muted">
                 {copy.failed}{' '}
-                <button type="button" onClick={() => { setMine(null); setAttempt((n) => n + 1); }} className="font-semibold text-accent-text underline">
+                <button type="button" onClick={() => { setMine(null); setAttempt((n) => n + 1); }} className="font-semibold text-link underline">
                     {labels.retry}
                 </button>
             </p>
@@ -127,7 +127,7 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
         const joined = showAll.joined ? joinedAll : joinedAll.slice(0, SHOWN);
         const hosting = showAll.hosting ? hostingAll : hostingAll.slice(0, SHOWN);
         const more = (list: 'joined' | 'hosting', total: number) => !showAll[list] && total > SHOWN && (
-            <button type="button" onClick={() => setShowAll((s) => ({ ...s, [list]: true }))} className="mt-2 min-h-6 text-sm font-semibold text-accent-text underline">
+            <button type="button" onClick={() => setShowAll((s) => ({ ...s, [list]: true }))} className="mt-2 min-h-6 text-sm font-semibold text-link underline">
                 {copy.showAll}
             </button>
         );
@@ -146,17 +146,17 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
                                         <li key={signup.eventId} className="text-sm">
                                             {event ? (
                                                 <>
-                                                    <IntentLink href={`${eventBase}${event.id}`} className="font-semibold text-accent-text underline [overflow-wrap:anywhere]">{event.title}</IntentLink>
+                                                    <IntentLink href={`${eventBase}${event.id}`} className="font-semibold text-link underline [overflow-wrap:anywhere]">{event.title}</IntentLink>
                                                     <p className="text-ink-muted">{line(event)}</p>
                                                     <p className="mt-1 flex flex-wrap gap-2">
                                                         {badges(event)}
-                                                        {event.updatedAt > signup.joinedAt && <span className={CHIP}>{copy.changed}</span>}
+                                                        {event.updatedAt > signup.joinedAt && <span className={STATE_CHIP}>{copy.changed}</span>}
                                                     </p>
                                                 </>
                                             ) : (
                                                 <p className="text-ink-muted">
                                                     {copy.removed}{' '}
-                                                    <button type="button" onClick={() => forget(signup)} className="font-semibold text-accent-text underline">{copy.forget}</button>
+                                                    <button type="button" onClick={() => forget(signup)} className="font-semibold text-link underline">{copy.forget}</button>
                                                 </p>
                                             )}
                                         </li>
@@ -171,7 +171,7 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
                                 <ul className="mt-2 space-y-3">
                                     {hosting.map(({ event }) => event && (
                                         <li key={event.id} className="text-sm">
-                                            <IntentLink href={`${eventBase}${event.id}`} className="font-semibold text-accent-text underline [overflow-wrap:anywhere]">{event.title}</IntentLink>
+                                            <IntentLink href={`${eventBase}${event.id}`} className="font-semibold text-link underline [overflow-wrap:anywhere]">{event.title}</IntentLink>
                                             <p className="text-ink-muted">{line(event)}</p>
                                             <p className="mt-1 flex flex-wrap gap-2">{badges(event)}</p>
                                         </li>
@@ -184,7 +184,7 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
                 )}
                 {data.admin && (
                     <p className="mt-4 text-sm">
-                        <IntentLink href={adminHref} className="font-semibold text-accent-text underline">{copy.reviewReports}</IntentLink>
+                        <IntentLink href={adminHref} className="font-semibold text-link underline">{copy.reviewReports}</IntentLink>
                     </p>
                 )}
             </>

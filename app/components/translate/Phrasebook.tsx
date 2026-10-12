@@ -23,7 +23,7 @@ export default function Phrasebook({ onUsePhrase }: Props) {
     const [category, setCategory] = useState<PhraseCategoryId>('greetings');
     const [expandedId, setExpandedId] = useState<string | null>(null);
 
-    // A search spans every category, so the pills hide while one is active.
+    // A search spans every category, so the category chips hide while one is active.
     const searching = query.trim() !== '';
     const phrases = useMemo(() => searchPhrases(query, category), [query, category]);
 
@@ -41,7 +41,7 @@ export default function Phrasebook({ onUsePhrase }: Props) {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder={t.translate.phrasebookSearchPlaceholder}
-                    className="w-full py-2 pl-9 pr-3 rounded-lg bg-surface-raised border border-edge text-ink placeholder:text-ink-faint focus:border-kesri outline-none transition-colors"
+                    className="w-full py-2 pl-9 pr-3 rounded-lg bg-surface-raised border border-edge text-ink placeholder:text-ink-faint focus:border-focus-ring outline-none transition-colors"
                 />
             </div>
 
@@ -53,8 +53,8 @@ export default function Phrasebook({ onUsePhrase }: Props) {
                             type="button"
                             onClick={() => setCategory(id)}
                             aria-pressed={category === id}
-                            className={`px-3 py-1 rounded-full text-sm transition-colors border ${category === id
-                                ? 'bg-navy text-white border-navy font-semibold dark:bg-kesri dark:text-navy dark:border-kesri'
+                            className={`px-3 py-1 rounded text-sm transition-colors border ${category === id
+                                ? 'border-ink bg-ink text-surface font-semibold'
                                 : 'bg-surface-raised text-ink-muted border-edge hover:text-ink'}`}
                         >
                             {t.translate.categories[id]}
@@ -141,7 +141,7 @@ function PhraseRow({ phrase, expanded, showCategory, onToggle, onUse }: {
                         <button
                             type="button"
                             onClick={onUse}
-                            className="text-sm font-semibold text-accent-text hover:underline"
+                            className="text-sm font-semibold text-link hover:underline"
                         >
                             {t.translate.usePhrase}
                         </button>

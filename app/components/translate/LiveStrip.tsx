@@ -22,7 +22,7 @@ export default function LiveStrip({ view }: { view: LiveView }) {
     const styles: Record<LiveField, { lang: string; className: string }> = {
         gurmukhi: { lang: 'pa', className: 'font-gurmukhi text-lg leading-relaxed' },
         roman: { lang: 'pa-Latn', className: '' },
-        english: { lang: 'en', className: 'text-slate-600' },
+        english: { lang: 'en', className: 'text-ink-muted' },
     };
     // A line still to come while streaming; one that never came once done.
     const finished = status === 'done' || status === 'cut';
@@ -39,26 +39,26 @@ export default function LiveStrip({ view }: { view: LiveView }) {
             role="group"
             aria-labelledby={titleId}
             aria-busy={status === 'waiting' || status === 'streaming'}
-            className="mx-2 mb-2 border-t border-slate-200 pt-2 text-left"
+            className="mx-2 mb-2 border-t border-edge pt-2 text-left"
         >
-            <p id={titleId} className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-slate-500">
+            <p id={titleId} className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-ink-faint">
                 <span
                     aria-hidden
                     className={`inline-block size-1.5 rounded-full ${status === 'waiting' || status === 'streaming'
-                        ? 'bg-kesri motion-safe:animate-pulse'
-                        : 'bg-slate-300'}`}
+                        ? 'bg-accent-text motion-safe:animate-pulse'
+                        : 'bg-edge-strong'}`}
                 />
                 {t.translate.liveLabel}
             </p>
             {lines && (
-                <dl className={`mt-1 space-y-0.5 text-navy transition-opacity ${stale ? 'opacity-50' : ''}`}>
+                <dl className={`mt-1 space-y-0.5 text-ink transition-opacity ${stale ? 'opacity-50' : ''}`}>
                     {liveFieldsFor(lines.input).map(field => {
                         const text = lines[field];
                         if (!text && !finished) return null;
                         return (
                             <div key={field} className="flex items-baseline gap-2">
                                 <dt className="sr-only">{labels[field]}</dt>
-                                <dd lang={text ? styles[field].lang : undefined} className={`min-w-0 break-words ${text ? styles[field].className : 'text-sm italic text-slate-400'}`}>
+                                <dd lang={text ? styles[field].lang : undefined} className={`min-w-0 break-words ${text ? styles[field].className : 'text-sm italic text-ink-faint'}`}>
                                     {text || t.translate.liveMissing}
                                 </dd>
                             </div>
@@ -66,7 +66,7 @@ export default function LiveStrip({ view }: { view: LiveView }) {
                     })}
                 </dl>
             )}
-            {note && <p className="mt-1 text-xs text-slate-500">{note}</p>}
+            {note && <p className="mt-1 text-xs text-ink-faint">{note}</p>}
         </div>
     );
 }

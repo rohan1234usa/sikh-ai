@@ -19,7 +19,7 @@ export default function LanguageToggle() {
                 id,
                 label: LANG_META[id].label,
                 lang: LANG_META[id].htmlLang,
-                labelClassName: id === 'pa' ? 'font-gurmukhi' : undefined,
+                labelClassName: id === 'pa' ? 'font-punjabi' : undefined,
             }))}
             // Re-picking the active language would reload the page for no
             // change. The cookie is re-set on every real switch, so unlike the

@@ -222,11 +222,11 @@ export default function TranslatePage() {
     <main className="flex-1 flex flex-col">
 
       {/* Input Header */}
-      <div className="bg-navy text-white py-12 px-6 flex flex-col items-center">
+      <div className="border-b border-edge bg-surface text-ink py-12 px-6 flex flex-col items-center">
         <h1 className="text-3xl font-bold mb-2 text-center">
-          {titleBefore}<span className="text-kesri">{t.translate.titleWord}</span>{titleAfter}
+          {titleBefore}<span className="text-accent-text">{t.translate.titleWord}</span>{titleAfter}
         </h1>
-        <p className="mb-6 text-sm text-slate-300 text-center max-w-xl">
+        <p className="mb-6 text-sm text-ink-muted text-center max-w-xl">
           {t.translate.subtitle}
         </p>
         <TranslateInput
@@ -258,7 +258,7 @@ export default function TranslatePage() {
           {loading && <TranslateSkeleton />}
 
           {error && !loading && (
-            <div role="alert" className="text-center py-10 text-red-600 bg-red-50 rounded-xl border border-red-100 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900">
+            <div role="alert" className="text-center py-10 text-red-700 bg-red-50 rounded-xl border border-red-100 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900">
               {error}
             </div>
           )}

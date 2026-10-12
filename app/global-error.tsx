@@ -53,7 +53,7 @@ export default function GlobalError({ error, retry }: {
                     <button type="button" onClick={() => retry()} className={PRIMARY_BUTTON}>
                         {t.errorPage.retry}
                     </button>
-                    <Link href={localePath(lang, '/')} className="text-sm font-semibold text-accent-text hover:underline">
+                    <Link href={localePath(lang, '/')} className="text-sm font-semibold text-link hover:underline">
                         {t.notFound.home}
                     </Link>
                 </StatusPage>

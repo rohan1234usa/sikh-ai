@@ -95,7 +95,7 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                         {orders[i].map((choice) => (
                                             <label
                                                 key={choice}
-                                                className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-edge bg-surface px-3 py-2 text-ink transition-colors hover:border-accent-text/40 has-[:checked]:border-kesri has-[:checked]:bg-kesri/10 has-[:disabled]:cursor-default"
+                                                className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-edge bg-surface px-3 py-2 text-ink transition-colors hover:border-accent-text/40 has-[:checked]:border-accent-text has-[:checked]:bg-accent-text/10 has-[:disabled]:cursor-default"
                                             >
                                                 <input
                                                     type="radio"
@@ -103,7 +103,7 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                                     value={choice}
                                                     checked={answer === choice}
                                                     onChange={() => setAnswer(i, choice)}
-                                                    className="accent-kesri"
+                                                    className="accent-accent-text"
                                                 />
                                                 <span lang={choiceLang(question)} className={question.choicesLang === 'pa' ? 'font-gurmukhi text-xl' : ''}>
                                                     {question.choicesLang ? choice : <Mixed text={choice} />}
@@ -126,7 +126,7 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                             onChange={(e) => setAnswer(i, e.target.value)}
                                             onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                             placeholder={t.learn.quiz.typedPlaceholder}
-                                            className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-base text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-kesri sm:max-w-md"
+                                            className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-base text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-focus-ring sm:max-w-md"
                                         />
                                     </div>
                                 )}
@@ -134,7 +134,7 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
 
                             {checked && (
                                 <div className="mt-2 space-y-1 text-sm">
-                                    <p className={`flex items-center gap-1.5 font-semibold ${right ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                                    <p className={`flex items-center gap-1.5 font-semibold ${right ? 'text-good' : 'text-red-700 dark:text-red-400'}`}>
                                         {right
                                             ? <CheckCircleIcon className="h-5 w-5" aria-hidden="true" />
                                             : <XCircleIcon className="h-5 w-5" aria-hidden="true" />}
@@ -143,7 +143,7 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                     {(question.kind === 'typed' || !right) && (
                                         <p className="text-ink">
                                             {answerBefore}
-                                            <span lang={question.kind === 'typed' ? 'pa-Latn' : choiceLang(question)} className={`font-semibold ${question.kind === 'choice' && question.choicesLang === 'pa' ? 'font-gurmukhi text-lg' : ''}`}>
+                                            <span lang={question.kind === 'typed' ? 'pa-Latn' : choiceLang(question)} className={question.kind === 'choice' && question.choicesLang === 'pa' ? 'font-gurmukhi text-lg' : 'font-semibold'}>
                                                 {question.kind === 'choice' && !question.choicesLang ? <Mixed text={question.answer} /> : question.answer}
                                             </span>
                                             {answerAfter}

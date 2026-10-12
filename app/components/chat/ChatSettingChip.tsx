@@ -76,7 +76,7 @@ export default function ChatSettingChip<T extends string>({ heading, note, icon:
                 aria-haspopup="menu"
                 aria-expanded={open}
                 aria-label={`${heading} (${chipText})`}
-                className="flex h-8 max-w-full items-center gap-1 rounded-full border border-edge bg-surface pl-2.5 pr-2 text-xs sm:text-sm font-medium text-ink-muted transition-colors hover:border-kesri/50 hover:text-ink aria-expanded:border-kesri aria-expanded:text-ink"
+                className="flex h-8 max-w-full items-center gap-1 rounded border border-edge bg-surface pl-2.5 pr-2 text-xs sm:text-sm font-medium text-ink-muted transition-colors hover:border-accent-text/50 hover:text-ink aria-expanded:border-accent-text aria-expanded:text-ink"
             >
                 {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-accent-text" />}
                 <span className="truncate">{chipText}</span>
@@ -88,7 +88,7 @@ export default function ChatSettingChip<T extends string>({ heading, note, icon:
                     ref={panelRef}
                     tabIndex={-1}
                     onKeyDown={onMenuKeyDown}
-                    className="absolute bottom-full left-0 z-50 mb-2 flex w-[min(20rem,calc(100vw-1rem))] flex-col rounded-xl border border-edge bg-surface-raised shadow-xl focus:outline-none dark:shadow-black/40"
+                    className="absolute bottom-full left-0 z-50 mb-2 flex w-[min(20rem,calc(100vw-1rem))] flex-col rounded-xl border border-edge-strong bg-surface-raised focus:outline-none"
                 >
                     <div className="shrink-0 border-b border-edge px-3.5 pt-3 pb-2">
                         <p id={`${id}-heading`} className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">{heading}</p>
@@ -113,7 +113,7 @@ export default function ChatSettingChip<T extends string>({ heading, note, icon:
                                     aria-describedby={option.description ? `${id}-${i}-description` : undefined}
                                     onClick={() => choose(() => onSelect(option.id))}
                                     className={`flex w-full items-start gap-3 px-3.5 py-2 text-left transition-colors ${
-                                        selected ? 'bg-kesri/10' : 'hover:bg-edge/60'
+                                        selected ? '' : 'hover:bg-edge/60'
                                     }`}
                                 >
                                     <span className="min-w-0 flex-1">

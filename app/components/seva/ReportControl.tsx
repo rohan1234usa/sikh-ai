@@ -66,7 +66,7 @@ export function ReportControl({ copy }: { copy: SevaCopy['report'] }) {
             ) : (
                 <>
                     <span>{copy.prompt}</span>
-                    <button type="button" onClick={start} {...(user ? {} : signInIntent)} className="min-h-6 font-semibold text-accent-text underline">
+                    <button type="button" onClick={start} {...(user ? {} : signInIntent)} className="min-h-6 font-semibold text-link underline">
                         {copy.open}
                     </button>
                 </>
@@ -218,7 +218,7 @@ export function AdminTools({ copy, adminHref }: { copy: SevaCopy['admin']; admin
                 <button type="button" onClick={toggle} aria-disabled={busy || undefined} className={SECONDARY_BUTTON}>
                     {event.hidden ? copy.unhide : copy.hide}
                 </button>
-                <IntentLink href={adminHref} className="font-semibold text-accent-text underline">{copy.reviewAll}</IntentLink>
+                <IntentLink href={adminHref} className="font-semibold text-link underline">{copy.reviewAll}</IntentLink>
             </div>
             {problem && <p role="alert" className={`mt-2 ${ERROR_TEXT}`}>{problem}</p>}
             {announcer}

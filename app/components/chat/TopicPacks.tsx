@@ -27,10 +27,10 @@ export default function TopicPacks({ onSelect }: Props) {
                             aria-expanded={isOpen}
                             aria-controls={`topic-pack-panel-${id}`}
                             onClick={() => setOpenId(isOpen ? null : id)}
-                            className={`text-sm px-3.5 py-1.5 rounded-full border transition-colors ${
+                            className={`text-sm px-3.5 py-1.5 rounded border transition-colors ${
                                 isOpen
-                                    ? 'border-navy bg-navy text-white dark:border-kesri dark:bg-kesri dark:text-navy font-semibold'
-                                    : 'border-edge bg-surface-raised text-ink-muted hover:text-ink hover:border-kesri/50'
+                                    ? 'border-ink bg-ink text-surface font-semibold'
+                                    : 'border-edge bg-surface-raised text-ink-muted hover:text-ink hover:border-link/50'
                             }`}
                         >
                             {packs[id].label}
@@ -45,7 +45,7 @@ export default function TopicPacks({ onSelect }: Props) {
                             key={prompt}
                             type="button"
                             onClick={() => onSelect(prompt)}
-                            className="border border-kesri/50 text-accent-text text-sm px-4 py-2 rounded-full hover:bg-kesri/10 transition-colors"
+                            className="border border-link/50 text-link text-sm px-4 py-2 rounded hover:bg-link/10 transition-colors"
                         >
                             {prompt}
                         </button>

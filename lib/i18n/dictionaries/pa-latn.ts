@@ -275,16 +275,12 @@ const paLatn: Dictionary = {
     },
 
     home: {
-        badge: 'Google Gemini duara sanchalit',
         heroLine1: 'Guruan da Gyan,',
         heroLine2: 'AI di Roshni vich.',
         heroSubtitle:
             'Gurbani di khoj karo, nerhli Sangat labbho, ate rozana Hukamname parho — shanti, sikhia ate Seva layi banai gayi thaan vich.',
         ctaChat: 'Gallbaat Shuru Karo',
         ctaHukamnama: 'Ajj da Hukamnama',
-        previewWindowTitle: 'SikhAI Chat',
-        previewAiLine: 'Waheguru Ji Ka Khalsa... Ajj main Gurbani samjhan vich tuhadi ki madad karaan?',
-        previewUserLine: 'Guru Granth Sahib Ji nimrata baare ki sikhaunde han?',
         exploreTitle: 'SikhAI di Khoj Karo',
         exploreSubtitle: 'Gurbani, Sangat ate Punjabi boli naal juran de tarike — sab ikko thaan.',
         features: {
@@ -322,7 +318,6 @@ const paLatn: Dictionary = {
     },
 
     about: {
-        badge: '</> Nirmata',
         builtBy: 'Banaun Wala',
         bio1Before: '',
         bio1School: 'UC Irvine',
@@ -337,6 +332,8 @@ const paLatn: Dictionary = {
 
     chat: {
         title: 'SikhAI nu Puchho',
+        // The label on the reader's own turns in the transcript (chat and tutor)
+        you: 'Tusi',
         newChat: 'Navin gallbaat',
         share: 'Saanjha karo',
         cancel: 'Radd karo',

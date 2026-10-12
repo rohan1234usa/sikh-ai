@@ -69,7 +69,7 @@ export default async function LessonPage({ params }: PageProps<'/[lang]/learn/[t
 
         <IntentLink
           href={`${to('/learn/tutor')}?lesson=${lesson.slug}`}
-          className="inline-flex items-center gap-2 rounded-xl border border-kesri/40 bg-kesri/10 px-4 py-2.5 text-sm font-semibold text-accent-text transition-colors hover:bg-kesri/20"
+          className="inline-flex items-center gap-2 rounded-xl border border-link/40 px-4 py-2.5 text-sm font-semibold text-link transition-colors hover:bg-link/10"
         >
           <ChatBubbleLeftRightIcon className="h-5 w-5" aria-hidden="true" />
           {t.learn.lesson.askTutor}
@@ -92,7 +92,7 @@ export default async function LessonPage({ params }: PageProps<'/[lang]/learn/[t
               <span lang="en" className="block font-semibold text-ink"><Mixed text={next.title} /></span>
             </Link>
           ) : (
-            <Link href={to(`/learn/${meta.track}`)} className="rounded-xl border border-edge p-3 text-right font-semibold text-accent-text transition-colors hover:border-accent-text/40">
+            <Link href={to(`/learn/${meta.track}`)} className="rounded-xl border border-edge p-3 text-right font-semibold text-link transition-colors hover:border-accent-text/40">
               {t.learn.lesson.allLessons}
             </Link>
           )}

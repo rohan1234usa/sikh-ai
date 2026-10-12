@@ -8,6 +8,7 @@ import LineHighlight from '@/app/components/shabad/LineHighlight';
 import ShabadHeader from '@/app/components/shabad/ShabadHeader';
 import SourceNote from '@/app/components/shabad/SourceNote';
 import { LINE_TARGET_STYLE } from '@/app/components/shabad/ShabadVerse';
+import { TukkLines } from '@/app/components/gurbani/Tukk';
 import { SourceUnavailable } from '@/lib/errors/unavailable';
 import { parseAngParam } from '@/lib/gurbani/ang';
 import { MAX_ANG } from '@/lib/gurbani/citations';
@@ -102,7 +103,7 @@ export default async function AngPage({ params }: PageProps<'/[lang]/shabad/[ang
           <h1 className="text-ink font-bold">{angTitle(t, ang)}</h1>
           <Link
             href={to(`/chat?context=shabad&ang=${ang}`)}
-            className="ml-auto inline-flex items-center gap-1.5 text-sm font-semibold text-accent-text hover:underline"
+            className="ml-auto inline-flex items-center gap-1.5 text-sm font-semibold text-link hover:underline"
           >
             <ChatBubbleLeftRightIcon className="w-4 h-4" aria-hidden="true" />
             {t.shabad.askAboutAng}
@@ -120,7 +121,7 @@ export default async function AngPage({ params }: PageProps<'/[lang]/shabad/[ang
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-edge pb-2">
                 <p lang={lang === 'pa' ? 'pa' : undefined} className="text-xs font-bold uppercase tracking-wider text-ink-muted">{about}</p>
                 {isGurbaniId(group.shabadId) && (
-                  <IntentLink href={to(shabadPath(group.shabadId))} className="ml-auto text-sm font-semibold text-accent-text hover:underline">
+                  <IntentLink href={to(shabadPath(group.shabadId))} className="ml-auto text-sm font-semibold text-link hover:underline">
                     {t.shabad.page.fullShabad} →
                   </IntentLink>
                 )}
@@ -130,18 +131,19 @@ export default async function AngPage({ params }: PageProps<'/[lang]/shabad/[ang
                   key={line.id}
                   id={lineAnchor(line.id)}
                   tabIndex={-1}
-                  className={`bg-surface-raised p-4 sm:p-6 rounded-xl shadow-sm border border-edge transition-colors ${LINE_TARGET_STYLE}`}
+                  className={`border-b border-edge px-3 py-6 text-center transition-colors ${LINE_TARGET_STYLE}`}
                 >
-                  <p lang="pa" className="text-2xl md:text-3xl text-ink font-bold text-center leading-relaxed mb-4 font-gurmukhi">
-                    {line.gurmukhi}
-                  </p>
-                  <p lang="en" className="text-ink-muted text-center italic text-lg mb-4">
-                    {line.translation || t.shabad.translationUnavailable}
-                  </p>
-                  <div className="flex justify-between items-center text-xs text-ink-faint border-t border-edge pt-4 mt-2">
-                    <span>{fmt(t.shabad.lineN, { n: number.get(line.id) ?? 0 })}</span>
-                    <span className="uppercase tracking-widest text-accent-text font-bold">{t.shabad.granth}</span>
-                  </div>
+                  <TukkLines
+                    kind={line.isHeader ? 'header' : 'verse'}
+                    size="page"
+                    gurmukhi={line.gurmukhi}
+                    transliteration={line.transliteration}
+                    translation={line.translation}
+                  />
+                  {/* In the reader's language, so not tagged as English. */}
+                  {!line.translation && <p className="mt-2 text-sm italic text-ink-faint">{t.shabad.translationUnavailable}</p>}
+                  {/* Only the number: the page's title already names the Granth. */}
+                  <p className="mt-4 text-start text-xs text-ink-faint">{fmt(t.shabad.lineN, { n: number.get(line.id) ?? 0 })}</p>
                 </div>
               ))}
             </section>
@@ -150,12 +152,12 @@ export default async function AngPage({ params }: PageProps<'/[lang]/shabad/[ang
 
         <div className="flex justify-between gap-4 pt-2 text-sm font-semibold">
           {ang > 1 ? (
-            <Link rel="prev" href={to(`/shabad/${ang - 1}`)} className="text-accent-text hover:underline">
+            <Link rel="prev" href={to(`/shabad/${ang - 1}`)} className="text-link hover:underline">
               ← {fmt(t.shabad.angLabel, { n: ang - 1 })}
             </Link>
           ) : <span />}
           {ang < MAX_ANG && (
-            <Link rel="next" href={to(`/shabad/${ang + 1}`)} className="text-accent-text hover:underline">
+            <Link rel="next" href={to(`/shabad/${ang + 1}`)} className="text-link hover:underline">
               {fmt(t.shabad.angLabel, { n: ang + 1 })} →
             </Link>
           )}

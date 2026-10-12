@@ -10,25 +10,26 @@ import { useLearnProgress } from './useLearnProgress';
 
 export type TopicLink = { id: VocabTopicId; href: string; wordIds: string[] };
 
-// Every vocabulary topic, with its flashcard counts once this browser's
-// progress is read.
+// Every vocabulary topic in equal cells, as the hub's tracks are, with its
+// flashcard counts once this browser's progress is read. The cells draw the
+// rules, so an odd last one spans the row and the outline still closes.
 export default function TopicList({ topics }: { topics: TopicLink[] }) {
     const t = useT();
     const { progress, now } = useLearnProgress();
 
     return (
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <ul className="grid border-l border-t border-edge sm:grid-cols-2">
             {topics.map(({ id, href, wordIds }) => {
                 const counts = now !== null ? cardCounts(wordIds, progress.cards, now) : null;
                 return (
-                    <li key={id}>
+                    <li key={id} className="border-b border-r border-edge sm:last:odd:col-span-2">
                         <IntentLink
                             href={href}
-                            className="group flex h-full flex-col gap-1 rounded-xl border border-edge bg-surface-raised p-4 shadow-sm transition-colors hover:border-accent-text/40"
+                            className="flex h-full flex-col gap-1 p-4 transition-colors hover:bg-surface-raised"
                         >
                             <span className="flex items-center justify-between gap-2">
                                 <span className="font-semibold text-ink">{t.learn.topics[id]}</span>
-                                <ArrowRightIcon className="h-4 w-4 shrink-0 text-accent-text transition-transform motion-safe:group-hover:translate-x-0.5" aria-hidden="true" />
+                                <ArrowRightIcon className="h-4 w-4 shrink-0 text-link" aria-hidden="true" />
                             </span>
                             <span className="text-sm text-ink-muted">{fmt(t.learn.vocab.wordCount, { n: wordIds.length })}</span>
                             <span className="text-xs font-semibold text-accent-text">

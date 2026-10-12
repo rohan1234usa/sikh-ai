@@ -275,16 +275,12 @@ const pa: Dictionary = {
     },
 
     home: {
-        badge: 'Google Gemini ਦੁਆਰਾ ਸੰਚਾਲਿਤ',
         heroLine1: 'ਗੁਰੂਆਂ ਦਾ ਗਿਆਨ,',
         heroLine2: 'AI ਦੀ ਰੌਸ਼ਨੀ ਵਿੱਚ।',
         heroSubtitle:
             'ਗੁਰਬਾਣੀ ਦੀ ਖੋਜ ਕਰੋ, ਨੇੜਲੀ ਸੰਗਤ ਲੱਭੋ, ਅਤੇ ਰੋਜ਼ਾਨਾ ਹੁਕਮਨਾਮੇ ਪੜ੍ਹੋ — ਸ਼ਾਂਤੀ, ਸਿੱਖਿਆ ਅਤੇ ਸੇਵਾ ਲਈ ਬਣੀ ਥਾਂ ਵਿੱਚ।',
         ctaChat: 'ਗੱਲਬਾਤ ਸ਼ੁਰੂ ਕਰੋ',
         ctaHukamnama: 'ਅੱਜ ਦਾ ਹੁਕਮਨਾਮਾ',
-        previewWindowTitle: 'SikhAI ਚੈਟ',
-        previewAiLine: 'ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ... ਅੱਜ ਮੈਂ ਗੁਰਬਾਣੀ ਸਮਝਣ ਵਿੱਚ ਤੁਹਾਡੀ ਕੀ ਮਦਦ ਕਰਾਂ?',
-        previewUserLine: 'ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ ਨਿਮਰਤਾ ਬਾਰੇ ਕੀ ਸਿਖਾਉਂਦੇ ਹਨ?',
         exploreTitle: 'SikhAI ਦੀ ਖੋਜ ਕਰੋ',
         exploreSubtitle: 'ਗੁਰਬਾਣੀ, ਸੰਗਤ ਅਤੇ ਪੰਜਾਬੀ ਬੋਲੀ ਨਾਲ ਜੁੜਨ ਦੇ ਤਰੀਕੇ — ਸਭ ਇੱਕੋ ਥਾਂ।',
         features: {
@@ -322,7 +318,6 @@ const pa: Dictionary = {
     },
 
     about: {
-        badge: '</> ਨਿਰਮਾਤਾ',
         builtBy: 'ਬਣਾਉਣ ਵਾਲਾ',
         bio1Before: '',
         bio1School: 'UC Irvine',
@@ -337,6 +332,8 @@ const pa: Dictionary = {
 
     chat: {
         title: 'SikhAI ਨੂੰ ਪੁੱਛੋ',
+        // The label on the reader's own turns in the transcript (chat and tutor)
+        you: 'ਤੁਸੀਂ',
         newChat: 'ਨਵੀਂ ਗੱਲਬਾਤ',
         share: 'ਸਾਂਝਾ ਕਰੋ',
         cancel: 'ਰੱਦ ਕਰੋ',

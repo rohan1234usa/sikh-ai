@@ -20,7 +20,7 @@ export type PolicyCopy<Id extends string> = {
     sections: Record<Id, PolicySection>;
 };
 
-const INLINE_LINK = 'text-accent-text underline hover:no-underline';
+const INLINE_LINK = 'text-link underline hover:no-underline';
 
 function Item({ text, vars, links }: { text: string; vars: Record<string, string | number>; links: Record<string, PolicyLink> }) {
     return splitTemplate(text).map((part, i) => {
@@ -68,7 +68,7 @@ export default function PolicyPage<Id extends string>({ copy, vars, links, after
                 ))}
                 <p className="flex flex-wrap gap-x-6 gap-y-2">
                     {related.map(({ href, label }) => (
-                        <Link key={href} href={href} className="text-sm font-semibold text-accent-text hover:underline">
+                        <Link key={href} href={href} className="text-sm font-semibold text-link hover:underline">
                             {label} →
                         </Link>
                     ))}

@@ -35,7 +35,7 @@ export default function Footer() {
                     <ul className="flex flex-wrap justify-center gap-x-5 gap-y-2">
                         {links.map(({ href, label }) => (
                             <li key={href}>
-                                <IntentLink href={href} className="hover:text-accent-text transition-colors">
+                                <IntentLink href={href} className="hover:text-link transition-colors">
                                     {label}
                                 </IntentLink>
                             </li>
@@ -48,7 +48,7 @@ export default function Footer() {
                         href="https://built-by-rohan.vercel.app/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="underline hover:text-accent-text transition-colors"
+                        className="underline hover:text-link transition-colors"
                     >
                         Rohan Singh
                     </a>

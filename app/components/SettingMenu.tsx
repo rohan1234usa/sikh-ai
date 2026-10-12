@@ -71,7 +71,7 @@ export default function SettingMenu<T extends string>({
                 // heroicons render aria-hidden, so name the value here too —
                 // otherwise every state announces identically.
                 aria-label={name ? undefined : active ? `${label} (${active.label})` : label}
-                className="p-2 rounded-lg text-slate-300 hover:text-kesri transition-colors"
+                className="p-2 rounded-lg text-ink-muted hover:text-ink transition-colors"
             >
                 <TriggerIcon className="w-5 h-5" />
                 {name && <span className="sr-only">{name}</span>}
@@ -82,7 +82,7 @@ export default function SettingMenu<T extends string>({
                     role="menu"
                     aria-label={label}
                     onKeyDown={onMenuKeyDown}
-                    className="absolute right-0 mt-2 min-w-44 rounded-xl border border-white/10 bg-navy shadow-xl py-1.5 z-50"
+                    className="absolute right-0 mt-2 min-w-44 rounded-xl border border-edge-strong bg-surface-raised py-1.5 z-50"
                 >
                     {options.map(({ id, label: optionLabel, icon: Icon, lang, labelClassName }, i) => {
                         const selected = id === value;
@@ -95,7 +95,7 @@ export default function SettingMenu<T extends string>({
                                 aria-checked={selected}
                                 onClick={() => select(id)}
                                 className={`flex w-full items-center justify-between gap-3 px-3.5 py-2 text-sm text-left transition-colors ${
-                                    selected ? 'text-kesri font-semibold' : 'text-slate-200 hover:text-kesri hover:bg-white/5'
+                                    selected ? 'text-accent-text font-semibold' : 'text-ink hover:bg-edge/60'
                                 }`}
                             >
                                 <span className="flex items-center gap-2.5">

@@ -11,6 +11,7 @@ import { formatDate } from '@/lib/i18n/date';
 import { fmt } from '@/lib/i18n/fmt';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { PRIMARY_FILL } from '../buttons';
 import { useModalDialog } from '../useModalDialog';
 import { getAccountChatStore, getLocalChatStore, getReplyRuntime } from './chatStores';
 import { storeFor, useChatHomes } from './useChatHomes';
@@ -29,7 +30,7 @@ const getReplies = () => getReplyRuntime().getSnapshot();
 
 type Note = { tone: 'status' | 'alert'; text: string } | null;
 
-const PRIMARY = 'rounded-lg bg-kesri px-4 py-2 text-sm font-bold text-navy transition-colors hover:bg-kesri-hover disabled:opacity-60';
+const PRIMARY = `rounded-lg px-4 py-2 text-sm transition-colors disabled:opacity-60 ${PRIMARY_FILL}`;
 const SECONDARY = 'rounded-lg border border-edge px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-edge/60 disabled:opacity-60';
 
 // A chat's public, read-only link: made, copied, refreshed with what the chat
@@ -181,7 +182,7 @@ function ShareBody({ chat, onClose }: { chat: ChatListItem; onClose: () => void 
                                     type="button"
                                     onClick={() => void unshare()}
                                     disabled={busy !== null}
-                                    className="font-semibold text-red-600 dark:text-red-400 hover:underline disabled:opacity-60"
+                                    className="font-semibold text-red-700 dark:text-red-400 hover:underline disabled:opacity-60"
                                 >
                                     {busy === 'unshare' ? s.unsharing : s.unshare}
                                 </button>
@@ -203,7 +204,7 @@ function ShareBody({ chat, onClose }: { chat: ChatListItem; onClose: () => void 
                                     type="button"
                                     onClick={() => setConfirmingUnshare(true)}
                                     disabled={busy !== null}
-                                    className="ml-auto text-sm font-semibold text-red-600 dark:text-red-400 hover:underline disabled:opacity-60"
+                                    className="ml-auto text-sm font-semibold text-red-700 dark:text-red-400 hover:underline disabled:opacity-60"
                                 >
                                     {s.unshare}
                                 </button>
@@ -215,7 +216,7 @@ function ShareBody({ chat, onClose }: { chat: ChatListItem; onClose: () => void 
                 // Still reading the chat (or, mid-move, reading it in its new home).
                 <p role="status" className="text-sm text-ink-muted">{busy === 'share' ? s.creating : t.chat.loadingChat}</p>
             ) : state.status === 'error' ? (
-                <p role="alert" className="text-sm text-red-600 dark:text-red-400">{s.error}</p>
+                <p role="alert" className="text-sm text-red-700 dark:text-red-400">{s.error}</p>
             ) : !snapshot ? (
                 <p className="text-sm text-ink-muted">{s.nothingYet}</p>
             ) : (
@@ -238,7 +239,7 @@ function ShareBody({ chat, onClose }: { chat: ChatListItem; onClose: () => void 
 
             {streaming && uid && <p className="text-xs text-ink-muted">{s.waitForReply}</p>}
             {note && (
-                <p role={note.tone} className={`text-xs ${note.tone === 'alert' ? 'text-red-600 dark:text-red-400' : 'text-ink-muted'}`}>
+                <p role={note.tone} className={`text-xs ${note.tone === 'alert' ? 'text-red-700 dark:text-red-400' : 'text-ink-muted'}`}>
                     {note.text}
                 </p>
             )}

@@ -10,25 +10,26 @@ import Mixed from './Mixed';
 
 export type LessonLink = { slug: string; title: string; summary: string; href: string };
 
-// A track's lessons in order. Once the browser's progress is read, finished
-// ones get a tick and their best score.
+// A track's lessons in order, as ruled rows led by their numbers, like a
+// contents page. Once the browser's progress is read, a finished one's number
+// becomes a tick, and its best score shows.
 export default function LessonList({ lessons }: { lessons: LessonLink[] }) {
     const t = useT();
     const { progress, hydrated } = useLearnProgress();
 
     return (
-        <ol className="space-y-3">
+        <ol className="border-t border-edge">
             {lessons.map((lesson, i) => {
                 const record = hydrated ? lessonRecord(progress, lesson.slug) : undefined;
                 return (
-                    <li key={lesson.slug}>
+                    <li key={lesson.slug} className="border-b border-edge">
                         <IntentLink
                             href={lesson.href}
-                            className="flex items-start gap-4 rounded-xl border border-edge bg-surface-raised p-4 shadow-sm transition-colors hover:border-accent-text/40"
+                            className="flex items-start gap-4 px-2 py-4 transition-colors hover:bg-surface-raised"
                         >
                             <span
                                 aria-hidden="true"
-                                className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-bold ${record ? 'bg-accent-text text-surface' : 'bg-accent-text/10 text-accent-text'}`}
+                                className="flex h-6 w-6 shrink-0 items-center justify-end font-semibold tabular-nums text-accent-text"
                             >
                                 {record ? <CheckIcon className="h-5 w-5" /> : i + 1}
                             </span>

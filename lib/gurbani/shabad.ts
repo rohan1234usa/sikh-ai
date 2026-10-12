@@ -30,6 +30,21 @@ export type Shabad = {
     lines: ShabadLine[];
 };
 
+// Today's Hukamnama from Sri Darbar Sahib, as its page and the home page show
+// it. The date is the Nanakshahi one GurbaniNow gives: the month in English and
+// in Gurmukhi, with Western digits for the day and year (the site's
+// convention); null when the source leaves any of it out.
+export type Hukamnama = {
+    date: { month: string; monthGurmukhi: string; day: number; year: number } | null;
+    writer: string;
+    writerGurmukhi: string;
+    raag: string;
+    raagGurmukhi: string;
+    ang: number | null;          // the Ang it starts on
+    shabadId: string | null;     // for a link to the whole shabad
+    lines: ShabadLine[];
+};
+
 // GurbaniNow's shabad and line ids are a few capital letters and digits
 // ("823", "A6S", "DMP"); some are all digits, so a shabad can't share
 // /shabad/{n} with the Angs. An address takes only that one spelling, so

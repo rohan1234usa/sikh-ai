@@ -6,7 +6,7 @@ import type { EventDisplay } from '@/lib/seva/display';
 import { isFull } from '@/lib/seva/event';
 import type { SevaEvent } from '@/lib/seva/model';
 import CapacityLine from './CapacityLine';
-import { CHIP, PANEL } from './styles';
+import { CHIP, PANEL, STATE_CHIP } from './styles';
 
 // One event on the board or the home page: its title is the link to its page,
 // stretched over the card, and the rest is a list of facts. Under a day's
@@ -33,7 +33,7 @@ export default function EventCard({ event, display, href, copy, showDate = false
         >
             <p className="flex flex-wrap items-center gap-2">
                 <span className={CHIP}>{copy.categories[event.category]}</span>
-                {full && <span className={`${CHIP} font-semibold`}>{copy.full}</span>}
+                {full && <span className={STATE_CHIP}>{copy.full}</span>}
                 {mark?.(markId)}
             </p>
             <h3 id={titleId} className="mt-2 text-lg font-bold leading-snug text-ink [overflow-wrap:anywhere]">

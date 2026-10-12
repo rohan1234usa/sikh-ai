@@ -6,6 +6,7 @@ import CopyButton from '@/app/components/translate/CopyButton';
 import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { VocabWord } from '@/lib/learn/config';
+import { TukkLines } from '../gurbani/Tukk';
 import ExampleRow from './ExampleRow';
 import Mixed from './Mixed';
 
@@ -60,13 +61,11 @@ function WordRow({ word, expanded, onToggle }: { word: VocabWord; expanded: bool
                 <div id={detailsId} className="space-y-3 border-t border-edge px-4 pb-4 pt-3">
                     <div className="flex items-start gap-3">
                         <div className="min-w-0 flex-1">
-                            <p lang="pa" className="font-gurmukhi text-3xl leading-relaxed text-ink">{word.gurmukhi}</p>
-                            <p lang="pa-Latn" className="font-medium text-ink">{word.roman}</p>
-                            <p lang="en" className="text-sm text-ink-muted"><Mixed text={word.english} /></p>
+                            <TukkLines voice="learn" size="page" gurmukhi={word.gurmukhi} transliteration={word.roman} translation={<Mixed text={word.english} />} />
                         </div>
                         <CopyButton text={word.gurmukhi} ariaLabel={copyLabel} />
                     </div>
-                    <p className="inline-block rounded-full bg-edge/40 px-2.5 py-0.5 text-xs text-ink-muted">{grammar}</p>
+                    <p className="inline-block rounded bg-edge/40 px-2.5 py-0.5 text-xs text-ink-muted">{grammar}</p>
                     {word.note && <p lang="en" className="rounded-lg bg-edge/30 p-3 text-sm text-ink-muted"><Mixed text={word.note} /></p>}
                     {word.example && (
                         <div className="space-y-1">
