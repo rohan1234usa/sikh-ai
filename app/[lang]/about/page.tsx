@@ -27,7 +27,7 @@ export default async function AboutPage() {
                             width={400}
                             height={400}
                             className="h-60 w-60 object-cover md:h-72 md:w-72"
-                            priority
+                            preload
                         />
                     </div>
                 </div>

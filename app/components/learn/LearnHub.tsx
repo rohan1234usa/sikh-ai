@@ -23,7 +23,7 @@ export type HubLesson = { slug: string; track: LessonTrackId; title: string; hre
 type Props = {
     lessons: HubLesson[];                             // every lesson, in curriculum order
     wordIds: string[];                                // every vocabulary word
-    tracks: { id: TrackId; href: string }[];          // the cards, in order
+    tracks: { id: TrackId; href: string }[];          // the tracks, in order
 };
 
 const ICONS: Record<TrackId, typeof PencilSquareIcon> = {
@@ -73,7 +73,7 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
 
     return (
         <div className="space-y-8">
-            {/* Held at the card's usual height until progress is read, so the
+            {/* Held at the panel's usual height until progress is read, so the
                 tracks below don't jump: 208px on a phone, where the button
                 drops below and most lesson titles take two lines, 120px wider. */}
             {!hydrated ? (

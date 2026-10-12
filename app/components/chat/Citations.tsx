@@ -9,9 +9,10 @@ import { MAX_ANG, MAX_CITATIONS, SGGS_SOURCE_ID, sanitizeCitations, type Citatio
 import { extractQuotes } from '@/lib/gurbani/extract';
 import { TukkLines } from '../gurbani/Tukk';
 
-// Cards under an AI reply showing what GurbaniNow says about each line the
-// reply quoted. Everything in a card's source line — the Gurmukhi, the
-// translation, Ang, writer, raag — is the source's own text, never the model's.
+// Numbered notes under an AI reply showing what GurbaniNow says about each
+// line the reply quoted. Everything in a note's source line — the Gurmukhi,
+// the translation, Ang, writer, raag — is the source's own text, never the
+// model's.
 
 const STATUS = {
     'verified': { Icon: CheckBadgeIcon, tone: 'text-good' },

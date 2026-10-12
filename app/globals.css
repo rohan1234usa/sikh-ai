@@ -8,8 +8,8 @@
 
   /* Pothi's geometry: square corners (2px, so an edge still reads as finished)
      and no shadows. Tailwind reads every rounded-* and shadow-* from these, so
-     the whole site follows; rounded-full (the avatar, switch tracks, dots,
-     pills) is a fixed value and stays round. Menus and dialogs carry a border
+     the whole site follows; rounded-full (switch tracks, dots, the capacity
+     bar) is a fixed value and stays round. Menus and dialogs carry a border
      instead of a shadow. Shadows can only be cleared with `initial`: `none` is
      not a valid value for the namespace. */
   --radius: 2px;

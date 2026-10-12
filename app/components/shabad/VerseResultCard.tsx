@@ -8,7 +8,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { TukkLines } from '../gurbani/Tukk';
 
 // One shabad found: the line that matched, its transliteration and
-// translation, and where it is. The whole card opens the shabad at that
+// translation, and where it is. The whole row opens the shabad at that
 // line. The link prefetches only on intent: each result is a shabad page
 // that may never have been built, and building it asks GurbaniNow.
 //
