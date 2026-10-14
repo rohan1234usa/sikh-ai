@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { SpeakerWaveIcon, StopCircleIcon } from '@heroicons/react/24/outline';
-import { ERROR_TURN, TURN_LABEL, Waiting } from '@/app/components/chat/Bubbles';
+import { ERROR_TURN, TURN_LABEL, Waiting } from '@/app/components/chat/turns';
 import { tukkClasses } from '@/app/components/gurbani/Tukk';
 import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
