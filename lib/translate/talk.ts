@@ -131,6 +131,19 @@ export function voiceErrorCode(status: number, body: unknown): VoiceErrorCode {
     return 'translate_voice_failed';
 }
 
+// The read-aloud route's codes the page shows (app/api/translate/speak),
+// each worded in the dictionaries' errors.
+export const SPEAK_ERROR_CODES = ['speak_unavailable', 'speak_failed', 'speak_busy', 'speak_limit'] as const;
+export type SpeakErrorCode = (typeof SPEAK_ERROR_CODES)[number];
+
+export function speakErrorCode(status: number, body: unknown): SpeakErrorCode {
+    const code = (body as { code?: unknown } | null)?.code;
+    if (SPEAK_ERROR_CODES.includes(code as SpeakErrorCode)) return code as SpeakErrorCode;
+    if (status === 429) return 'speak_busy';
+    if (status === 503) return 'speak_unavailable';
+    return 'speak_failed';
+}
+
 // What the page says beside the button until the next press.
 export type TalkNote = MicTrouble | 'tooShort' | 'tooLong' | 'micReady' | 'interrupted' | 'nothingHeard';
 
@@ -146,7 +159,7 @@ export type Exchange = {
 export type TalkState = {
     exchanges: readonly Exchange[]; // oldest first
     busy: string | null;            // the exchange whose reply is coming
-    pausedUntil: number;            // no clips before this (epoch ms), after a 429
+    pausedUntil: number;            // no clips before this (epoch ms), after a 429; 0 once over
     pauseCode: VoiceErrorCode | null;
     note: TalkNote | null;
 };
@@ -166,7 +179,9 @@ export type TalkEvent =
     | { type: 'settled'; id: string; lines: LiveLines; how: 'whole' | 'cut' | 'aborted' }
     | { type: 'failed'; id: string; code: VoiceErrorCode }
     | { type: 'refused'; id: string; until: number; code: VoiceErrorCode }
-    | { type: 'pauseOver' };
+    | { type: 'pauseOver' }
+    // A new conversation: the thread empties, and a pause still holds.
+    | { type: 'cleared' };
 
 const anything = (lines: LiveLines) => LIVE_FIELDS.some(f => lines[f]);
 
@@ -222,6 +237,8 @@ export function talkReducer(state: TalkState, event: TalkEvent): TalkState {
             return { ...replace(state, event.id, () => null), pausedUntil: event.until, pauseCode: event.code };
         case 'pauseOver':
             return state.pausedUntil === 0 && state.pauseCode === null ? state : { ...state, pausedUntil: 0, pauseCode: null };
+        case 'cleared':
+            return { ...EMPTY_TALK, pausedUntil: state.pausedUntil, pauseCode: state.pauseCode };
     }
 }
 
@@ -242,11 +259,13 @@ export type TalkView = {
         | null;
 };
 
-export function talkView({ state, recorder, now }: { state: TalkState; recorder: RecorderStatus; now: number }): TalkView {
+// A pause holds until pauseOver clears it (TalkScreen sets a timer for its
+// end), so drawing the page never reads the clock.
+export function talkView({ state, recorder }: { state: TalkState; recorder: RecorderStatus }): TalkView {
     if (recorder === 'unsupported' || recorder === 'insecure') return { button: 'unavailable', status: { kind: 'note', note: recorder } };
     if (recorder === 'recording') return { button: 'listening', status: { kind: 'listening' } };
     if (recorder === 'starting') return { button: 'starting', status: null };
-    if (state.pausedUntil > now) return { button: 'paused', status: { kind: 'paused', code: state.pauseCode ?? 'translate_voice_busy' } };
+    if (state.pausedUntil > 0) return { button: 'paused', status: { kind: 'paused', code: state.pauseCode ?? 'translate_voice_busy' } };
     if (state.note) return { button: 'hold', status: { kind: 'note', note: state.note } };
     if (state.busy) return { button: 'hold', status: { kind: 'translating' } };
     return { button: 'hold', status: null };

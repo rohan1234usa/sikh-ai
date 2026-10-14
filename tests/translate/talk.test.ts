@@ -10,6 +10,7 @@ import {
     pickEnglishVoice,
     pickRecordingMime,
     silentWav,
+    speakErrorCode,
     talkReducer,
     talkView,
     voiceErrorCode,
@@ -94,6 +95,15 @@ test('a failed call’s code, or what its status means', () => {
     assert.equal(voiceErrorCode(0, undefined), 'translate_voice_failed');
 });
 
+test('a failed read-aloud’s code, or what its status means', () => {
+    assert.equal(speakErrorCode(503, { code: 'speak_unavailable' }), 'speak_unavailable');
+    assert.equal(speakErrorCode(429, { code: 'speak_limit' }), 'speak_limit');
+    assert.equal(speakErrorCode(429, null), 'speak_busy', 'the firewall’s 429');
+    assert.equal(speakErrorCode(503, null), 'speak_unavailable');
+    assert.equal(speakErrorCode(400, { code: 'speak_invalid' }), 'speak_failed', 'a code the page never shows');
+    assert.equal(speakErrorCode(502, undefined), 'speak_failed');
+});
+
 const run = (...events: TalkEvent[]) => events.reduce(talkReducer, EMPTY_TALK as TalkState);
 const LINES = { input: 'english', gurmukhi: 'ਤੁਸੀਂ ਕਿਵੇਂ ਹੋ?', roman: 'Tusi kiven ho?', english: 'How are you?' } as const;
 
@@ -157,15 +167,29 @@ test('the conversation keeps its last MAX_EXCHANGES exchanges', () => {
     assert.equal(s.exchanges[0].id, '5');
 });
 
+test('a new conversation empties the thread, and a pause still holds', () => {
+    const s = run(
+        { type: 'sent', id: 'a', speaker: 'auto' },
+        { type: 'settled', id: 'a', lines: LINES, how: 'whole' },
+        { type: 'note', note: 'tooShort' },
+        { type: 'sent', id: 'b', speaker: 'auto' },
+        { type: 'refused', id: 'b', until: 9_000, code: 'translate_voice_busy' },
+        { type: 'cleared' },
+    );
+    assert.deepEqual(s, { ...EMPTY_TALK, pausedUntil: 9_000, pauseCode: 'translate_voice_busy' });
+    // A reply that comes after the clear has no card to fill.
+    assert.equal(talkReducer(s, { type: 'lines', id: 'a', lines: LINES }), s);
+});
+
 test('what the button and its line show, in order of what matters', () => {
-    const view = (state: Partial<TalkState>, recorder: Parameters<typeof talkView>[0]['recorder'] = 'idle', now = 1_000) =>
-        talkView({ state: { ...EMPTY_TALK, ...state }, recorder, now });
+    const view = (state: Partial<TalkState>, recorder: Parameters<typeof talkView>[0]['recorder'] = 'idle') =>
+        talkView({ state: { ...EMPTY_TALK, ...state }, recorder });
     assert.deepEqual(view({}, 'unsupported'), { button: 'unavailable', status: { kind: 'note', note: 'unsupported' } });
     assert.deepEqual(view({}, 'insecure'), { button: 'unavailable', status: { kind: 'note', note: 'insecure' } });
     assert.deepEqual(view({ busy: 'a' }, 'recording'), { button: 'listening', status: { kind: 'listening' } });
     assert.deepEqual(view({}, 'starting'), { button: 'starting', status: null });
     assert.deepEqual(view({ pausedUntil: 2_000, pauseCode: 'translate_voice_limit', note: 'tooShort' }), { button: 'paused', status: { kind: 'paused', code: 'translate_voice_limit' } });
-    assert.deepEqual(view({ pausedUntil: 1_000, note: 'tooShort' }), { button: 'hold', status: { kind: 'note', note: 'tooShort' } }, 'a pause that is over');
+    assert.deepEqual(view({ pausedUntil: 0, pauseCode: null, note: 'tooShort' }), { button: 'hold', status: { kind: 'note', note: 'tooShort' } }, 'a pause that is over');
     assert.deepEqual(view({ note: 'denied', busy: 'a' }), { button: 'hold', status: { kind: 'note', note: 'denied' } });
     assert.deepEqual(view({ busy: 'a' }), { button: 'hold', status: { kind: 'translating' } });
     assert.deepEqual(view({}), { button: 'hold', status: null });
