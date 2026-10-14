@@ -60,11 +60,17 @@ export const PROMPT_DELAY_MS = 1_500;
 // Gemini writes words down even from silence (tried on 2026-10-13: three
 // silent seconds came back as "Wait for it.", and as Punjabi sentences, with
 // the prompt saying not to), so a clip with no speech in it is never sent.
-// The recorder measures how loud each tenth of a second is, and a clip needs
-// this much time at speech's loudness: an RMS of 0.01, about -40 dBFS, which
-// a quiet room under the browser's noise suppression stays well below.
+// The page measures how loud each tenth of a second of a finished clip is,
+// and a clip needs this much time at speech's loudness: an RMS of 0.01,
+// about -40 dBFS, which a quiet room under the browser's noise suppression
+// stays well below.
 export const VOICE_RMS = 0.01;
 export const MIN_VOICED_MS = 300;
+
+// The rate a finished clip is decoded at to be measured: speech needs no
+// more, and fifteen seconds of it is then a quarter of a million samples.
+export const MEASURE_RATE = 16_000;
+const WINDOW_MS = 100;
 
 // How loud a slice of samples (-1 to 1) is: its root mean square.
 export function rms(samples: ArrayLike<number>): number {
@@ -72,6 +78,17 @@ export function rms(samples: ArrayLike<number>): number {
     let sum = 0;
     for (let i = 0; i < samples.length; i++) sum += samples[i] * samples[i];
     return Math.sqrt(sum / samples.length);
+}
+
+// How much of a clip is at speech's loudness: its whole tenths of a second
+// whose RMS reaches VOICE_RMS. `samples` run from -1 to 1, at `sampleRate`.
+export function voicedMs(samples: Float32Array, sampleRate: number): number {
+    const size = Math.max(1, Math.round((sampleRate * WINDOW_MS) / 1000));
+    let voiced = 0;
+    for (let start = 0; start + size <= samples.length; start += size) {
+        if (rms(samples.subarray(start, start + size)) >= VOICE_RMS) voiced += WINDOW_MS;
+    }
+    return voiced;
 }
 
 // Whether a finished clip is worth sending: too short (a tap, or a press the

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
     EMPTY_TALK,
     MAX_EXCHANGES,
+    MEASURE_RATE,
     MIC_TROUBLES,
     MIN_VOICED_MS,
     PROMPT_DELAY_MS,
@@ -19,6 +20,7 @@ import {
     talkReducer,
     talkView,
     voiceErrorCode,
+    voicedMs,
     type TalkEvent,
     type TalkState,
 } from '@/lib/translate/talk';
@@ -79,6 +81,27 @@ test('loudness is the root mean square, and speech is well above a quiet room', 
     assert.ok(rms(tone) > VOICE_RMS, 'a tenth-scale tone, as quiet speech is');
     const hiss = Float32Array.from({ length: 4800 }, (_, i) => 0.002 * Math.sin(i * 12.9898));
     assert.ok(rms(hiss) < VOICE_RMS, 'a quiet room');
+});
+
+test('a finished clip is measured a tenth of a second at a time', () => {
+    // `ms` of a 220 Hz tone at a tenth of full scale, as quiet speech is,
+    // between stretches of a quiet room's hiss.
+    const clip = (rate: number, parts: [kind: 'tone' | 'hiss', ms: number][]) => {
+        const out: number[] = [];
+        for (const [kind, ms] of parts) {
+            for (let i = 0; i < Math.round((rate * ms) / 1000); i++) {
+                out.push(kind === 'tone' ? 0.1 * Math.sin((2 * Math.PI * 220 * i) / rate) : 0.002 * Math.sin(i * 12.9898));
+            }
+        }
+        return Float32Array.from(out);
+    };
+    assert.equal(voicedMs(new Float32Array(2 * MEASURE_RATE), MEASURE_RATE), 0, 'two seconds of digital silence');
+    assert.equal(voicedMs(clip(MEASURE_RATE, [['hiss', 3_000]]), MEASURE_RATE), 0, 'a quiet room');
+    assert.equal(voicedMs(clip(MEASURE_RATE, [['hiss', 1_000], ['tone', 1_000], ['hiss', 1_000]]), MEASURE_RATE), 1_000);
+    assert.equal(voicedMs(clip(48_000, [['hiss', 1_000], ['tone', 1_000], ['hiss', 1_000]]), 48_000), 1_000, 'whatever the rate');
+    assert.equal(voicedMs(clip(MEASURE_RATE, [['tone', 150]]), MEASURE_RATE), 100, 'whole tenths only');
+    assert.equal(voicedMs(new Float32Array(), MEASURE_RATE), 0);
+    assert.ok(voicedMs(clip(MEASURE_RATE, [['tone', MIN_VOICED_MS]]), MEASURE_RATE) >= MIN_VOICED_MS, 'enough speech to send');
 });
 
 test('base64 in slices is the same as all at once', () => {
