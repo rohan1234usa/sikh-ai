@@ -53,8 +53,12 @@ export function refusalPauseMs(retryAfter: string | null): number {
 export type LiveField = 'gurmukhi' | 'roman' | 'english';
 export const LIVE_FIELDS: readonly LiveField[] = ['gurmukhi', 'roman', 'english'];
 
+// What the INPUT line can say: what the text was, or, from Talk's voice
+// route (./voice.ts), `none` when a clip held no speech it could hear.
+export type LiveInput = DetectedInput | 'none';
+
 // What the stream has said so far. A field is missing until its line starts.
-export type LiveLines = { input?: DetectedInput } & Partial<Record<LiveField, string>>;
+export type LiveLines = { input?: LiveInput } & Partial<Record<LiveField, string>>;
 
 // The labels the model starts each line with, in the order it writes them.
 // The prompt (./prompts.ts) names the same four.
@@ -93,7 +97,7 @@ export function parseLiveLines(raw: string, done = false): LiveLines {
             const value = match![2].trim();
             if (field === 'input') {
                 const input = value.replace(/["'`*_.]/g, '').trim().toLowerCase();
-                if (isDetectedInput(input)) out.input = input;
+                if (isDetectedInput(input) || input === 'none') out.input = input;
             } else {
                 out[field] = value;
             }
@@ -109,7 +113,7 @@ export function parseLiveLines(raw: string, done = false): LiveLines {
 
 // The lines worth showing for an input: the translation, never the input
 // echoed back. All three while the stream hasn't said what the input is.
-export function liveFieldsFor(input: DetectedInput | undefined): readonly LiveField[] {
+export function liveFieldsFor(input: LiveInput | undefined): readonly LiveField[] {
     switch (input) {
         case 'english': return ['gurmukhi', 'roman'];
         case 'punjabi-latin': return ['gurmukhi', 'english'];

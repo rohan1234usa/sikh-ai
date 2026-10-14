@@ -61,6 +61,12 @@ test('a line without a label carries on the one before it; an unknown INPUT is l
     assert.equal(parseLiveLines('INPUT: english\nENGLISH: in the\nin', true).english, 'in the in');
 });
 
+test('INPUT: none, which Talk’s voice route sends for a clip with no speech, is kept', () => {
+    assert.deepEqual(parseLiveLines('INPUT: none', true), { input: 'none' });
+    assert.deepEqual(parseLiveLines('INPUT: no'), {}, 'not yet a value it knows');
+    assert.deepEqual(liveFieldsFor('none'), ['gurmukhi', 'roman', 'english']);
+});
+
 test('the lines shown are the translation, never the input echoed back', () => {
     assert.deepEqual(liveFieldsFor('english'), ['gurmukhi', 'roman']);
     assert.deepEqual(liveFieldsFor('punjabi-latin'), ['gurmukhi', 'english']);
