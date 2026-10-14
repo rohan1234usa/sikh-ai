@@ -142,7 +142,7 @@ function clipText(data: string): string {
 // English; nothing heard for MOCK_VOICE_NONE.
 function voiceLines(probe: string): string {
     if (probe.includes('MOCK_VOICE_NONE')) return 'INPUT: none';
-    if (probe.includes('MOCK_VOICE_ENGLISH') || /speaking English\./.test(probe)) {
+    if (probe.includes('MOCK_VOICE_ENGLISH') || /is in English\./.test(probe)) {
         return 'INPUT: english\nGURMUKHI: ਤੁਸੀਂ ਕਿਵੇਂ ਹੋ?\nROMAN: Tusi kiven ho?\nENGLISH: How are you?';
     }
     return 'INPUT: punjabi-gurmukhi\nGURMUKHI: ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ ਜੀ, ਕੀ ਹਾਲ ਹੈ?\nROMAN: Sat Sri Akal ji, ki haal hai?\nENGLISH: Hello ji, how are you?';

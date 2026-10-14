@@ -122,5 +122,10 @@ test('the voice instruction keeps the translator’s rules, for every chip', asy
         for (const label of Object.values(LIVE_LABELS)) assert.match(instruction, new RegExp(`^${label}: `, 'm'));
         assert.match(instruction, /"INPUT: none"/);
         assert.doesNotMatch(instruction, /BEGIN TEXT|"detectedInput"|JSON/);
+        // A chip names the language of any speech, and never orders a
+        // transcript for a clip with none.
+        const chip = section(instruction, '## Speaker');
+        assert.doesNotMatch(chip, /(^|\. )Set the INPUT line/, speaker);
+        if (speaker !== 'auto') assert.match(chip, /if the clip holds speech, .* still "INPUT: none"/, speaker);
     }
 });

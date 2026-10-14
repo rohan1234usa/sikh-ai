@@ -59,7 +59,7 @@ test('sends the clip as it came, beside the site’s note, under the voice instr
     assert.equal(body.contents[0].role, 'user');
     const [heard, note] = body.contents[0].parts;
     assert.deepEqual(heard.inlineData, { mimeType: 'audio/webm', data: audio });
-    assert.equal(note.text, 'Write down and translate this clip. The speaker is speaking Punjabi or English.');
+    assert.equal(note.text, 'Write down and translate this clip. Any speech in it is in Punjabi or English.');
     const instruction = instructionOf(body);
     assert.match(instruction, /^You are the SikhAI translator/);
     assert.ok(instruction.includes(`\n${ROMANIZATION_RULES}\n`));
@@ -89,10 +89,10 @@ test('Gemini is told the container, without its codecs, in the form it lists', a
 
 test('the speaker chip shapes the instruction and the note', async () => {
     const cases: [unknown, RegExp, string][] = [
-        ['pa', /speaking Punjabi\. Set the INPUT line to "punjabi-gurmukhi"/, 'The speaker is speaking Punjabi.'],
-        ['en', /speaking English\. Set the INPUT line to "english"/, 'The speaker is speaking English.'],
-        ['auto', /Decide whether the speaker is speaking Punjabi or English/, 'The speaker is speaking Punjabi or English.'],
-        ['hindi', /Decide whether the speaker is speaking Punjabi or English/, 'The speaker is speaking Punjabi or English.'],
+        ['pa', /speaks Punjabi, so if the clip holds speech, set the INPUT line to "punjabi-gurmukhi"\..* still "INPUT: none"/, 'Any speech in it is in Punjabi.'],
+        ['en', /speaks English, so if the clip holds speech, set the INPUT line to "english"\..* still "INPUT: none"/, 'Any speech in it is in English.'],
+        ['auto', /Decide whether the speaker is speaking Punjabi or English/, 'Any speech in it is in Punjabi or English.'],
+        ['hindi', /Decide whether the speaker is speaking Punjabi or English/, 'Any speech in it is in Punjabi or English.'],
     ];
     for (const [speaker, instruction, note] of cases) {
         const { result: res, requests } = await captured(mock, () => voice(clip(), { speaker }));
