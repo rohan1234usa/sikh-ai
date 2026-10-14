@@ -30,13 +30,17 @@ export const TRANSLATE_ATTEMPT_MS = 12_000;
 export const LIVE_TRANSLATE_BUDGET_MS = 11_000;
 export const LIVE_TRANSLATE_FIRST_TEXT_MS = 4_000;
 
-// Talk's voice route (/api/translate/voice): Gemini has to take in the clip
-// before its first token, so the first line gets longer than the live
-// translator's, and a first line that hasn't come after 6 s means the call
-// is stuck. 8 s are left for the fallback model, and the whole budget, with
-// the reply's few seconds of streaming, sits well inside maxDuration.
-export const VOICE_TRANSLATE_BUDGET_MS = 14_000;
-export const VOICE_TRANSLATE_FIRST_TEXT_MS = 6_000;
+// Talk's voice route (/api/translate/voice): Gemini takes in the clip, and
+// often thinks, before its first token. Measured on 3.8 Flash (2026-10-13,
+// short clips): the first line came in 1.7 to 3 s without thinking, and 4 to
+// 9.5 s after 350 to 1,000 thought tokens, which LOW thinking spends on about
+// half the clips (3.8 Flash refuses MINIMAL, and ignores a thinking budget).
+// At 6 s, three clips in seven fell to the fallback model, one past it too.
+// So a first line that hasn't come after 10 s means the call is stuck, the
+// fallback model has the 10 s left, and the whole budget, with the reply's
+// second of streaming, sits inside maxDuration.
+export const VOICE_TRANSLATE_BUDGET_MS = 20_000;
+export const VOICE_TRANSLATE_FIRST_TEXT_MS = 10_000;
 
 // The Punjabi tutor streams like the chat. Its first word came in about a
 // second in testing (a smaller prompt than the chat's, LOW thinking), so one

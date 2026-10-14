@@ -55,9 +55,10 @@ export type Verdict = { ok: true } | { ok: false; window: Window; retryAfter: nu
 //   leaves room under the firewall's 20 for the read-aloud call each
 //   exchange can make. At most about 2,000 tokens in (480 of them audio,
 //   32 a second; the instruction is most of the rest) and a few hundred out
-//   with its thinking: about $0.003 a call on 3.8 Flash ($0.75 a million in,
-//   $3.75 out), so 200 a day is at most about $0.60 per visitor per server
-//   (twice that from 2027).
+//   with its thinking (up to about 1,000 thought tokens when it thinks):
+//   about $0.003 a call on 3.8 Flash ($0.75 a million in, $3.75 out), at
+//   most about $0.006, so 200 a day is at most about $1.20 per visitor per
+//   server (twice that from 2027).
 // - Talk's read-aloud (/api/translate/speak, Cloud Text-to-Speech): up to
 //   400 characters each, 15 a minute so a quick back-and-forth can be heard
 //   again, and 300 a day, at most about $0.50 at $4 a million characters;

@@ -55,13 +55,36 @@ export function micTrouble(error: unknown): MicTrouble {
 // "allow the microphone?" question in it, which takes the press away.
 export const PROMPT_DELAY_MS = 1_500;
 
-// Whether a finished clip is worth sending: too short (a tap, or a press the
-// permission question cut off), too big, or fine.
-export type ClipCheck = 'ok' | 'short' | 'prompted' | 'long';
+// Gemini writes words down even from silence (tried on 2026-10-13: three
+// silent seconds came back as "Wait for it.", and as Punjabi sentences, with
+// the prompt saying not to), so a clip with no speech in it is never sent.
+// The recorder measures how loud each tenth of a second is, and a clip needs
+// this much time at speech's loudness: an RMS of 0.01, about -40 dBFS, which
+// a quiet room under the browser's noise suppression stays well below.
+export const VOICE_RMS = 0.01;
+export const MIN_VOICED_MS = 300;
 
-export function clipCheck(clip: { durationMs: number; bytes: number }, startDelayMs: number): ClipCheck {
+// How loud a slice of samples (-1 to 1) is: its root mean square.
+export function rms(samples: ArrayLike<number>): number {
+    if (samples.length === 0) return 0;
+    let sum = 0;
+    for (let i = 0; i < samples.length; i++) sum += samples[i] * samples[i];
+    return Math.sqrt(sum / samples.length);
+}
+
+// Whether a finished clip is worth sending: too short (a tap, or a press the
+// permission question cut off), too big, silent, or fine. `voicedMs` is how
+// much of it was at speech's loudness, unknown when the browser couldn't tell.
+export type ClipCheck = 'ok' | 'short' | 'prompted' | 'long' | 'silent';
+
+export function clipCheck(clip: { durationMs: number; bytes: number; voicedMs?: number }, startDelayMs: number): ClipCheck {
     if (clip.bytes > MAX_AUDIO_BYTES) return 'long';
-    if (clip.durationMs < MIN_CLIP_MS || clip.bytes < MIN_AUDIO_BYTES) return startDelayMs > PROMPT_DELAY_MS ? 'prompted' : 'short';
+    if (clip.durationMs < MIN_CLIP_MS) return startDelayMs > PROMPT_DELAY_MS ? 'prompted' : 'short';
+    // Held long enough, but next to nothing recorded (a muted microphone's
+    // silence compresses to a few hundred bytes), or nothing at speech's
+    // loudness.
+    if (clip.bytes < MIN_AUDIO_BYTES) return 'silent';
+    if (clip.voicedMs !== undefined && clip.voicedMs < MIN_VOICED_MS) return 'silent';
     return 'ok';
 }
 

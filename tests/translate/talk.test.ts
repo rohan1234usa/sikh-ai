@@ -3,12 +3,15 @@ import assert from 'node:assert/strict';
 import {
     EMPTY_TALK,
     MAX_EXCHANGES,
+    MIN_VOICED_MS,
     PROMPT_DELAY_MS,
+    VOICE_RMS,
     bytesToBase64,
     clipCheck,
     micTrouble,
     pickEnglishVoice,
     pickRecordingMime,
+    rms,
     silentWav,
     speakErrorCode,
     talkReducer,
@@ -47,11 +50,27 @@ test('a clip is sent only when it holds something, and fits', () => {
     assert.equal(clipCheck(ok, 200), 'ok');
     assert.equal(clipCheck({ ...ok, durationMs: MIN_CLIP_MS - 1 }, 200), 'short');
     assert.equal(clipCheck({ ...ok, durationMs: MIN_CLIP_MS }, 200), 'ok');
-    assert.equal(clipCheck({ ...ok, bytes: MIN_AUDIO_BYTES - 1 }, 200), 'short', 'a header and no speech');
+    assert.equal(clipCheck({ ...ok, bytes: MIN_AUDIO_BYTES - 1 }, 200), 'silent', 'held, but a muted microphone’s silence');
+    assert.equal(clipCheck({ durationMs: MIN_CLIP_MS - 1, bytes: 0 }, 200), 'short', 'a tap');
     assert.equal(clipCheck({ durationMs: 0, bytes: 0 }, PROMPT_DELAY_MS + 1), 'prompted', 'the permission question took the press');
     assert.equal(clipCheck({ durationMs: 0, bytes: 0 }, PROMPT_DELAY_MS), 'short');
     assert.equal(clipCheck({ ...ok, bytes: MAX_AUDIO_BYTES + 1 }, 200), 'long');
     assert.equal(clipCheck({ ...ok, bytes: MAX_AUDIO_BYTES }, 200), 'ok');
+    // Silence is never sent: Gemini writes words down even from that.
+    assert.equal(clipCheck({ ...ok, voicedMs: 0 }, 200), 'silent');
+    assert.equal(clipCheck({ ...ok, voicedMs: MIN_VOICED_MS - 100 }, 200), 'silent');
+    assert.equal(clipCheck({ ...ok, voicedMs: MIN_VOICED_MS }, 200), 'ok');
+    assert.equal(clipCheck({ ...ok, voicedMs: undefined }, 200), 'ok', 'not measured: sent');
+});
+
+test('loudness is the root mean square, and speech is well above a quiet room', () => {
+    assert.equal(rms([]), 0);
+    assert.equal(rms(new Float32Array(480)), 0);
+    assert.ok(Math.abs(rms([0.5, -0.5, 0.5, -0.5]) - 0.5) < 1e-9);
+    const tone = Float32Array.from({ length: 4800 }, (_, i) => 0.1 * Math.sin((2 * Math.PI * 220 * i) / 48_000));
+    assert.ok(rms(tone) > VOICE_RMS, 'a tenth-scale tone, as quiet speech is');
+    const hiss = Float32Array.from({ length: 4800 }, (_, i) => 0.002 * Math.sin(i * 12.9898));
+    assert.ok(rms(hiss) < VOICE_RMS, 'a quiet room');
 });
 
 test('base64 in slices is the same as all at once', () => {

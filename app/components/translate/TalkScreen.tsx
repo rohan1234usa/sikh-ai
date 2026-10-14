@@ -70,9 +70,10 @@ export default function TalkScreen() {
 
     const { send } = sender;
     const onClip = useCallback((clip: Clip, startDelayMs: number) => {
-        const check = clipCheck({ durationMs: clip.durationMs, bytes: clip.blob.size }, startDelayMs);
+        const check = clipCheck({ durationMs: clip.durationMs, bytes: clip.blob.size, voicedMs: clip.voicedMs }, startDelayMs);
         if (check !== 'ok') {
-            note(check === 'short' ? 'tooShort' : check === 'prompted' ? 'micReady' : 'tooLong');
+            const notes = { short: 'tooShort', prompted: 'micReady', long: 'tooLong', silent: 'nothingHeard' } as const;
+            note(notes[check]);
             return;
         }
         send(crypto.randomUUID(), clip, speakerRef.current);
