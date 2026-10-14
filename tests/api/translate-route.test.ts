@@ -126,13 +126,24 @@ test("another site's request, or a post that isn't JSON, is refused before Gemin
     ];
     for (const [path, handler, body] of routes) {
         for (const [headers, status] of [[{ 'sec-fetch-site': 'cross-site' }, 403], [{ 'content-type': 'text/plain;charset=UTF-8' }, 415]] as const) {
-            const { result: res, requests } = await captured(mock, () => handler(postJson(`http://local/api/${path}`, body, headers)));
+            const req = postJson(`http://local/api/${path}`, body, headers);
+            const { result: res, requests } = await captured(mock, () => handler(req));
             assert.equal(res.status, status, `${path} ${JSON.stringify(headers)}`);
             assert.equal(res.headers.get('cache-control'), 'no-store');
             assert.equal(requests.length, 0);
             assert.equal(cloudCalls, 0);
+            assert.equal(req.bodyUsed, false, 'refused before the body was read');
         }
     }
+});
+
+test("a request refused for what it is doesn't count toward a visitor's day", async () => {
+    const visitor = { 'x-forwarded-for': '203.0.113.75' };
+    const ask = (text: string) => POST(postJson('http://local/api/translate', { text, sourceHint: 'auto' }, visitor));
+    spendDay('translate', '203.0.113.75', 1);
+    assert.equal((await ask('  ')).status, 400);
+    assert.equal((await ask('Ki haal hai?')).status, 200, 'the empty text spent nothing');
+    assert.equal((await ask('Ki haal hai?')).status, 429);
 });
 
 test("past the day's limit a visitor gets translate_limit: no Gemini, and no Cloud fallback either", async () => {
@@ -204,6 +215,7 @@ test("Compare counts a visitor's day in characters, and charges nothing when Clo
         crosscheck(postJson('http://local/api/translate/crosscheck', { text, direction: 'en-pa' }, { 'x-forwarded-for': address }));
     // 30 characters left of this visitor's day.
     spendDay('crosscheck', '203.0.113.72', 30);
+    assert.equal((await compare('   ', '203.0.113.72')).status, 400, 'nothing to compare, and nothing spent');
     process.env.TRANSLATE_FALLBACK = 'off';
     try {
         assert.equal((await compare('Twenty-two characters.', '203.0.113.72')).status, 502, 'Cloud switched off');

@@ -173,7 +173,19 @@ test("another site's request, or a post that isn't JSON, is refused before any m
         assert.equal(res.status, status, JSON.stringify(headers));
         assert.equal(res.headers.get('cache-control'), 'no-store');
         assert.equal(requests.length, 0);
+        assert.equal(req.bodyUsed, false, 'refused before the body was read');
     }
+});
+
+test("a request refused for what it is doesn't count toward a visitor's day", async () => {
+    const visitor = { 'x-forwarded-for': '203.0.113.61' };
+    const ask = (message: string) => POST(postJson('http://local/api/learn', { message, history: [] }, visitor));
+    spendDay('learn', '203.0.113.61', 1);
+    assert.equal((await ask('   ')).status, 400);
+    const last = await ask('Sat Sri Akal');
+    assert.equal(last.status, 200, 'the empty message spent nothing');
+    await readStream(last);
+    assert.equal((await ask('Sat Sri Akal')).status, 429);
 });
 
 test("past the day's limit a visitor gets learn_limit, before any model call", async () => {
