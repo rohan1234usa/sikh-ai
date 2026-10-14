@@ -17,6 +17,7 @@ import { maxDuration as chatMaxDuration } from '@/app/api/chat/route';
 import { maxDuration as learnMaxDuration } from '@/app/api/learn/route';
 import { maxDuration as translateMaxDuration } from '@/app/api/translate/route';
 import { maxDuration as liveMaxDuration } from '@/app/api/translate/live/route';
+import { maxDuration as voiceMaxDuration } from '@/app/api/translate/voice/route';
 
 // Every Gemini route sets maxDuration = 30 s; the translator keeps 8 s of
 // that for Cloud Translation after Gemini has had its turn.
@@ -46,7 +47,7 @@ test('a hung primary still leaves the fallback model room to answer', () => {
 });
 
 test('the budgets fit inside the function limit', () => {
-    for (const seconds of [chatMaxDuration, learnMaxDuration, translateMaxDuration, liveMaxDuration]) {
+    for (const seconds of [chatMaxDuration, learnMaxDuration, translateMaxDuration, liveMaxDuration, voiceMaxDuration]) {
         assert.equal(seconds * 1000, MAX_DURATION_MS, 'a route’s maxDuration changed: recheck its budget');
     }
     assert.ok(TRANSLATE_BUDGET_MS + CLOUD_FALLBACK_MS <= MAX_DURATION_MS, 'Cloud Translation still gets its turn');

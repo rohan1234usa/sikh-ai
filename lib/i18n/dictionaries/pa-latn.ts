@@ -878,6 +878,13 @@ const paLatn: Dictionary = {
         learn_busy: 'Tutor is vele bahut rujjhia hoia hai. Kirpa karke thorhi der baad dubara koshish karo.',
         learn_limit: 'Tuhada connection ajj layi tutor di hadd tak pahunch gaya hai. Kirpa karke baad vich dubara koshish karo.',
         learn_blocked: 'Tutor is sunehe da jawab nahi de sakia. Kirpa karke isnu hor shabdan vich likho.',
+        translate_voice_empty: 'Kujh vi record nahi hoia. Kirpa karke bolde vele button daba ke rakho.',
+        translate_voice_too_long: 'Ih recording bahut lammi hai. Kirpa karke isnu 15 seconds ton ghatt rakho.',
+        translate_voice_bad_audio: 'Ih recording parhi nahi ja saki. Kirpa karke dubara koshish karo.',
+        translate_voice_failed: 'Maaf karna, avaaz da anuvaad nahi ho sakia. Kirpa karke dubara koshish karo.',
+        translate_voice_busy: 'Avaaz vala anuvadak is vele rujjhia hoia hai. Kirpa karke thorhi der baad dubara koshish karo.',
+        translate_voice_limit: 'Tuhada connection ajj layi avaaz vale anuvadak di hadd tak pahunch gaya hai. Kirpa karke baad vich dubara koshish karo.',
+        translate_voice_blocked: 'Avaaz vala anuvadak is recording da anuvaad nahi kar sakia. Kirpa karke isnu hor shabdan vich keh ke dekho.',
     },
 };
 

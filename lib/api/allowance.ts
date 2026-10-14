@@ -49,6 +49,15 @@ export type Verdict = { ok: true } | { ok: false; window: Window; retryAfter: nu
 //   there's room left for the Translate button. 500 a day, at about $0.0014
 //   a call (measured: 1,600 tokens in, 50 out), is at most about $0.70 per
 //   visitor per server (twice that from 2027).
+// - Talk's voice translator (/api/translate/voice): one call per clip of up
+//   to 15 s, and a person records, waits for the lines and listens before
+//   the next, so 10 a minute is more than a conversation gets through, and
+//   leaves room under the firewall's 20 for the read-aloud call each
+//   exchange can make. At most about 2,000 tokens in (480 of them audio,
+//   32 a second; the instruction is most of the rest) and a few hundred out
+//   with its thinking: about $0.003 a call on 3.8 Flash ($0.75 a million in,
+//   $3.75 out), so 200 a day is at most about $0.60 per visitor per server
+//   (twice that from 2027).
 // - Compare with Google Translate: up to 2,000 characters each, from its own
 //   10,000 a day (lib/translate/cloud.ts).
 // - Shabad Search: at most 4 GurbaniNow calls each, so 300 spends at most
@@ -64,6 +73,7 @@ export const VISITOR_LIMITS = {
     learn: { perMinute: 10, perDay: 300 },
     translate: { perMinute: 15, perDay: 300 },
     translateLive: { perMinute: 12, perDay: 500 },
+    translateVoice: { perMinute: 10, perDay: 200 },
     crosscheck: { perMinute: 5, perDay: 50 },
     search: { perMinute: 20, perDay: 300 },
     errorReport: { perMinute: 10, perDay: 100 },
@@ -98,6 +108,10 @@ export const REFUSALS: Record<Feature, Record<Window, { code: string; error: str
     translateLive: {
         minute: { code: 'translate_live_busy', error: 'Too many live translations. Please wait a minute.' },
         day: { code: 'translate_live_limit', error: "Today's limit for live translation is reached." },
+    },
+    translateVoice: {
+        minute: { code: 'translate_voice_busy', error: 'The voice translator is busy right now. Please wait a minute and try again.' },
+        day: { code: 'translate_voice_limit', error: "Your connection has reached today's limit for the voice translator. Please come back later." },
     },
     crosscheck: {
         minute: { code: 'crosscheck_busy', error: 'Too many comparisons. Please wait a minute.' },
@@ -195,6 +209,7 @@ export const allowances: Record<Feature, Allowance> = {
     learn: visitorAllowance(VISITOR_LIMITS.learn),
     translate: visitorAllowance(VISITOR_LIMITS.translate),
     translateLive: visitorAllowance(VISITOR_LIMITS.translateLive),
+    translateVoice: visitorAllowance(VISITOR_LIMITS.translateVoice),
     crosscheck: visitorAllowance(VISITOR_LIMITS.crosscheck),
     search: visitorAllowance(VISITOR_LIMITS.search),
     errorReport: visitorAllowance(VISITOR_LIMITS.errorReport),

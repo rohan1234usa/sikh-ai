@@ -140,8 +140,8 @@ test("the English of every refusal the site shows is the dictionary's for its co
     }
 });
 
-test('every refusal the chat, the tutor, the translator and Shabad Search show has words in all three languages', () => {
-    for (const feature of ['chat', 'learn', 'translate', 'search'] as const) {
+test('every refusal the chat, the tutor, the translators and Shabad Search show has words in all three languages', () => {
+    for (const feature of ['chat', 'learn', 'translate', 'translateVoice', 'search'] as const) {
         for (const { code } of Object.values(REFUSALS[feature])) {
             for (const lang of LANGS) {
                 const text = getDictionary(lang).errors[code as keyof Dictionary['errors']];
