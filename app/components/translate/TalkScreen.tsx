@@ -53,9 +53,21 @@ export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
     const [state, dispatch] = useReducer(talkReducer, EMPTY_TALK);
     const [speaker, setSpeaker] = useState<Speaker>('auto');
     const [speakOn, setSpeakOn] = useSpeakSwitch();
-    const { announce, announcer } = useAnnouncer();
     const sender = useVoiceTranslate(dispatch);
     const speech = useSpeaker();
+
+    // What a screen reader hears, said together when several come at once,
+    // and nothing while the microphone is open: a screen reader on speakers
+    // would be recorded into the clip (the browser's echo cancellation hears
+    // only its own sound). What comes meanwhile is said when the recording
+    // ends. The button's own state says when it starts.
+    const { announce: say, announcer } = useAnnouncer({ join: true });
+    const recordingRef = useRef(false);
+    const heldRef = useRef<string[]>([]);
+    const announce = useCallback((text: string) => {
+        if (recordingRef.current) heldRef.current.push(text);
+        else say(text);
+    }, [say]);
 
     // The chip when a clip ends, not when it began: a speaker changed mid-clip
     // is the one meant.
@@ -75,6 +87,11 @@ export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
     const atBottomRef = useRef(true);
     const [showJump, setShowJump] = useState(false);
 
+    // A refusal's pause holds for a clip recorded while it came in, too: the
+    // button can't stop a recording already under way.
+    const pauseRef = useRef(state.pause);
+    useEffect(() => { pauseRef.current = state.pause; });
+
     const { send } = sender;
     const onClip = useCallback((clip: Clip, startDelayMs: number) => {
         const check = clipCheck({ durationMs: clip.durationMs, bytes: clip.blob.size, voicedMs: clip.voicedMs }, startDelayMs);
@@ -83,13 +100,25 @@ export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
             note(notes[check]);
             return;
         }
+        const pause = pauseRef.current;
+        if (pause && Date.now() < pause.until) {
+            announce(t.errors[pause.code]);
+            return;
+        }
         atBottomRef.current = true;
         setShowJump(false);
         send(crypto.randomUUID(), clip, speakerRef.current);
         announce(talk.translating);
-    }, [announce, note, send, talk]);
+    }, [announce, note, send, t, talk]);
     const recorder = useRecorder({ onClip, onTrouble: note });
     const view = talkView({ state, recorder: recorder.status });
+    const recording = recorder.status === 'recording' || recorder.status === 'starting';
+    useEffect(() => {
+        recordingRef.current = recording;
+        if (recording || heldRef.current.length === 0) return;
+        say(heldRef.current.join(' '));
+        heldRef.current = [];
+    }, [recording, say]);
 
     // A refusal's pause is announced once, and ends on its own at its
     // Retry-After.
@@ -102,9 +131,9 @@ export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
     }, [pause, announce, t]);
 
     // Each translation is read aloud once, as soon as it is whole; not while
-    // someone is recording, and not one cut short.
+    // someone is recording, not on a hidden page, and not one cut short. Its
+    // own button still reads it.
     const handled = useRef(new Set<string>());
-    const recording = recorder.status === 'recording' || recorder.status === 'starting';
     const { speak } = speech;
     useEffect(() => {
         for (const exchange of state.exchanges) {
@@ -116,11 +145,12 @@ export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
             const plan = speechReady(exchange.lines, exchange.speaker, exchange.status === 'done');
             if (!plan) continue;
             handled.current.add(exchange.id);
-            if (speakOn && !recording) speak(exchange.id, plan);
+            if (speakOn && !recording && !document.hidden) speak(exchange.id, plan);
         }
     }, [state.exchanges, speakOn, recording, speak]);
 
-    // A screen reader hears each exchange once it ends, whole.
+    // A screen reader hears each exchange once it ends, whole, and why a line
+    // couldn't be read aloud.
     const announced = useRef(new Set<string>());
     useEffect(() => {
         for (const exchange of state.exchanges) {
@@ -130,6 +160,10 @@ export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
             if (words) announce(words);
         }
     }, [state.exchanges, announce, talk, t, lang]);
+    const { trouble } = speech;
+    useEffect(() => {
+        if (trouble) announce(t.errors[trouble.code]);
+    }, [trouble, announce, t]);
 
     // A hidden page stops reading aloud (the recorder stops itself).
     const { stop } = speech;
@@ -147,7 +181,6 @@ export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
         speech.unlock();
         dispatch({ type: 'pressed' });
         recorder.press();
-        announce(talk.listening);
     };
     // For a finger, letting go is the tap that lets the page play and speak
     // later.
