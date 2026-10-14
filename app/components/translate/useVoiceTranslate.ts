@@ -75,11 +75,12 @@ export function useVoiceTranslate(dispatch: Dispatch<TalkEvent>): {
                 raw += decoder.decode();
                 dispatch({ type: 'settled', id, lines: parseLiveLines(raw, true), how: 'whole' });
             } catch {
-                // Abandoned (a page left, a new conversation) or cut off: what
-                // came is kept either way, and a runaway reply stops.
-                const how = controller.signal.aborted ? 'aborted' : 'cut';
+                // Abandoned (the page left, or a new conversation began): its
+                // card is already gone. Otherwise cut off, or a runaway reply
+                // stopped here: what came is kept.
+                if (controller.signal.aborted) return;
                 controller.abort();
-                dispatch({ type: 'settled', id, lines: parseLiveLines(raw, true), how });
+                dispatch({ type: 'settled', id, lines: parseLiveLines(raw, true), how: 'cut' });
             } finally {
                 inFlight.current.delete(controller);
             }

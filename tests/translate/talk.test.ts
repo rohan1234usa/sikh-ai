@@ -3,11 +3,13 @@ import assert from 'node:assert/strict';
 import {
     EMPTY_TALK,
     MAX_EXCHANGES,
+    MIC_TROUBLES,
     MIN_VOICED_MS,
     PROMPT_DELAY_MS,
     VOICE_RMS,
     bytesToBase64,
     clipCheck,
+    isMicTrouble,
     micTrouble,
     pickEnglishVoice,
     pickRecordingMime,
@@ -43,6 +45,12 @@ test('a microphone error says what the visitor can do about it', () => {
     assert.equal(micTrouble(new TypeError('no')), 'failed');
     assert.equal(micTrouble(undefined), 'failed');
     assert.equal(micTrouble({ name: 'NotAllowedError' }), 'denied', 'older browsers throw plain objects');
+    // Every answer is one the page shows as an error, and no other note is.
+    for (const name of ['NotAllowedError', 'NotFoundError', 'NotReadableError', 'NotSupportedError', 'TypeError']) {
+        assert.ok(isMicTrouble(micTrouble(named(name))), name);
+    }
+    assert.equal(MIC_TROUBLES.length, 6);
+    for (const note of ['tooShort', 'tooLong', 'micReady', 'interrupted', 'nothingHeard']) assert.ok(!isMicTrouble(note), note);
 });
 
 test('a clip is sent only when it holds something, and fits', () => {
@@ -125,16 +133,17 @@ test('a failed read-aloud’s code, or what its status means', () => {
 
 const run = (...events: TalkEvent[]) => events.reduce(talkReducer, EMPTY_TALK as TalkState);
 const LINES = { input: 'english', gurmukhi: 'ਤੁਸੀਂ ਕਿਵੇਂ ਹੋ?', roman: 'Tusi kiven ho?', english: 'How are you?' } as const;
+const translating = (s: TalkState) => talkView({ state: s, recorder: 'idle' }).status?.kind === 'translating';
 
 test('a clip sent becomes an exchange that streams, then settles', () => {
     let s = run({ type: 'sent', id: 'a', speaker: 'auto' });
     assert.deepEqual(s.exchanges, [{ id: 'a', speaker: 'auto', lines: {}, status: 'streaming' }]);
-    assert.equal(s.busy, 'a');
+    assert.ok(translating(s));
     s = talkReducer(s, { type: 'lines', id: 'a', lines: { input: 'english' } });
     assert.deepEqual(s.exchanges[0].lines, { input: 'english' });
     s = talkReducer(s, { type: 'settled', id: 'a', lines: LINES, how: 'whole' });
     assert.deepEqual(s.exchanges[0], { id: 'a', speaker: 'auto', lines: LINES, status: 'done' });
-    assert.equal(s.busy, null);
+    assert.ok(!translating(s));
     // A late piece for a reply that has settled changes nothing.
     assert.equal(talkReducer(s, { type: 'lines', id: 'a', lines: {} }), s);
     assert.equal(talkReducer(s, { type: 'lines', id: 'gone', lines: {} }), s);
@@ -147,36 +156,36 @@ test('nothing heard: the card goes and the note says so', () => {
     assert.equal(talkReducer(s, { type: 'pressed' }).note, null, 'until the next press');
 });
 
-test('a reply cut short keeps what came; one with nothing fails; one abandoned with nothing goes', () => {
+test('a reply cut short keeps what came; one with nothing fails', () => {
     const cut = run({ type: 'sent', id: 'a', speaker: 'en' }, { type: 'settled', id: 'a', lines: { input: 'english', gurmukhi: 'ਤੁਸੀਂ' }, how: 'cut' });
     assert.equal(cut.exchanges[0].status, 'cut');
     const nothing = run({ type: 'sent', id: 'a', speaker: 'en' }, { type: 'settled', id: 'a', lines: { input: 'english' }, how: 'whole' });
     assert.deepEqual([nothing.exchanges[0].status, nothing.exchanges[0].error], ['failed', 'translate_voice_failed']);
-    const abandoned = run({ type: 'sent', id: 'a', speaker: 'en' }, { type: 'settled', id: 'a', lines: {}, how: 'aborted' });
-    assert.deepEqual(abandoned.exchanges, []);
-    const abandonedLate = run({ type: 'sent', id: 'a', speaker: 'en' }, { type: 'settled', id: 'a', lines: { english: 'How' }, how: 'aborted' });
-    assert.equal(abandonedLate.exchanges[0].status, 'cut');
+    const cutBare = run({ type: 'sent', id: 'a', speaker: 'en' }, { type: 'settled', id: 'a', lines: {}, how: 'cut' });
+    assert.deepEqual([cutBare.exchanges[0].status, cutBare.exchanges[0].error], ['failed', 'translate_voice_failed']);
 });
 
 test('a failure keeps its card with the reason; a refusal pauses, and the pause ends', () => {
     const failed = run({ type: 'sent', id: 'a', speaker: 'auto' }, { type: 'failed', id: 'a', code: 'translate_voice_blocked' });
-    assert.deepEqual([failed.exchanges[0].status, failed.exchanges[0].error, failed.busy], ['failed', 'translate_voice_blocked', null]);
+    assert.deepEqual([failed.exchanges[0].status, failed.exchanges[0].error, translating(failed)], ['failed', 'translate_voice_blocked', false]);
     const refused = run({ type: 'sent', id: 'a', speaker: 'auto' }, { type: 'refused', id: 'a', until: 5_000, code: 'translate_voice_limit' });
-    assert.deepEqual([refused.exchanges, refused.pausedUntil, refused.pauseCode, refused.busy], [[], 5_000, 'translate_voice_limit', null]);
+    assert.deepEqual([refused.exchanges, refused.pause, translating(refused)], [[], { until: 5_000, code: 'translate_voice_limit' }, false]);
     const over = talkReducer(refused, { type: 'pauseOver' });
-    assert.deepEqual([over.pausedUntil, over.pauseCode], [0, null]);
+    assert.equal(over.pause, null);
     assert.equal(talkReducer(over, { type: 'pauseOver' }), over);
 });
 
-test('a newer clip while one streams: both cards stay, the newer is the busy one', () => {
-    const s = run(
+test('replies overlap: still translating until the last one is in, whichever ends first', () => {
+    let s = run(
         { type: 'sent', id: 'a', speaker: 'auto' },
         { type: 'lines', id: 'a', lines: { input: 'english', gurmukhi: 'ਤੁਸੀਂ' } },
         { type: 'sent', id: 'b', speaker: 'auto' },
-        { type: 'settled', id: 'a', lines: { input: 'english', gurmukhi: 'ਤੁਸੀਂ' }, how: 'aborted' },
+        { type: 'settled', id: 'b', lines: LINES, how: 'whole' },
     );
-    assert.deepEqual(s.exchanges.map(e => [e.id, e.status]), [['a', 'cut'], ['b', 'streaming']]);
-    assert.equal(s.busy, 'b', 'settling the older one leaves the newer busy');
+    assert.deepEqual(s.exchanges.map(e => [e.id, e.status]), [['a', 'streaming'], ['b', 'done']]);
+    assert.ok(translating(s), 'the newer one is done, the older one still coming');
+    s = talkReducer(s, { type: 'settled', id: 'a', lines: LINES, how: 'whole' });
+    assert.ok(!translating(s));
 });
 
 test('the conversation keeps its last MAX_EXCHANGES exchanges', () => {
@@ -195,7 +204,7 @@ test('a new conversation empties the thread, and a pause still holds', () => {
         { type: 'refused', id: 'b', until: 9_000, code: 'translate_voice_busy' },
         { type: 'cleared' },
     );
-    assert.deepEqual(s, { ...EMPTY_TALK, pausedUntil: 9_000, pauseCode: 'translate_voice_busy' });
+    assert.deepEqual(s, { ...EMPTY_TALK, pause: { until: 9_000, code: 'translate_voice_busy' } });
     // A reply that comes after the clear has no card to fill.
     assert.equal(talkReducer(s, { type: 'lines', id: 'a', lines: LINES }), s);
 });
@@ -205,12 +214,13 @@ test('what the button and its line show, in order of what matters', () => {
         talkView({ state: { ...EMPTY_TALK, ...state }, recorder });
     assert.deepEqual(view({}, 'unsupported'), { button: 'unavailable', status: { kind: 'note', note: 'unsupported' } });
     assert.deepEqual(view({}, 'insecure'), { button: 'unavailable', status: { kind: 'note', note: 'insecure' } });
-    assert.deepEqual(view({ busy: 'a' }, 'recording'), { button: 'listening', status: { kind: 'listening' } });
+    const streaming = [{ id: 'a', speaker: 'auto', lines: {}, status: 'streaming' }] as const;
+    assert.deepEqual(view({ exchanges: streaming }, 'recording'), { button: 'listening', status: null });
     assert.deepEqual(view({}, 'starting'), { button: 'starting', status: null });
-    assert.deepEqual(view({ pausedUntil: 2_000, pauseCode: 'translate_voice_limit', note: 'tooShort' }), { button: 'paused', status: { kind: 'paused', code: 'translate_voice_limit' } });
-    assert.deepEqual(view({ pausedUntil: 0, pauseCode: null, note: 'tooShort' }), { button: 'hold', status: { kind: 'note', note: 'tooShort' } }, 'a pause that is over');
-    assert.deepEqual(view({ note: 'denied', busy: 'a' }), { button: 'hold', status: { kind: 'note', note: 'denied' } });
-    assert.deepEqual(view({ busy: 'a' }), { button: 'hold', status: { kind: 'translating' } });
+    assert.deepEqual(view({ pause: { until: 2_000, code: 'translate_voice_limit' }, note: 'tooShort' }), { button: 'paused', status: { kind: 'paused', code: 'translate_voice_limit' } });
+    assert.deepEqual(view({ pause: null, note: 'tooShort' }), { button: 'hold', status: { kind: 'note', note: 'tooShort' } }, 'a pause that is over');
+    assert.deepEqual(view({ note: 'denied', exchanges: streaming }), { button: 'hold', status: { kind: 'note', note: 'denied' } });
+    assert.deepEqual(view({ exchanges: streaming }), { button: 'hold', status: { kind: 'translating' } });
     assert.deepEqual(view({}), { button: 'hold', status: null });
     assert.deepEqual(view({}, 'unknown'), { button: 'hold', status: null }, 'before the page knows, as the server drew it');
 });

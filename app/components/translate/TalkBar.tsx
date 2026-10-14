@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { StopCircleIcon } from '@heroicons/react/24/outline';
 import { useLocalePath, useT } from '@/app/context/LanguageContext';
-import type { TalkNote, TalkView } from '@/lib/translate/talk';
+import { isMicTrouble, type TalkView } from '@/lib/translate/talk';
 import { SPEAKERS, type Speaker } from '@/lib/translate/voice';
 import TalkButton from './TalkButton';
 
@@ -12,8 +12,6 @@ import TalkButton from './TalkButton';
 // where clips go. The line isn't a live region: the page announces what
 // matters once (TalkScreen), so a screen reader isn't talked over.
 
-// Notes about the microphone itself, shown as errors.
-const TROUBLE = new Set<TalkNote>(['denied', 'unavailable', 'busy', 'unsupported', 'insecure', 'failed']);
 
 export default function TalkBar({ view, speaker, onSpeaker, speakOn, onSpeakOn, playing, onStop, hintId, onPress, onRelease, onCancel }: {
     view: TalkView;
@@ -36,9 +34,9 @@ export default function TalkBar({ view, speaker, onSpeaker, speakOn, onSpeakOn, 
     const line = !status ? ''
         : status.kind === 'note' ? talk.notes[status.note]
         : status.kind === 'paused' ? t.errors[status.code]
-        : status.kind === 'translating' ? talk.translating
-        : '';
-    const isError = status?.kind === 'paused' || (status?.kind === 'note' && TROUBLE.has(status.note));
+        : talk.translating;
+    // A refusal, or trouble with the microphone itself, is an error.
+    const isError = status?.kind === 'paused' || (status?.kind === 'note' && isMicTrouble(status.note));
 
     return (
         <div className="shrink-0 border-t border-edge bg-surface-raised px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">

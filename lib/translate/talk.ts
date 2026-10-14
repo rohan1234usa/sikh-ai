@@ -11,8 +11,10 @@ import { MAX_AUDIO_BYTES, MIN_AUDIO_BYTES, MIN_CLIP_MS, RECORDING_MIMES, type Sp
 
 // Why the microphone can't be used: the visitor said no, there is none, an
 // app holds it, the browser can't record (or the page isn't https), or
-// something else went wrong.
-export type MicTrouble = 'denied' | 'unavailable' | 'busy' | 'unsupported' | 'insecure' | 'failed';
+// something else went wrong. The page shows these as errors.
+export const MIC_TROUBLES = ['denied', 'unavailable', 'busy', 'unsupported', 'insecure', 'failed'] as const;
+export type MicTrouble = (typeof MIC_TROUBLES)[number];
+export const isMicTrouble = (v: unknown): v is MicTrouble => MIC_TROUBLES.includes(v as MicTrouble);
 
 // The first type MediaRecorder takes, from RECORDING_MIMES; '' lets the
 // browser choose, as when it can't say (an old Safari has no isTypeSupported).
@@ -179,13 +181,13 @@ export type Exchange = {
 
 export type TalkState = {
     exchanges: readonly Exchange[]; // oldest first
-    busy: string | null;            // the exchange whose reply is coming
-    pausedUntil: number;            // no clips before this (epoch ms), after a 429; 0 once over
-    pauseCode: VoiceErrorCode | null;
+    // After a 429, no clips until `until` (epoch ms), and `code` says why;
+    // null once it's over.
+    pause: { until: number; code: VoiceErrorCode } | null;
     note: TalkNote | null;
 };
 
-export const EMPTY_TALK: TalkState = Object.freeze({ exchanges: Object.freeze([]), busy: null, pausedUntil: 0, pauseCode: null, note: null });
+export const EMPTY_TALK: TalkState = Object.freeze({ exchanges: Object.freeze([]), pause: null, note: null });
 
 // A long conversation keeps its last 50 exchanges.
 export const MAX_EXCHANGES = 50;
@@ -195,9 +197,10 @@ export type TalkEvent =
     | { type: 'note'; note: TalkNote }
     | { type: 'sent'; id: string; speaker: Speaker }
     | { type: 'lines'; id: string; lines: LiveLines }
-    // The reply ended: whole, cut short (an error mid-stream), or abandoned
-    // (the page left, or a new conversation begun).
-    | { type: 'settled'; id: string; lines: LiveLines; how: 'whole' | 'cut' | 'aborted' }
+    // The reply ended: whole, or cut short (an error mid-stream, or a
+    // runaway reply stopped). One abandoned (the page left, or a new
+    // conversation begun) has no card left to settle.
+    | { type: 'settled'; id: string; lines: LiveLines; how: 'whole' | 'cut' }
     | { type: 'failed'; id: string; code: VoiceErrorCode }
     | { type: 'refused'; id: string; until: number; code: VoiceErrorCode }
     | { type: 'pauseOver' }
@@ -215,7 +218,7 @@ function replace(state: TalkState, id: string, change: (e: Exchange) => Exchange
             if (next) exchanges.push(next);
         }
     }
-    return { ...state, exchanges, busy: state.busy === id ? null : state.busy };
+    return { ...state, exchanges };
 }
 
 export function talkReducer(state: TalkState, event: TalkEvent): TalkState {
@@ -226,7 +229,7 @@ export function talkReducer(state: TalkState, event: TalkEvent): TalkState {
             return { ...state, note: event.note };
         case 'sent': {
             const exchanges = [...state.exchanges, { id: event.id, speaker: event.speaker, lines: {}, status: 'streaming' as const }];
-            return { ...state, exchanges: exchanges.slice(-MAX_EXCHANGES), busy: event.id, note: null };
+            return { ...state, exchanges: exchanges.slice(-MAX_EXCHANGES), note: null };
         }
         case 'lines': {
             // A late piece for a reply already settled or gone changes nothing.
@@ -241,12 +244,9 @@ export function talkReducer(state: TalkState, event: TalkEvent): TalkState {
             if (how === 'whole' && lines.input === 'none') {
                 return { ...replace(state, event.id, () => null), note: 'nothingHeard' };
             }
-            return replace(state, event.id, e => {
-                if (anything(lines)) return { ...e, lines, status: how === 'whole' ? 'done' : 'cut' };
-                // Abandoned before a word came: nothing to keep.
-                if (how === 'aborted') return null;
-                return { ...e, lines, status: 'failed', error: 'translate_voice_failed' };
-            });
+            return replace(state, event.id, e => (anything(lines)
+                ? { ...e, lines, status: how === 'whole' ? 'done' : 'cut' }
+                : { ...e, lines, status: 'failed', error: 'translate_voice_failed' }));
         }
         case 'failed': {
             const current = state.exchanges.find(e => e.id === event.id);
@@ -255,11 +255,11 @@ export function talkReducer(state: TalkState, event: TalkEvent): TalkState {
         }
         case 'refused':
             // Not heard at all: the card goes, and the pause says why.
-            return { ...replace(state, event.id, () => null), pausedUntil: event.until, pauseCode: event.code };
+            return { ...replace(state, event.id, () => null), pause: { until: event.until, code: event.code } };
         case 'pauseOver':
-            return state.pausedUntil === 0 && state.pauseCode === null ? state : { ...state, pausedUntil: 0, pauseCode: null };
+            return state.pause === null ? state : { ...state, pause: null };
         case 'cleared':
-            return { ...EMPTY_TALK, pausedUntil: state.pausedUntil, pauseCode: state.pauseCode };
+            return { ...EMPTY_TALK, pause: state.pause };
     }
 }
 
@@ -271,23 +271,25 @@ export type TalkView = {
     // The button: ready to hold, getting the microphone, listening, waiting
     // out a refusal, or unable to record at all.
     button: 'hold' | 'starting' | 'listening' | 'paused' | 'unavailable';
-    // The line beside it.
+    // The line beside it. While it listens the button says so, and the line
+    // is empty.
     status:
         | { kind: 'note'; note: TalkNote }
         | { kind: 'paused'; code: VoiceErrorCode }
-        | { kind: 'listening' }
         | { kind: 'translating' }
         | null;
 };
 
 // A pause holds until pauseOver clears it (TalkScreen sets a timer for its
-// end), so drawing the page never reads the clock.
+// end), so drawing the page never reads the clock. "Translating" is any
+// reply still coming: replies overlap when someone speaks before the last
+// one is done.
 export function talkView({ state, recorder }: { state: TalkState; recorder: RecorderStatus }): TalkView {
     if (recorder === 'unsupported' || recorder === 'insecure') return { button: 'unavailable', status: { kind: 'note', note: recorder } };
-    if (recorder === 'recording') return { button: 'listening', status: { kind: 'listening' } };
+    if (recorder === 'recording') return { button: 'listening', status: null };
     if (recorder === 'starting') return { button: 'starting', status: null };
-    if (state.pausedUntil > 0) return { button: 'paused', status: { kind: 'paused', code: state.pauseCode ?? 'translate_voice_busy' } };
+    if (state.pause) return { button: 'paused', status: { kind: 'paused', code: state.pause.code } };
     if (state.note) return { button: 'hold', status: { kind: 'note', note: state.note } };
-    if (state.busy) return { button: 'hold', status: { kind: 'translating' } };
+    if (state.exchanges.some(e => e.status === 'streaming')) return { button: 'hold', status: { kind: 'translating' } };
     return { button: 'hold', status: null };
 }

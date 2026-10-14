@@ -10,7 +10,7 @@ import type { Dictionary } from '@/lib/i18n';
 import type { Lang } from '@/lib/i18n/config';
 import type { LiveField } from '@/lib/translate/live';
 import { EMPTY_TALK, clipCheck, talkReducer, talkView, type Exchange, type TalkNote } from '@/lib/translate/talk';
-import { expectedInput, speechReady, voiceRoles, type Speaker } from '@/lib/translate/voice';
+import { rolesOf, speechReady, type Speaker } from '@/lib/translate/voice';
 import TalkBar from './TalkBar';
 import TalkExchange from './TalkExchange';
 import { useRecorder, type Clip } from './useRecorder';
@@ -32,9 +32,9 @@ import { useVoiceTranslate } from './useVoiceTranslate';
 function spoken(t: Dictionary, lang: Lang, exchange: Exchange): string {
     const talk = t.translate.talk;
     if (exchange.status === 'failed') return t.errors[exchange.error ?? 'translate_voice_failed'];
-    const roles = voiceRoles(exchange.lines.input ?? expectedInput(exchange.speaker));
+    const roles = rolesOf(exchange.lines, exchange.speaker);
     if (!roles) return '';
-    const language = (from: 'pa' | 'en') => (from === 'pa' ? talk.langPunjabi : talk.langEnglish);
+    const language = (l: 'pa' | 'en') => (l === 'pa' ? talk.langPunjabi : talk.langEnglish);
     const punjabi: readonly LiveField[] = lang === 'pa' ? ['gurmukhi', 'roman'] : ['roman', 'gurmukhi'];
     const text = (fields: readonly LiveField[]) =>
         (fields.includes('english') ? ['english' as const] : punjabi).map(f => exchange.lines[f]).find(Boolean) ?? '';
@@ -42,7 +42,7 @@ function spoken(t: Dictionary, lang: Lang, exchange: Exchange): string {
     const sentence = (s: string) => (/[.?!।॥]$/.test(s) ? s : `${s}.`);
     return [
         sentence(`${fmt(talk.heard, { lang: language(roles.from) })}: ${text(roles.heard)}`),
-        sentence(`${fmt(talk.translation, { lang: language(roles.from === 'pa' ? 'en' : 'pa') })}: ${text(roles.said)}`),
+        sentence(`${fmt(talk.translation, { lang: language(roles.to) })}: ${text(roles.said)}`),
         exchange.status === 'cut' ? talk.cut : '',
     ].filter(Boolean).join(' ');
 }
@@ -82,15 +82,15 @@ export default function TalkScreen() {
     const recorder = useRecorder({ onClip, onTrouble: note });
     const view = talkView({ state, recorder: recorder.status });
 
-    // A refusal's pause ends on its own, at its Retry-After.
+    // A refusal's pause is announced once, and ends on its own at its
+    // Retry-After.
+    const { pause } = state;
     useEffect(() => {
-        if (!state.pausedUntil) return;
-        const timer = setTimeout(() => dispatch({ type: 'pauseOver' }), Math.max(0, state.pausedUntil - Date.now()));
+        if (!pause) return;
+        announce(t.errors[pause.code]);
+        const timer = setTimeout(() => dispatch({ type: 'pauseOver' }), Math.max(0, pause.until - Date.now()));
         return () => clearTimeout(timer);
-    }, [state.pausedUntil]);
-    useEffect(() => {
-        if (state.pauseCode) announce(t.errors[state.pauseCode]);
-    }, [state.pauseCode, announce, t]);
+    }, [pause, announce, t]);
 
     // Each translation is read aloud once, as soon as it is whole; not while
     // someone is recording, and not one cut short.

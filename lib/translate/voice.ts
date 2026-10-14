@@ -83,16 +83,23 @@ export function expectedInput(speaker: Speaker): DetectedInput | undefined {
     return speaker === 'pa' ? 'punjabi-gurmukhi' : speaker === 'en' ? 'english' : undefined;
 }
 
-// Which of the four lines are what was heard, and which the translation.
-// Punjabi speech: Gurmukhi and the romanization are what was said, English
-// the translation; English speech the other way round. Nothing when the clip
-// held no speech, or before the INPUT line has said which.
-export type VoiceRoles = { from: 'pa' | 'en'; heard: readonly LiveField[]; said: readonly LiveField[] };
+// Which of the four lines are what was heard, and which the translation, and
+// the language of each. Punjabi speech: Gurmukhi and the romanization are
+// what was said, English the translation; English speech the other way
+// round. Nothing when the clip held no speech, or before the INPUT line has
+// said which.
+export type VoiceRoles = { from: 'pa' | 'en'; to: 'pa' | 'en'; heard: readonly LiveField[]; said: readonly LiveField[] };
 
 export function voiceRoles(input: LiveInput | undefined): VoiceRoles | null {
-    if (input === 'english') return { from: 'en', heard: ['english'], said: ['gurmukhi', 'roman'] };
-    if (input === 'punjabi-gurmukhi' || input === 'punjabi-latin') return { from: 'pa', heard: ['gurmukhi', 'roman'], said: ['english'] };
+    if (input === 'english') return { from: 'en', to: 'pa', heard: ['english'], said: ['gurmukhi', 'roman'] };
+    if (input === 'punjabi-gurmukhi' || input === 'punjabi-latin') return { from: 'pa', to: 'en', heard: ['gurmukhi', 'roman'], said: ['english'] };
     return null;
+}
+
+// The roles of a reply so far: its INPUT line's, or until that line comes,
+// the chip's (Auto waits for Gemini's word).
+export function rolesOf(lines: LiveLines, speaker: Speaker): VoiceRoles | null {
+    return voiceRoles(lines.input ?? expectedInput(speaker));
 }
 
 // What /api/translate/speak reads aloud: Punjabi in Gurmukhi (a pa-IN voice
@@ -131,7 +138,7 @@ export function capText(text: string, max = MAX_SPEAK_CHARS): string {
 export type SpeechPlan = { text: string; lang: SpeakLang };
 
 export function speechReady(lines: LiveLines, speaker: Speaker, done: boolean): SpeechPlan | null {
-    const roles = voiceRoles(lines.input ?? expectedInput(speaker));
+    const roles = rolesOf(lines, speaker);
     if (!roles) return null;
     if (roles.from === 'en') {
         if (!done && lines.roman === undefined) return null;

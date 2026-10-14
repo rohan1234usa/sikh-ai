@@ -12,6 +12,7 @@ import {
     baseMime,
     capText,
     expectedInput,
+    rolesOf,
     isBase64,
     isSpeakLang,
     isSpeaker,
@@ -65,11 +66,16 @@ test('the chips and the speak languages are what they say', () => {
 });
 
 test('what was heard and what is the translation, by the language spoken', () => {
-    assert.deepEqual(voiceRoles('punjabi-gurmukhi'), { from: 'pa', heard: ['gurmukhi', 'roman'], said: ['english'] });
-    assert.deepEqual(voiceRoles('punjabi-latin'), { from: 'pa', heard: ['gurmukhi', 'roman'], said: ['english'] });
-    assert.deepEqual(voiceRoles('english'), { from: 'en', heard: ['english'], said: ['gurmukhi', 'roman'] });
+    assert.deepEqual(voiceRoles('punjabi-gurmukhi'), { from: 'pa', to: 'en', heard: ['gurmukhi', 'roman'], said: ['english'] });
+    assert.deepEqual(voiceRoles('punjabi-latin'), { from: 'pa', to: 'en', heard: ['gurmukhi', 'roman'], said: ['english'] });
+    assert.deepEqual(voiceRoles('english'), { from: 'en', to: 'pa', heard: ['english'], said: ['gurmukhi', 'roman'] });
     assert.equal(voiceRoles('none'), null);
     assert.equal(voiceRoles(undefined), null);
+    // A reply's roles: its INPUT line's, or the chip's until that comes.
+    assert.equal(rolesOf({}, 'en')?.from, 'en');
+    assert.equal(rolesOf({}, 'auto'), null, 'Auto waits for Gemini');
+    assert.equal(rolesOf({ input: 'punjabi-gurmukhi' }, 'en')?.from, 'pa', 'what was heard wins over the chip');
+    assert.equal(rolesOf({ input: 'none' }, 'pa'), null);
 });
 
 test('a line is read aloud only in a script its voice reads, and within the cap', () => {

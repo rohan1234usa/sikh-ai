@@ -8,7 +8,7 @@ import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import { LIVE_FIELDS, type LiveField, type LiveLines } from '@/lib/translate/live';
 import type { Exchange, SpeakErrorCode } from '@/lib/translate/talk';
-import { expectedInput, speechReady, voiceRoles, type SpeechPlan } from '@/lib/translate/voice';
+import { rolesOf, speechReady, type SpeechPlan } from '@/lib/translate/voice';
 import CopyButton from './CopyButton';
 
 // One clip and its reply on the Talk page: what was heard, small, then the
@@ -65,8 +65,8 @@ export default memo(function TalkExchange({ exchange, playing, trouble, onSpeak,
         );
     }
 
-    const roles = voiceRoles(lines.input ?? expectedInput(exchange.speaker));
-    const language = (from: 'pa' | 'en') => (from === 'pa' ? talk.langPunjabi : talk.langEnglish);
+    const roles = rolesOf(lines, exchange.speaker);
+    const language = (l: 'pa' | 'en') => (l === 'pa' ? talk.langPunjabi : talk.langEnglish);
     const said = roles?.said ?? LIVE_FIELDS;
     const nothingSaidYet = !said.some(field => lines[field]);
     // Read aloud, and copied: the translation, once it is whole.
@@ -82,7 +82,7 @@ export default memo(function TalkExchange({ exchange, playing, trouble, onSpeak,
                 </div>
             )}
             <div>
-                {roles && <p className={TURN_LABEL}>{fmt(talk.translation, { lang: language(roles.from === 'pa' ? 'en' : 'pa') })}</p>}
+                {roles && <p className={TURN_LABEL}>{fmt(talk.translation, { lang: language(roles.to) })}</p>}
                 {!settled && nothingSaidYet
                     ? <Waiting label={talk.translating} />
                     : <Lines fields={said} lines={lines} styles={SAID} settled={settled} />}
