@@ -910,6 +910,11 @@ const en = {
         translate_voice_busy: 'The voice translator is busy right now. Please wait a minute and try again.',
         translate_voice_limit: "Your connection has reached today's limit for the voice translator. Please come back later.",
         translate_voice_blocked: "The voice translator couldn't translate that recording. Please try saying it another way.",
+        // Talk's read-aloud (/api/translate/speak).
+        speak_unavailable: "Reading aloud isn't available right now.",
+        speak_failed: "Sorry, that couldn't be read aloud. Please try again.",
+        speak_busy: 'Reading aloud is busy right now. Please wait a minute.',
+        speak_limit: "Your connection has reached today's limit for reading aloud. Please come back later.",
     },
 };
 

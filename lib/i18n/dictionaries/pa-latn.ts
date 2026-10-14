@@ -885,6 +885,10 @@ const paLatn: Dictionary = {
         translate_voice_busy: 'Avaaz vala anuvadak is vele rujjhia hoia hai. Kirpa karke thorhi der baad dubara koshish karo.',
         translate_voice_limit: 'Tuhada connection ajj layi avaaz vale anuvadak di hadd tak pahunch gaya hai. Kirpa karke baad vich dubara koshish karo.',
         translate_voice_blocked: 'Avaaz vala anuvadak is recording da anuvaad nahi kar sakia. Kirpa karke isnu hor shabdan vich keh ke dekho.',
+        speak_unavailable: 'Is vele parh ke sunaya nahi ja sakda.',
+        speak_failed: 'Maaf karna, ih parh ke sunaya nahi ja sakia. Kirpa karke dubara koshish karo.',
+        speak_busy: 'Parh ke sunaun vali seva is vele rujjhi hoi hai. Kirpa karke thorhi der baad dubara koshish karo.',
+        speak_limit: 'Tuhada connection ajj layi parh ke sunaun di hadd tak pahunch gaya hai. Kirpa karke baad vich dubara koshish karo.',
     },
 };
 

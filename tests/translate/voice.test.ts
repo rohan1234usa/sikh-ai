@@ -105,3 +105,18 @@ test('Punjabi speech: the English line is read when the reply ends', () => {
     assert.equal(speechReady(parseLiveLines('INPUT: none', true), 'auto', true), null, 'nothing heard, nothing read');
     assert.equal(speechReady(parseLiveLines('INPUT: punjabi-gurmukhi\nENGLISH:   ', true), 'pa', true), null);
 });
+
+test('the voice instruction keeps the translator’s rules, for every chip', async () => {
+    const { composeTranslateInstruction, composeVoiceTranslateInstruction } = await import('@/lib/translate/prompts');
+    const { LIVE_LABELS } = await import('@/lib/translate/live');
+    const full = composeTranslateInstruction({ sourceHint: 'auto', detectedScript: 'latin' });
+    const section = (s: string, name: string) => s.slice(s.indexOf(name)).split('\n\n')[0];
+    for (const speaker of SPEAKERS) {
+        const instruction = composeVoiceTranslateInstruction({ speaker });
+        assert.equal(section(instruction, '## Fidelity'), section(full, '## Fidelity'), speaker);
+        assert.equal(instruction.split('\n\n')[0], full.split('\n\n')[0].replace(', say so in a culture note,', ''), 'the same identity');
+        for (const label of Object.values(LIVE_LABELS)) assert.match(instruction, new RegExp(`^${label}: `, 'm'));
+        assert.match(instruction, /"INPUT: none"/);
+        assert.doesNotMatch(instruction, /BEGIN TEXT|"detectedInput"|JSON/);
+    }
+});
