@@ -94,10 +94,9 @@ export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
 
     const { send } = sender;
     const onClip = useCallback((clip: Clip, startDelayMs: number) => {
-        const check = clipCheck({ durationMs: clip.durationMs, bytes: clip.blob.size, voicedMs: clip.voicedMs }, startDelayMs);
-        if (check !== 'ok') {
-            const notes = { short: 'tooShort', prompted: 'micReady', long: 'tooLong', silent: 'nothingHeard' } as const;
-            note(notes[check]);
+        const problem = clipCheck({ durationMs: clip.durationMs, bytes: clip.blob.size, voicedMs: clip.voicedMs }, startDelayMs);
+        if (problem) {
+            note(problem);
             return;
         }
         const pause = pauseRef.current;

@@ -57,7 +57,7 @@ export function useVoiceTranslate(dispatch: Dispatch<TalkEvent>): {
                 const res = await fetch('/api/translate/voice', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ audio, mimeType: baseMime(clip.mimeType) || 'audio/webm', speaker }),
+                    body: JSON.stringify({ audio, mimeType: baseMime(clip.blob.type) || 'audio/webm', speaker }),
                     signal: controller.signal,
                 });
                 if (res.status === 429) {

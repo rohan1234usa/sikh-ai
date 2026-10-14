@@ -112,20 +112,19 @@ export function voicedMs(samples: Float32Array, sampleRate: number): number {
     return voiced;
 }
 
-// Whether a finished clip is worth sending: too short (a tap, or a press the
-// permission question cut off), too big, silent, or fine. `voicedMs` is how
-// much of it was at speech's loudness, unknown when the browser couldn't tell.
-export type ClipCheck = 'ok' | 'short' | 'prompted' | 'long' | 'silent';
-
-export function clipCheck(clip: { durationMs: number; bytes: number; voicedMs?: number }, startDelayMs: number): ClipCheck {
-    if (clip.bytes > MAX_AUDIO_BYTES) return 'long';
-    if (clip.durationMs < MIN_CLIP_MS) return startDelayMs > PROMPT_DELAY_MS ? 'prompted' : 'short';
+// Whether a finished clip is worth sending: null when it is, or the note that
+// says why not. Too short (a tap), or cut off by the browser's permission
+// question ('micReady'), too big, or silent. `voicedMs` is how much of it was
+// at speech's loudness, unknown when the browser couldn't tell.
+export function clipCheck(clip: { durationMs: number; bytes: number; voicedMs?: number }, startDelayMs: number): 'tooShort' | 'micReady' | 'tooLong' | 'nothingHeard' | null {
+    if (clip.bytes > MAX_AUDIO_BYTES) return 'tooLong';
+    if (clip.durationMs < MIN_CLIP_MS) return startDelayMs > PROMPT_DELAY_MS ? 'micReady' : 'tooShort';
     // Held long enough, but next to nothing recorded (a muted microphone's
     // silence compresses to a few hundred bytes), or nothing at speech's
     // loudness.
-    if (clip.bytes < MIN_AUDIO_BYTES) return 'silent';
-    if (clip.voicedMs !== undefined && clip.voicedMs < MIN_VOICED_MS) return 'silent';
-    return 'ok';
+    if (clip.bytes < MIN_AUDIO_BYTES) return 'nothingHeard';
+    if (clip.voicedMs !== undefined && clip.voicedMs < MIN_VOICED_MS) return 'nothingHeard';
+    return null;
 }
 
 

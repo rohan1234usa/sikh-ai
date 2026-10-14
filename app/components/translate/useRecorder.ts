@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { micTrouble, pickRecordingMime, type MicTrouble, type RecorderStatus } from '@/lib/translate/talk';
-import { MAX_CLIP_MS } from '@/lib/translate/voice';
+import { MAX_CLIP_MS, MIN_CLIP_MS } from '@/lib/translate/voice';
 import { setAudioSession } from './audioSession';
 import { measureVoice } from './loudness';
 
@@ -19,8 +19,7 @@ import { measureVoice } from './loudness';
 // never sent: Gemini writes words down even from silence.
 
 export type Clip = {
-    blob: Blob;
-    mimeType: string;
+    blob: Blob;           // its type is what the browser recorded
     durationMs: number;
     voicedMs?: number; // how much of it was at speech's loudness; unknown if it couldn't be measured
 };
@@ -116,7 +115,7 @@ export function useRecorder({ onClip, onTrouble }: {
             enter('idle');
             // Let go while the browser asked about the microphone, or before it
             // was ready: a clip of nothing, which the page explains.
-            if (!discardRef.current) handlers.current.onClip({ blob: new Blob([]), mimeType: '', durationMs: 0 }, startDelayMs);
+            if (!discardRef.current) handlers.current.onClip({ blob: new Blob([]), durationMs: 0 }, startDelayMs);
             return;
         }
         streamRef.current = stream;
@@ -155,34 +154,30 @@ export function useRecorder({ onClip, onTrouble }: {
             teardown();
             if (discard) return;
             // Measured once whole (a moment's work), then passed on, unless
-            // the page has gone meanwhile.
-            void measureVoice(blob).then(voicedMs => {
-                if (!goneRef.current) handlers.current.onClip({ blob, mimeType: blob.type, durationMs, voicedMs }, startDelayMs);
+            // the page has gone meanwhile. A tap too short to send isn't
+            // worth decoding.
+            const measured = durationMs < MIN_CLIP_MS ? Promise.resolve(undefined) : measureVoice(blob);
+            void measured.then(voicedMs => {
+                if (!goneRef.current) handlers.current.onClip({ blob, durationMs, voicedMs }, startDelayMs);
             });
         };
-        recorder.onerror = () => {
+        // The recorder failing, or the microphone taken away (a headset
+        // unplugged, the system claiming it): nothing is sent, and the page
+        // says so.
+        const fail = () => {
             if (recorderRef.current !== recorder) return;
-            discardRef.current = true;
-            if (recorder.state !== 'inactive') recorder.stop();
-            teardown();
+            cancel();
             handlers.current.onTrouble('failed');
         };
-        // A headset unplugged, or the system taking the microphone away.
-        for (const track of stream.getAudioTracks()) {
-            track.onended = () => {
-                if (recorderRef.current !== recorder) return;
-                discardRef.current = true;
-                if (recorder.state !== 'inactive') recorder.stop();
-                handlers.current.onTrouble('failed');
-            };
-        }
+        recorder.onerror = fail;
+        for (const track of stream.getAudioTracks()) track.onended = fail;
         try {
             recorder.start();
         } catch (error) {
             teardown();
             handlers.current.onTrouble(micTrouble(error));
         }
-    }, [enter, teardown]);
+    }, [cancel, enter, teardown]);
 
     // A hidden page stops listening: the phone was locked, or the tab left.
     useEffect(() => {

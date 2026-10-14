@@ -70,20 +70,20 @@ test('letting go of the button: a hand ends its hold, a screen reader toggles', 
 
 test('a clip is sent only when it holds something, and fits', () => {
     const ok = { durationMs: 2_000, bytes: 30_000 };
-    assert.equal(clipCheck(ok, 200), 'ok');
-    assert.equal(clipCheck({ ...ok, durationMs: MIN_CLIP_MS - 1 }, 200), 'short');
-    assert.equal(clipCheck({ ...ok, durationMs: MIN_CLIP_MS }, 200), 'ok');
-    assert.equal(clipCheck({ ...ok, bytes: MIN_AUDIO_BYTES - 1 }, 200), 'silent', 'held, but a muted microphone’s silence');
-    assert.equal(clipCheck({ durationMs: MIN_CLIP_MS - 1, bytes: 0 }, 200), 'short', 'a tap');
-    assert.equal(clipCheck({ durationMs: 0, bytes: 0 }, PROMPT_DELAY_MS + 1), 'prompted', 'the permission question took the press');
-    assert.equal(clipCheck({ durationMs: 0, bytes: 0 }, PROMPT_DELAY_MS), 'short');
-    assert.equal(clipCheck({ ...ok, bytes: MAX_AUDIO_BYTES + 1 }, 200), 'long');
-    assert.equal(clipCheck({ ...ok, bytes: MAX_AUDIO_BYTES }, 200), 'ok');
+    assert.equal(clipCheck(ok, 200), null);
+    assert.equal(clipCheck({ ...ok, durationMs: MIN_CLIP_MS - 1 }, 200), 'tooShort');
+    assert.equal(clipCheck({ ...ok, durationMs: MIN_CLIP_MS }, 200), null);
+    assert.equal(clipCheck({ ...ok, bytes: MIN_AUDIO_BYTES - 1 }, 200), 'nothingHeard', 'held, but a muted microphone’s silence');
+    assert.equal(clipCheck({ durationMs: MIN_CLIP_MS - 1, bytes: 0 }, 200), 'tooShort', 'a tap');
+    assert.equal(clipCheck({ durationMs: 0, bytes: 0 }, PROMPT_DELAY_MS + 1), 'micReady', 'the permission question took the press');
+    assert.equal(clipCheck({ durationMs: 0, bytes: 0 }, PROMPT_DELAY_MS), 'tooShort');
+    assert.equal(clipCheck({ ...ok, bytes: MAX_AUDIO_BYTES + 1 }, 200), 'tooLong');
+    assert.equal(clipCheck({ ...ok, bytes: MAX_AUDIO_BYTES }, 200), null);
     // Silence is never sent: Gemini writes words down even from that.
-    assert.equal(clipCheck({ ...ok, voicedMs: 0 }, 200), 'silent');
-    assert.equal(clipCheck({ ...ok, voicedMs: MIN_VOICED_MS - 100 }, 200), 'silent');
-    assert.equal(clipCheck({ ...ok, voicedMs: MIN_VOICED_MS }, 200), 'ok');
-    assert.equal(clipCheck({ ...ok, voicedMs: undefined }, 200), 'ok', 'not measured: sent');
+    assert.equal(clipCheck({ ...ok, voicedMs: 0 }, 200), 'nothingHeard');
+    assert.equal(clipCheck({ ...ok, voicedMs: MIN_VOICED_MS - 100 }, 200), 'nothingHeard');
+    assert.equal(clipCheck({ ...ok, voicedMs: MIN_VOICED_MS }, 200), null);
+    assert.equal(clipCheck({ ...ok, voicedMs: undefined }, 200), null, 'not measured: sent');
 });
 
 test('loudness is the root mean square, and speech is well above a quiet room', () => {
