@@ -6,6 +6,7 @@ import { ERROR_TURN, TURN_LABEL, Waiting } from '@/app/components/chat/Bubbles';
 import { tukkClasses } from '@/app/components/gurbani/Tukk';
 import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
+import type { TalkCopy } from '@/lib/i18n/talk';
 import { LIVE_FIELDS, type LiveField, type LiveLines } from '@/lib/translate/live';
 import type { Exchange, SpeakErrorCode } from '@/lib/translate/talk';
 import { rolesOf, speechReady, type SpeechPlan } from '@/lib/translate/voice';
@@ -45,7 +46,8 @@ function Lines({ fields, lines, styles, settled }: {
 
 // Memoized, with callbacks that keep their identity (useSpeaker's), so while
 // a reply streams only its own card is drawn again.
-export default memo(function TalkExchange({ exchange, playing, trouble, onSpeak, onStop }: {
+export default memo(function TalkExchange({ copy: talk, exchange, playing, trouble, onSpeak, onStop }: {
+    copy: TalkCopy;
     exchange: Exchange;
     playing: boolean;                 // its translation is being read
     trouble: SpeakErrorCode | null;   // why it couldn't be
@@ -53,7 +55,6 @@ export default memo(function TalkExchange({ exchange, playing, trouble, onSpeak,
     onStop: () => void;
 }) {
     const t = useT();
-    const talk = t.translate.talk;
     const { lines, status } = exchange;
     const settled = status !== 'streaming';
 
@@ -66,7 +67,6 @@ export default memo(function TalkExchange({ exchange, playing, trouble, onSpeak,
     }
 
     const roles = rolesOf(lines, exchange.speaker);
-    const language = (l: 'pa' | 'en') => (l === 'pa' ? talk.langPunjabi : talk.langEnglish);
     const said = roles?.said ?? LIVE_FIELDS;
     const nothingSaidYet = !said.some(field => lines[field]);
     // Read aloud, and copied: the translation, once it is whole.
@@ -77,12 +77,12 @@ export default memo(function TalkExchange({ exchange, playing, trouble, onSpeak,
         <li className="space-y-3 border-l-2 border-edge pl-4">
             {roles && (
                 <div>
-                    <p className={TURN_LABEL}>{fmt(talk.heard, { lang: language(roles.from) })}</p>
+                    <p className={TURN_LABEL}>{fmt(talk.heard, { lang: talk.langs[roles.from] })}</p>
                     <Lines fields={roles.heard} lines={lines} styles={HEARD} settled={settled} />
                 </div>
             )}
             <div>
-                {roles && <p className={TURN_LABEL}>{fmt(talk.translation, { lang: language(roles.to) })}</p>}
+                {roles && <p className={TURN_LABEL}>{fmt(talk.translation, { lang: talk.langs[roles.to] })}</p>}
                 {!settled && nothingSaidYet
                     ? <Waiting label={talk.translating} />
                     : <Lines fields={said} lines={lines} styles={SAID} settled={settled} />}

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { StopCircleIcon } from '@heroicons/react/24/outline';
 import { useLocalePath, useT } from '@/app/context/LanguageContext';
+import type { TalkCopy } from '@/lib/i18n/talk';
 import { isMicTrouble, type TalkView } from '@/lib/translate/talk';
 import { SPEAKERS, type Speaker } from '@/lib/translate/voice';
 import TalkButton from './TalkButton';
@@ -13,7 +14,8 @@ import TalkButton from './TalkButton';
 // matters once (TalkScreen), so a screen reader isn't talked over.
 
 
-export default function TalkBar({ view, speaker, onSpeaker, speakOn, onSpeakOn, playing, onStop, hintId, onPress, onRelease, onCancel }: {
+export default function TalkBar({ copy: talk, view, speaker, onSpeaker, speakOn, onSpeakOn, playing, onStop, hintId, onPress, onRelease, onCancel }: {
+    copy: TalkCopy;
     view: TalkView;
     speaker: Speaker;
     onSpeaker: (speaker: Speaker) => void;
@@ -28,8 +30,7 @@ export default function TalkBar({ view, speaker, onSpeaker, speakOn, onSpeakOn, 
 }) {
     const t = useT();
     const to = useLocalePath();
-    const talk = t.translate.talk;
-    const chips: Record<Speaker, string> = { auto: talk.speakerAuto, pa: talk.speakerPunjabi, en: talk.speakerEnglish };
+    const chips: Record<Speaker, string> = { auto: talk.speakerAuto, ...talk.langs };
     const { status } = view;
     const line = !status ? ''
         : status.kind === 'note' ? talk.notes[status.note]
@@ -89,7 +90,7 @@ export default function TalkBar({ view, speaker, onSpeaker, speakOn, onSpeakOn, 
                     </div>
                 </div>
 
-                <TalkButton view={view} hintId={hintId} onPress={onPress} onRelease={onRelease} onCancel={onCancel} />
+                <TalkButton copy={talk} view={view} hintId={hintId} onPress={onPress} onRelease={onRelease} onCancel={onCancel} />
                 <p id={hintId} className="sr-only">{talk.keyboardHint}</p>
 
                 <p className={`min-h-5 text-sm ${isError ? 'text-red-700 dark:text-red-400' : 'text-ink-muted'}`}>{line}</p>

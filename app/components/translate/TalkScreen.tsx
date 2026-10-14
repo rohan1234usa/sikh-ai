@@ -8,6 +8,7 @@ import { useLanguage } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { Dictionary } from '@/lib/i18n';
 import type { Lang } from '@/lib/i18n/config';
+import type { TalkCopy } from '@/lib/i18n/talk';
 import type { LiveField } from '@/lib/translate/live';
 import { EMPTY_TALK, clipCheck, talkReducer, talkView, type Exchange, type TalkNote } from '@/lib/translate/talk';
 import { rolesOf, speechReady, type Speaker } from '@/lib/translate/voice';
@@ -29,27 +30,25 @@ import { useVoiceTranslate } from './useVoiceTranslate';
 // the translation, each with its label. Punjabi is read from its Gurmukhi
 // line where the interface is in Gurmukhi (a reader set up for it), and from
 // its romanized line elsewhere, which an English voice can say.
-function spoken(t: Dictionary, lang: Lang, exchange: Exchange): string {
-    const talk = t.translate.talk;
+function spoken(talk: TalkCopy, t: Dictionary, lang: Lang, exchange: Exchange): string {
     if (exchange.status === 'failed') return t.errors[exchange.error ?? 'translate_voice_failed'];
     const roles = rolesOf(exchange.lines, exchange.speaker);
     if (!roles) return '';
-    const language = (l: 'pa' | 'en') => (l === 'pa' ? talk.langPunjabi : talk.langEnglish);
     const punjabi: readonly LiveField[] = lang === 'pa' ? ['gurmukhi', 'roman'] : ['roman', 'gurmukhi'];
     const text = (fields: readonly LiveField[]) =>
         (fields.includes('english') ? ['english' as const] : punjabi).map(f => exchange.lines[f]).find(Boolean) ?? '';
     // A full stop after each part, unless it ends in one of its own.
     const sentence = (s: string) => (/[.?!।॥]$/.test(s) ? s : `${s}.`);
     return [
-        sentence(`${fmt(talk.heard, { lang: language(roles.from) })}: ${text(roles.heard)}`),
-        sentence(`${fmt(talk.translation, { lang: language(roles.to) })}: ${text(roles.said)}`),
+        sentence(`${fmt(talk.heard, { lang: talk.langs[roles.from] })}: ${text(roles.heard)}`),
+        sentence(`${fmt(talk.translation, { lang: talk.langs[roles.to] })}: ${text(roles.said)}`),
         exchange.status === 'cut' ? talk.cut : '',
     ].filter(Boolean).join(' ');
 }
 
-export default function TalkScreen() {
+// `copy` is the page's words (lib/i18n/talk), from the server page.
+export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
     const { lang, t, href: to } = useLanguage();
-    const talk = t.translate.talk;
     const hintId = useId();
     const [state, dispatch] = useReducer(talkReducer, EMPTY_TALK);
     const [speaker, setSpeaker] = useState<Speaker>('auto');
@@ -117,10 +116,10 @@ export default function TalkScreen() {
         for (const exchange of state.exchanges) {
             if (exchange.status === 'streaming' || announced.current.has(exchange.id)) continue;
             announced.current.add(exchange.id);
-            const words = spoken(t, lang, exchange);
+            const words = spoken(talk, t, lang, exchange);
             if (words) announce(words);
         }
-    }, [state.exchanges, announce, t, lang]);
+    }, [state.exchanges, announce, talk, t, lang]);
 
     // A hidden page stops reading aloud (the recorder stops itself).
     const { stop } = speech;
@@ -210,6 +209,7 @@ export default function TalkScreen() {
                                 {state.exchanges.map(exchange => (
                                     <TalkExchange
                                         key={exchange.id}
+                                        copy={talk}
                                         exchange={exchange}
                                         playing={speech.playing === exchange.id}
                                         trouble={speech.trouble?.id === exchange.id ? speech.trouble.code : null}
@@ -236,6 +236,7 @@ export default function TalkScreen() {
             {announcer}
 
             <TalkBar
+                copy={talk}
                 view={view}
                 speaker={speaker}
                 onSpeaker={setSpeaker}

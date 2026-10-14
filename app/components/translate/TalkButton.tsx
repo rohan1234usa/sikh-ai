@@ -2,8 +2,8 @@
 
 import { useRef } from 'react';
 import { MicrophoneIcon } from '@heroicons/react/24/solid';
-import { useT } from '@/app/context/LanguageContext';
 import { PRIMARY_FILL } from '@/app/components/buttons';
+import type { TalkCopy } from '@/lib/i18n/talk';
 import type { TalkView } from '@/lib/translate/talk';
 
 // Talk's button: hold it to record, let go to send. Pointer capture keeps the
@@ -12,15 +12,14 @@ import type { TalkView } from '@/lib/translate/talk';
 // Enter starts, the same again stops, and Escape throws the clip away.
 // aria-disabled, not disabled, while it can't record, so focus stays.
 
-export default function TalkButton({ view, hintId, onPress, onRelease, onCancel }: {
+export default function TalkButton({ copy: talk, view, hintId, onPress, onRelease, onCancel }: {
+    copy: TalkCopy;
     view: TalkView;
     hintId: string;
     onPress: () => void;
     onRelease: () => void;
     onCancel: () => void;
 }) {
-    const t = useT();
-    const talk = t.translate.talk;
     // A recording started from the keyboard ends from the keyboard (or by
     // leaving the button), not when a pointer lets go.
     const byKeyboard = useRef(false);

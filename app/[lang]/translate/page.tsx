@@ -238,7 +238,7 @@ export default function TranslatePage() {
           className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-link hover:underline"
         >
           <MicrophoneIcon className="h-4 w-4" aria-hidden="true" />
-          {t.translate.talk.link}
+          {t.translate.talkLink}
         </IntentLink>
         <TranslateInput
           text={text}

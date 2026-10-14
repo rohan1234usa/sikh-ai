@@ -11,7 +11,7 @@
 | metric | value |
 | --- | --- |
 | mode | **dry run** — back-translation not yet run |
-| strings enumerated (en / pa / pa-latn) | 1198 / 1198 / 1198 |
+| strings enumerated (en / pa / pa-latn) | 1196 / 1196 / 1196 |
 | phrasebook entries | 50 |
 | findings (errors) | 0 (0) |
 | characters billed this run | 0 (dry run) |

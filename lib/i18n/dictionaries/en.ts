@@ -13,7 +13,6 @@ import type { CitationStatus } from '@/lib/gurbani/citations';
 import type { Gender, PartOfSpeech, TrackId, VocabTopicId } from '@/lib/learn/config';
 import type { DetectedInput, NoteKind } from '@/lib/translate/config';
 import type { PhraseCategoryId } from '@/lib/translate/phrasebook';
-import type { TalkNote } from '@/lib/translate/talk';
 import type { Theme } from '@/lib/theme';
 
 const FATEH = 'Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.';
@@ -651,52 +650,9 @@ const en = {
         livePaused: 'Live translation is paused for a minute. Translate still works.',
         livePausedToday: 'Live translation has reached today’s limit. Translate still works.',
         liveFailed: 'Live translation isn’t available right now. Translate still works.',
-        // Talk (/translate/talk, #37): speak, and hear the translation.
-        talk: {
-            title: 'Talk',
-            link: 'Talk: speak, and hear the translation',
-            typeInstead: 'Type instead',
-            newConversation: 'New conversation',
-            intro: 'Hold the button and speak, in Punjabi or English. Let go, and the translation appears and is read aloud.',
-            tip: 'Up to 15 seconds at a time. If Auto hears the wrong language, choose who is speaking below.',
-            threadAria: 'Conversation',
-            heard: 'Heard in {lang}',
-            translation: 'Translation in {lang}',
-            langPunjabi: 'Punjabi',
-            langEnglish: 'English',
-            cut: 'Cut off before the end.',
-            readAloud: 'Read aloud',
-            stopReading: 'Stop reading',
-            copyTranslation: 'Copy the translation',
-            latest: 'Latest',
-            speakerAria: 'Who is speaking',
-            speakerAuto: 'Auto',
-            speakerPunjabi: 'Punjabi',
-            speakerEnglish: 'English',
-            speakSwitch: 'Speak',
-            speakSwitchHint: 'Read translations aloud',
-            hold: 'Hold to talk',
-            starting: 'Starting the microphone…',
-            listening: 'Listening… let go to translate',
-            paused: 'Please wait…',
-            unavailable: 'Recording isn’t available here',
-            keyboardHint: 'With a keyboard: Space to start, Space again to stop.',
-            translating: 'Translating…',
-            notes: {
-                tooShort: 'Hold the button down while you speak.',
-                tooLong: 'That recording was too long to send. Please keep it shorter.',
-                micReady: 'The microphone is ready. Hold the button and speak.',
-                interrupted: 'Recording stopped when the page was hidden.',
-                nothingHeard: 'Nothing was heard. Hold the button and speak clearly.',
-                denied: 'The microphone is blocked. Allow it in your browser’s settings for this site, then try again.',
-                unavailable: 'No microphone was found.',
-                busy: 'Another app is using the microphone.',
-                unsupported: 'This browser can’t record audio. Try Chrome, Safari or Firefox.',
-                insecure: 'Recording needs a secure (https) connection.',
-                failed: 'Recording didn’t work. Please try again.',
-            } satisfies Record<TalkNote, string>,
-            disclaimer: 'Translations are written by AI and can be wrong. Each recording goes to Google Gemini, and Punjabi is read aloud by Google; nothing is kept, and reloading the page clears it.',
-        },
+        // The link to Talk (/translate/talk, #37), whose own words are
+        // lib/i18n/talk.
+        talkLink: 'Talk: speak, and hear the translation',
     },
 
     // /learn (app/[lang]/learn): the Learn Punjabi section's own words. The

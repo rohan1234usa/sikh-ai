@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import TalkScreen from '@/app/components/translate/TalkScreen';
-import { getServerT } from '@/lib/i18n/server';
+import { getLang, getServerT } from '@/lib/i18n/server';
+import { getTalkCopy } from '@/lib/i18n/talk';
 import { pageMetadata } from '@/lib/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -10,11 +11,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // Talk, the translator's voice mode (#37). The page is static; the
 // conversation lives in the tab (TalkScreen), and clips go to
-// /api/translate/voice, translations to /api/translate/speak.
-export default function TalkPage() {
+// /api/translate/voice, translations to /api/translate/speak. Its words
+// (lib/i18n/talk) go to TalkScreen from here, so no other page ships them.
+export default async function TalkPage() {
   return (
     <main className="flex-1 flex flex-col">
-      <TalkScreen />
+      <TalkScreen copy={getTalkCopy(await getLang())} />
     </main>
   );
 }

@@ -6,15 +6,18 @@ import TalkExchange from '@/app/components/translate/TalkExchange';
 import { LanguageProvider } from '@/app/context/LanguageContext';
 import { getDictionary } from '@/lib/i18n';
 import type { Lang } from '@/lib/i18n/config';
+import { getTalkCopy } from '@/lib/i18n/talk';
 import type { Exchange } from '@/lib/translate/talk';
 
-// One exchange's card as the server would draw it, in a language.
+// One exchange's card as the server would draw it, in a language: the page's
+// words come from lib/i18n/talk, as the page hands them over; the shared
+// ones (errors, "didn't come through") from the dictionary.
 const card = (exchange: Exchange, lang: Lang = 'en', extra: { playing?: boolean; trouble?: 'speak_failed' | null } = {}) =>
     renderToStaticMarkup(createElement(
         LanguageProvider,
         // The child goes as an argument, which the props' type doesn't know.
         { lang } as ComponentProps<typeof LanguageProvider>,
-        createElement(TalkExchange, { exchange, playing: false, trouble: null, onSpeak: () => {}, onStop: () => {}, ...extra }),
+        createElement(TalkExchange, { copy: getTalkCopy(lang), exchange, playing: false, trouble: null, onSpeak: () => {}, onStop: () => {}, ...extra }),
     ));
 
 const PUNJABI: Exchange = {
