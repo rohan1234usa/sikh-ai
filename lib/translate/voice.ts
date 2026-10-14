@@ -5,6 +5,7 @@
 // a line into speech. The prompt is server-only, in ./prompts.ts; the page's
 // own state is in ./talk.ts.
 
+import { cap } from '../text';
 import type { DetectedInput } from './config';
 import { detectScript } from './detect';
 import type { LiveField, LiveInput, LiveLines } from './live';
@@ -121,13 +122,10 @@ export function speakable(text: string, lang: SpeakLang): boolean {
     return lang === 'en' || detectScript(trimmed) === 'gurmukhi';
 }
 
-// At most `max` UTF-16 units, never half a surrogate pair (as
-// lib/learn/tutor.ts caps the tutor's text).
+// A line trimmed and cut to at most `max` UTF-16 units, never through a
+// character (lib/text.ts).
 export function capText(text: string, max = MAX_SPEAK_CHARS): string {
-    const trimmed = text.trim();
-    if (trimmed.length <= max) return trimmed;
-    const last = trimmed.charCodeAt(max - 1);
-    return trimmed.slice(0, last >= 0xd800 && last <= 0xdbff ? max - 1 : max).trimEnd();
+    return cap(text.trim(), max).trimEnd();
 }
 
 // The translation to read aloud, once its line is whole: for English speech
