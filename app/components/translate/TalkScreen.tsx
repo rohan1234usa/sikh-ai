@@ -62,10 +62,18 @@ export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
     const speakerRef = useRef(speaker);
     useEffect(() => { speakerRef.current = speaker; });
 
-    const note = useCallback((n: TalkNote) => {
-        dispatch({ type: 'note', note: n });
-        announce(talk.notes[n]);
-    }, [announce, talk]);
+    // Each note is announced once, whichever part of the page raised it:
+    // the recorder, the clip check, or the reducer's "nothing heard".
+    const note = useCallback((n: TalkNote) => dispatch({ type: 'note', note: n }), []);
+    useEffect(() => {
+        if (state.note) announce(talk.notes[state.note]);
+    }, [state.note, announce, talk]);
+
+    // The thread sticks to the bottom while lines come in, unless the reader
+    // scrolled up; a clip just sent takes it back there.
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const atBottomRef = useRef(true);
+    const [showJump, setShowJump] = useState(false);
 
     const { send } = sender;
     const onClip = useCallback((clip: Clip, startDelayMs: number) => {
@@ -75,6 +83,8 @@ export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
             note(notes[check]);
             return;
         }
+        atBottomRef.current = true;
+        setShowJump(false);
         send(crypto.randomUUID(), clip, speakerRef.current);
         announce(talk.translating);
     }, [announce, note, send, talk]);
@@ -153,10 +163,6 @@ export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
         dispatch({ type: 'cleared' });
     };
 
-    // Stick to the bottom while lines come in, unless the reader scrolled up.
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const atBottomRef = useRef(true);
-    const [showJump, setShowJump] = useState(false);
     useEffect(() => {
         const el = scrollRef.current;
         if (el && atBottomRef.current) el.scrollTop = el.scrollHeight;

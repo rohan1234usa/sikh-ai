@@ -9,8 +9,14 @@ import type { TalkView } from '@/lib/translate/talk';
 // Talk's button: hold it to record, let go to send. Pointer capture keeps the
 // press when a thumb drifts off the button, so letting go anywhere sends;
 // a long press shows no menu and selects nothing. From a keyboard, Space or
-// Enter starts, the same again stops, and Escape throws the clip away.
+// Enter starts, the same again stops, and Escape throws the clip away. A
+// screen reader's activation (NVDA or JAWS in browse mode, TalkBack's double
+// tap) is a click with no press or key before it, and does what Space does.
 // aria-disabled, not disabled, while it can't record, so focus stays.
+
+// A click this soon after the button's own press, release or key is that
+// gesture's echo, already answered.
+const ECHO_MS = 500;
 
 export default function TalkButton({ copy: talk, view, hintId, onPress, onRelease, onCancel }: {
     copy: TalkCopy;
@@ -23,6 +29,8 @@ export default function TalkButton({ copy: talk, view, hintId, onPress, onReleas
     // A recording started from the keyboard ends from the keyboard (or by
     // leaving the button), not when a pointer lets go.
     const byKeyboard = useRef(false);
+    const handledAt = useRef(-Infinity);
+    const handled = () => { handledAt.current = performance.now(); };
     const active = view.button === 'listening' || view.button === 'starting';
     const blocked = view.button === 'paused' || view.button === 'unavailable';
     const label = {
@@ -32,7 +40,14 @@ export default function TalkButton({ copy: talk, view, hintId, onPress, onReleas
         paused: talk.paused,
         unavailable: talk.unavailable,
     }[view.button];
-    const releasePointer = () => { if (!byKeyboard.current) onRelease(); };
+    const releasePointer = () => {
+        handled();
+        if (!byKeyboard.current) onRelease();
+    };
+    const toggle = () => {
+        if (active) onRelease();
+        else { byKeyboard.current = true; onPress(); }
+    };
 
     return (
         <button
@@ -42,6 +57,7 @@ export default function TalkButton({ copy: talk, view, hintId, onPress, onReleas
             aria-describedby={hintId}
             onPointerDown={e => {
                 if (e.button !== 0 || blocked) return;
+                handled();
                 e.preventDefault();
                 // Letting go off the button still ends the press; without
                 // capture, letting go on it still does.
@@ -59,10 +75,15 @@ export default function TalkButton({ copy: talk, view, hintId, onPress, onReleas
                     return;
                 }
                 if (e.key !== ' ' && e.key !== 'Enter') return;
+                handled();
                 e.preventDefault();
                 if (e.repeat || blocked) return;
-                if (active) onRelease();
-                else { byKeyboard.current = true; onPress(); }
+                toggle();
+            }}
+            onKeyUp={e => { if (e.key === ' ' || e.key === 'Enter') handled(); }}
+            onClick={() => {
+                if (blocked || performance.now() - handledAt.current < ECHO_MS) return;
+                toggle();
             }}
             onBlur={() => { if (byKeyboard.current && active) onRelease(); }}
             className={`flex min-h-16 w-full touch-none select-none items-center justify-center gap-3 rounded-lg px-5 text-lg font-bold transition-colors [-webkit-touch-callout:none] [-webkit-user-select:none] aria-disabled:cursor-not-allowed aria-disabled:opacity-60 ${active
