@@ -131,12 +131,19 @@ export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
 
     const onPress = () => {
         if (view.button !== 'hold') return;
-        // In the press itself: playback stops, and is unlocked for later.
+        // In the press itself: playback stops, and is unlocked for later
+        // where a press counts as a tap (a mouse, a key).
         speech.stop();
         speech.unlock();
         dispatch({ type: 'pressed' });
         recorder.press();
         announce(talk.listening);
+    };
+    // For a finger, letting go is the tap that lets the page play and speak
+    // later.
+    const onRelease = () => {
+        speech.unlock();
+        recorder.release();
     };
 
     const clear = () => {
@@ -246,7 +253,7 @@ export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
                 onStop={speech.stop}
                 hintId={hintId}
                 onPress={onPress}
-                onRelease={recorder.release}
+                onRelease={onRelease}
                 onCancel={recorder.cancel}
             />
         </div>

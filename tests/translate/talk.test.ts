@@ -126,6 +126,12 @@ test('English is read only by a voice on the device, its default first', () => {
     assert.equal(pickEnglishVoice([v('pa-IN', true), v('hi-IN', true)]), null);
     assert.equal(pickEnglishVoice([v('eng', true)]), null, 'not a language tag for English');
     assert.equal(pickEnglishVoice([]), null);
+    // Apple's novelty voices come first in the alphabet, and are never picked.
+    const apple = (name: string, isDefault = false) => ({ name, lang: 'en-US', localService: true, default: isDefault });
+    assert.equal(pickEnglishVoice([apple('Albert'), apple('Bad News'), apple('Samantha')])?.name, 'Samantha');
+    assert.equal(pickEnglishVoice([apple('Zarvox', true), apple('Daniel')])?.name, 'Daniel', 'not even as the default');
+    assert.equal(pickEnglishVoice([apple('Albert (English (United States))'), apple('Karen')])?.name, 'Karen');
+    assert.equal(pickEnglishVoice([apple('Alberta')])?.name, 'Alberta', 'only the names themselves');
 });
 
 test('a failed call’s code, or what its status means', () => {

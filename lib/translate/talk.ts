@@ -137,9 +137,14 @@ export function silentWav(ms = 50, sampleRate = 8_000): Uint8Array<ArrayBuffer> 
 // The device's English voice for speechSynthesis: only one on the device
 // itself, its default first. A voice that is a browser maker's online service
 // would send the line to them, which /privacy doesn't say; without one on the
-// device, the speak route reads English too.
-export function pickEnglishVoice<V extends { lang: string; localService: boolean; default: boolean }>(voices: readonly V[]): V | null {
-    const english = voices.filter(v => v.localService && /^en(?:[-_]|$)/i.test(v.lang));
+// device, the speak route reads English too. Apple lists novelty and robotic
+// voices among its English ones (Albert, Bad News, Zarvox and the rest),
+// first in the alphabet, which would make a joke of a translation: never
+// those.
+const ODD_VOICES = /^(?:Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Deranged|Fred|Good News|Hysterical|Jester|Junior|Kathy|Organ|Pipe Organ|Princess|Ralph|Superstar|Trinoids|Whisper|Wobble|Zarvox)(?:$|\s\()/i;
+
+export function pickEnglishVoice<V extends { name: string; lang: string; localService: boolean; default: boolean }>(voices: readonly V[]): V | null {
+    const english = voices.filter(v => v.localService && /^en(?:[-_]|$)/i.test(v.lang) && !ODD_VOICES.test(v.name));
     return english.find(v => v.default) ?? english[0] ?? null;
 }
 
