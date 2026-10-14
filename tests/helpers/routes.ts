@@ -58,5 +58,6 @@ export async function captured<T>(mock: MockGemini, run: () => Promise<T>) {
 // test's own process.
 export function spendDay(feature: Feature, visitor: string, leave = 0): void {
     const midnight = Math.floor(Date.now() / DAY_MS) * DAY_MS;
-    allowances[feature].take(visitor, midnight, VISITOR_LIMITS[feature].perDay - leave);
+    const spent = allowances[feature].take(visitor, midnight, VISITOR_LIMITS[feature].perDay - leave);
+    if (!spent.ok) throw new Error(`spendDay: ${visitor} was already counted today for ${feature}`);
 }

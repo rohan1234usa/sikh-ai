@@ -75,7 +75,7 @@ test('a failed request still spends: a broken API can never be called forever', 
     assert.equal(cloud.cloudAllowances.fallback.remaining(), before - 3);
 });
 
-test('whether a call would go out: Cloud on, a key, and enough of that day left', () => {
+test('whether a call would go out: Cloud on, a key, and enough of that day left', async () => {
     assert.equal(cloud.cloudCanTranslate('compare', cloud.cloudAllowances.compare.remaining()), true, 'all that is left');
     assert.equal(cloud.cloudCanTranslate('compare', cloud.cloudAllowances.compare.remaining() + 1), false, 'one more than is left');
     process.env.TRANSLATE_FALLBACK = 'off';
@@ -87,6 +87,8 @@ test('whether a call would go out: Cloud on, a key, and enough of that day left'
     delete process.env.GEMINI_API_KEY;
     try {
         assert.equal(cloud.cloudCanTranslate('fallback', 5), false, 'no key');
+        const lines = await capture(async () => { cloud.cloudCanTranslate('compare', 5); });
+        assert.deepEqual(lines.map((l) => [l.evt, l.missing]), [['config_error', 'GOOGLE_TRANSLATE_API_KEY']], 'a missing key is logged');
     } finally {
         process.env.GOOGLE_TRANSLATE_API_KEY = key;
         if (gemini !== undefined) process.env.GEMINI_API_KEY = gemini;
@@ -132,7 +134,10 @@ test("a day of comparisons leaves the fallback working, and the log says whose a
     });
     assert.equal(calls, 0, 'nothing is bought');
     assert.deepEqual(lines.map(({ evt, purpose, chars }) => ({ evt, purpose, chars })), [{ evt: 'cloud_translate_ceiling', purpose: 'compare', chars: 5 }]);
-    assert.equal(cloud.cloudCanTranslate('compare', 5), false, 'Compare says no before anyone is charged');
+    const asked = await capture(async () => {
+        assert.equal(cloud.cloudCanTranslate('compare', 5), false, 'Compare says no before anyone is charged');
+    });
+    assert.deepEqual(asked.map(({ evt, purpose, chars }) => ({ evt, purpose, chars })), [{ evt: 'cloud_translate_ceiling', purpose: 'compare', chars: 5 }], 'and says why, as the call would have');
     assert.equal(cloud.cloudCanTranslate('fallback', 5), true);
     assert.ok(await cloud.cloudTranslate({ text: 'hello', target: 'pa', purpose: 'fallback' }), 'the fallback still translates');
     assert.equal(calls, 1);

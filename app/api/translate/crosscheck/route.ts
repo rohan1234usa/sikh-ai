@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { limitVisitor } from "@/lib/api/allowance";
 import { refuseCrossSite } from "@/lib/api/guard";
-import { MAX_TRANSLATE_CHARS, isCrosscheckDirection, type CrosscheckDirection } from "@/lib/translate/config";
+import { MAX_CROSSCHECK_CHARS, isCrosscheckDirection, type CrosscheckDirection } from "@/lib/translate/config";
 import { cloudCanTranslate, cloudTranslate, type CloudLang } from "@/lib/translate/cloud";
 import { logRouteError, withRequestLog } from "@/lib/log";
 
@@ -15,12 +15,8 @@ const DIRECTIONS: Record<CrosscheckDirection, { source: CloudLang; target: Cloud
   'pa-en': { source: 'pa', target: 'en' },
 };
 
-// The client sends a *rendition* here, not the user's typed input, and a
-// 1,000-char English input can render longer than that in Gurmukhi. Measuring
-// model output against the input cap would reject results the user legitimately
-// produced, so this cap is its own, larger number.
-const MAX_CROSSCHECK_CHARS = MAX_TRANSLATE_CHARS * 2;
-// Room for that plus JSON escaping (at worst twice its length) and the
+// MAX_CROSSCHECK_CHARS (lib/translate/config.ts) caps the rendition; room
+// for that plus JSON escaping (at worst twice its length) and the
 // wrapper. Anything larger is refused before it is parsed.
 const MAX_BODY_CHARS = 2 * MAX_CROSSCHECK_CHARS + 1000;
 
@@ -91,6 +87,8 @@ async function handlePost(req: Request) {
     // One visitor's too many (lib/api/allowance.ts), counted only when the
     // answer has to be bought, and in characters, since characters are what
     // run out: no one visitor can spend a server's whole day of comparisons.
+    // Like every route's count, it comes before the call, so a comparison
+    // Cloud then fails (busy, down) still counts.
     const limited = limitVisitor(req, "crosscheck", { cost: trimmed.length });
     if (limited) return limited;
 

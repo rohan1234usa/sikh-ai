@@ -7,6 +7,7 @@ import { responseErrorText } from '@/lib/i18n/apiError';
 import { LANGS } from '@/lib/i18n/config';
 import en from '@/lib/i18n/dictionaries/en';
 import { TUTOR_ERROR_CODES } from '@/lib/learn/tutor';
+import { MAX_CROSSCHECK_CHARS } from '@/lib/translate/config';
 
 // Its own file: `allowances` is module state, and these tests spend it. A
 // test that does uses addresses no other test uses.
@@ -102,6 +103,10 @@ test("a request's cost counts toward the day, and the minute still counts reques
     for (let i = 0; i < 3; i++) assert.deepEqual(allowance.take('b', t, 1), { ok: true });
     assert.deepEqual(allowance.take('b', t, 1), { ok: false, window: 'minute', retryAfter: 60 }, 'three requests in the minute, whatever they cost');
     assert.equal(allowance.take('c', t, 11).ok, false, 'one request costing more than a whole day never goes through');
+});
+
+test("one comparison, however long, fits in a visitor's day of them", () => {
+    assert.ok(MAX_CROSSCHECK_CHARS <= VISITOR_LIMITS.crosscheck.perDay, 'or the longest comparisons would always be refused');
 });
 
 test("limitVisitor charges Compare by its text's length", () => {
