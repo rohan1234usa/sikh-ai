@@ -11,7 +11,7 @@ import { setAudioSession } from './audioSession';
 // /api/translate/speak, as an MP3, since few devices have a Punjabi voice
 // (and Android may read Punjabi with an English one); English is read by
 // the device's own voice, or by the route where the device has none, or
-// where its voice doesn't start.
+// where its voice fails or doesn't start.
 //
 // One <audio> element plays everything. iOS plays one only after a play()
 // inside a tap, and speaks only once speechSynthesis has spoken inside one,
@@ -19,15 +19,14 @@ import { setAudioSession } from './audioSession';
 // release of the button until each has worked. For a finger only the
 // release is a tap (HTML's user activation), so a press does nothing there.
 // Unlike Web Audio, an <audio> element plays with the ringer switched to
-// silent. Each line's MP3 is kept, by its language and text, so hearing it
-// again costs nothing; one still coming when the reading stops is kept too,
-// since it is paid for.
-
-export type SpeakTrouble = { id: string; code: SpeakErrorCode };
+// silent. Each line's MP3 is kept, by its language and text, until a new
+// conversation, so hearing it again costs nothing; one still coming when the
+// reading stops is kept too, since it is paid for.
 
 // A device voice that hasn't started by now isn't going to: iOS drops speech
-// it doesn't allow yet without an event, and a voice can fail to start. The
-// route reads the line instead.
+// it doesn't allow yet without an event, and a voice can hang. The route
+// reads the line instead, and the English lines after it, until the voice is
+// heard to start (the next tap's silent line may wake it).
 const DEVICE_START_MS = 3_000;
 
 type Fetched = { blob: Blob } | { code: SpeakErrorCode };
@@ -37,33 +36,38 @@ type Fetched = { blob: Blob } | { code: SpeakErrorCode };
 const activated = () => (navigator as Navigator & { userActivation?: { isActive: boolean } }).userActivation?.isActive ?? true;
 
 export function useSpeaker(): {
-    playing: string | null;        // the exchange being read (or fetched to read)
-    trouble: SpeakTrouble | null;  // why the last one couldn't be
+    playing: string | null;                                // the exchange being read (or fetched to read)
+    trouble: { id: string; code: SpeakErrorCode } | null;  // why the last one couldn't be
     unlock: () => void;
     speak: (id: string, plan: SpeechPlan) => void;
     stop: () => void;
+    forget: () => void;                                    // a new conversation
 } {
     const [playing, setPlaying] = useState<string | null>(null);
-    const [trouble, setTrouble] = useState<SpeakTrouble | null>(null);
+    const [trouble, setTrouble] = useState<{ id: string; code: SpeakErrorCode } | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const urlRef = useRef<string | null>(null);
-    const unlockedRef = useRef(false);       // the <audio> element has played in a tap
-    const voiceUnlockedRef = useRef(false);  // speechSynthesis has started speaking
+    const unlockedRef = useRef(false); // the <audio> element has played in a tap
+    // The device's English voice: heard to start ('works'), or not started in
+    // time ('silent': English goes to the route until it is heard again).
+    const deviceRef = useRef<'unknown' | 'works' | 'silent'>('unknown');
+    // The device's line being read, and its watchdog.
+    const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+    const watchdogRef = useRef<ReturnType<typeof setTimeout>>(undefined);
     // The line wanted now. A fetch that ends after the reading stopped, or
     // another began, is kept but not played.
     const wantedRef = useRef<object | null>(null);
-    const watchdogRef = useRef<ReturnType<typeof setTimeout>>(undefined);
     // MP3s by language and text, and fetches still coming, so no line is
-    // paid for twice; a page that is left aborts what is still coming.
+    // paid for twice. A new conversation is a new generation: what was still
+    // coming for the old one isn't kept.
     const cacheRef = useRef(new Map<string, Blob>());
     const pendingRef = useRef(new Map<string, Promise<Fetched>>());
-    const controllersRef = useRef(new Set<AbortController>());
-    // After a 429, or a 503 that says when to ask again (read-aloud held
-    // back, or the day's characters spent), no calls until then, and the
-    // reason why; after the route's 503 without one (switched off, or not set
-    // up), none for this page.
+    const generationRef = useRef(0);
+    // Aborted when the page is left: whatever is still coming isn't wanted.
+    const leaveRef = useRef<AbortController | null>(null);
+    // After a 429 or 503 (busy, at a limit, held back, out of characters, or
+    // switched off), no calls until its Retry-After, and the reason why.
     const pauseRef = useRef<{ until: number; code: SpeakErrorCode } | null>(null);
-    const unavailableRef = useRef(false);
     const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
 
     const audio = useCallback(() => {
@@ -81,13 +85,34 @@ export function useSpeaker(): {
 
     const settle = useCallback((id: string) => setPlaying(current => (current === id ? null : current)), []);
 
+    const englishVoice = useCallback(() => {
+        const synth = typeof window !== 'undefined' ? window.speechSynthesis : undefined;
+        return synth ? pickEnglishVoice(voicesRef.current.length ? voicesRef.current : synth.getVoices()) : null;
+    }, []);
+
+    // The device's line, let go. Its handlers come off first: a cancelled
+    // line's end or error event can arrive after the next line has begun
+    // (Chrome sends it later), and must not touch that one. Its watchdog stops.
+    const dropUtterance = useCallback(() => {
+        clearTimeout(watchdogRef.current);
+        const utterance = utteranceRef.current;
+        if (utterance) utterance.onstart = utterance.onend = utterance.onerror = null;
+        utteranceRef.current = null;
+    }, []);
+
     const stop = useCallback(() => {
         wantedRef.current = null;
-        clearTimeout(watchdogRef.current);
+        dropUtterance();
         audioRef.current?.pause();
         try { window.speechSynthesis?.cancel(); } catch { /* none here */ }
         setPlaying(null);
-    }, []);
+    }, [dropUtterance]);
+
+    const forget = useCallback(() => {
+        stop();
+        generationRef.current++;
+        cacheRef.current.clear();
+    }, [stop]);
 
     const unlock = useCallback(() => {
         if (!activated()) return; // a finger's press: its release will do
@@ -96,17 +121,20 @@ export function useSpeaker(): {
             element.play().then(() => { unlockedRef.current = true; }, () => { /* the next tap tries again */ });
         }
         // The device's English voice says nothing, silently, and counts as
-        // unlocked once it is heard to start.
+        // working once it is heard to start: the same voice the lines use, so
+        // its start says something about theirs.
         const synth = window.speechSynthesis;
-        if (!voiceUnlockedRef.current && synth) {
+        if (deviceRef.current !== 'works' && synth) {
             try {
                 const hush = new SpeechSynthesisUtterance(' ');
+                const voice = englishVoice();
+                if (voice) hush.voice = voice;
                 hush.volume = 0;
-                hush.onstart = () => { voiceUnlockedRef.current = true; };
+                hush.onstart = () => { deviceRef.current = 'works'; };
                 synth.speak(hush);
             } catch { /* no voices here: English comes from the route */ }
         }
-    }, [setSource]);
+    }, [setSource, englishVoice]);
 
     const playBlob = useCallback((id: string, blob: Blob) => {
         const element = setSource(blob);
@@ -128,38 +156,35 @@ export function useSpeaker(): {
         if (kept) return Promise.resolve({ blob: kept });
         const coming = pendingRef.current.get(key);
         if (coming) return coming;
-        if (unavailableRef.current) return Promise.resolve({ code: 'speak_unavailable' });
         const pause = pauseRef.current;
         if (pause && Date.now() < pause.until) return Promise.resolve({ code: pause.code });
 
-        const controller = new AbortController();
-        controllersRef.current.add(controller);
+        const generation = generationRef.current;
         const request = (async (): Promise<Fetched> => {
             try {
                 const res = await fetch('/api/translate/speak', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ text: plan.text, lang: plan.lang }),
-                    signal: controller.signal,
+                    signal: leaveRef.current?.signal,
                 });
                 if (!res.ok) {
-                    const body = await readJson(res);
-                    const code = speakErrorCode(res.status, body);
-                    const retryAfter = res.headers.get('retry-after');
-                    const routeSaid = (body as { code?: unknown } | null)?.code === 'speak_unavailable';
-                    if (res.status === 503 && routeSaid && retryAfter === null) unavailableRef.current = true;
-                    else if (res.status === 429 || res.status === 503) pauseRef.current = { until: Date.now() + refusalPauseMs(retryAfter), code };
+                    const code = speakErrorCode(res.status, await readJson(res));
+                    if (res.status === 429 || res.status === 503) {
+                        pauseRef.current = { until: Date.now() + refusalPauseMs(res.headers.get('retry-after')), code };
+                    }
                     return { code };
                 }
                 const blob = await res.blob();
-                const cache = cacheRef.current;
-                cache.set(key, blob);
-                if (cache.size > MAX_EXCHANGES) cache.delete(cache.keys().next().value!);
+                if (generation === generationRef.current) {
+                    const cache = cacheRef.current;
+                    cache.set(key, blob);
+                    if (cache.size > MAX_EXCHANGES) cache.delete(cache.keys().next().value!);
+                }
                 return { blob };
             } catch {
                 return { code: 'speak_failed' };
             } finally {
-                controllersRef.current.delete(controller);
                 pendingRef.current.delete(key);
             }
         })();
@@ -183,40 +208,44 @@ export function useSpeaker(): {
 
     const fromDevice = useCallback((id: string, plan: SpeechPlan): boolean => {
         const synth = typeof window !== 'undefined' ? window.speechSynthesis : undefined;
-        const voice = synth ? pickEnglishVoice(voicesRef.current.length ? voicesRef.current : synth.getVoices()) : null;
-        if (!synth || !voice) return false;
+        const voice = englishVoice();
+        if (!synth || !voice || deviceRef.current === 'silent') return false;
+        dropUtterance();
         const utterance = new SpeechSynthesisUtterance(plan.text);
         utterance.voice = voice;
         utterance.lang = voice.lang;
+        let started = false;
         utterance.onstart = () => {
+            started = true;
             clearTimeout(watchdogRef.current);
-            voiceUnlockedRef.current = true;
+            deviceRef.current = 'works';
         };
         utterance.onend = () => {
-            clearTimeout(watchdogRef.current);
+            dropUtterance();
             settle(id);
         };
         utterance.onerror = event => {
-            clearTimeout(watchdogRef.current);
+            dropUtterance();
             settle(id);
             // Stopped for the next one: not a failure. Anything else, the
             // route reads it instead.
             if (event.error !== 'interrupted' && event.error !== 'canceled') void fromServer(id, plan);
         };
+        utteranceRef.current = utterance;
         synth.cancel();
         setPlaying(id);
         synth.speak(utterance);
-        clearTimeout(watchdogRef.current);
         watchdogRef.current = setTimeout(() => {
-            // Not started: the route reads it, and the next tap unlocks the
-            // device's voice again.
-            utterance.onstart = utterance.onend = utterance.onerror = null;
+            if (started || utteranceRef.current !== utterance) return;
+            // Not started: the route reads this line, and the English ones
+            // after it, until the voice is heard to start again.
+            dropUtterance();
             synth.cancel();
-            voiceUnlockedRef.current = false;
+            deviceRef.current = 'silent';
             void fromServer(id, plan);
         }, DEVICE_START_MS);
         return true;
-    }, [fromServer, settle]);
+    }, [dropUtterance, englishVoice, fromServer, settle]);
 
     const speak = useCallback((id: string, plan: SpeechPlan) => {
         stop();
@@ -237,15 +266,19 @@ export function useSpeaker(): {
         return () => synth.removeEventListener?.('voiceschanged', read);
     }, []);
 
-    // Leaving the page stops it, abandons what is still coming, and lets
-    // the audio go.
+    // Leaving the page abandons what is still coming, stops reading, and
+    // lets the audio go.
+    useEffect(() => {
+        const leave = new AbortController();
+        leaveRef.current = leave;
+        return () => leave.abort();
+    }, []);
     useEffect(() => () => {
-        for (const controller of controllersRef.current) controller.abort();
-        clearTimeout(watchdogRef.current);
+        dropUtterance();
         audioRef.current?.pause();
         try { window.speechSynthesis?.cancel(); } catch { /* none here */ }
         if (urlRef.current) URL.revokeObjectURL(urlRef.current);
-    }, []);
+    }, [dropUtterance]);
 
-    return { playing, trouble, unlock, speak, stop };
+    return { playing, trouble, unlock, speak, stop, forget };
 }

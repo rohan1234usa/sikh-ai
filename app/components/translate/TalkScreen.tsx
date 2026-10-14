@@ -159,7 +159,7 @@ export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
     const clear = () => {
         if (state.exchanges.length === 0) return;
         sender.abort();
-        speech.stop();
+        speech.forget();
         dispatch({ type: 'cleared' });
     };
 
