@@ -15,9 +15,16 @@
 // The address itself is never kept. Each feature counts under a code made
 // from it with a secret that's new every UTC day and never leaves memory, so
 // a code can't be turned back into an address, or matched across days or
-// features. A request with no address (a test, the app run locally behind
-// something else, another host) isn't counted: refusing all of them, or
-// counting them as one visitor, would turn a backup into an outage.
+// features.
+//
+// The address is the one Vercel sets: a client's own never gets through.
+// Next fills it in from the connection when it's missing, so under `next
+// start` it's whoever connected. Behind a proxy that doesn't set it, every
+// visitor would be the proxy, and on a server open to the internet a client
+// could name its own, so another host needs visitorOf looked at again. Only
+// a request made in-process, as the tests make theirs, has no address, and
+// it isn't counted: refusing all of those, or counting them as one visitor,
+// would turn a backup into an outage.
 
 import { createHmac, randomBytes } from 'node:crypto';
 import { isIPv4, isIPv6 } from 'node:net';
@@ -39,7 +46,8 @@ export type Verdict = { ok: true } | { ok: false; window: Window; retryAfter: nu
 //   address, which is about 10 chat turns, since a reply that quotes
 //   Gurmukhi is followed by a quote check. 300 a day leaves room for a
 //   gurdwara class on one connection; at about $0.0036 an answer, one
-//   visitor costs at most about $1.10 a day per server (twice that from 2027).
+//   visitor costs at most about $1.10 a day per server on the chat, and as
+//   much again on the tutor (twice that from 2027).
 // - The quote check: one per reply at most, and each can make 12 GurbaniNow
 //   calls, so 100 spends at most 1,200 of quote checking's 3,000 a day.
 // - The translator: short lookups come quicker than questions.
@@ -206,6 +214,8 @@ let unaddressed = false;
 // refusal to send back, or null to go on. A route calls it once the request
 // has passed its own checks, just before it would cost anything, so a
 // request refused for what it is, or answered for free, isn't counted.
+// Error reports are the exception: anyone can post one, so that route
+// counts every post before reading it (app/api/error-report).
 export function limitVisitor(req: Request, feature: Feature, now = Date.now()): Response | null {
     const visitor = visitorOf(req.headers);
     if (visitor === null) {

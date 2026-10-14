@@ -90,11 +90,17 @@ export function judgeNotRefused(a: Answer): Verdict {
 }
 
 // A burst whose first answer is already a refusal ran into a limit left over
-// from before it, an earlier burst or run: it shows nothing.
+// from before it, an earlier burst or run: it shows nothing. A route's day
+// limit (`_limit`) lasts until midnight UTC, so a minute's wait won't do.
 function leftOver(answers: Answer[]): Verdict | null {
     const first = answers[0];
     if (!first) return { ok: false, detail: 'no answers' };
     if (first.status !== 429 && first.status !== 403) return null;
+    if (first.status === 429 && first.code?.endsWith('_limit')) {
+        const seconds = Number(first.retryAfter);
+        const until = Number.isFinite(seconds) && seconds > 0 ? `, for another ${Math.ceil(seconds / 60)} minutes,` : '';
+        return { ok: null, detail: `the first answer was already ${labelOf(first)}: this address has used the day's allowance${until} until midnight UTC, so run it again after that, or from another address` };
+    }
     return { ok: null, detail: `the first answer was already ${labelOf(first)}, a limit left over from before: wait a minute and run it again` };
 }
 
