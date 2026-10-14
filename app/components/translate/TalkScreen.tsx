@@ -38,11 +38,13 @@ function spoken(t: Dictionary, lang: Lang, exchange: Exchange): string {
     const punjabi: readonly LiveField[] = lang === 'pa' ? ['gurmukhi', 'roman'] : ['roman', 'gurmukhi'];
     const text = (fields: readonly LiveField[]) =>
         (fields.includes('english') ? ['english' as const] : punjabi).map(f => exchange.lines[f]).find(Boolean) ?? '';
+    // A full stop after each part, unless it ends in one of its own.
+    const sentence = (s: string) => (/[.?!।॥]$/.test(s) ? s : `${s}.`);
     return [
-        `${fmt(talk.heard, { lang: language(roles.from) })}: ${text(roles.heard)}`,
-        `${fmt(talk.translation, { lang: language(roles.from === 'pa' ? 'en' : 'pa') })}: ${text(roles.said)}`,
+        sentence(`${fmt(talk.heard, { lang: language(roles.from) })}: ${text(roles.heard)}`),
+        sentence(`${fmt(talk.translation, { lang: language(roles.from === 'pa' ? 'en' : 'pa') })}: ${text(roles.said)}`),
         exchange.status === 'cut' ? talk.cut : '',
-    ].filter(Boolean).join('. ');
+    ].filter(Boolean).join(' ');
 }
 
 export default function TalkScreen() {
