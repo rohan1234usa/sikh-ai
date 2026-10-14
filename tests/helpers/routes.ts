@@ -13,6 +13,10 @@ export async function startRouteMock(): Promise<MockGemini> {
     process.env.APP_LOG = 'off';
     // Never Sentry, whatever the shell running the tests has set.
     delete process.env.SENTRY_DSN;
+    // Text-to-Speech goes to the mock too, and only with an account a test
+    // sets up (mockServiceAccount), never one from the shell.
+    process.env.GOOGLE_TTS_BASE_URL = mock.url;
+    delete process.env.GOOGLE_TTS_SERVICE_ACCOUNT;
     return mock;
 }
 
