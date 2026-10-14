@@ -78,12 +78,33 @@ function disabled(): boolean {
     return flag === '0' || flag === 'false' || flag === 'off';
 }
 
+const cloudKey = () => process.env.GOOGLE_TRANSLATE_API_KEY ?? process.env.GEMINI_API_KEY;
+
+// Whether a call for `purpose` with `chars` characters would go out now:
+// Cloud switched on, a key, and that much of the day's allowance left. A
+// route asks before counting its visitor (app/api/translate/crosscheck), so
+// no one is charged for a call that was never going to be made. A missing
+// key or a spent day is logged here as cloudTranslate would log it, since
+// that call never comes.
+export function cloudCanTranslate(purpose: CloudPurpose, chars: number): boolean {
+    if (disabled()) return false;
+    if (!cloudKey()) {
+        logEvent('config_error', { missing: 'GOOGLE_TRANSLATE_API_KEY' }, 'error');
+        return false;
+    }
+    if (cloudAllowances[purpose].remaining() < chars) {
+        logEvent('cloud_translate_ceiling', { purpose, chars }, 'warn');
+        return false;
+    }
+    return true;
+}
+
 export async function cloudTranslate(opts: CloudTranslateOpts): Promise<CloudTranslateResult | null> {
     // One switch disables every runtime call to Cloud Translation — fallback
     // and cross-check alike — without a redeploy.
     if (disabled()) return null;
 
-    const key = process.env.GOOGLE_TRANSLATE_API_KEY ?? process.env.GEMINI_API_KEY;
+    const key = cloudKey();
     if (!key) {
         logEvent('config_error', { missing: 'GOOGLE_TRANSLATE_API_KEY' }, 'error');
         return null;

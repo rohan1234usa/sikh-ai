@@ -15,9 +15,16 @@
 // The address itself is never kept. Each feature counts under a code made
 // from it with a secret that's new every UTC day and never leaves memory, so
 // a code can't be turned back into an address, or matched across days or
-// features. A request with no address (a test, the app run locally behind
-// something else, another host) isn't counted: refusing all of them, or
-// counting them as one visitor, would turn a backup into an outage.
+// features.
+//
+// The address is the one Vercel sets: a client's own never gets through.
+// Next fills it in from the connection when it's missing, so under `next
+// start` it's whoever connected. Behind a proxy that doesn't set it, every
+// visitor would be the proxy, and on a server open to the internet a client
+// could name its own, so another host needs visitorOf looked at again. Only
+// a request made in-process, as the tests make theirs, has no address, and
+// it isn't counted: refusing all of those, or counting them as one visitor,
+// would turn a backup into an outage.
 
 import { createHmac, randomBytes } from 'node:crypto';
 import { isIPv4, isIPv6 } from 'node:net';
@@ -39,7 +46,8 @@ export type Verdict = { ok: true } | { ok: false; window: Window; retryAfter: nu
 //   address, which is about 10 chat turns, since a reply that quotes
 //   Gurmukhi is followed by a quote check. 300 a day leaves room for a
 //   gurdwara class on one connection; at about $0.0036 an answer, one
-//   visitor costs at most about $1.10 a day per server (twice that from 2027).
+//   visitor costs at most about $1.10 a day per server on the chat, and as
+//   much again on the tutor (twice that from 2027).
 // - The quote check: one per reply at most, and each can make 12 GurbaniNow
 //   calls, so 100 spends at most 1,200 of quote checking's 3,000 a day.
 // - The translator: short lookups come quicker than questions.
@@ -49,8 +57,11 @@ export type Verdict = { ok: true } | { ok: false; window: Window; retryAfter: nu
 //   there's room left for the Translate button. 500 a day, at about $0.0014
 //   a call (measured: 1,600 tokens in, 50 out), is at most about $0.70 per
 //   visitor per server (twice that from 2027).
-// - Compare with Google Translate: up to 2,000 characters each, from its own
-//   10,000 a day (lib/translate/cloud.ts).
+// - Compare with Google Translate: its day counts characters, not requests
+//   (the route passes each text's length as the cost), since what runs out
+//   is its own 10,000 characters a day (lib/translate/cloud.ts), and one
+//   comparison can be 2,000. 2,500 is a quarter of that, so it takes four
+//   visitors to use up a server's day; a typical comparison is a phrase.
 // - Shabad Search: at most 4 GurbaniNow calls each, so 300 spends at most
 //   1,200 of its 5,000. An answer the CDN keeps never reaches the server.
 // - Error reports (app/api/error-report): a page sends at most 5
@@ -64,7 +75,7 @@ export const VISITOR_LIMITS = {
     learn: { perMinute: 10, perDay: 300 },
     translate: { perMinute: 15, perDay: 300 },
     translateLive: { perMinute: 12, perDay: 500 },
-    crosscheck: { perMinute: 5, perDay: 50 },
+    crosscheck: { perMinute: 5, perDay: 2_500 },
     search: { perMinute: 20, perDay: 300 },
     errorReport: { perMinute: 10, perDay: 100 },
 } as const satisfies Record<string, Limits>;
@@ -113,39 +124,45 @@ export const REFUSALS: Record<Feature, Record<Window, { code: string; error: str
     },
 };
 
-// An IPv6 address's first four groups, written out: the /64 it's in.
-function prefix64(ip: string): string {
+// A valid IPv6 address's eight groups, as numbers: `::` filled in, and a
+// trailing IPv4 part (64:ff9b::192.0.2.1) read as the two groups it is.
+function groupsOf(ip: string): number[] {
     const [head, tail] = ip.split('::');
-    const parts = (s: string | undefined) => (s ? s.split(':') : []);
-    // A trailing IPv4 part (64:ff9b::192.0.2.1) takes the room of two groups.
-    const width = (groups: string[]) => groups.reduce((n, g) => n + (g.includes('.') ? 2 : 1), 0);
+    const parts = (s: string | undefined) => (s ? s.split(':') : []).flatMap((g) => {
+        if (!g.includes('.')) return [parseInt(g, 16)];
+        const [a, b, c, d] = g.split('.').map(Number);
+        return [(a << 8) | b, (c << 8) | d];
+    });
     const left = parts(head);
     const right = parts(tail);
-    const groups = tail === undefined ? left : [...left, ...Array(8 - width(left) - width(right)).fill('0'), ...right];
-    return `${groups.slice(0, 4).map((g) => parseInt(g, 16).toString(16)).join(':')}::/64`;
+    return tail === undefined ? left : [...left, ...Array(8 - left.length - right.length).fill(0), ...right];
 }
 
 // Who's asking: the first x-forwarded-for address, which Vercel sets itself
 // (a client's own value never gets through), else x-real-ip, the same
-// address. An IPv4 address carried in IPv6 (::ffff:192.0.2.1) is that IPv4
-// address; any other IPv6 address stands for its /64. Null when there's none.
+// address. An IPv4 address carried in IPv6 is that IPv4 address, however
+// it's written (::ffff:192.0.2.1, or ::ffff:c000:201 once a URL parser has
+// had it); any other IPv6 address stands for its /64. Null when there's none.
 export function visitorOf(headers: Headers): string | null {
     for (const raw of [headers.get('x-forwarded-for')?.split(',')[0], headers.get('x-real-ip')]) {
         const ip = (raw ?? '').trim().split('%')[0]; // a zone (%eth0) belongs to the local network only
         if (isIPv4(ip)) return ip;
         if (!isIPv6(ip)) continue;
-        const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/i.exec(ip);
-        return mapped && isIPv4(mapped[1]) ? mapped[1] : prefix64(ip);
+        const g = groupsOf(ip);
+        if (g.slice(0, 5).every((n) => n === 0) && g[5] === 0xffff) return [g[6] >> 8, g[6] & 255, g[7] >> 8, g[7] & 255].join('.');
+        return `${g.slice(0, 4).map((n) => n.toString(16)).join(':')}::/64`;
     }
     return null;
 }
 
-export type Allowance = { take(visitor: string, now?: number): Verdict; size(): number };
+export type Allowance = { take(visitor: string, now?: number, cost?: number): Verdict; size(): number };
 
 // One feature's counts. take() counts a request, or says which limit it's
 // past and how many seconds until that limit's window ends. A refused
 // request doesn't count. Both windows are fixed: the clock minute, and the
-// UTC day, like dailyMeter's.
+// UTC day, like dailyMeter's. The minute counts requests; `cost` is what a
+// request spends of the day, 1 unless the feature's day is in other units
+// (Compare's characters).
 export function visitorAllowance({ perMinute, perDay }: Limits, maxVisitors = MAX_VISITORS): Allowance {
     let day = -1;
     let secret = randomBytes(32);
@@ -153,7 +170,7 @@ export function visitorAllowance({ perMinute, perDay }: Limits, maxVisitors = MA
     // seen longest ago.
     const counts = new Map<string, { minute: number; inMinute: number; inDay: number }>();
     return {
-        take(visitor, now = Date.now()) {
+        take(visitor, now = Date.now(), cost = 1) {
             const today = Math.floor(now / DAY_MS);
             if (today !== day) {
                 // A new day: every count starts again, under a new secret.
@@ -170,13 +187,13 @@ export function visitorAllowance({ perMinute, perDay }: Limits, maxVisitors = MA
                 mine.inMinute = 0;
             }
             let verdict: Verdict = { ok: true };
-            if (mine.inDay >= perDay) {
+            if (mine.inDay + cost > perDay) {
                 verdict = { ok: false, window: 'day', retryAfter: Math.ceil(((today + 1) * DAY_MS - now) / 1000) };
             } else if (mine.inMinute >= perMinute) {
                 verdict = { ok: false, window: 'minute', retryAfter: Math.ceil(((minute + 1) * MINUTE_MS - now) / 1000) };
             } else {
                 mine.inMinute++;
-                mine.inDay++;
+                mine.inDay += cost;
             }
             counts.set(code, mine);
             if (counts.size > maxVisitors) {
@@ -206,7 +223,14 @@ let unaddressed = false;
 // refusal to send back, or null to go on. A route calls it once the request
 // has passed its own checks, just before it would cost anything, so a
 // request refused for what it is, or answered for free, isn't counted.
-export function limitVisitor(req: Request, feature: Feature, now = Date.now()): Response | null {
+// Error reports are the exception: anyone can post one, so that route
+// counts every post before reading it (app/api/error-report). `cost` is the
+// request's share of the day (Compare passes its text's length).
+export function limitVisitor(
+    req: Request,
+    feature: Feature,
+    { now = Date.now(), cost = 1 }: { now?: number; cost?: number } = {},
+): Response | null {
     const visitor = visitorOf(req.headers);
     if (visitor === null) {
         // Never on Vercel. Said once, so a change there shows in the logs.
@@ -214,7 +238,7 @@ export function limitVisitor(req: Request, feature: Feature, now = Date.now()): 
         unaddressed = true;
         return null;
     }
-    const verdict = allowances[feature].take(visitor, now);
+    const verdict = allowances[feature].take(visitor, now, cost);
     if (verdict.ok) return null;
     const limit = verdict.window === 'day' ? VISITOR_LIMITS[feature].perDay : VISITOR_LIMITS[feature].perMinute;
     logRefusal('visitor_limited', `${feature} ${verdict.window}`, { window: verdict.window, limit }, now);

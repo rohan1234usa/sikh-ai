@@ -2,10 +2,11 @@
 // should (README, Running in production, step 3). Nothing it sends costs
 // anything: each chat request has an empty message, which the route answers
 // with a 400 before Gemini is called, and the rest are quote checks and
-// searches, whose source is free, and CSP reports.
+// searches, whose source is free, and CSP and error reports, which go no
+// further than the site's log.
 //
 //   npm run check:limits                   the refusals (lib/api/guard.ts): four requests
-//   npm run check:limits -- --bursts       the limits too: about seven minutes
+//   npm run check:limits -- --bursts       the limits too: about eight minutes
 //   npm run check:limits -- --base <url>   another public deployment
 //
 // --bursts runs your own address into the limits, so the site answers you
@@ -13,11 +14,13 @@
 // - 12 quote checks: the route's own limit (lib/api/allowance.ts) has to stop
 //   the 11th, which also proves the routes see each visitor's address. Each
 //   server counts on its own, so a burst that none of them stopped is sent
-//   once more.
+//   once more. Each run spends up to 24 of this address's 100 quote checks
+//   a day on each server it reaches, so the fifth run in a UTC day can find
+//   that day's allowance spent.
 // - 45 empty chat posts, 45 searches for an Ang number (the routes turn both
-//   away without counting them) and 45 CSP reports, four a second, each
-//   burst at least a minute after the last: the firewall has to answer the
-//   first two with 429 and leave the reports alone.
+//   away without counting them), then 45 CSP reports and 45 error reports,
+//   four a second, each burst at least a minute after the last: the firewall
+//   has to answer the first two with 429 and leave the reports alone.
 // Each burst starts about three seconds into a minute by the site's clock,
 // so the routes' per-minute count, and a firewall window if it keeps the
 // clock's, doesn't split it. It exits 1 when a check fails, and 2 when none
@@ -68,7 +71,7 @@ Usage: npm run check:limits -- [flags]
 
   (no flags)     The refusals: four requests
   --bursts       The per-visitor limit and the firewall's rule too: about
-                 seven minutes, and the site answers this address 429 for up
+                 eight minutes, and the site answers this address 429 for up
                  to a minute after each burst
   --base <url>   Another public deployment (default ${DEFAULT_BASE})
   --help         This message

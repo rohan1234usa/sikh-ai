@@ -124,6 +124,17 @@ test("the firewall fails when it never limits, or denies instead; a leftover or 
     assert.equal(judgeRateLimited(run([20, EMPTY], [1, { status: 500, code: 'chat_failed' }]), EMPTY, 20).ok, false);
 });
 
+test("a limit left over from before says how long to wait: a minute for the minute's, midnight UTC for the day's", () => {
+    const minute = judgeVisitorLimit(run([12, { status: 429, code: 'verify_busy', retryAfter: '40' }]), 'verify');
+    assert.equal(minute.ok, null);
+    assert.match(minute.detail, /left over from before: wait a minute and run it again/);
+    const day = judgeVisitorLimit(run([12, { status: 429, code: 'verify_limit', retryAfter: '3540' }]), 'verify');
+    assert.equal(day.ok, null);
+    assert.match(day.detail, /used the day's allowance, for another 59 minutes, until midnight UTC/);
+    assert.match(judgeRateLimited(run([45, { status: 429, code: 'chat_limit' }]), EMPTY, 20).detail, /until midnight UTC/);
+    assert.match(judgeVisitorLimit(run([12, { status: 429, code: 'verify_limit' }]), 'verify').detail, /allowance until midnight UTC/);
+});
+
 test('regions: one is just named; more than one asks for a rerun unless the burst passed', () => {
     assert.equal(regionsOf(run([3, EMPTY]), false), 'sfo1::iad1');
     const split = run([2, EMPTY], [1, { ...EMPTY, edge: 'lax1::iad1' }]);

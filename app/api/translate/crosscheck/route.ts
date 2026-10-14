@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { limitVisitor } from "@/lib/api/allowance";
 import { refuseCrossSite } from "@/lib/api/guard";
-import { MAX_TRANSLATE_CHARS, isCrosscheckDirection, type CrosscheckDirection } from "@/lib/translate/config";
-import { cloudTranslate, type CloudLang } from "@/lib/translate/cloud";
+import { MAX_CROSSCHECK_CHARS, isCrosscheckDirection, type CrosscheckDirection } from "@/lib/translate/config";
+import { cloudCanTranslate, cloudTranslate, type CloudLang } from "@/lib/translate/cloud";
 import { logRouteError, withRequestLog } from "@/lib/log";
 
 // Deliberately separate from /api/translate: this shares none of the Gemini
@@ -15,12 +15,8 @@ const DIRECTIONS: Record<CrosscheckDirection, { source: CloudLang; target: Cloud
   'pa-en': { source: 'pa', target: 'en' },
 };
 
-// The client sends a *rendition* here, not the user's typed input, and a
-// 1,000-char English input can render longer than that in Gurmukhi. Measuring
-// model output against the input cap would reject results the user legitimately
-// produced, so this cap is its own, larger number.
-const MAX_CROSSCHECK_CHARS = MAX_TRANSLATE_CHARS * 2;
-// Room for that plus JSON escaping (at worst twice its length) and the
+// MAX_CROSSCHECK_CHARS (lib/translate/config.ts) caps the rendition; room
+// for that plus JSON escaping (at worst twice its length) and the
 // wrapper. Anything larger is refused before it is parsed.
 const MAX_BODY_CHARS = 2 * MAX_CROSSCHECK_CHARS + 1000;
 
@@ -30,6 +26,14 @@ const MAX_BODY_CHARS = 2 * MAX_CROSSCHECK_CHARS + 1000;
 // it dedupes across users; bounded because a warm Vercel instance is long-lived.
 const MAX_MEMO_ENTRIES = 200;
 const memo = new Map<string, string>();
+
+// `crosscheck_failed` is intentionally absent from the i18n `errors` block:
+// the card renders its own inline message and never routes this through the
+// page-level alert. The code exists for logs.
+const unavailable = () => NextResponse.json(
+  { error: "Google Translate comparison is unavailable right now.", code: "crosscheck_failed" },
+  { status: 502 },
+);
 
 function remember(key: string, value: string): void {
   // Oldest-first eviction: Map preserves insertion order, so the first key is
@@ -77,24 +81,22 @@ async function handlePost(req: Request) {
       );
     }
 
-    // One visitor's too many (lib/api/allowance.ts), counted only when
-    // the answer has to be bought.
-    const limited = limitVisitor(req, "crosscheck");
+    // Cloud asked first: a comparison it wouldn't take (switched off, or this
+    // server's day of comparisons spent) mustn't cost the visitor anything.
+    if (!cloudCanTranslate("compare", trimmed.length)) return unavailable();
+    // One visitor's too many (lib/api/allowance.ts), counted only when the
+    // answer has to be bought, and in characters, since characters are what
+    // run out: no one visitor can spend a server's whole day of comparisons.
+    // Like every route's count, it comes before the call, so a comparison
+    // Cloud then fails (busy, down) still counts.
+    const limited = limitVisitor(req, "crosscheck", { cost: trimmed.length });
     if (limited) return limited;
 
     // Source is always explicit here — the caller sends a rendition whose
     // language is already known, so there is no detection ambiguity to resolve.
     const result = await cloudTranslate({ text: trimmed, ...DIRECTIONS[direction], purpose: 'compare' });
 
-    if (!result) {
-      // `crosscheck_failed` is intentionally absent from the i18n `errors`
-      // block: the card renders its own inline message and never routes this
-      // through the page-level alert. The code exists for logs.
-      return NextResponse.json(
-        { error: "Google Translate comparison is unavailable right now.", code: "crosscheck_failed" },
-        { status: 502 },
-      );
-    }
+    if (!result) return unavailable();
 
     remember(memoKey, result.translatedText);
 
@@ -105,10 +107,7 @@ async function handlePost(req: Request) {
 
   } catch (error) {
     logRouteError(error);
-    return NextResponse.json(
-      { error: "Google Translate comparison is unavailable right now.", code: "crosscheck_failed" },
-      { status: 502 },
-    );
+    return unavailable();
   }
 }
 

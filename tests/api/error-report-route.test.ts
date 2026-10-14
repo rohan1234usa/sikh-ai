@@ -1,7 +1,7 @@
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { browserSentry } from '@/lib/errors/sentry';
-import { VISITOR_LIMITS } from '@/lib/api/allowance';
+import { MINUTE_MS, VISITOR_LIMITS } from '@/lib/api/allowance';
 import { postJson } from '../helpers/routes';
 import { startSentryMock, type SentryMock } from '../helpers/sentryMock';
 
@@ -90,8 +90,11 @@ test("a page's report is logged and sent on to Sentry, without anything the visi
 test("another site's page, a body that isn't JSON or one too big is refused before it's read", async () => {
     const from = { 'x-forwarded-for': '203.0.113.40' };
     const lines = await capture(async () => {
-        assert.equal((await POST(postJson(`${SITE}/api/error-report`, report(), { ...from, 'sec-fetch-site': 'cross-site' }))).status, 403);
-        assert.equal((await POST(postJson(`${SITE}/api/error-report`, report(), { ...from, 'content-type': 'text/plain' }))).status, 415);
+        for (const [headers, status] of [[{ 'sec-fetch-site': 'cross-site' }, 403], [{ 'content-type': 'text/plain' }, 415]] as const) {
+            const req = postJson(`${SITE}/api/error-report`, report(), { ...from, ...headers });
+            assert.equal((await POST(req)).status, status);
+            assert.equal(req.bodyUsed, false, 'refused before the body was read');
+        }
         assert.equal((await POST(postJson(`${SITE}/api/error-report`, report({ message: 'x'.repeat(20_000) }), from))).status, 413);
         const notJson = new Request(`${SITE}/api/error-report`, { method: 'POST', headers: { ...from, 'content-type': 'application/json' }, body: 'not json' });
         assert.equal((await POST(notJson)).status, 400);
@@ -120,20 +123,29 @@ test('a browser sending Global Privacy Control, or something that is not a repor
     }
 });
 
+// The minute is the clock's, so a run that crosses into the next one proves
+// nothing; these two then stop short of their last assertions.
+const minute = () => Math.floor(Date.now() / MINUTE_MS);
+
 test("one visitor gets 10 posts a minute, whether they're reports or not", async () => {
     const from = { 'x-forwarded-for': '203.0.113.30' };
+    const started = minute();
     for (let i = 0; i < VISITOR_LIMITS.errorReport.perMinute; i++)
         assert.equal((await POST(postJson(`${SITE}/api/error-report`, { junk: i }, from))).status, 204);
-    assert.equal((await POST(postJson(`${SITE}/api/error-report`, report(), from))).status, 429);
+    const status = (await POST(postJson(`${SITE}/api/error-report`, report(), from))).status;
+    if (minute() !== started) return;
+    assert.equal(status, 429);
 });
 
 test('one visitor gets 10 reports a minute', async () => {
     const from = { 'x-forwarded-for': '203.0.113.20' };
     const statuses: number[] = [];
+    const started = minute();
     for (let i = 0; i <= VISITOR_LIMITS.errorReport.perMinute; i++)
         statuses.push((await POST(postJson(`${SITE}/api/error-report`, report({ message: `n${i}` }), from))).status);
-    assert.deepEqual(statuses, [...Array(VISITOR_LIMITS.errorReport.perMinute).fill(204), 429]);
     const refused = await POST(postJson(`${SITE}/api/error-report`, report(), from));
+    if (minute() !== started) return;
+    assert.deepEqual(statuses, [...Array(VISITOR_LIMITS.errorReport.perMinute).fill(204), 429]);
     assert.deepEqual(await refused.json(), { code: 'error_report_busy', error: 'Too many error reports. Please wait a minute.' });
 });
 
