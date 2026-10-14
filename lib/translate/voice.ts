@@ -59,10 +59,12 @@ const AUDIO_MIMES: Readonly<Record<string, string>> = {
 };
 
 // The type to send Gemini for a clip the page says it recorded as `header`,
-// or null when it isn't audio Gemini hears.
+// or null when it isn't audio Gemini hears. The table's own entries only: a
+// plain object also answers to 'constructor' and '__proto__'.
 export function audioMimeFor(header: unknown): string | null {
     if (typeof header !== 'string') return null;
-    return AUDIO_MIMES[baseMime(header)] ?? null;
+    const base = baseMime(header);
+    return Object.hasOwn(AUDIO_MIMES, base) ? AUDIO_MIMES[base] : null;
 }
 
 // Standard base64, as the page sends it: padded, never base64url.

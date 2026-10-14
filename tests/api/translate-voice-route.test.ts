@@ -180,6 +180,8 @@ test('a missing, malformed, tiny or oversized clip is refused before any model c
         [{ audio: `${clip().slice(0, -4)}ab-_`, mimeType: 'audio/webm' }, 400, 'translate_voice_bad_audio'], // base64url
         [{ audio: clip(), mimeType: 'video/webm' }, 400, 'translate_voice_bad_audio'],
         [{ audio: clip(), mimeType: 'text/plain' }, 400, 'translate_voice_bad_audio'],
+        [{ audio: clip(), mimeType: 'constructor' }, 400, 'translate_voice_bad_audio'],
+        [{ audio: clip(), mimeType: '__proto__' }, 400, 'translate_voice_bad_audio'],
         [{ audio: clip() }, 400, 'translate_voice_bad_audio'],
         [{ audio: 'A'.repeat(MAX_AUDIO_BASE64_CHARS), mimeType: 'audio/webm' }, 413, 'translate_voice_too_long'],
         [{ audio: 'A'.repeat(MAX_AUDIO_BASE64_CHARS + 2_000), mimeType: 'audio/webm' }, 413, 'translate_voice_too_long'],

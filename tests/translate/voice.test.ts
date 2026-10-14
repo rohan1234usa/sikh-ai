@@ -36,6 +36,10 @@ test('every container a browser records in is audio Gemini hears; nothing else i
     for (const refused of ['video/webm', 'text/plain', 'audio/', '', 'audio/webm2', 42, undefined, null]) {
         assert.equal(audioMimeFor(refused), null, String(refused));
     }
+    // Names every object answers to are not on the list.
+    for (const inherited of ['constructor', '__proto__', 'toString', 'hasOwnProperty', 'constructor;codecs=opus']) {
+        assert.equal(audioMimeFor(inherited), null, inherited);
+    }
 });
 
 test('base64 is checked and measured without decoding it', () => {
