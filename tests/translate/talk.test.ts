@@ -11,6 +11,7 @@ import {
     clipCheck,
     isMicTrouble,
     micTrouble,
+    pointerRelease,
     pickEnglishVoice,
     pickRecordingMime,
     rms,
@@ -52,6 +53,19 @@ test('a microphone error says what the visitor can do about it', () => {
     }
     assert.equal(MIC_TROUBLES.length, 6);
     for (const note of ['tooShort', 'tooLong', 'micReady', 'interrupted', 'nothingHeard']) assert.ok(!isMicTrouble(note), note);
+});
+
+test('letting go of the button: a hand ends its hold, a screen reader toggles', () => {
+    const idle = (at: number) => ({ at, wasActive: false });
+    const up = (timeStamp: number, type = 'pointerup') => ({ type, timeStamp });
+    assert.equal(pointerRelease(idle(1_000), up(2_400), false), 'stop', 'a hold, let go');
+    assert.equal(pointerRelease(idle(1_000), up(1_070), false), 'stop', 'a quick tap is still a hold (and too short)');
+    assert.equal(pointerRelease(idle(1_000), up(1_000.2), false), 'toggleOn', "Chrome's screen-reader activation: down and up at once");
+    assert.equal(pointerRelease({ at: 1_000, wasActive: true }, up(1_000.2), true), 'stop', 'the next activation ends it');
+    assert.equal(pointerRelease({ at: 1_000, wasActive: true }, up(1_090), true), 'stop', 'a tap on a recording button ends it');
+    assert.equal(pointerRelease(idle(1_000), up(1_000.5, 'pointercancel'), false), 'stop', 'a cancel is never an activation');
+    assert.equal(pointerRelease(null, up(5_000, 'lostpointercapture'), true), 'keep', 'a release with no press of its own leaves a toggled recording alone');
+    assert.equal(pointerRelease(null, up(5_000, 'lostpointercapture'), false), 'stop');
 });
 
 test('a clip is sent only when it holds something, and fits', () => {

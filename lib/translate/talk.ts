@@ -57,6 +57,27 @@ export function micTrouble(error: unknown): MicTrouble {
 // "allow the microphone?" question in it, which takes the press away.
 export const PROMPT_DELAY_MS = 1_500;
 
+// What letting go of the button means (TalkButton). A press on a button that
+// was already recording ends the recording. A press and release closer
+// together than any hand can make came from a screen reader: Chrome and
+// Edge send its activation as a pointerdown and pointerup at once, then a
+// click, and like Space it starts a recording that the next activation
+// ends. Anything else is the end of a hold, except a release with no press
+// of its own (lostpointercapture after pointerup), which leaves a recording
+// started from a keyboard or a screen reader alone.
+export const SYNTHETIC_PRESS_MS = 10;
+
+export function pointerRelease(
+    press: { at: number; wasActive: boolean } | null,
+    release: { type: string; timeStamp: number },
+    toggled: boolean,
+): 'stop' | 'keep' | 'toggleOn' {
+    if (!press) return toggled ? 'keep' : 'stop';
+    if (press.wasActive) return 'stop';
+    if (release.type === 'pointerup' && release.timeStamp - press.at < SYNTHETIC_PRESS_MS) return 'toggleOn';
+    return 'stop';
+}
+
 // Gemini writes words down even from silence (tried on 2026-10-13: three
 // silent seconds came back as "Wait for it.", and as Punjabi sentences, with
 // the prompt saying not to), so a clip with no speech in it is never sent.
