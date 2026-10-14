@@ -126,6 +126,7 @@ test('switched off, or not set up, it says so before counting anyone', async () 
         process.env.SPEAK = flag;
         const { result: res, requests } = await captured(mock, () => say(LINE, 'pa', visitor));
         assert.equal(res.status, 503, flag);
+        assert.equal(res.headers.get('retry-after'), null, 'nothing to wait for: the page stops asking');
         assert.equal((await res.json()).code, 'speak_unavailable');
         assert.equal(requests.length, 0);
     }
@@ -134,6 +135,7 @@ test('switched off, or not set up, it says so before counting anyone', async () 
     const lines = await logged(async () => {
         const res = await say(LINE, 'pa', visitor);
         assert.equal(res.status, 503);
+        assert.equal(res.headers.get('retry-after'), null);
         assert.equal((await res.json()).code, 'speak_unavailable');
     });
     assert.deepEqual(lines.map((l) => [l.evt, l.level, l.why]), [['speak_unavailable', 'warn', 'not_set_up']]);
@@ -157,17 +159,19 @@ test('an account that isn’t a key file is an error the owner hears about', asy
     const lines = await logged(async () => {
         const res = await say(LINE);
         assert.equal(res.status, 503);
+        assert.equal(res.headers.get('retry-after'), '60', 'held back a minute, then tried again');
         assert.equal((await res.json()).code, 'speak_unavailable');
     });
     assert.ok(lines.some((l) => l.evt === 'config_error' && l.level === 'error' && l.why === 'unsigned'), JSON.stringify(lines));
     assert.ok(!JSON.stringify(lines).includes('not a key'), 'never the key');
 });
 
-test('Google refusing the sign-in is an error, and read-aloud is unavailable until it is fixed', async () => {
+test('Google refusing the sign-in is an error, and read-aloud waits a minute before asking again', async () => {
     process.env.GOOGLE_TTS_SERVICE_ACCOUNT = mockServiceAccount(mock.url, 'MOCK_OAUTH_400@sikhai-mock.iam.gserviceaccount.com').json;
     const lines = await logged(async () => {
         const { result: res, requests } = await captured(mock, () => say(LINE));
-        assert.equal(res.status, 503, 'not worth asking again: the page stops');
+        assert.equal(res.status, 503);
+        assert.equal(res.headers.get('retry-after'), '60', 'the page waits a minute, not for good');
         assert.equal((await res.json()).code, 'speak_unavailable');
         assert.deepEqual(ops(requests), ['token']);
     });
@@ -176,6 +180,8 @@ test('Google refusing the sign-in is an error, and read-aloud is unavailable unt
     const again = await logged(async () => {
         const { result: res, requests } = await captured(mock, () => say(LINE));
         assert.equal(res.status, 503);
+        const wait = Number(res.headers.get('retry-after'));
+        assert.ok(wait >= 1 && wait <= 60, `what is left of the minute: ${wait}`);
         assert.deepEqual(requests, []);
     });
     assert.deepEqual(again.filter((l) => l.level === 'error'), []);
@@ -197,12 +203,27 @@ test('Text-to-Speech busy or down is speak_failed, a warning: the next line may 
     assert.equal((await say('Hello ji, how are you?', 'en')).status, 200, 'and the next one is read');
 });
 
+test('one line Text-to-Speech refuses is speak_failed, an error the owner hears about, and holds nobody back', async () => {
+    const lines = await logged(async () => {
+        const res = await say('MOCK_TTS_400 read this aloud', 'en');
+        assert.equal(res.status, 502);
+        assert.equal(res.headers.get('retry-after'), null);
+        assert.equal((await res.json()).code, 'speak_failed');
+    });
+    const line = lines.find((l) => l.evt === 'upstream_error');
+    assert.deepEqual([line?.upstream, line?.status, line?.level], ['cloud_tts', 400, 'error']);
+    const { result: res, requests } = await captured(mock, () => say(LINE));
+    assert.equal(res.status, 200, 'the next line is read: a 400 is about its line, not the account');
+    assert.ok(ops(requests).includes('synthesize'));
+});
+
 test('Text-to-Speech refusing the account is an error, and read-aloud is unavailable until it is fixed', async () => {
     // An account of its own: a refusal blocks its account for a minute.
     process.env.GOOGLE_TTS_SERVICE_ACCOUNT = mockServiceAccount(mock.url, 'switched-off@sikhai-mock.iam.gserviceaccount.com').json;
     const lines = await logged(async () => {
         const res = await say('MOCK_TTS_403 read this aloud', 'en');
         assert.equal(res.status, 503);
+        assert.equal(res.headers.get('retry-after'), '60');
         assert.equal((await res.json()).code, 'speak_unavailable');
     });
     const line = lines.find((l) => l.evt === 'upstream_error');
@@ -210,6 +231,10 @@ test('Text-to-Speech refusing the account is an error, and read-aloud is unavail
     const { result: res, requests } = await captured(mock, () => say('Hello ji, how are you?', 'en'));
     assert.equal(res.status, 503, 'the API is still off: Google isn’t asked again for a minute');
     assert.deepEqual(requests, []);
+    // Nor is anyone counted while it waits: past a minute's allowance of
+    // lines, the answer is still 503, never the visitor's 429.
+    const visitor = { 'x-forwarded-for': '203.0.113.93' };
+    for (let i = 0; i <= VISITOR_LIMITS.speak.perMinute; i++) assert.equal((await say(LINE, 'pa', visitor)).status, 503, `line ${i + 1}`);
 });
 
 test('a line the page abandons answers 499', async () => {
@@ -270,8 +295,13 @@ test("past the server's characters for the day, it says it isn't available, and 
     const lines = await logged(async () => {
         const { result: res, requests } = await captured(mock, () => say(LINE));
         assert.equal(res.status, 503);
+        const wait = Number(res.headers.get('retry-after'));
+        assert.ok(wait >= 1 && wait <= 86_400, `until midnight UTC: ${wait}`);
         assert.equal((await res.json()).code, 'speak_unavailable');
         assert.equal(requests.length, 0);
     });
     assert.ok(lines.some((l) => l.evt === 'speak_ceiling' && l.level === 'warn'));
+    // Nobody is counted for lines that can't be read.
+    const visitor = { 'x-forwarded-for': '203.0.113.94' };
+    for (let i = 0; i <= VISITOR_LIMITS.speak.perMinute; i++) assert.equal((await say(LINE, 'pa', visitor)).status, 503, `line ${i + 1}`);
 });

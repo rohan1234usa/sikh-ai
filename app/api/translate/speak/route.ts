@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { limitVisitor } from "@/lib/api/allowance";
 import { refuseCrossSite } from "@/lib/api/guard";
 import { logRouteError, withRequestLog } from "@/lib/log";
-import { speakAccount, synthesize } from "@/lib/translate/speak";
+import { speakReady, synthesize } from "@/lib/translate/speak";
 import { MAX_SPEAK_CHARS, isSpeakLang, speakable } from "@/lib/translate/voice";
 
 // POST /api/translate/speak: Talk's read-aloud (/translate/talk, #37). The
@@ -30,6 +30,13 @@ const MAX_BODY_CHARS = 2 * MAX_SPEAK_CHARS + 500;
 
 const refuse = (status: number, code: string, error: string) =>
   NextResponse.json({ error, code }, { status, headers: NO_STORE });
+// Off or not set up: no Retry-After, and the page stops asking. Held back a
+// while, or the day's characters spent: the page waits as long as it says.
+const unavailable = (retryAfter?: number) =>
+  NextResponse.json(
+    { error: UNAVAILABLE_ERROR, code: "speak_unavailable" },
+    { status: 503, headers: { ...NO_STORE, ...(retryAfter ? { "Retry-After": String(retryAfter) } : {}) } },
+  );
 
 async function handlePost(req: Request) {
   try {
@@ -49,19 +56,21 @@ async function handlePost(req: Request) {
     // bought for nothing.
     if (!isSpeakLang(lang) || !speakable(line, lang)) return refuse(400, "speak_invalid", INVALID_ERROR);
 
-    // Switched off or not set up: said before a visitor is counted.
-    if (!speakAccount()) return refuse(503, "speak_unavailable", UNAVAILABLE_ERROR);
+    // Off, not set up, held back, or out of characters for the day: said
+    // before a visitor is counted, so nothing is spent on it.
+    const ready = speakReady(line.length);
+    if (ready.kind === "unavailable") return unavailable(ready.retryAfter);
     const limited = limitVisitor(req, "speak");
     if (limited) return limited;
 
-    const spoken = await synthesize(line, lang, req.signal);
+    const spoken = await synthesize(ready.account, line, lang, req.signal);
     switch (spoken.kind) {
       case "audio":
         return new Response(spoken.audio, {
           headers: { "Content-Type": "audio/mpeg", "Content-Length": String(spoken.audio.byteLength), ...NO_STORE },
         });
       case "unavailable":
-        return refuse(503, "speak_unavailable", UNAVAILABLE_ERROR);
+        return unavailable(spoken.retryAfter);
       case "aborted":
         return new Response(null, { status: 499 });
       default:

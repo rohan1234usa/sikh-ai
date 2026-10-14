@@ -34,7 +34,7 @@
 //                                 well-formed JWT; an issuer containing
 //                                 MOCK_OAUTH_400 is refused
 //   POST /v1/text:synthesize      a short silent MP3, for a token /token gave;
-//                                 MOCK_TTS_500, MOCK_TTS_403, MOCK_TTS_429,
+//                                 MOCK_TTS_500, MOCK_TTS_403, MOCK_TTS_429, MOCK_TTS_400,
 //                                 MOCK_TTS_EMPTY or MOCK_TTS_HANG in the text
 //                                 to fail instead
 
@@ -286,6 +286,7 @@ export async function startMockGemini(opts: MockOptions = {}): Promise<MockGemin
                 return json(403, { error: { code: 403, message: 'Cloud Text-to-Speech API has not been used in project 0 before or it is disabled.', status: 'PERMISSION_DENIED' } });
             }
             if (text.includes('MOCK_TTS_429')) return json(429, { error: { code: 429, message: 'Quota exceeded.', status: 'RESOURCE_EXHAUSTED' } });
+            if (text.includes('MOCK_TTS_400')) return json(400, { error: { code: 400, message: 'This request contains sentences that are too long.', status: 'INVALID_ARGUMENT' } });
             if (text.includes('MOCK_TTS_EMPTY')) return json(200, {});
             if (text.includes('MOCK_TTS_HANG')) {
                 const timer = setTimeout(() => res.destroy(), 60_000);
