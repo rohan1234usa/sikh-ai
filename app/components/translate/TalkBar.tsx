@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import IntentLink from '@/app/components/IntentLink';
 import { StopCircleIcon } from '@heroicons/react/24/outline';
 import { useLocalePath, useT } from '@/app/context/LanguageContext';
 import type { TalkCopy } from '@/lib/i18n/talk';
@@ -8,8 +8,8 @@ import { isMicTrouble, type TalkView } from '@/lib/translate/talk';
 import { SPEAKERS, type Speaker } from '@/lib/translate/voice';
 import TalkButton from './TalkButton';
 
-// The bottom of the Talk page: who is speaking, the Speak switch and a Stop
-// while something is read, the button, a line on what is happening, and
+// The bottom of the Talk page: who is speaking, a Stop for what is read and
+// the Speak switch, the button, a line on what is happening, and
 // where clips go. The line isn't a live region: the page announces what
 // matters once (TalkScreen), so a screen reader isn't talked over.
 
@@ -59,16 +59,17 @@ export default function TalkBar({ copy: talk, view, speaker, onSpeaker, speakOn,
                         ))}
                     </div>
                     <div className="flex items-center gap-2">
-                        {playing && (
-                            <button
-                                type="button"
-                                onClick={onStop}
-                                className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-semibold text-link transition-colors hover:bg-link/10"
-                            >
-                                <StopCircleIcon className="h-5 w-5" aria-hidden="true" />
-                                {talk.stopReading}
-                            </button>
-                        )}
+                        {/* There all along, and aria-disabled while nothing
+                            is read, so focus on it stays when reading ends. */}
+                        <button
+                            type="button"
+                            onClick={playing ? onStop : undefined}
+                            aria-disabled={!playing || undefined}
+                            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-semibold text-link transition-colors hover:bg-link/10 aria-disabled:cursor-default aria-disabled:opacity-40 aria-disabled:hover:bg-transparent"
+                        >
+                            <StopCircleIcon className="h-5 w-5" aria-hidden="true" />
+                            {talk.stopReading}
+                        </button>
                         {/* Named by the hint, which holds the visible word. */}
                         <button
                             type="button"
@@ -97,9 +98,11 @@ export default function TalkBar({ copy: talk, view, speaker, onSpeaker, speakOn,
 
                 <p className="text-[11px] text-ink-muted">
                     {talk.disclaimer}{' '}
-                    <Link href={to('/privacy')} className="underline hover:text-link">{t.footer.privacy}</Link>
+                    {/* Fetched on intent, as the footer's are: the bar is
+                        always on screen, and these are seldom followed. */}
+                    <IntentLink href={to('/privacy')} className="underline hover:text-link">{t.footer.privacy}</IntentLink>
                     {' · '}
-                    <Link href={to('/terms')} className="underline hover:text-link">{t.footer.terms}</Link>
+                    <IntentLink href={to('/terms')} className="underline hover:text-link">{t.footer.terms}</IntentLink>
                 </p>
             </div>
         </div>
