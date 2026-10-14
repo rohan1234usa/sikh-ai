@@ -15,7 +15,9 @@ test('every response carries the standard security headers, and no X-Powered-By'
     assert.equal(headers.get('x-content-type-options'), 'nosniff');
     assert.equal(headers.get('referrer-policy'), 'strict-origin-when-cross-origin');
     assert.equal(headers.get('x-frame-options'), 'DENY');
-    assert.equal(headers.get('permissions-policy'), 'camera=(), microphone=(), geolocation=()');
+    // The Talk page records from the microphone; nothing uses the camera or
+    // location, and no other site's frame may ask for any of them.
+    assert.equal(headers.get('permissions-policy'), 'camera=(), microphone=(self), geolocation=()');
     // Not same-origin, which would cut off Google sign-in's popup.
     assert.equal(headers.get('cross-origin-opener-policy'), 'same-origin-allow-popups');
     assert.equal(nextConfig.poweredByHeader, false);

@@ -20,6 +20,7 @@ const PAGES: { path: string; changeFrequency?: MetadataRoute.Sitemap[number]['ch
   { path: '/hukamnama', changeFrequency: 'daily' },
   { path: '/chat' },
   { path: '/translate' },
+  { path: '/translate/talk' },
   ...learnPaths().map((path) => ({ path })),
   { path: '/shabad' },
   { path: '/seva', changeFrequency: 'daily' },

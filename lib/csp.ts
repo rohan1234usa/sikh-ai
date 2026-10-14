@@ -4,9 +4,10 @@
 // csp_violation line. A feature that loads something from a new host (a
 // script, an image, a connection, a frame) needs the host added here, or that
 // part of it stops working, and a line on /privacy, which names every service
-// a visitor's browser talks to. Audio and video fall back to default-src
-// 'self': playing one from another host, or from a blob: or data: URL, needs
-// a media-src directive first.
+// a visitor's browser talks to. Audio and video may come from the site itself
+// or a blob: URL, which the Talk page plays (the MP3 that /api/translate/speak
+// answers, through URL.createObjectURL); anything from another host, or a
+// data: URL, needs adding to media-src first.
 //
 // Scripts keep 'unsafe-inline'. Next sends each page's data in inline
 // <script> tags, and a per-request nonce would make every page dynamic again
@@ -70,6 +71,7 @@ export function contentSecurityPolicy({ dev, preview, firebaseAuthDomain, emulat
         ],
         'style-src': ["'self'", "'unsafe-inline'", ...when(preview, VERCEL_TOOLBAR.style)],
         'img-src': ["'self'", 'data:', 'blob:', ...when(preview, VERCEL_TOOLBAR.img)],
+        'media-src': ["'self'", 'blob:'],
         'font-src': ["'self'", 'data:', ...when(preview, VERCEL_TOOLBAR.font)],
         'connect-src': [
             "'self'",

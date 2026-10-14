@@ -2,10 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { DAY_MS, MINUTE_MS, REFUSALS, VISITOR_LIMITS, allowances, limitVisitor, visitorAllowance, visitorOf } from '@/lib/api/allowance';
 import { REPLY_ERROR_CODES } from '@/lib/chat/transcript';
-import { getDictionary, type Dictionary } from '@/lib/i18n';
+import { getDictionary } from '@/lib/i18n';
 import { responseErrorText } from '@/lib/i18n/apiError';
 import { LANGS } from '@/lib/i18n/config';
 import en from '@/lib/i18n/dictionaries/en';
+import { getTalkCopy } from '@/lib/i18n/talk';
 import { TUTOR_ERROR_CODES } from '@/lib/learn/tutor';
 
 // Its own file: `allowances` is module state, and these tests spend it. A
@@ -132,19 +133,26 @@ test('a request with no address is never limited, and that is logged once', () =
     assert.deepEqual(lines.map((l) => [l.evt, l.why]), [['limit_skipped', 'no_address']]);
 });
 
-test("the English of every refusal the site shows is the dictionary's for its code", () => {
+// Talk's refusals are worded with its page's own words (lib/i18n/talk),
+// the rest in the dictionaries.
+const TALK_FEATURES = new Set(['translateVoice', 'speak']);
+const wordsFor = (feature: string, lang: (typeof LANGS)[number]): Record<string, string> =>
+    TALK_FEATURES.has(feature) ? getTalkCopy(lang).errors : getDictionary(lang).errors;
+
+test("the English of every refusal the site shows is its page's words for its code", () => {
     for (const [feature, windows] of Object.entries(REFUSALS)) {
         for (const { code, error } of Object.values(windows)) {
-            if (code in en.errors) assert.equal(error, en.errors[code as keyof typeof en.errors], `${feature} ${code}`);
+            if (TALK_FEATURES.has(feature)) assert.equal(error, wordsFor(feature, 'en')[code], `${feature} ${code}`);
+            else if (code in en.errors) assert.equal(error, en.errors[code as keyof typeof en.errors], `${feature} ${code}`);
         }
     }
 });
 
-test('every refusal the chat, the tutor, the translator and Shabad Search show has words in all three languages', () => {
-    for (const feature of ['chat', 'learn', 'translate', 'search'] as const) {
+test('every refusal the chat, the tutor, the translators and Shabad Search show has words in all three languages', () => {
+    for (const feature of ['chat', 'learn', 'translate', 'translateVoice', 'speak', 'search'] as const) {
         for (const { code } of Object.values(REFUSALS[feature])) {
             for (const lang of LANGS) {
-                const text = getDictionary(lang).errors[code as keyof Dictionary['errors']];
+                const text = wordsFor(feature, lang)[code];
                 assert.ok(typeof text === 'string' && text.length > 0, `${lang} ${code}`);
                 assert.doesNotMatch(text, /\{\w+\}/, `${lang} ${code}: shown as is, so no placeholders`);
             }

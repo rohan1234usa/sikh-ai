@@ -631,6 +631,7 @@ const paLatn: Dictionary = {
         livePaused: 'Live anuvaad ik minute layi rukia hai. “Anuvaad karo” hale vi kamm karda hai.',
         livePausedToday: 'Live anuvaad ajj di hadd tak pahunch gaya hai. “Anuvaad karo” hale vi kamm karda hai.',
         liveFailed: 'Live anuvaad is vele uplabdh nahi hai. “Anuvaad karo” hale vi kamm karda hai.',
+        talkLink: 'Bol ke anuvaad: bolo, ate anuvaad suno',
     },
 
     // /learn — the lessons and vocabulary are English in every UI language
@@ -834,6 +835,7 @@ const paLatn: Dictionary = {
         shabadTitle: 'Shabad Khoj',
         hukamnamaTitle: 'Ajj da Hukamnama',
         translateTitle: 'Punjabi Anuvadak',
+        talkTitle: 'Bol ke anuvaad',
         learnTitle: 'Punjabi Sikho',
         notFoundTitle: 'Panna nahi milia',
         // What each page is for, in search results and link previews.
@@ -842,6 +844,7 @@ const paLatn: Dictionary = {
             hukamnama: 'Sri Darbar Sahib ton ajj da Hukamnama, Gurmukhi vich English anuvad samet, ate is baare puchhan da raah.',
             chat: 'Sikhi, Gurbani ate Sikh itihas baare SikhAI nu puchho. Jawaban vich Gurbani de hawale hunde han, ate har hawala asal sarot naal mila ke jaanchiya janda hai.',
             translate: 'English, Gurmukhi ate Roman Punjabi vichkar anuvad karo, shabad-dar-shabad arth, aukhiyan gallan di vyakhya ate uchaaran de sujhavan samet.',
+            talk: 'Button daba ke Punjabi jaan Angrezi bolo, ate anuvaad parh ke suno: parivaar naal gall karan layi avaaz vala anuvadak.',
             learn: 'Punjabi Amriki vajon Punjabi sikho: Gurmukhi parho, viakaran samjho, flashcardan naal rozana de shabad sikho, ate tutor naal abhiaas karo.',
             shabad: 'Sri Guru Granth Sahib Ji da koi vi shabad usdi kise tukk ton, Gurmukhi jaan English akkhran vich, jaan usde pehle akkhran ton labbho, ate Roman lipi te anuvad samet poora parho. Jaan 1 ton 1430 tak koi vi Ang kholho.',
         },

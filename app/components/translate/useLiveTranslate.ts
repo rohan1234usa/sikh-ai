@@ -7,6 +7,7 @@ import {
     LIVE_FIELDS,
     LIVE_PAUSE_MS,
     LONG_PAUSE_MS,
+    hasAnyLine,
     liveEligible,
     liveView,
     nextLiveCall,
@@ -41,7 +42,6 @@ const linesOf = (r: TranslationResult): LiveLines =>
     ({ input: r.detectedInput, gurmukhi: r.gurmukhi, roman: r.roman, english: r.english });
 
 const complete = (lines: LiveLines) => LIVE_FIELDS.every(f => lines[f]);
-const anything = (lines: LiveLines) => LIVE_FIELDS.some(f => lines[f]);
 
 export function useLiveTranslate({ text, hint, enabled, lookup }: {
     text: string;
@@ -146,7 +146,7 @@ export function useLiveTranslate({ text, hint, enabled, lookup }: {
                 if (!live()) return;
                 const lines = parseLiveLines(raw, true);
                 // Not one line in the shape asked for: nothing to show.
-                if (!anything(lines)) {
+                if (!hasAnyLine(lines)) {
                     setAnswer({ key, status: 'failed', lines: null });
                     return;
                 }
@@ -167,7 +167,7 @@ export function useLiveTranslate({ text, hint, enabled, lookup }: {
                 if (!live()) return;
                 controller.abort(); // a runaway reply stops costing
                 const lines = parseLiveLines(raw, true);
-                setAnswer(anything(lines) ? { key, status: 'cut', lines } : { key, status: raw ? 'cut' : 'failed', lines: null });
+                setAnswer(hasAnyLine(lines) ? { key, status: 'cut', lines } : { key, status: raw ? 'cut' : 'failed', lines: null });
             }
         };
 
