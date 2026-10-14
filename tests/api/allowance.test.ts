@@ -53,6 +53,10 @@ test('an IPv6 visitor is its /64, however the address is written; IPv4 carried i
     assert.equal(visitorOf(headers({ 'x-forwarded-for': '64:ff9b:1:2::192.0.2.1' })), '64:ff9b:1:2::/64');
     assert.equal(visitorOf(headers({ 'x-forwarded-for': '::ffff:192.0.2.1' })), '192.0.2.1');
     assert.equal(visitorOf(headers({ 'x-forwarded-for': '::FFFF:192.0.2.1' })), '192.0.2.1');
+    // The same, as a URL parser writes it back: two IPv4 visitors stay two.
+    assert.equal(visitorOf(headers({ 'x-forwarded-for': '::ffff:c000:201' })), '192.0.2.1');
+    assert.equal(visitorOf(headers({ 'x-forwarded-for': '0:0:0:0:0:ffff:c633:6401' })), '198.51.100.1');
+    assert.equal(visitorOf(headers({ 'x-forwarded-for': '::ffff:0:c000:201' })), '0:0:0:0::/64', 'ffff in another group is plain IPv6');
 });
 
 test('a minute allows its limit, then refuses until the next minute, saying how many seconds that is', () => {

@@ -124,29 +124,33 @@ export const REFUSALS: Record<Feature, Record<Window, { code: string; error: str
     },
 };
 
-// An IPv6 address's first four groups, written out: the /64 it's in.
-function prefix64(ip: string): string {
+// A valid IPv6 address's eight groups, as numbers: `::` filled in, and a
+// trailing IPv4 part (64:ff9b::192.0.2.1) read as the two groups it is.
+function groupsOf(ip: string): number[] {
     const [head, tail] = ip.split('::');
-    const parts = (s: string | undefined) => (s ? s.split(':') : []);
-    // A trailing IPv4 part (64:ff9b::192.0.2.1) takes the room of two groups.
-    const width = (groups: string[]) => groups.reduce((n, g) => n + (g.includes('.') ? 2 : 1), 0);
+    const parts = (s: string | undefined) => (s ? s.split(':') : []).flatMap((g) => {
+        if (!g.includes('.')) return [parseInt(g, 16)];
+        const [a, b, c, d] = g.split('.').map(Number);
+        return [(a << 8) | b, (c << 8) | d];
+    });
     const left = parts(head);
     const right = parts(tail);
-    const groups = tail === undefined ? left : [...left, ...Array(8 - width(left) - width(right)).fill('0'), ...right];
-    return `${groups.slice(0, 4).map((g) => parseInt(g, 16).toString(16)).join(':')}::/64`;
+    return tail === undefined ? left : [...left, ...Array(8 - left.length - right.length).fill(0), ...right];
 }
 
 // Who's asking: the first x-forwarded-for address, which Vercel sets itself
 // (a client's own value never gets through), else x-real-ip, the same
-// address. An IPv4 address carried in IPv6 (::ffff:192.0.2.1) is that IPv4
-// address; any other IPv6 address stands for its /64. Null when there's none.
+// address. An IPv4 address carried in IPv6 is that IPv4 address, however
+// it's written (::ffff:192.0.2.1, or ::ffff:c000:201 once a URL parser has
+// had it); any other IPv6 address stands for its /64. Null when there's none.
 export function visitorOf(headers: Headers): string | null {
     for (const raw of [headers.get('x-forwarded-for')?.split(',')[0], headers.get('x-real-ip')]) {
         const ip = (raw ?? '').trim().split('%')[0]; // a zone (%eth0) belongs to the local network only
         if (isIPv4(ip)) return ip;
         if (!isIPv6(ip)) continue;
-        const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/i.exec(ip);
-        return mapped && isIPv4(mapped[1]) ? mapped[1] : prefix64(ip);
+        const g = groupsOf(ip);
+        if (g.slice(0, 5).every((n) => n === 0) && g[5] === 0xffff) return [g[6] >> 8, g[6] & 255, g[7] >> 8, g[7] & 255].join('.');
+        return `${g.slice(0, 4).map((n) => n.toString(16)).join(':')}::/64`;
     }
     return null;
 }
