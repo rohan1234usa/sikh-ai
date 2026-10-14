@@ -2,7 +2,7 @@
 // failures can be read straight out of the host's runtime logs. Never logs
 // message text: the prompt and reply stay between the user and the model.
 
-import type { GenerateContentResponseUsageMetadata } from '@google/genai';
+import { MediaModality, type GenerateContentResponseUsageMetadata } from '@google/genai';
 import type { GeminiFeature } from './models';
 import { cutWords } from '../errors/scrub';
 import { logEvent } from '../log';
@@ -31,6 +31,9 @@ export type GeminiCallLog = {
     // discount. Nothing else shows whether a repeated prompt opening is
     // actually getting cheaper.
     cachedTokens?: number;
+    // The part of promptTokens that was audio: a Talk clip, 32 tokens a
+    // second. What a clip costs, apart from the instruction around it.
+    audioTokens?: number;
     outputTokens?: number;
     thoughtTokens?: number;
     finishReason?: string;
@@ -60,11 +63,14 @@ export function logGeminiCall(entry: GeminiCallLog): void {
 }
 
 export function usageFields(usage?: GenerateContentResponseUsageMetadata) {
+    const audioTokens = usage?.promptTokensDetails?.find(d => d.modality === MediaModality.AUDIO)?.tokenCount;
     return {
         promptTokens: usage?.promptTokenCount,
         cachedTokens: usage?.cachedContentTokenCount,
         outputTokens: usage?.candidatesTokenCount,
         thoughtTokens: usage?.thoughtsTokenCount,
+        // Only for a prompt with audio in it, so other lines don't grow.
+        ...(audioTokens !== undefined ? { audioTokens } : {}),
     };
 }
 

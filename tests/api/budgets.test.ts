@@ -9,6 +9,8 @@ import {
     LIVE_TRANSLATE_FIRST_TEXT_MS,
     TRANSLATE_ATTEMPT_MS,
     TRANSLATE_BUDGET_MS,
+    VOICE_TRANSLATE_BUDGET_MS,
+    VOICE_TRANSLATE_FIRST_TEXT_MS,
 } from '@/lib/gemini/budgets';
 import { MIN_FALLBACK_MS } from '@/lib/gemini/fallback';
 import { maxDuration as chatMaxDuration } from '@/app/api/chat/route';
@@ -20,19 +22,25 @@ import { maxDuration as liveMaxDuration } from '@/app/api/translate/live/route';
 // that for Cloud Translation after Gemini has had its turn.
 const MAX_DURATION_MS = 30_000;
 const CLOUD_FALLBACK_MS = 8_000;
+// The attempt's wait starts after the budget does, and a failed attempt takes
+// a moment to unwind, so a gap of exactly MIN_FALLBACK_MS still falls short.
+const UNWIND_MS = 1_000;
 
 test('a hung primary still leaves the fallback model room to answer', () => {
     // The bug this guards: translate ran 20 s with a 15 s attempt cap, a 5 s
     // gap against a 6 s minimum, so a hang never reached the second model.
+    // The live translator's 10 s and 4 s missed it the same way, by the few
+    // milliseconds its first attempt took to set up.
     for (const [name, budget, attempt] of [
         ['translate', TRANSLATE_BUDGET_MS, TRANSLATE_ATTEMPT_MS],
         ['chat', CHAT_BUDGET_MS, CHAT_FIRST_TEXT_MS],
         ['learn', LEARN_BUDGET_MS, LEARN_FIRST_TEXT_MS],
         ['translate live', LIVE_TRANSLATE_BUDGET_MS, LIVE_TRANSLATE_FIRST_TEXT_MS],
+        ['translate voice', VOICE_TRANSLATE_BUDGET_MS, VOICE_TRANSLATE_FIRST_TEXT_MS],
     ] as const) {
         assert.ok(
-            budget - attempt >= MIN_FALLBACK_MS,
-            `${name}: ${budget} ms budget minus a ${attempt} ms attempt leaves ${budget - attempt} ms, under the ${MIN_FALLBACK_MS} ms minimum`,
+            budget - attempt >= MIN_FALLBACK_MS + UNWIND_MS,
+            `${name}: ${budget} ms budget minus a ${attempt} ms attempt leaves ${budget - attempt} ms, under the ${MIN_FALLBACK_MS} ms minimum plus ${UNWIND_MS} ms to unwind`,
         );
     }
 });
@@ -45,4 +53,5 @@ test('the budgets fit inside the function limit', () => {
     assert.ok(CHAT_BUDGET_MS <= MAX_DURATION_MS);
     assert.ok(LEARN_BUDGET_MS <= MAX_DURATION_MS);
     assert.ok(LIVE_TRANSLATE_BUDGET_MS <= MAX_DURATION_MS);
+    assert.ok(VOICE_TRANSLATE_BUDGET_MS <= MAX_DURATION_MS);
 });
