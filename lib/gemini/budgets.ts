@@ -36,10 +36,12 @@ export const LIVE_TRANSLATE_FIRST_TEXT_MS = 4_000;
 // 9.5 s after 350 to 1,000 thought tokens, which LOW thinking spends on about
 // half the clips (3.8 Flash refuses MINIMAL, and ignores a thinking budget).
 // At 6 s, three clips in seven fell to the fallback model, one past it too.
-// So a first line that hasn't come after 10 s means the call is stuck, the
-// fallback model has the 10 s left, and the whole budget, with the reply's
-// second of streaming, sits inside maxDuration.
-export const VOICE_TRANSLATE_BUDGET_MS = 20_000;
+// So a first line that hasn't come after 10 s means the call is stuck. The
+// fallback model then has what is left for all of its work, thinking and
+// streaming alike, since the deadline holds while the body streams: at 20 s,
+// a fallback that thought for 9 s was cut off mid-reply. 25 s leaves it 15,
+// still inside maxDuration.
+export const VOICE_TRANSLATE_BUDGET_MS = 25_000;
 export const VOICE_TRANSLATE_FIRST_TEXT_MS = 10_000;
 
 // The Punjabi tutor streams like the chat. Its first word came in about a

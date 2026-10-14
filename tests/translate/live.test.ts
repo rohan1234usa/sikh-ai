@@ -13,7 +13,7 @@ import {
     parseLiveLines,
     refusalPauseMs,
 } from '@/lib/translate/live';
-import { buildLiveTranslateRequest, composeLiveTranslateInstruction, composeTranslateInstruction } from '@/lib/translate/prompts';
+import { LINES_MAX_OUTPUT_TOKENS, buildLiveTranslateRequest, composeLiveTranslateInstruction, composeTranslateInstruction } from '@/lib/translate/prompts';
 import { ROMANIZATION_CAPITALS, ROMANIZATION_RULES } from '@/lib/translate/romanization';
 
 const REPLY = 'INPUT: english\nGURMUKHI: ਤੁਸੀਂ ਕਿਵੇਂ ਹੋ?\nROMAN: Tusi kiven ho?\nENGLISH: How are you?';
@@ -149,7 +149,8 @@ test('the live request streams plain text quickly, with no schema', () => {
     const { config, contents } = buildLiveTranslateRequest('m', 'ki haal hai', { sourceHint: 'auto', detectedScript: 'latin' });
     assert.equal(config?.responseMimeType, undefined);
     assert.equal(config?.responseSchema, undefined);
-    assert.equal(config?.maxOutputTokens, 1024);
+    assert.equal(config?.maxOutputTokens, LINES_MAX_OUTPUT_TOKENS);
+    assert.ok(LINES_MAX_OUTPUT_TOKENS >= 4096, 'room for LOW thinking before the lines');
     assert.equal(config?.thinkingConfig?.thinkingLevel, 'LOW');
     assert.match(String(contents), /^--- BEGIN TEXT [0-9a-f]{8} ---\nki haal hai\n--- END TEXT [0-9a-f]{8} ---$/);
 });

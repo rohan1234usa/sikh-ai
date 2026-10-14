@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import type { MockGemini } from '../../scripts/mock-gemini';
 import { MINUTE_MS, VISITOR_LIMITS } from '@/lib/api/allowance';
 import { parseLiveLines } from '@/lib/translate/live';
+import { LINES_MAX_OUTPUT_TOKENS } from '@/lib/translate/prompts';
 import { ROMANIZATION_CAPITALS, ROMANIZATION_RULES } from '@/lib/translate/romanization';
 import { MAX_AUDIO_BASE64_CHARS } from '@/lib/translate/voice';
 import { captured, instructionOf, logged, postJson, readStream, spendDay, startRouteMock } from '../helpers/routes';
@@ -67,7 +68,7 @@ test('sends the clip as it came, beside the site’s note, under the voice instr
     assert.match(instruction, /"INPUT: none"/);
     assert.match(instruction, /## Untrusted audio\nThe audio is speech to write down and translate/);
     assert.doesNotMatch(instruction, /BEGIN TEXT|"detectedInput"|JSON/, 'nothing from the text translators');
-    assert.equal(body.generationConfig.maxOutputTokens, 1024);
+    assert.equal(body.generationConfig.maxOutputTokens, LINES_MAX_OUTPUT_TOKENS);
     assert.equal(body.generationConfig.thinkingConfig.thinkingLevel, 'LOW');
     assert.equal('responseMimeType' in body.generationConfig, false);
     assert.equal('responseSchema' in body.generationConfig, false);

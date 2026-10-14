@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import type { MockGemini } from '../../scripts/mock-gemini';
 import { MINUTE_MS, VISITOR_LIMITS } from '@/lib/api/allowance';
 import { MAX_LIVE_CHARS, parseLiveLines } from '@/lib/translate/live';
+import { LINES_MAX_OUTPUT_TOKENS } from '@/lib/translate/prompts';
 import { ROMANIZATION_RULES } from '@/lib/translate/romanization';
 import { captured, instructionOf, postJson, readStream, spendDay, startRouteMock } from '../helpers/routes';
 
@@ -50,7 +51,7 @@ test('sends the live request: the fenced text, the live instruction, a small cap
     assert.match(instruction, /^You are the SikhAI translator/);
     assert.ok(instruction.includes(ROMANIZATION_RULES));
     assert.match(instruction, /^GURMUKHI: /m);
-    assert.equal(body.generationConfig.maxOutputTokens, 1024);
+    assert.equal(body.generationConfig.maxOutputTokens, LINES_MAX_OUTPUT_TOKENS);
     assert.equal(body.generationConfig.thinkingConfig.thinkingLevel, 'LOW');
     assert.equal('responseMimeType' in body.generationConfig, false);
     assert.equal('responseSchema' in body.generationConfig, false);

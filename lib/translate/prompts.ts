@@ -190,6 +190,13 @@ export function buildTranslateRequest(
 // the saving is the reply, a few dozen tokens with no learning aids, and
 // output costs five times as much as input.
 
+// The cap on a live or voice reply. Four short lines are a few hundred
+// tokens, but Gemini's thinking is drawn from the same cap, and LOW thinking
+// spent 350 to 1,000 tokens on about half of Talk's clips (2026-10-13): at
+// 1,024, a long clip's reply could end before its last line. This only stops
+// a runaway reply; only what is written is billed.
+export const LINES_MAX_OUTPUT_TOKENS = 4096;
+
 const LIVE_TASK = `The user is still typing and reads your answer under the text box as they go, so answer at once and plainly. The text may stop mid-sentence: translate what is there as naturally as you can, and never complete it or guess at the rest.
 Always produce all three renditions of the same content:
 - If the input is English: the ${LIVE_LABELS.gurmukhi} and ${LIVE_LABELS.roman} lines are your Punjabi translation; the ${LIVE_LABELS.english} line is the input lightly normalized (fix obvious typos, otherwise keep it verbatim).
@@ -232,10 +239,7 @@ export function buildLiveTranslateRequest(
         contents: buildUserMessage(text),
         config: {
             systemInstruction: composeLiveTranslateInstruction(opts),
-            // Three lines of a few sentences come to a few hundred tokens;
-            // this only stops a runaway reply, and only what is written is
-            // billed.
-            maxOutputTokens: 1024,
+            maxOutputTokens: LINES_MAX_OUTPUT_TOKENS,
             // LOW, as everywhere else: 3.8 Flash refuses MINIMAL with a 400.
             thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         },
@@ -310,9 +314,9 @@ export function buildVoiceTranslateRequest(
         contents: [{ role: 'user', parts: [{ inlineData: { mimeType: clip.mimeType, data: clip.data } }, { text: VOICE_NOTE[speaker] }] }],
         config: {
             systemInstruction: composeVoiceTranslateInstruction({ speaker }),
-            // Fifteen seconds is some forty words, three times over: a few
-            // hundred tokens. This only stops a runaway reply.
-            maxOutputTokens: 1024,
+            // Fifteen seconds is some forty words, three times over, with
+            // Gemini's thinking before them.
+            maxOutputTokens: LINES_MAX_OUTPUT_TOKENS,
             // LOW, as everywhere else: 3.8 Flash refuses MINIMAL with a 400.
             thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         },
