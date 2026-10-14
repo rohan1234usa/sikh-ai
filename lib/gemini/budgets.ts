@@ -43,6 +43,11 @@ export const LIVE_TRANSLATE_FIRST_TEXT_MS = 4_000;
 // still inside maxDuration.
 export const VOICE_TRANSLATE_BUDGET_MS = 25_000;
 export const VOICE_TRANSLATE_FIRST_TEXT_MS = 10_000;
+// What the voice fallback needs once it starts: up to about 9.5 s of
+// thinking, as measured, then its lines. tests/api/budgets.test.ts holds the
+// two numbers above to leave it this much; the 6 s every route's fallback
+// needs (MIN_FALLBACK_MS) is far too little here.
+export const VOICE_FALLBACK_NEEDS_MS = 11_000;
 
 // The Punjabi tutor streams like the chat. Its first word came in about a
 // second in testing (a smaller prompt than the chat's, LOW thinking), so one

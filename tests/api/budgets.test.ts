@@ -9,6 +9,7 @@ import {
     LIVE_TRANSLATE_FIRST_TEXT_MS,
     TRANSLATE_ATTEMPT_MS,
     TRANSLATE_BUDGET_MS,
+    VOICE_FALLBACK_NEEDS_MS,
     VOICE_TRANSLATE_BUDGET_MS,
     VOICE_TRANSLATE_FIRST_TEXT_MS,
 } from '@/lib/gemini/budgets';
@@ -44,6 +45,15 @@ test('a hung primary still leaves the fallback model room to answer', () => {
             `${name}: ${budget} ms budget minus a ${attempt} ms attempt leaves ${budget - attempt} ms, under the ${MIN_FALLBACK_MS} ms minimum plus ${UNWIND_MS} ms to unwind`,
         );
     }
+});
+
+test("the voice fallback has time to think and still write its lines", () => {
+    // At 20 s, a fallback that thought for 9 s was cut off mid-reply: the
+    // deadline holds while the body streams. 20 s and 10 s, or 25 s and 14 s,
+    // would pass the test above and fail this one.
+    const left = VOICE_TRANSLATE_BUDGET_MS - VOICE_TRANSLATE_FIRST_TEXT_MS;
+    assert.ok(left >= VOICE_FALLBACK_NEEDS_MS + UNWIND_MS, `the voice fallback gets ${left} ms, under the ${VOICE_FALLBACK_NEEDS_MS} ms it needs plus ${UNWIND_MS} ms to unwind`);
+    assert.ok(VOICE_FALLBACK_NEEDS_MS + UNWIND_MS > 20_000 - 10_000, 'the old 20 s and 10 s would fail');
 });
 
 test('the budgets fit inside the function limit', () => {
