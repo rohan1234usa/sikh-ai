@@ -8,7 +8,6 @@ import {
     MIN_VOICED_MS,
     PROMPT_DELAY_MS,
     VOICE_RMS,
-    bytesToBase64,
     clipCheck,
     isMicTrouble,
     micTrouble,
@@ -104,12 +103,6 @@ test('a finished clip is measured a tenth of a second at a time', () => {
     assert.ok(voicedMs(clip(MEASURE_RATE, [['tone', MIN_VOICED_MS]]), MEASURE_RATE) >= MIN_VOICED_MS, 'enough speech to send');
 });
 
-test('base64 in slices is the same as all at once', () => {
-    assert.equal(bytesToBase64(new Uint8Array()), '');
-    assert.equal(bytesToBase64(new TextEncoder().encode('hi')), 'aGk=');
-    const big = new Uint8Array(100_000).map((_, i) => (i * 31 + 7) % 256);
-    assert.equal(bytesToBase64(big), Buffer.from(big).toString('base64'));
-});
 
 test('the silent WAV is a well-formed RIFF file of silence', () => {
     const wav = silentWav(100);

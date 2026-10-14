@@ -1,8 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useRef, type Dispatch } from 'react';
+import { readJson } from '@/lib/readJson';
 import { parseLiveLines, refusalPauseMs } from '@/lib/translate/live';
-import { bytesToBase64, voiceErrorCode, type TalkEvent } from '@/lib/translate/talk';
+import { voiceErrorCode, type TalkEvent } from '@/lib/translate/talk';
 import { baseMime, type Speaker } from '@/lib/translate/voice';
 import type { Clip } from './useRecorder';
 
@@ -18,12 +19,18 @@ import type { Clip } from './useRecorder';
 // A runaway reply: four lines of a fifteen-second clip never come near this.
 const MAX_REPLY_CHARS = 4000;
 
-async function readJson(res: Response): Promise<unknown> {
-    if (!res.headers.get('content-type')?.includes('json')) {
-        void res.body?.cancel();
-        return null;
-    }
-    return res.json().catch(() => null);
+// The clip as standard base64, encoded by the browser (a data URL, less its
+// prefix) rather than a byte at a time in script.
+function blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const url = String(reader.result);
+            resolve(url.slice(url.indexOf(',') + 1));
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+    });
 }
 
 export function useVoiceTranslate(dispatch: Dispatch<TalkEvent>): {
@@ -46,7 +53,7 @@ export function useVoiceTranslate(dispatch: Dispatch<TalkEvent>): {
         void (async () => {
             let raw = '';
             try {
-                const audio = bytesToBase64(new Uint8Array(await clip.blob.arrayBuffer()));
+                const audio = await blobToBase64(clip.blob);
                 const res = await fetch('/api/translate/voice', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

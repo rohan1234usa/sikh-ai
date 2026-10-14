@@ -107,14 +107,6 @@ export function clipCheck(clip: { durationMs: number; bytes: number; voicedMs?: 
     return 'ok';
 }
 
-// Base64 for a clip's bytes, in slices, since one call with a few hundred
-// thousand arguments is past what some browsers take.
-export function bytesToBase64(bytes: Uint8Array): string {
-    const SLICE = 0x8000;
-    let binary = '';
-    for (let i = 0; i < bytes.length; i += SLICE) binary += String.fromCharCode(...bytes.subarray(i, i + SLICE));
-    return btoa(binary);
-}
 
 // A moment of silence as a WAV file: played inside the press, it lets the
 // page play the translation once it comes (iOS plays an <audio> element
