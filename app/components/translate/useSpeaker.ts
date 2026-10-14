@@ -31,6 +31,7 @@ export function useSpeaker(): {
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const urlRef = useRef<string | null>(null);
     const unlockedRef = useRef(false);
+    const voiceUnlockedRef = useRef(false);
     const requestRef = useRef<AbortController | null>(null);
     const cacheRef = useRef(new Map<string, Blob>());
     // After a 429, no calls until its Retry-After; after a 503 (switched off,
@@ -66,6 +67,17 @@ export function useSpeaker(): {
         if (!unlockedRef.current) {
             const element = setSource(new Blob([silentWav()], { type: 'audio/wav' }));
             element.play().then(() => { unlockedRef.current = true; }, () => { /* the next press tries again */ });
+        }
+        // iOS ignores speechSynthesis outside a tap until it has spoken once
+        // in one, so the device's English voice says nothing, silently, now.
+        const synth = window.speechSynthesis;
+        if (!voiceUnlockedRef.current && synth) {
+            try {
+                const hush = new SpeechSynthesisUtterance(' ');
+                hush.volume = 0;
+                synth.speak(hush);
+                voiceUnlockedRef.current = true;
+            } catch { /* no voices here: English comes from the route */ }
         }
     }, [setSource]);
 
