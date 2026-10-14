@@ -47,6 +47,19 @@ const talk: TalkCopy = {
         insecure: 'Record karan layi surakhiat (https) connection chahida hai.',
         failed: 'Recording nahi ho saki. Kirpa karke dubara koshish karo.',
     },
+    errors: {
+        translate_voice_empty: 'Kujh vi record nahi hoia. Kirpa karke bolde vele button daba ke rakho.',
+        translate_voice_too_long: 'Ih recording bhejan layi bahut lammi hai. Kirpa karke isnu chhoti rakho.',
+        translate_voice_bad_audio: 'Ih recording parhi nahi ja saki. Kirpa karke dubara koshish karo.',
+        translate_voice_failed: 'Maaf karna, avaaz da anuvaad nahi ho sakia. Kirpa karke dubara koshish karo.',
+        translate_voice_busy: 'Avaaz vala anuvadak is vele rujjhia hoia hai. Kirpa karke thorhi der baad dubara koshish karo.',
+        translate_voice_limit: 'Tuhada connection ajj layi avaaz vale anuvadak di hadd tak pahunch gaya hai. Kirpa karke baad vich dubara koshish karo.',
+        translate_voice_blocked: 'Avaaz vala anuvadak is recording da anuvaad nahi kar sakia. Kirpa karke isnu hor shabdan vich keh ke dekho.',
+        speak_unavailable: 'Is vele parh ke sunaya nahi ja sakda.',
+        speak_failed: 'Maaf karna, ih parh ke sunaya nahi ja sakia. Kirpa karke dubara koshish karo.',
+        speak_busy: 'Parh ke sunaun vali seva is vele rujjhi hoi hai. Kirpa karke thorhi der baad dubara koshish karo.',
+        speak_limit: 'Tuhada connection ajj layi parh ke sunaun di hadd tak pahunch gaya hai. Kirpa karke baad vich dubara koshish karo.',
+    },
     disclaimer: 'Anuvaad AI likhda hai, ate ih galat ho sakda hai. Har recording Google Gemini nu jandi hai, ate Punjabi Google parh ke sunaunda hai (ate Angrezi vi, jadon tuhada device aap na parh sake). Ih site is vichon kujh nahi rakhdi: panna dubara kholan naal sab mit janda hai.',
 };
 

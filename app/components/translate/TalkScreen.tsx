@@ -6,7 +6,6 @@ import IntentLink from '@/app/components/IntentLink';
 import { useAnnouncer } from '@/app/components/useAnnouncer';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
-import type { Dictionary } from '@/lib/i18n';
 import type { Lang } from '@/lib/i18n/config';
 import type { TalkCopy } from '@/lib/i18n/talk';
 import type { LiveField } from '@/lib/translate/live';
@@ -30,8 +29,8 @@ import { useVoiceTranslate } from './useVoiceTranslate';
 // the translation, each with its label. Punjabi is read from its Gurmukhi
 // line where the interface is in Gurmukhi (a reader set up for it), and from
 // its romanized line elsewhere, which an English voice can say.
-function spoken(talk: TalkCopy, t: Dictionary, lang: Lang, exchange: Exchange): string {
-    if (exchange.status === 'failed') return t.errors[exchange.error ?? 'translate_voice_failed'];
+function spoken(talk: TalkCopy, lang: Lang, exchange: Exchange): string {
+    if (exchange.status === 'failed') return talk.errors[exchange.error ?? 'translate_voice_failed'];
     const roles = rolesOf(exchange.lines, exchange.speaker);
     if (!roles) return '';
     const punjabi: readonly LiveField[] = lang === 'pa' ? ['gurmukhi', 'roman'] : ['roman', 'gurmukhi'];
@@ -48,7 +47,7 @@ function spoken(talk: TalkCopy, t: Dictionary, lang: Lang, exchange: Exchange): 
 
 // `copy` is the page's words (lib/i18n/talk), from the server page.
 export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
-    const { lang, t, href: to } = useLanguage();
+    const { lang, href: to } = useLanguage();
     const hintId = useId();
     const [state, dispatch] = useReducer(talkReducer, EMPTY_TALK);
     const [speaker, setSpeaker] = useState<Speaker>('auto');
@@ -101,14 +100,14 @@ export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
         }
         const pause = pauseRef.current;
         if (pause && Date.now() < pause.until) {
-            announce(t.errors[pause.code]);
+            announce(talk.errors[pause.code]);
             return;
         }
         atBottomRef.current = true;
         setShowJump(false);
         send(crypto.randomUUID(), clip, speakerRef.current);
         announce(talk.translating);
-    }, [announce, note, send, t, talk]);
+    }, [announce, note, send, talk]);
     const recorder = useRecorder({ onClip, onTrouble: note });
     const view = talkView({ state, recorder: recorder.status });
     const recording = recorder.status === 'recording' || recorder.status === 'starting';
@@ -124,10 +123,10 @@ export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
     const { pause } = state;
     useEffect(() => {
         if (!pause) return;
-        announce(t.errors[pause.code]);
+        announce(talk.errors[pause.code]);
         const timer = setTimeout(() => dispatch({ type: 'pauseOver' }), Math.max(0, pause.until - Date.now()));
         return () => clearTimeout(timer);
-    }, [pause, announce, t]);
+    }, [pause, announce, talk]);
 
     // Each translation is read aloud once, as soon as it is whole; not while
     // someone is recording, not on a hidden page, and not one cut short. Its
@@ -155,14 +154,14 @@ export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
         for (const exchange of state.exchanges) {
             if (exchange.status === 'streaming' || announced.current.has(exchange.id)) continue;
             announced.current.add(exchange.id);
-            const words = spoken(talk, t, lang, exchange);
+            const words = spoken(talk, lang, exchange);
             if (words) announce(words);
         }
-    }, [state.exchanges, announce, talk, t, lang]);
+    }, [state.exchanges, announce, talk, lang]);
     const { trouble } = speech;
     useEffect(() => {
-        if (trouble) announce(t.errors[trouble.code]);
-    }, [trouble, announce, t]);
+        if (trouble) announce(talk.errors[trouble.code]);
+    }, [trouble, announce, talk]);
 
     // A hidden page stops reading aloud (the recorder stops itself).
     const { stop } = speech;

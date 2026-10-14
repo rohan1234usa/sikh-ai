@@ -907,19 +907,6 @@ const en = {
         learn_busy: 'The tutor is very busy right now. Please wait a minute and try again.',
         learn_limit: "Your connection has reached today's limit for the tutor. Please come back later.",
         learn_blocked: "The tutor couldn't respond to that message. Please try rephrasing it.",
-        // Talk's voice translator (/api/translate/voice).
-        translate_voice_empty: 'Nothing was recorded. Please hold the button while you speak.',
-        translate_voice_too_long: 'That recording is too long to send. Please keep it shorter.',
-        translate_voice_bad_audio: "That recording couldn't be read. Please try again.",
-        translate_voice_failed: 'Sorry, the voice translation failed. Please try again.',
-        translate_voice_busy: 'The voice translator is busy right now. Please wait a minute and try again.',
-        translate_voice_limit: "Your connection has reached today's limit for the voice translator. Please come back later.",
-        translate_voice_blocked: "The voice translator couldn't translate that recording. Please try saying it another way.",
-        // Talk's read-aloud (/api/translate/speak).
-        speak_unavailable: "Reading aloud isn't available right now.",
-        speak_failed: "Sorry, that couldn't be read aloud. Please try again.",
-        speak_busy: 'Reading aloud is busy right now. Please wait a minute.',
-        speak_limit: "Your connection has reached today's limit for reading aloud. Please come back later.",
     },
 };
 

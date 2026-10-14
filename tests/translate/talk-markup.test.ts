@@ -4,7 +4,6 @@ import { createElement, type ComponentProps } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import TalkExchange from '@/app/components/translate/TalkExchange';
 import { LanguageProvider } from '@/app/context/LanguageContext';
-import { getDictionary } from '@/lib/i18n';
 import type { Lang } from '@/lib/i18n/config';
 import { getTalkCopy } from '@/lib/i18n/talk';
 import type { Exchange } from '@/lib/translate/talk';
@@ -73,14 +72,14 @@ test('a line that never came is marked; a reply cut short says so and offers no 
 
 test('a failed exchange says why, in the page’s language', () => {
     const failed: Exchange = { id: 'c', speaker: 'auto', status: 'failed', lines: {}, error: 'translate_voice_busy' };
-    assert.match(card(failed), new RegExp(getDictionary('en').errors.translate_voice_busy.replace(/[.?]/g, '\\$&')));
-    assert.ok(card(failed, 'pa').includes(getDictionary('pa').errors.translate_voice_busy));
+    assert.match(card(failed), new RegExp(getTalkCopy('en').errors.translate_voice_busy.replace(/[.?]/g, '\\$&')));
+    assert.ok(card(failed, 'pa').includes(getTalkCopy('pa').errors.translate_voice_busy));
 });
 
 test('while it is read, the button stops it; a read that failed says so beside it', () => {
     assert.match(card(PUNJABI, 'en', { playing: true }), /Stop reading/);
     // As markup writes it: its apostrophe escaped.
-    const said = getDictionary('en').errors.speak_failed.replace(/'/g, '&#x27;');
+    const said = getTalkCopy('en').errors.speak_failed.replace(/'/g, '&#x27;');
     assert.ok(card(PUNJABI, 'en', { trouble: 'speak_failed' }).includes(said));
 });
 

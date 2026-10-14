@@ -171,7 +171,7 @@ export function pickEnglishVoice<V extends { name: string; lang: string; localSe
 // ── The conversation ────────────────────────────────────────────────────────
 
 // The voice route's error codes (app/api/translate/voice), each worded in
-// the dictionaries' errors.
+// the page's own errors (lib/i18n/talk).
 const VOICE_ERROR_CODES = [
     'translate_voice_empty', 'translate_voice_too_long', 'translate_voice_bad_audio', 'translate_voice_failed',
     'translate_voice_busy', 'translate_voice_limit', 'translate_voice_blocked',
@@ -189,7 +189,7 @@ export function voiceErrorCode(status: number, body: unknown): VoiceErrorCode {
 }
 
 // The read-aloud route's codes the page shows (app/api/translate/speak),
-// each worded in the dictionaries' errors.
+// each worded in the page's own errors (lib/i18n/talk).
 const SPEAK_ERROR_CODES = ['speak_unavailable', 'speak_failed', 'speak_busy', 'speak_limit'] as const;
 export type SpeakErrorCode = (typeof SPEAK_ERROR_CODES)[number];
 

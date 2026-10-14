@@ -54,14 +54,13 @@ export default memo(function TalkExchange({ copy: talk, exchange, playing, troub
     onSpeak: (id: string, plan: SpeechPlan) => void;
     onStop: () => void;
 }) {
-    const t = useT();
     const { lines, status } = exchange;
     const settled = status !== 'streaming';
 
     if (status === 'failed') {
         return (
             <li>
-                <p className={ERROR_TURN} role="note">{t.errors[exchange.error ?? 'translate_voice_failed']}</p>
+                <p className={ERROR_TURN} role="note">{talk.errors[exchange.error ?? 'translate_voice_failed']}</p>
             </li>
         );
     }
@@ -103,7 +102,7 @@ export default memo(function TalkExchange({ copy: talk, exchange, playing, troub
                         </button>
                     )}
                     {translation && <CopyButton text={translation} ariaLabel={talk.copyTranslation} />}
-                    {trouble && <span className="text-xs text-red-700 dark:text-red-400">{t.errors[trouble]}</span>}
+                    {trouble && <span className="text-xs text-red-700 dark:text-red-400">{talk.errors[trouble]}</span>}
                 </div>
             )}
         </li>

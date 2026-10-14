@@ -89,8 +89,9 @@ export type Feature = keyof typeof VISITOR_LIMITS;
 
 // What a refused visitor is told: the busy code past the minute's limit
 // (try again in a minute), the limit code past the day's. The English is the
-// dictionary's for the same code (lib/i18n/dictionaries/en.ts; a test holds
-// them equal), for the logs and for a page loaded before a code existed. The
+// dictionary's for the same code (lib/i18n/dictionaries/en.ts), or for Talk's
+// two routes its page's own (lib/i18n/talk/en.ts); a test holds them equal.
+// It's for the logs and for a page loaded before a code existed. The
 // quote check, Compare and error reports don't show their errors, so theirs
 // are for logs.
 export const REFUSALS: Record<Feature, Record<Window, { code: string; error: string }>> = {

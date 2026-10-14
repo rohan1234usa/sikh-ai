@@ -31,7 +31,7 @@ import {
 // cancel() stops the generation.
 export const maxDuration = 30;
 
-// The English is the dictionary's for the same code (lib/i18n/dictionaries),
+// The English is the Talk page's for the same code (lib/i18n/talk, errors),
 // for the logs and for a page loaded before a code existed.
 const FRIENDLY_ERROR = "Sorry, the voice translation failed. Please try again.";
 const BUSY_ERROR = "The voice translator is busy right now. Please wait a minute and try again.";

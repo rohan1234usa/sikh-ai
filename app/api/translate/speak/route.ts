@@ -17,8 +17,8 @@ import { MAX_SPEAK_CHARS, isSpeakLang, speakable } from "@/lib/translate/voice";
 // Vercel's request log would record.
 export const maxDuration = 15;
 
-// The page shows the last four (lib/i18n/dictionaries, errors), whose English
-// is the same; it never sends what earns the first three.
+// The page shows the last four (lib/i18n/talk, errors), whose English is the
+// same; it never sends what earns the first three.
 const EMPTY_ERROR = "There is nothing to read aloud.";
 const TOO_LONG_ERROR = "That is too long to read aloud.";
 const INVALID_ERROR = "That can't be read aloud in that language.";

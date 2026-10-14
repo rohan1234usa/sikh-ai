@@ -34,7 +34,7 @@ export default function TalkBar({ copy: talk, view, speaker, onSpeaker, speakOn,
     const { status } = view;
     const line = !status ? ''
         : status.kind === 'note' ? talk.notes[status.note]
-        : status.kind === 'paused' ? t.errors[status.code]
+        : status.kind === 'paused' ? talk.errors[status.code]
         : talk.translating;
     // A refusal, or trouble with the microphone itself, is an error.
     const isError = status?.kind === 'paused' || (status?.kind === 'note' && isMicTrouble(status.note));

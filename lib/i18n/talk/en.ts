@@ -3,11 +3,12 @@
 // page sends to the browser: the page reads them (getTalkCopy() in
 // ./index.ts) and hands them to its client island as a prop. The i18n audit
 // checks them with the rest of the site's strings, under `talk.` The link
-// to the page, its title and description, and the routes' error messages
-// stay in the dictionaries, since other pages and the server use them.
+// to the page and its title and description stay in the dictionaries, which
+// other pages and the server read; the voice and read-aloud routes' error
+// messages are here, since only this page shows them.
 // Relative type imports only: the audit runs this file under tsx.
 
-import type { TalkNote } from '../../translate/talk';
+import type { SpeakErrorCode, TalkNote, VoiceErrorCode } from '../../translate/talk';
 
 const talk = {
     title: 'Talk',
@@ -53,6 +54,22 @@ const talk = {
         insecure: 'Recording needs a secure (https) connection.',
         failed: 'Recording didn’t work. Please try again.',
     } satisfies Record<TalkNote, string>,
+    // The voice and read-aloud routes' refusals and failures, by code: on a
+    // card, beside the button, or read out. Only this page shows them; the
+    // routes send the same English (a test holds the allowance's equal).
+    errors: {
+        translate_voice_empty: 'Nothing was recorded. Please hold the button while you speak.',
+        translate_voice_too_long: 'That recording is too long to send. Please keep it shorter.',
+        translate_voice_bad_audio: "That recording couldn't be read. Please try again.",
+        translate_voice_failed: 'Sorry, the voice translation failed. Please try again.',
+        translate_voice_busy: 'The voice translator is busy right now. Please wait a minute and try again.',
+        translate_voice_limit: "Your connection has reached today's limit for the voice translator. Please come back later.",
+        translate_voice_blocked: "The voice translator couldn't translate that recording. Please try saying it another way.",
+        speak_unavailable: "Reading aloud isn't available right now.",
+        speak_failed: "Sorry, that couldn't be read aloud. Please try again.",
+        speak_busy: 'Reading aloud is busy right now. Please wait a minute.',
+        speak_limit: "Your connection has reached today's limit for reading aloud. Please come back later.",
+    } satisfies Record<VoiceErrorCode | SpeakErrorCode, string>,
     // Short, beside the privacy page's link, which says the rest: Google
     // keeps what Gemini is sent for up to 55 days, so not "nothing is kept".
     disclaimer: 'Translations are written by AI and can be wrong. Each recording goes to Google Gemini, and Google reads Punjabi aloud (and English, when your device can’t). This site keeps none of it: reloading the page clears it.',
