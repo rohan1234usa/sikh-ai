@@ -119,7 +119,7 @@ test('/en is never a public address', () => {
 test('the sitemap lists every page and every Ang in every language, each with its twins', async () => {
     // No Firebase project here, so no events: just the pages.
     const entries = await sitemap();
-    assert.equal(entries.length, (9 + learnPaths().length + 1430) * 3);
+    assert.equal(entries.length, (10 + learnPaths().length + 1430) * 3);
     const hukamnama = entries.find((e) => e.url === 'https://sikhai.vercel.app/pa/hukamnama')!;
     assert.deepEqual(hukamnama.alternates?.languages, {
         en: 'https://sikhai.vercel.app/hukamnama',
@@ -134,6 +134,6 @@ test('the sitemap lists every page and every Ang in every language, each with it
     assert.ok(!entries.some((e) => e.url.endsWith('/shabad/1431')));
     for (const url of ['https://sikhai.vercel.app/learn', 'https://sikhai.vercel.app/pa/learn/script/tones', 'https://sikhai.vercel.app/pa-latn/learn/vocab/family'])
         assert.ok(entries.some((e) => e.url === url), url);
-    for (const url of ['https://sikhai.vercel.app/privacy', 'https://sikhai.vercel.app/terms', 'https://sikhai.vercel.app/pa-latn/terms'])
+    for (const url of ['https://sikhai.vercel.app/privacy', 'https://sikhai.vercel.app/terms', 'https://sikhai.vercel.app/pa-latn/terms', 'https://sikhai.vercel.app/pa/translate/talk'])
         assert.ok(entries.some((e) => e.url === url), url);
 });
