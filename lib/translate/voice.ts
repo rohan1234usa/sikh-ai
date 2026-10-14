@@ -134,7 +134,9 @@ export function capText(text: string, max = MAX_SPEAK_CHARS): string {
 // the Gurmukhi line, whole as soon as the ROMAN line has started (the reply
 // keeps this order), so speech starts before the rest has streamed; for
 // Punjabi speech the English line, the last, whole only when the reply is.
-// null while it isn't whole yet, or when there's nothing to read.
+// null while it isn't whole yet, or when there's nothing its voice can read:
+// the route refuses a Punjabi line that is mostly Latin letters (an email
+// address, say), so the page never offers it.
 export type SpeechPlan = { text: string; lang: SpeakLang };
 
 export function speechReady(lines: LiveLines, speaker: Speaker, done: boolean): SpeechPlan | null {
@@ -142,10 +144,14 @@ export function speechReady(lines: LiveLines, speaker: Speaker, done: boolean): 
     if (!roles) return null;
     if (roles.from === 'en') {
         if (!done && lines.roman === undefined) return null;
-        const text = capText(lines.gurmukhi ?? '');
-        return text ? { text, lang: 'pa' } : null;
+        return planFor(lines.gurmukhi, 'pa');
     }
     if (!done) return null;
-    const text = capText(lines.english ?? '');
-    return text ? { text, lang: 'en' } : null;
+    return planFor(lines.english, 'en');
+}
+
+// A line as its voice reads it: within the cap, and in a script it reads.
+function planFor(line: string | undefined, lang: SpeakLang): SpeechPlan | null {
+    const text = capText(line ?? '');
+    return text && speakable(text, lang) ? { text, lang } : null;
 }

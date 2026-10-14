@@ -108,6 +108,14 @@ test('English speech: the Gurmukhi line is read once the ROMAN line has started'
     assert.equal(speechReady({ gurmukhi: 'ਹਾਂਜੀ', roman: '' }, 'auto', false), null, 'Auto waits for Gemini');
 });
 
+test("a line its voice can't read is never offered: the route would refuse it", () => {
+    // Mostly Latin letters, as an email address makes a line.
+    const raw = 'INPUT: english\nGURMUKHI: ਮੇਰੀ ਈਮੇਲ john.smith@example.com ਹੈ\nROMAN: Meri email john.smith@example.com hai';
+    assert.ok(!speakable('ਮੇਰੀ ਈਮੇਲ john.smith@example.com ਹੈ', 'pa'));
+    assert.equal(speechReady(parseLiveLines(raw, true), 'auto', true), null);
+    assert.deepEqual(speechReady(parseLiveLines('INPUT: english\nGURMUKHI: ਮੇਰੀ ਈਮੇਲ ਭੇਜੋ\nROMAN: x', true), 'auto', true), { text: 'ਮੇਰੀ ਈਮੇਲ ਭੇਜੋ', lang: 'pa' });
+});
+
 test('Punjabi speech: the English line is read when the reply ends', () => {
     const raw = 'INPUT: punjabi-gurmukhi\nGURMUKHI: ਕੀ ਹਾਲ ਹੈ?\nROMAN: Ki haal hai?\nENGLISH: How are you?';
     assert.equal(speechReady(parseLiveLines(raw), 'auto', false), null, 'the last line may still be coming');
