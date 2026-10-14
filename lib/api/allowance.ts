@@ -57,8 +57,11 @@ export type Verdict = { ok: true } | { ok: false; window: Window; retryAfter: nu
 //   there's room left for the Translate button. 500 a day, at about $0.0014
 //   a call (measured: 1,600 tokens in, 50 out), is at most about $0.70 per
 //   visitor per server (twice that from 2027).
-// - Compare with Google Translate: up to 2,000 characters each, from its own
-//   10,000 a day (lib/translate/cloud.ts).
+// - Compare with Google Translate: its day counts characters, not requests
+//   (the route passes each text's length as the cost), since what runs out
+//   is its own 10,000 characters a day (lib/translate/cloud.ts), and one
+//   comparison can be 2,000. 2,500 is a quarter of that, so it takes four
+//   visitors to use up a server's day; a typical comparison is a phrase.
 // - Shabad Search: at most 4 GurbaniNow calls each, so 300 spends at most
 //   1,200 of its 5,000. An answer the CDN keeps never reaches the server.
 // - Error reports (app/api/error-report): a page sends at most 5
@@ -72,7 +75,7 @@ export const VISITOR_LIMITS = {
     learn: { perMinute: 10, perDay: 300 },
     translate: { perMinute: 15, perDay: 300 },
     translateLive: { perMinute: 12, perDay: 500 },
-    crosscheck: { perMinute: 5, perDay: 50 },
+    crosscheck: { perMinute: 5, perDay: 2_500 },
     search: { perMinute: 20, perDay: 300 },
     errorReport: { perMinute: 10, perDay: 100 },
 } as const satisfies Record<string, Limits>;
@@ -148,12 +151,14 @@ export function visitorOf(headers: Headers): string | null {
     return null;
 }
 
-export type Allowance = { take(visitor: string, now?: number): Verdict; size(): number };
+export type Allowance = { take(visitor: string, now?: number, cost?: number): Verdict; size(): number };
 
 // One feature's counts. take() counts a request, or says which limit it's
 // past and how many seconds until that limit's window ends. A refused
 // request doesn't count. Both windows are fixed: the clock minute, and the
-// UTC day, like dailyMeter's.
+// UTC day, like dailyMeter's. The minute counts requests; `cost` is what a
+// request spends of the day, 1 unless the feature's day is in other units
+// (Compare's characters).
 export function visitorAllowance({ perMinute, perDay }: Limits, maxVisitors = MAX_VISITORS): Allowance {
     let day = -1;
     let secret = randomBytes(32);
@@ -161,7 +166,7 @@ export function visitorAllowance({ perMinute, perDay }: Limits, maxVisitors = MA
     // seen longest ago.
     const counts = new Map<string, { minute: number; inMinute: number; inDay: number }>();
     return {
-        take(visitor, now = Date.now()) {
+        take(visitor, now = Date.now(), cost = 1) {
             const today = Math.floor(now / DAY_MS);
             if (today !== day) {
                 // A new day: every count starts again, under a new secret.
@@ -178,13 +183,13 @@ export function visitorAllowance({ perMinute, perDay }: Limits, maxVisitors = MA
                 mine.inMinute = 0;
             }
             let verdict: Verdict = { ok: true };
-            if (mine.inDay >= perDay) {
+            if (mine.inDay + cost > perDay) {
                 verdict = { ok: false, window: 'day', retryAfter: Math.ceil(((today + 1) * DAY_MS - now) / 1000) };
             } else if (mine.inMinute >= perMinute) {
                 verdict = { ok: false, window: 'minute', retryAfter: Math.ceil(((minute + 1) * MINUTE_MS - now) / 1000) };
             } else {
                 mine.inMinute++;
-                mine.inDay++;
+                mine.inDay += cost;
             }
             counts.set(code, mine);
             if (counts.size > maxVisitors) {
@@ -215,8 +220,13 @@ let unaddressed = false;
 // has passed its own checks, just before it would cost anything, so a
 // request refused for what it is, or answered for free, isn't counted.
 // Error reports are the exception: anyone can post one, so that route
-// counts every post before reading it (app/api/error-report).
-export function limitVisitor(req: Request, feature: Feature, now = Date.now()): Response | null {
+// counts every post before reading it (app/api/error-report). `cost` is the
+// request's share of the day (Compare passes its text's length).
+export function limitVisitor(
+    req: Request,
+    feature: Feature,
+    { now = Date.now(), cost = 1 }: { now?: number; cost?: number } = {},
+): Response | null {
     const visitor = visitorOf(req.headers);
     if (visitor === null) {
         // Never on Vercel. Said once, so a change there shows in the logs.
@@ -224,7 +234,7 @@ export function limitVisitor(req: Request, feature: Feature, now = Date.now()): 
         unaddressed = true;
         return null;
     }
-    const verdict = allowances[feature].take(visitor, now);
+    const verdict = allowances[feature].take(visitor, now, cost);
     if (verdict.ok) return null;
     const limit = verdict.window === 'day' ? VISITOR_LIMITS[feature].perDay : VISITOR_LIMITS[feature].perMinute;
     logRefusal('visitor_limited', `${feature} ${verdict.window}`, { window: verdict.window, limit }, now);

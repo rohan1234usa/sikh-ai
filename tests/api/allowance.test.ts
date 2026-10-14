@@ -88,6 +88,26 @@ test('a new day starts every count again, and forgets yesterday’s visitors', (
     assert.equal(allowance.size(), 1);
 });
 
+test("a request's cost counts toward the day, and the minute still counts requests", () => {
+    const allowance = visitorAllowance({ perMinute: 3, perDay: 10 });
+    const t = DAY_START + 5 * MINUTE_MS;
+    assert.deepEqual(allowance.take('a', t, 6), { ok: true });
+    assert.deepEqual(allowance.take('a', t, 5), { ok: false, window: 'day', retryAfter: (DAY_MS - 5 * MINUTE_MS) / 1000 }, '6 + 5 is past 10');
+    assert.deepEqual(allowance.take('a', t, 4), { ok: true }, 'the refused 5 spent nothing; 6 + 4 is exactly 10');
+    assert.equal(allowance.take('a', t + MINUTE_MS, 1).ok, false, 'the day is spent');
+    for (let i = 0; i < 3; i++) assert.deepEqual(allowance.take('b', t, 1), { ok: true });
+    assert.deepEqual(allowance.take('b', t, 1), { ok: false, window: 'minute', retryAfter: 60 }, 'three requests in the minute, whatever they cost');
+    assert.equal(allowance.take('c', t, 11).ok, false, 'one request costing more than a whole day never goes through');
+});
+
+test("limitVisitor charges Compare by its text's length", () => {
+    const req = new Request('http://local/api/translate/crosscheck', { method: 'POST', headers: { 'x-forwarded-for': '203.0.113.12' } });
+    const t = DAY_START + 40_000;
+    assert.equal(limitVisitor(req, 'crosscheck', { now: t, cost: VISITOR_LIMITS.crosscheck.perDay - 10 }), null);
+    assert.equal(limitVisitor(req, 'crosscheck', { now: t, cost: 10 }), null, 'exactly the day');
+    assert.equal(limitVisitor(req, 'crosscheck', { now: t + MINUTE_MS, cost: 1 })?.status, 429);
+});
+
 test('one feature remembers a bounded number of visitors, forgetting the one seen longest ago', () => {
     const allowance = visitorAllowance({ perMinute: 1, perDay: 1 }, 3);
     for (const v of ['a', 'b', 'c']) allowance.take(v, DAY_START);
@@ -101,9 +121,9 @@ test('one feature remembers a bounded number of visitors, forgetting the one see
 test('a refusal is a 429 that is never cached, with the code for its window and when to try again', async () => {
     const t = DAY_START + 30_000;
     const { lines, value: res } = capture(() => {
-        for (let i = 0; i < VISITOR_LIMITS.chat.perMinute; i++) assert.equal(limitVisitor(from('203.0.113.10'), 'chat', t), null);
-        assert.equal(limitVisitor(from('203.0.113.11'), 'chat', t), null, 'someone else');
-        return limitVisitor(from('203.0.113.10'), 'chat', t);
+        for (let i = 0; i < VISITOR_LIMITS.chat.perMinute; i++) assert.equal(limitVisitor(from('203.0.113.10'), 'chat', { now: t }), null);
+        assert.equal(limitVisitor(from('203.0.113.11'), 'chat', { now: t }), null, 'someone else');
+        return limitVisitor(from('203.0.113.10'), 'chat', { now: t });
     });
     assert.equal(res?.status, 429);
     assert.equal(res.headers.get('cache-control'), 'no-store');
@@ -119,7 +139,7 @@ test('past the day, the answer is the limit code, and Retry-After runs to midnig
     const midnight = Math.floor(Date.now() / DAY_MS) * DAY_MS;
     for (let i = 0; allowances.search.take('198.51.100.20', midnight + i * MINUTE_MS).ok; i++);
     const req = new Request('http://local/api/shabad/search?q=x', { headers: { 'x-real-ip': '198.51.100.20' } });
-    const res = limitVisitor(req, 'search', midnight + 23 * 60 * MINUTE_MS);
+    const res = limitVisitor(req, 'search', { now: midnight + 23 * 60 * MINUTE_MS });
     assert.equal(res?.status, 429);
     assert.deepEqual(await res.json(), REFUSALS.search.day);
     assert.equal(res.headers.get('retry-after'), String(60 * 60));
