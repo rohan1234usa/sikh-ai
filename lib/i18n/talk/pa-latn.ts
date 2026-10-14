@@ -47,7 +47,7 @@ const talk: TalkCopy = {
         insecure: 'Record karan layi surakhiat (https) connection chahida hai.',
         failed: 'Recording nahi ho saki. Kirpa karke dubara koshish karo.',
     },
-    disclaimer: 'Anuvaad AI likhda hai, ate ih galat ho sakda hai. Har recording Google Gemini nu jandi hai, ate Punjabi Google parh ke sunaunda hai; kujh vi rakhia nahi janda, ate panna dubara kholan naal sab mit janda hai.',
+    disclaimer: 'Anuvaad AI likhda hai, ate ih galat ho sakda hai. Har recording Google Gemini nu jandi hai, ate Punjabi Google parh ke sunaunda hai (ate Angrezi, jis device vich apni Angrezi avaaz na hove). Ih site is vichon kujh nahi rakhdi: panna dubara kholan naal sab mit janda hai.',
 };
 
 export default talk;

@@ -52,7 +52,9 @@ const talk = {
         insecure: 'Recording needs a secure (https) connection.',
         failed: 'Recording didn’t work. Please try again.',
     } satisfies Record<TalkNote, string>,
-    disclaimer: 'Translations are written by AI and can be wrong. Each recording goes to Google Gemini, and Punjabi is read aloud by Google; nothing is kept, and reloading the page clears it.',
+    // Short, beside the privacy page's link, which says the rest: Google
+    // keeps what Gemini is sent for up to 55 days, so not "nothing is kept".
+    disclaimer: 'Translations are written by AI and can be wrong. Each recording goes to Google Gemini, and Google reads Punjabi aloud (and English, on a device that can’t). This site keeps none of it: reloading the page clears it.',
 };
 
 export type TalkCopy = typeof talk;

@@ -10,11 +10,12 @@ import type { PolicyDictionary } from './i18n/policy';
 import { MAX_ACCOUNT_CHATS, MAX_HISTORY_TURNS, MAX_LOCAL_CHATS } from './chat/config';
 import { MAX_TUTOR_HISTORY_TURNS } from './learn/tutor';
 import { MAX_TRANSLATE_HISTORY } from './translate/history';
+import { MAX_CLIP_MS } from './translate/voice';
 import { CONTACT_EMAIL } from './site';
 
 // The day each page last changed what it says, in any language (not for a
 // typo), shown at its top.
-export const PRIVACY_UPDATED = '2026-10-13';
+export const PRIVACY_UPDATED = '2026-10-14';
 export const TERMS_UPDATED = '2026-10-13';
 
 export const POLICY_VARS = {
@@ -23,6 +24,7 @@ export const POLICY_VARS = {
     maxTranslations: MAX_TRANSLATE_HISTORY,
     maxEarlierMessages: MAX_HISTORY_TURNS,
     maxTutorMessages: MAX_TUTOR_HISTORY_TURNS,
+    maxClipSeconds: MAX_CLIP_MS / 1000,
     langCookie: LANG_COOKIE,
 } as const;
 
