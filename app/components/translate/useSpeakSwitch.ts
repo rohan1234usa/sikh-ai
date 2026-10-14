@@ -1,7 +1,7 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
 import { storedSwitch } from '@/lib/storedSwitch';
+import { useStoredSwitch } from '../useStoredSwitch';
 
 // Talk's Speak switch: whether each translation is read aloud as it comes.
 // On unless switched off, remembered in this browser and followed across its
@@ -10,8 +10,4 @@ import { storedSwitch } from '@/lib/storedSwitch';
 
 const speak = storedSwitch('sikhai.translate.speak'); // '0' when switched off; absent when on
 
-const onBeforeReading = () => true;
-
-export function useSpeakSwitch(): [boolean, (on: boolean) => void] {
-    return [useSyncExternalStore(speak.subscribe, speak.read, onBeforeReading), speak.write];
-}
+export const useSpeakSwitch = () => useStoredSwitch(speak);

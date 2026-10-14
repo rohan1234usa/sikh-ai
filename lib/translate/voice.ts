@@ -105,7 +105,7 @@ export function rolesOf(lines: LiveLines, speaker: Speaker): VoiceRoles | null {
 
 // What /api/translate/speak reads aloud: Punjabi in Gurmukhi (a pa-IN voice
 // reads the script, not the romanization), or English.
-export const SPEAK_LANGS = ['pa', 'en'] as const;
+const SPEAK_LANGS = ['pa', 'en'] as const;
 export type SpeakLang = (typeof SPEAK_LANGS)[number];
 export const isSpeakLang = (v: unknown): v is SpeakLang => SPEAK_LANGS.includes(v as SpeakLang);
 

@@ -31,7 +31,7 @@ const TIMEOUT_MS = 8000;
 // Best-effort, like Cloud Translation's (./cloud.ts): each warm server keeps
 // its own count, and a cold start resets it. 50,000 characters is a few
 // hundred translations read aloud, about $0.20 a day at $4 a million.
-export const SPEAK_DAILY_CHAR_CEILING = 50_000;
+const SPEAK_DAILY_CHAR_CEILING = 50_000;
 export const speakAllowance = charAllowance(SPEAK_DAILY_CHAR_CEILING);
 
 // Punjabi's voices that are generally available are pa-IN Standard and
@@ -41,9 +41,9 @@ export const speakAllowance = charAllowance(SPEAK_DAILY_CHAR_CEILING);
 const DEFAULT_VOICES: Record<SpeakLang, string> = { pa: 'pa-IN-Wavenet-A', en: 'en-US-Wavenet-F' };
 const VOICE_ENV: Record<SpeakLang, string> = { pa: 'SPEAK_VOICE_PA', en: 'SPEAK_VOICE_EN' };
 
-export type Voice = { languageCode: string; name: string };
+type Voice = { languageCode: string; name: string };
 
-export function speakVoice(lang: SpeakLang): Voice {
+function speakVoice(lang: SpeakLang): Voice {
     const name = process.env[VOICE_ENV[lang]]?.trim() || DEFAULT_VOICES[lang];
     // A voice's name starts with its language: pa-IN-Wavenet-A is pa-IN.
     return { languageCode: name.split('-').slice(0, 2).join('-'), name };

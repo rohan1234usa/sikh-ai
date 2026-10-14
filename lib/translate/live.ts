@@ -53,6 +53,9 @@ export function refusalPauseMs(retryAfter: string | null): number {
 export type LiveField = 'gurmukhi' | 'roman' | 'english';
 export const LIVE_FIELDS: readonly LiveField[] = ['gurmukhi', 'roman', 'english'];
 
+// Whether any of the three lines has come.
+export const hasAnyLine = (lines: LiveLines) => LIVE_FIELDS.some(f => lines[f]);
+
 // What the INPUT line can say: what the text was, or, from Talk's voice
 // route (./voice.ts), `none` when a clip held no speech it could hear.
 export type LiveInput = DetectedInput | 'none';

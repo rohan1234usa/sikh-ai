@@ -4,7 +4,7 @@
 // useVoiceTranslate, useSpeaker) and TalkScreen do the browser's part; the
 // contract with the routes is ./voice.ts.
 
-import { LIVE_FIELDS, type LiveLines } from './live';
+import { hasAnyLine, type LiveLines } from './live';
 import { MAX_AUDIO_BYTES, MIN_AUDIO_BYTES, MIN_CLIP_MS, RECORDING_MIMES, type Speaker } from './voice';
 
 // ── Recording ───────────────────────────────────────────────────────────────
@@ -172,7 +172,7 @@ export function pickEnglishVoice<V extends { name: string; lang: string; localSe
 
 // The voice route's error codes (app/api/translate/voice), each worded in
 // the dictionaries' errors.
-export const VOICE_ERROR_CODES = [
+const VOICE_ERROR_CODES = [
     'translate_voice_empty', 'translate_voice_too_long', 'translate_voice_bad_audio', 'translate_voice_failed',
     'translate_voice_busy', 'translate_voice_limit', 'translate_voice_blocked',
 ] as const;
@@ -190,7 +190,7 @@ export function voiceErrorCode(status: number, body: unknown): VoiceErrorCode {
 
 // The read-aloud route's codes the page shows (app/api/translate/speak),
 // each worded in the dictionaries' errors.
-export const SPEAK_ERROR_CODES = ['speak_unavailable', 'speak_failed', 'speak_busy', 'speak_limit'] as const;
+const SPEAK_ERROR_CODES = ['speak_unavailable', 'speak_failed', 'speak_busy', 'speak_limit'] as const;
 export type SpeakErrorCode = (typeof SPEAK_ERROR_CODES)[number];
 
 export function speakErrorCode(status: number, body: unknown): SpeakErrorCode {
@@ -241,7 +241,6 @@ export type TalkEvent =
     // A new conversation: the thread empties, and a pause still holds.
     | { type: 'cleared' };
 
-const anything = (lines: LiveLines) => LIVE_FIELDS.some(f => lines[f]);
 
 function replace(state: TalkState, id: string, change: (e: Exchange) => Exchange | null): TalkState {
     const exchanges: Exchange[] = [];
@@ -278,7 +277,7 @@ export function talkReducer(state: TalkState, event: TalkEvent): TalkState {
             if (how === 'whole' && lines.input === 'none') {
                 return { ...replace(state, event.id, () => null), note: 'nothingHeard' };
             }
-            return replace(state, event.id, e => (anything(lines)
+            return replace(state, event.id, e => (hasAnyLine(lines)
                 ? { ...e, lines, status: how === 'whole' ? 'done' : 'cut' }
                 : { ...e, lines, status: 'failed', error: 'translate_voice_failed' }));
         }
