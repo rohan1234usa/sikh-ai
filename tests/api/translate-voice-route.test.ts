@@ -5,7 +5,7 @@ import { MINUTE_MS, VISITOR_LIMITS } from '@/lib/api/allowance';
 import { parseLiveLines } from '@/lib/translate/live';
 import { ROMANIZATION_CAPITALS, ROMANIZATION_RULES } from '@/lib/translate/romanization';
 import { MAX_AUDIO_BASE64_CHARS } from '@/lib/translate/voice';
-import { captured, postJson, readStream, spendDay, startRouteMock } from '../helpers/routes';
+import { captured, instructionOf, logged, postJson, readStream, spendDay, startRouteMock } from '../helpers/routes';
 
 let mock: MockGemini;
 let POST: (req: Request) => Promise<Response>;
@@ -30,7 +30,6 @@ type WireBody = {
     generationConfig: Record<string, unknown> & { maxOutputTokens: number; thinkingConfig: { thinkingLevel: string } };
 };
 const wire = (body: unknown) => body as WireBody;
-const instructionOf = (body: unknown) => wire(body).systemInstruction.parts[0].text;
 
 const PUNJABI = {
     input: 'punjabi-gurmukhi',
@@ -240,27 +239,18 @@ test('clips count against an allowance of their own', async () => {
 
 test('the log line counts the clip’s audio tokens, and never holds the clip or what was said', async () => {
     const audio = clip('words nobody else should read');
-    delete process.env.APP_LOG;
-    const lines: string[] = [];
-    const saved = { log: console.log, warn: console.warn, error: console.error };
-    console.log = (line: string) => { lines.push(line); };
-    console.warn = (line: string) => { lines.push(line); };
-    console.error = (line: string) => { lines.push(line); };
-    try {
+    const lines = await logged(async () => {
         const res = await voice(audio);
         assert.equal(res.status, 200);
         await readStream(res);
-    } finally {
-        Object.assign(console, saved);
-        process.env.APP_LOG = 'off';
-    }
-    const calls = lines.map((l) => JSON.parse(l)).filter((l) => l.evt === 'gemini_call');
-    assert.equal(calls.length, 1, lines.join('\n'));
+    });
+    const calls = lines.filter((l) => l.evt === 'gemini_call');
+    assert.equal(calls.length, 1, JSON.stringify(lines));
     assert.equal(calls[0].feature, 'translateVoice');
     assert.equal(calls[0].outcome, 'ok');
     assert.equal(calls[0].promptTokens, 1100);
     assert.equal(calls[0].audioTokens, 480);
-    const all = lines.join('\n');
+    const all = JSON.stringify(lines);
     for (const secret of [audio.slice(0, 40), 'nobody else', 'Sat Sri Akal', 'ਸਤਿ', 'Hello ji']) {
         assert.ok(!all.includes(secret), `the log holds ${secret}`);
     }

@@ -49,6 +49,31 @@ export async function readStream(res: Response): Promise<{ text: string; error?:
     }
 }
 
+// The system instruction of a Gemini request the mock received.
+export const instructionOf = (body: unknown) =>
+    (body as { systemInstruction: { parts: { text: string }[] } }).systemInstruction.parts[0].text;
+
+export type LogLine = { evt: string; level: 'info' | 'warn' | 'error'; [k: string]: unknown };
+
+// Runs `run` with logging on, and returns the JSON lines it wrote, each with
+// the level it was written at (console.log is info).
+export async function logged(run: () => Promise<unknown>): Promise<LogLine[]> {
+    delete process.env.APP_LOG;
+    const lines: LogLine[] = [];
+    const saved = { log: console.log, warn: console.warn, error: console.error };
+    const at = (level: LogLine['level']) => (line: string) => { lines.push({ ...JSON.parse(line), level }); };
+    console.log = at('info');
+    console.warn = at('warn');
+    console.error = at('error');
+    try {
+        await run();
+    } finally {
+        Object.assign(console, saved);
+        process.env.APP_LOG = 'off';
+    }
+    return lines;
+}
+
 // Requests the mock received while `run` executed.
 export async function captured<T>(mock: MockGemini, run: () => Promise<T>) {
     const start = mock.requests.length;

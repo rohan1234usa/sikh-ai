@@ -5,7 +5,7 @@ import { SILENT_MP3, mockServiceAccount, type MockGemini } from '../../scripts/m
 import { MINUTE_MS, VISITOR_LIMITS } from '@/lib/api/allowance';
 import type * as Speak from '@/lib/translate/speak';
 import { MAX_SPEAK_CHARS } from '@/lib/translate/voice';
-import { captured, postJson, spendDay, startRouteMock } from '../helpers/routes';
+import { captured, logged, postJson, spendDay, startRouteMock } from '../helpers/routes';
 
 // Its own file: the day's characters and the access token are module state,
 // and these tests spend them. Google's token endpoint and Cloud
@@ -32,25 +32,6 @@ const LINE = 'ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ ਜੀ, ਤੁਸੀਂ ਕਿ
 const say = (text: unknown, lang: unknown = 'pa', headers: Record<string, string> = {}) =>
     POST(postJson(URL, { text, lang }, headers));
 const ops = (requests: MockGemini['requests']) => requests.map((r) => r.op);
-
-// Runs `run` with logging on, and collects the JSON lines it writes, with
-// the level each was written at.
-async function logged(run: () => Promise<unknown>): Promise<{ evt: string; level: string; [k: string]: unknown }[]> {
-    delete process.env.APP_LOG;
-    const lines: { evt: string; level: string }[] = [];
-    const saved = { log: console.log, warn: console.warn, error: console.error };
-    const at = (level: string) => (line: string) => { lines.push({ ...JSON.parse(line), level }); };
-    console.log = at('info');
-    console.warn = at('warn');
-    console.error = at('error');
-    try {
-        await run();
-    } finally {
-        Object.assign(console, saved);
-        process.env.APP_LOG = 'off';
-    }
-    return lines;
-}
 
 test('a Punjabi line comes back as an MP3, never cached', async () => {
     const res = await say(LINE);

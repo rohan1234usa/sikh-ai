@@ -4,7 +4,7 @@ import type { MockGemini } from '../../scripts/mock-gemini';
 import { MINUTE_MS, VISITOR_LIMITS } from '@/lib/api/allowance';
 import { MAX_LIVE_CHARS, parseLiveLines } from '@/lib/translate/live';
 import { ROMANIZATION_RULES } from '@/lib/translate/romanization';
-import { captured, postJson, readStream, spendDay, startRouteMock } from '../helpers/routes';
+import { captured, instructionOf, postJson, readStream, spendDay, startRouteMock } from '../helpers/routes';
 
 let mock: MockGemini;
 let POST: (req: Request) => Promise<Response>;
@@ -24,7 +24,6 @@ type WireBody = {
     systemInstruction: { parts: { text: string }[] };
     generationConfig: Record<string, unknown> & { maxOutputTokens: number; thinkingConfig: { thinkingLevel: string } };
 };
-const instructionOf = (body: unknown) => (body as WireBody).systemInstruction.parts[0].text;
 
 test('streams the four lines as plain text', async () => {
     const { result: res, requests } = await captured(mock, () => live('ki haal hai ji'));
