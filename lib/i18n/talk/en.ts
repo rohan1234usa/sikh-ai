@@ -14,7 +14,8 @@ const talk = {
     typeInstead: 'Type instead',
     newConversation: 'New conversation',
     intro: 'Hold the button and speak, in Punjabi or English. Let go, and the translation appears and is read aloud.',
-    tip: 'Up to 15 seconds at a time. If Auto hears the wrong language, choose who is speaking below.',
+    // {seconds}: how long a clip may be (MAX_CLIP_MS).
+    tip: 'Up to {seconds} seconds at a time. If Auto hears the wrong language, choose who is speaking below.',
     threadAria: 'Conversation',
     heard: 'Heard in {lang}',
     translation: 'Translation in {lang}',
@@ -54,7 +55,7 @@ const talk = {
     } satisfies Record<TalkNote, string>,
     // Short, beside the privacy page's link, which says the rest: Google
     // keeps what Gemini is sent for up to 55 days, so not "nothing is kept".
-    disclaimer: 'Translations are written by AI and can be wrong. Each recording goes to Google Gemini, and Google reads Punjabi aloud (and English, on a device that can’t). This site keeps none of it: reloading the page clears it.',
+    disclaimer: 'Translations are written by AI and can be wrong. Each recording goes to Google Gemini, and Google reads Punjabi aloud (and English, when your device can’t). This site keeps none of it: reloading the page clears it.',
 };
 
 export type TalkCopy = typeof talk;

@@ -11,7 +11,7 @@ const talk: TalkCopy = {
     typeInstead: 'Likh ke anuvaad karo',
     newConversation: 'Navin gallbaat',
     intro: 'Button daba ke rakho ate Punjabi jaan Angrezi vich bolo. Button chhaddo, taan anuvaad disega ate parh ke sunaya javega.',
-    tip: 'Ik vaar vich 15 seconds tak. Je “Aapne aap” galat bhasha samjhe, taan hethan chuno ki kaun bol riha hai.',
+    tip: 'Ik vaar vich {seconds} seconds tak. Je “Aapne aap” galat bhasha samjhe, taan hethan chuno ki kaun bol riha hai.',
     threadAria: 'Gallbaat',
     heard: '{lang} vich sunia',
     translation: '{lang} vich anuvaad',
@@ -47,7 +47,7 @@ const talk: TalkCopy = {
         insecure: 'Record karan layi surakhiat (https) connection chahida hai.',
         failed: 'Recording nahi ho saki. Kirpa karke dubara koshish karo.',
     },
-    disclaimer: 'Anuvaad AI likhda hai, ate ih galat ho sakda hai. Har recording Google Gemini nu jandi hai, ate Punjabi Google parh ke sunaunda hai (ate Angrezi, jis device vich apni Angrezi avaaz na hove). Ih site is vichon kujh nahi rakhdi: panna dubara kholan naal sab mit janda hai.',
+    disclaimer: 'Anuvaad AI likhda hai, ate ih galat ho sakda hai. Har recording Google Gemini nu jandi hai, ate Punjabi Google parh ke sunaunda hai (ate Angrezi vi, jadon tuhada device aap na parh sake). Ih site is vichon kujh nahi rakhdi: panna dubara kholan naal sab mit janda hai.',
 };
 
 export default talk;

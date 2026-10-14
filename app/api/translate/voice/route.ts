@@ -37,7 +37,7 @@ const FRIENDLY_ERROR = "Sorry, the voice translation failed. Please try again.";
 const BUSY_ERROR = "The voice translator is busy right now. Please wait a minute and try again.";
 const BLOCKED_ERROR = "The voice translator couldn't translate that recording. Please try saying it another way.";
 const EMPTY_ERROR = "Nothing was recorded. Please hold the button while you speak.";
-const TOO_LONG_ERROR = "That recording is too long. Please keep it under 15 seconds.";
+const TOO_LONG_ERROR = "That recording is too long to send. Please keep it shorter.";
 const BAD_AUDIO_ERROR = "That recording couldn't be read. Please try again.";
 const NO_STORE = { "Cache-Control": "no-store" };
 // Room for the longest clip's base64 plus the JSON around it (its media type

@@ -8,8 +8,9 @@ import { MAX_SPEAK_CHARS, isSpeakLang, speakable } from "@/lib/translate/voice";
 // POST /api/translate/speak: Talk's read-aloud (/translate/talk, #37). The
 // page sends a translated line, { text, lang }, and gets back an MP3 of it
 // read by Google Cloud Text-to-Speech (lib/translate/speak.ts): always for
-// Punjabi, which few devices can read, and for English only where the
-// device has no voice of its own. Nothing is kept: the page holds the MP3 for
+// Punjabi, which few devices can read, and for English where the device has
+// no voice of its own, or its voice fails or doesn't start in time (the page
+// waits 3 s). Nothing is kept: the page holds the MP3 for
 // a replay, and this keeps neither the text nor the audio.
 //
 // A POST, not a cacheable GET, so the line never sits in a URL, which

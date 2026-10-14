@@ -909,7 +909,7 @@ const en = {
         learn_blocked: "The tutor couldn't respond to that message. Please try rephrasing it.",
         // Talk's voice translator (/api/translate/voice).
         translate_voice_empty: 'Nothing was recorded. Please hold the button while you speak.',
-        translate_voice_too_long: 'That recording is too long. Please keep it under 15 seconds.',
+        translate_voice_too_long: 'That recording is too long to send. Please keep it shorter.',
         translate_voice_bad_audio: "That recording couldn't be read. Please try again.",
         translate_voice_failed: 'Sorry, the voice translation failed. Please try again.',
         translate_voice_busy: 'The voice translator is busy right now. Please wait a minute and try again.',

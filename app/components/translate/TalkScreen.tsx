@@ -11,7 +11,7 @@ import type { Lang } from '@/lib/i18n/config';
 import type { TalkCopy } from '@/lib/i18n/talk';
 import type { LiveField } from '@/lib/translate/live';
 import { EMPTY_TALK, clipCheck, talkReducer, talkView, type Exchange, type TalkNote } from '@/lib/translate/talk';
-import { rolesOf, speechReady, type Speaker } from '@/lib/translate/voice';
+import { MAX_CLIP_MS, rolesOf, speechReady, type Speaker } from '@/lib/translate/voice';
 import TalkBar from './TalkBar';
 import TalkExchange from './TalkExchange';
 import { useRecorder, type Clip } from './useRecorder';
@@ -248,7 +248,7 @@ export default function TalkScreen({ copy: talk }: { copy: TalkCopy }) {
                         {state.exchanges.length === 0 ? (
                             <div className="space-y-3 py-6 text-ink-muted">
                                 <p className="text-lg text-ink">{talk.intro}</p>
-                                <p className="text-sm">{talk.tip}</p>
+                                <p className="text-sm">{fmt(talk.tip, { seconds: MAX_CLIP_MS / 1000 })}</p>
                             </div>
                         ) : (
                             <ol aria-label={talk.threadAria} className="space-y-8">
