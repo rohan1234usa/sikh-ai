@@ -48,7 +48,7 @@ export function speakVoice(lang: SpeakLang): Voice {
 
 type Account = { clientEmail: string; privateKey: string; keyId?: string; tokenUri: string };
 
-function readAccount(raw: string | undefined): Account | 'missing' | 'unreadable' {
+function parseAccount(raw: string | undefined): Account | 'missing' | 'unreadable' {
     const text = raw?.trim();
     if (!text) return 'missing';
     try {
@@ -64,6 +64,13 @@ function readAccount(raw: string | undefined): Account | 'missing' | 'unreadable
     } catch {
         return 'unreadable';
     }
+}
+
+// Read once for each value the environment holds, not on every request.
+let parsed: { raw: string | undefined; account: ReturnType<typeof parseAccount> } | null = null;
+function readAccount(raw: string | undefined): ReturnType<typeof parseAccount> {
+    if (!parsed || parsed.raw !== raw) parsed = { raw, account: parseAccount(raw) };
+    return parsed.account;
 }
 
 // The account to sign in with, or null when read-aloud is off: switched off
@@ -88,14 +95,24 @@ export function speakAccount(): Account | null {
 
 // Busy (429) or down (5xx) passes on its own. Anything else, such as the API
 // switched off for the account's project, billing off, or a key revoked, the
-// owner has to fix, so it's an error, which reaches Sentry (lib/log.ts).
+// owner has to fix, so it's an error, which reaches Sentry (lib/log.ts), and
+// read-aloud is unavailable until it's fixed, not worth asking again.
 const passing = (status: number) => status === 429 || status >= 500;
+
+// After a refusal only the owner can fix, the account isn't tried again for
+// a minute: each request would only be refused, and logged, once more.
+const BLOCKED_MS = 60_000;
+let blocked: { account: string; until: number } | null = null;
+const idOf = (account: Account) => `${account.clientEmail} ${account.tokenUri}`;
+const block = (account: Account) => { blocked = { account: idOf(account), until: Date.now() + BLOCKED_MS }; };
 
 // The access token for an account, kept until a minute before it runs out.
 let token: { account: string; value: string; until: number } | null = null;
 
-async function accessToken(account: Account, signal: AbortSignal): Promise<string | null> {
-    const id = `${account.clientEmail} ${account.tokenUri}`;
+// The token, 'refused' when only the owner can fix it, or null when it may
+// work next time.
+async function accessToken(account: Account, signal: AbortSignal): Promise<string | 'refused' | null> {
+    const id = idOf(account);
     const now = Date.now();
     if (token?.account === id && token.until > now) return token.value;
 
@@ -110,7 +127,8 @@ async function accessToken(account: Account, signal: AbortSignal): Promise<strin
     } catch (error) {
         // The private key isn't one. Its name only: never the key.
         logEvent('config_error', { missing: 'GOOGLE_TTS_SERVICE_ACCOUNT', why: 'unsigned', error: error instanceof Error ? error.name : typeof error }, 'error');
-        return null;
+        block(account);
+        return 'refused';
     }
 
     const res = await fetch(account.tokenUri, {
@@ -121,8 +139,13 @@ async function accessToken(account: Account, signal: AbortSignal): Promise<strin
     });
     if (!res.ok) {
         void res.body?.cancel();
-        logEvent('upstream_error', { upstream: 'google_oauth', status: res.status }, passing(res.status) ? 'warn' : 'error');
-        return null;
+        if (passing(res.status)) {
+            logEvent('upstream_error', { upstream: 'google_oauth', status: res.status }, 'warn');
+            return null;
+        }
+        logEvent('upstream_error', { upstream: 'google_oauth', status: res.status }, 'error');
+        block(account);
+        return 'refused';
     }
     const data = await res.json() as { access_token?: unknown; expires_in?: unknown };
     if (typeof data.access_token !== 'string' || data.access_token === '') {
@@ -136,8 +159,10 @@ async function accessToken(account: Account, signal: AbortSignal): Promise<strin
 
 export type Spoken =
     | { kind: 'audio'; audio: Uint8Array<ArrayBuffer> }
-    | { kind: 'unavailable' }  // off, not set up, or the day's characters spent
-    | { kind: 'failed' }
+    // Off, not set up, refused until the owner fixes it, or the day's
+    // characters spent: not worth asking again soon.
+    | { kind: 'unavailable' }
+    | { kind: 'failed' }       // may work next time
     | { kind: 'aborted' };     // the page went away
 
 // `text` is checked by the route: trimmed, within MAX_SPEAK_CHARS, and in a
@@ -145,6 +170,7 @@ export type Spoken =
 export async function synthesize(text: string, lang: SpeakLang, signal?: AbortSignal): Promise<Spoken> {
     const account = speakAccount();
     if (!account) return { kind: 'unavailable' };
+    if (blocked?.account === idOf(account) && blocked.until > Date.now()) return { kind: 'unavailable' };
     if (!speakAllowance.spend(text.length)) {
         // This server's ceiling for the day.
         logEvent('speak_ceiling', { chars: text.length }, 'warn');
@@ -157,6 +183,7 @@ export async function synthesize(text: string, lang: SpeakLang, signal?: AbortSi
     const either = signal ? AbortSignal.any([signal, timeout]) : timeout;
     try {
         const bearer = await accessToken(account, either);
+        if (bearer === 'refused') return { kind: 'unavailable' };
         if (!bearer) return { kind: 'failed' };
         const base = process.env.GOOGLE_TTS_BASE_URL?.trim() || API;
         const res = await fetch(`${base}/v1/text:synthesize`, {
@@ -168,10 +195,16 @@ export async function synthesize(text: string, lang: SpeakLang, signal?: AbortSi
         if (!res.ok) {
             // Never the body: it can quote the request.
             void res.body?.cancel();
-            // A token Google no longer takes: sign in afresh next time.
-            if (res.status === 401) token = null;
             logEvent('upstream_error', { upstream: 'cloud_tts', status: res.status }, passing(res.status) ? 'warn' : 'error');
-            return { kind: 'failed' };
+            // A token Google no longer takes: sign in afresh next time.
+            if (res.status === 401) {
+                token = null;
+                return { kind: 'failed' };
+            }
+            if (passing(res.status)) return { kind: 'failed' };
+            // The API switched off, billing off, a voice that doesn't exist.
+            block(account);
+            return { kind: 'unavailable' };
         }
         const data = await res.json() as { audioContent?: unknown };
         const audio = typeof data.audioContent === 'string' ? new Uint8Array(Buffer.from(data.audioContent, 'base64')) : null;

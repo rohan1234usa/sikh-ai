@@ -44,7 +44,9 @@ export default function TalkButton({ view, hintId, onPress, onRelease, onCancel 
             onPointerDown={e => {
                 if (e.button !== 0 || blocked) return;
                 e.preventDefault();
-                e.currentTarget.setPointerCapture(e.pointerId);
+                // Letting go off the button still ends the press; without
+                // capture, letting go on it still does.
+                try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* not capturable */ }
                 byKeyboard.current = false;
                 onPress();
             }}

@@ -14,7 +14,7 @@ const card = (exchange: Exchange, lang: Lang = 'en', extra: { playing?: boolean;
         LanguageProvider,
         // The child goes as an argument, which the props' type doesn't know.
         { lang } as ComponentProps<typeof LanguageProvider>,
-        createElement(TalkExchange, { exchange, playing: false, trouble: null, onReplay: () => {}, onStop: () => {}, ...extra }),
+        createElement(TalkExchange, { exchange, playing: false, trouble: null, onSpeak: () => {}, onStop: () => {}, ...extra }),
     ));
 
 const PUNJABI: Exchange = {

@@ -8,7 +8,7 @@ import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import { LIVE_FIELDS, type LiveField, type LiveLines } from '@/lib/translate/live';
 import type { Exchange, SpeakErrorCode } from '@/lib/translate/talk';
-import { expectedInput, speechReady, voiceRoles } from '@/lib/translate/voice';
+import { expectedInput, speechReady, voiceRoles, type SpeechPlan } from '@/lib/translate/voice';
 import CopyButton from './CopyButton';
 
 // One clip and its reply on the Talk page: what was heard, small, then the
@@ -43,11 +43,13 @@ function Lines({ fields, lines, styles, settled }: {
     });
 }
 
-export default memo(function TalkExchange({ exchange, playing, trouble, onReplay, onStop }: {
+// Memoized, with callbacks that keep their identity (useSpeaker's), so while
+// a reply streams only its own card is drawn again.
+export default memo(function TalkExchange({ exchange, playing, trouble, onSpeak, onStop }: {
     exchange: Exchange;
     playing: boolean;                 // its translation is being read
     trouble: SpeakErrorCode | null;   // why it couldn't be
-    onReplay: () => void;
+    onSpeak: (id: string, plan: SpeechPlan) => void;
     onStop: () => void;
 }) {
     const t = useT();
@@ -91,7 +93,7 @@ export default memo(function TalkExchange({ exchange, playing, trouble, onReplay
                     {plan && (
                         <button
                             type="button"
-                            onClick={playing ? onStop : onReplay}
+                            onClick={playing ? onStop : () => onSpeak(exchange.id, plan)}
                             className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-semibold text-link transition-colors hover:bg-link/10"
                         >
                             {playing

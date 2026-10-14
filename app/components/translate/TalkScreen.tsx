@@ -140,11 +140,6 @@ export default function TalkScreen() {
         announce(talk.listening);
     };
 
-    const replay = (exchange: Exchange) => {
-        const plan = speechReady(exchange.lines, exchange.speaker, true);
-        if (plan) speech.speak(exchange.id, plan);
-    };
-
     const clear = () => {
         if (state.exchanges.length === 0) return;
         sender.abort();
@@ -218,7 +213,7 @@ export default function TalkScreen() {
                                         exchange={exchange}
                                         playing={speech.playing === exchange.id}
                                         trouble={speech.trouble?.id === exchange.id ? speech.trouble.code : null}
-                                        onReplay={() => replay(exchange)}
+                                        onSpeak={speech.speak}
                                         onStop={speech.stop}
                                     />
                                 ))}

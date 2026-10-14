@@ -175,37 +175,60 @@ test('an account that isn’t a key file is an error the owner hears about', asy
     process.env.GOOGLE_TTS_SERVICE_ACCOUNT = JSON.stringify({ client_email: 'broken@x', private_key: 'not a key', token_uri: `${mock.url}/token` });
     const lines = await logged(async () => {
         const res = await say(LINE);
-        assert.equal(res.status, 502);
-        assert.equal((await res.json()).code, 'speak_failed');
+        assert.equal(res.status, 503);
+        assert.equal((await res.json()).code, 'speak_unavailable');
     });
     assert.ok(lines.some((l) => l.evt === 'config_error' && l.level === 'error' && l.why === 'unsigned'), JSON.stringify(lines));
     assert.ok(!JSON.stringify(lines).includes('not a key'), 'never the key');
 });
 
-test('Google refusing the sign-in is an error; nothing is read', async () => {
+test('Google refusing the sign-in is an error, and read-aloud is unavailable until it is fixed', async () => {
     process.env.GOOGLE_TTS_SERVICE_ACCOUNT = mockServiceAccount(mock.url, 'MOCK_OAUTH_400@sikhai-mock.iam.gserviceaccount.com').json;
     const lines = await logged(async () => {
         const { result: res, requests } = await captured(mock, () => say(LINE));
-        assert.equal(res.status, 502);
-        assert.equal((await res.json()).code, 'speak_failed');
+        assert.equal(res.status, 503, 'not worth asking again: the page stops');
+        assert.equal((await res.json()).code, 'speak_unavailable');
         assert.deepEqual(ops(requests), ['token']);
     });
     assert.ok(lines.some((l) => l.evt === 'upstream_error' && l.upstream === 'google_oauth' && l.status === 400 && l.level === 'error'));
+    // For a minute, that account isn't tried again, nor logged again.
+    const again = await logged(async () => {
+        const { result: res, requests } = await captured(mock, () => say(LINE));
+        assert.equal(res.status, 503);
+        assert.deepEqual(requests, []);
+    });
+    assert.deepEqual(again.filter((l) => l.level === 'error'), []);
 });
 
-test('Text-to-Speech failing is speak_failed: busy or down a warning, anything else an error', async () => {
-    for (const [trigger, status, level] of [['MOCK_TTS_500', 500, 'warn'], ['MOCK_TTS_429', 429, 'warn'], ['MOCK_TTS_403', 403, 'error']] as const) {
+test('Text-to-Speech busy or down is speak_failed, a warning: the next line may work', async () => {
+    for (const [trigger, status] of [['MOCK_TTS_500', 500], ['MOCK_TTS_429', 429]] as const) {
         const lines = await logged(async () => {
             const res = await say(`${trigger} read this aloud`, 'en');
             assert.equal(res.status, 502, trigger);
             assert.equal((await res.json()).code, 'speak_failed');
         });
         const line = lines.find((l) => l.evt === 'upstream_error');
-        assert.deepEqual([line?.upstream, line?.status, line?.level], ['cloud_tts', status, level], trigger);
+        assert.deepEqual([line?.upstream, line?.status, line?.level], ['cloud_tts', status, 'warn'], trigger);
     }
     const res = await say('MOCK_TTS_EMPTY read this aloud', 'en');
     assert.equal(res.status, 502);
     assert.equal((await res.json()).code, 'speak_failed');
+    assert.equal((await say('Hello ji, how are you?', 'en')).status, 200, 'and the next one is read');
+});
+
+test('Text-to-Speech refusing the account is an error, and read-aloud is unavailable until it is fixed', async () => {
+    // An account of its own: a refusal blocks its account for a minute.
+    process.env.GOOGLE_TTS_SERVICE_ACCOUNT = mockServiceAccount(mock.url, 'switched-off@sikhai-mock.iam.gserviceaccount.com').json;
+    const lines = await logged(async () => {
+        const res = await say('MOCK_TTS_403 read this aloud', 'en');
+        assert.equal(res.status, 503);
+        assert.equal((await res.json()).code, 'speak_unavailable');
+    });
+    const line = lines.find((l) => l.evt === 'upstream_error');
+    assert.deepEqual([line?.upstream, line?.status, line?.level], ['cloud_tts', 403, 'error']);
+    const { result: res, requests } = await captured(mock, () => say('Hello ji, how are you?', 'en'));
+    assert.equal(res.status, 503, 'the API is still off: Google isn’t asked again for a minute');
+    assert.deepEqual(requests, []);
 });
 
 test('a line the page abandons answers 499', async () => {

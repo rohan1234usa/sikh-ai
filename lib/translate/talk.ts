@@ -196,7 +196,7 @@ export type TalkEvent =
     | { type: 'sent'; id: string; speaker: Speaker }
     | { type: 'lines'; id: string; lines: LiveLines }
     // The reply ended: whole, cut short (an error mid-stream), or abandoned
-    // for a newer clip or a page left behind.
+    // (the page left, or a new conversation begun).
     | { type: 'settled'; id: string; lines: LiveLines; how: 'whole' | 'cut' | 'aborted' }
     | { type: 'failed'; id: string; code: VoiceErrorCode }
     | { type: 'refused'; id: string; until: number; code: VoiceErrorCode }

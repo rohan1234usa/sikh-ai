@@ -26,9 +26,9 @@ import {
 // can't hear audio.
 //
 // The clip goes to Gemini as it came and is never kept or logged; nor are the
-// lines. A page that starts a new clip aborts this call: before the reply
-// starts that answers 499, and once it streams the body's cancel() stops the
-// generation.
+// lines. A page that is left, or starts a new conversation, aborts this call:
+// before the reply starts that answers 499, and once it streams the body's
+// cancel() stops the generation.
 export const maxDuration = 30;
 
 // The English is the dictionary's for the same code (lib/i18n/dictionaries),
