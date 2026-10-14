@@ -126,7 +126,7 @@ test('switched off, or not set up, it says so before counting anyone', async () 
         process.env.SPEAK = flag;
         const { result: res, requests } = await captured(mock, () => say(LINE, 'pa', visitor));
         assert.equal(res.status, 503, flag);
-        assert.equal(res.headers.get('retry-after'), null, 'nothing to wait for: the page stops asking');
+        assert.equal(res.headers.get('retry-after'), '600', 'asked again in ten minutes: the owner may switch it on');
         assert.equal((await res.json()).code, 'speak_unavailable');
         assert.equal(requests.length, 0);
     }
@@ -135,7 +135,7 @@ test('switched off, or not set up, it says so before counting anyone', async () 
     const lines = await logged(async () => {
         const res = await say(LINE, 'pa', visitor);
         assert.equal(res.status, 503);
-        assert.equal(res.headers.get('retry-after'), null);
+        assert.equal(res.headers.get('retry-after'), '600');
         assert.equal((await res.json()).code, 'speak_unavailable');
     });
     assert.deepEqual(lines.map((l) => [l.evt, l.level, l.why]), [['speak_unavailable', 'warn', 'not_set_up']]);
@@ -154,16 +154,38 @@ test('an account that isn’t a key file is an error the owner hears about', asy
         });
         assert.ok(lines.some((l) => l.evt === 'config_error' && l.level === 'error' && l.missing === 'GOOGLE_TTS_SERVICE_ACCOUNT'), bad);
     }
-    // A key file whose key can't sign.
-    process.env.GOOGLE_TTS_SERVICE_ACCOUNT = JSON.stringify({ client_email: 'broken@x', private_key: 'not a key', token_uri: `${mock.url}/token` });
+    // A key file whose key can't be read, as a key mangled in pasting (its
+    // newlines escaped twice): off like any key file that doesn't work,
+    // nobody counted and Google never asked, and logged once, not each line.
+    const key = JSON.parse(account.json) as Record<string, string>;
+    process.env.GOOGLE_TTS_SERVICE_ACCOUNT = JSON.stringify({ ...key, private_key: key.private_key.replace(/\n/g, '\\n') });
+    const visitor = { 'x-forwarded-for': '203.0.113.95' };
+    const minute = () => Math.floor(Date.now() / MINUTE_MS);
+    const started = minute();
     const lines = await logged(async () => {
-        const res = await say(LINE);
-        assert.equal(res.status, 503);
-        assert.equal(res.headers.get('retry-after'), '60', 'held back a minute, then tried again');
-        assert.equal((await res.json()).code, 'speak_unavailable');
+        for (let i = 0; i <= VISITOR_LIMITS.speak.perMinute; i++) {
+            const { result: res, requests } = await captured(mock, () => say(LINE, 'pa', visitor));
+            assert.equal(res.status, 503, `line ${i + 1}: never the visitor's 429`);
+            assert.equal(res.headers.get('retry-after'), '600');
+            assert.equal(requests.length, 0, 'Google is never asked');
+        }
     });
-    assert.ok(lines.some((l) => l.evt === 'config_error' && l.level === 'error' && l.why === 'unsigned'), JSON.stringify(lines));
-    assert.ok(!JSON.stringify(lines).includes('not a key'), 'never the key');
+    const errors = lines.filter((l) => l.evt === 'config_error');
+    assert.ok(errors.length >= 1 && errors.every((l) => l.level === 'error' && l.why === 'unreadable'), JSON.stringify(lines));
+    if (minute() === started) assert.equal(errors.length, 1, 'once a minute, however many lines');
+    assert.ok(!JSON.stringify(lines).includes('PRIVATE KEY'), 'never the key');
+});
+
+test('a sign-in that fails on the way is logged as the sign-in, not as Text-to-Speech', async () => {
+    process.env.GOOGLE_TTS_SERVICE_ACCOUNT = mockServiceAccount(mock.url, 'MOCK_OAUTH_HTML@sikhai-mock.iam.gserviceaccount.com').json;
+    const lines = await logged(async () => {
+        const { result: res, requests } = await captured(mock, () => say(LINE));
+        assert.equal(res.status, 502);
+        assert.equal((await res.json()).code, 'speak_failed');
+        assert.deepEqual(ops(requests), ['token'], 'Text-to-Speech is never reached');
+    });
+    const line = lines.find((l) => l.evt === 'upstream_error');
+    assert.deepEqual([line?.upstream, line?.error, line?.level], ['google_oauth', 'SyntaxError', 'warn'], JSON.stringify(lines));
 });
 
 test('Google refusing the sign-in is an error, and read-aloud waits a minute before asking again', async () => {
@@ -290,18 +312,34 @@ test('the log line says what a call cost, and never what was read', async () => 
 });
 
 // Last: it spends the server's whole day.
-test("past the server's characters for the day, it says it isn't available, and asks Google nothing", async () => {
-    assert.ok(speak.speakAllowance.spend(speak.speakAllowance.remaining()));
+test("near the server's characters for the day, a line too long for what's left fails alone; with none left, the page waits minutes, not hours", async () => {
+    const minute = () => Math.floor(Date.now() / MINUTE_MS);
+    const started = minute();
+    assert.ok(speak.speakAllowance.spend(speak.speakAllowance.remaining() - 10));
     const lines = await logged(async () => {
-        const { result: res, requests } = await captured(mock, () => say(LINE));
+        // Ten characters left: a longer line fails alone, with nothing to
+        // wait for, and a shorter one is still read.
+        let { result: res, requests } = await captured(mock, () => say(LINE));
+        assert.equal(res.status, 502);
+        assert.equal(res.headers.get('retry-after'), null, 'the next line may fit');
+        assert.equal((await res.json()).code, 'speak_failed');
+        assert.equal(requests.length, 0);
+        res = await say('ਹਾਂਜੀ');
+        assert.equal(res.status, 200, 'a line that fits is read');
+        // None left: unavailable, and asked again in a quarter of an hour at
+        // most, since each server keeps its own count.
+        assert.ok(speak.speakAllowance.spend(speak.speakAllowance.remaining()));
+        ({ result: res, requests } = await captured(mock, () => say(LINE)));
         assert.equal(res.status, 503);
         const wait = Number(res.headers.get('retry-after'));
-        assert.ok(wait >= 1 && wait <= 86_400, `until midnight UTC: ${wait}`);
+        assert.ok(wait >= 1 && wait <= 15 * 60, `a quarter of an hour at most: ${wait}`);
         assert.equal((await res.json()).code, 'speak_unavailable');
         assert.equal(requests.length, 0);
+        // Nobody is counted for lines that can't be read.
+        const visitor = { 'x-forwarded-for': '203.0.113.94' };
+        for (let i = 0; i <= VISITOR_LIMITS.speak.perMinute; i++) assert.equal((await say(LINE, 'pa', visitor)).status, 503, `line ${i + 1}`);
     });
-    assert.ok(lines.some((l) => l.evt === 'speak_ceiling' && l.level === 'warn'));
-    // Nobody is counted for lines that can't be read.
-    const visitor = { 'x-forwarded-for': '203.0.113.94' };
-    for (let i = 0; i <= VISITOR_LIMITS.speak.perMinute; i++) assert.equal((await say(LINE, 'pa', visitor)).status, 503, `line ${i + 1}`);
+    const ceiling = lines.filter((l) => l.evt === 'speak_ceiling');
+    assert.ok(ceiling.length >= 1 && ceiling.every((l) => l.level === 'warn'), JSON.stringify(lines));
+    if (minute() === started) assert.equal(ceiling.length, 1, 'a line a minute at most, however many are refused');
 });

@@ -16,7 +16,7 @@
 // Like ./cloud.ts it's on a request path, so it times out fast, meters
 // itself, never throws, and never logs the text or the key.
 
-import { createSign } from 'node:crypto';
+import { createPrivateKey, createSign, type KeyObject } from 'node:crypto';
 import { DAY_MS } from '../api/allowance';
 import { logRefusal } from '../api/refusals';
 import { logEvent } from '../log';
@@ -49,7 +49,7 @@ export function speakVoice(lang: SpeakLang): Voice {
     return { languageCode: name.split('-').slice(0, 2).join('-'), name };
 }
 
-type Account = { clientEmail: string; privateKey: string; keyId?: string; tokenUri: string };
+type Account = { clientEmail: string; privateKey: KeyObject; keyId?: string; tokenUri: string };
 
 function parseAccount(raw: string | undefined): Account | 'missing' | 'unreadable' {
     const text = raw?.trim();
@@ -58,9 +58,14 @@ function parseAccount(raw: string | undefined): Account | 'missing' | 'unreadabl
         const json = text.startsWith('{') ? text : Buffer.from(text, 'base64').toString('utf8');
         const key = JSON.parse(json) as Record<string, unknown>;
         if (typeof key.client_email !== 'string' || typeof key.private_key !== 'string') return 'unreadable';
+        // Read here, once. A key mangled in pasting (its newlines escaped
+        // twice, say) will never sign until the owner fixes the variable, so
+        // read-aloud is off until then, not held back a minute at a time.
+        const privateKey = createPrivateKey(key.private_key);
+        if (privateKey.asymmetricKeyType !== 'rsa') return 'unreadable';
         return {
             clientEmail: key.client_email,
-            privateKey: key.private_key,
+            privateKey,
             keyId: typeof key.private_key_id === 'string' ? key.private_key_id : undefined,
             tokenUri: typeof key.token_uri === 'string' ? key.token_uri : TOKEN_URI,
         };
@@ -78,29 +83,37 @@ function readAccount(raw: string | undefined): ReturnType<typeof parseAccount> {
 
 // The account to sign in with, or null when read-aloud is off: switched off
 // (SPEAK=off, which says nothing), not set up yet (a line a minute at most),
-// or set up with something that isn't a key file (an error: the owner's to
-// fix).
-function speakAccount(): Account | null {
+// or set up with something that isn't a working key file (an error: the
+// owner's to fix, written once a minute for each value at most).
+let unreadableLogged: { raw: string | undefined; minute: number } | null = null;
+function speakAccount(now: number): Account | null {
     if (switchedOff('SPEAK')) return null;
-    const account = readAccount(process.env.GOOGLE_TTS_SERVICE_ACCOUNT);
+    const raw = process.env.GOOGLE_TTS_SERVICE_ACCOUNT;
+    const account = readAccount(raw);
     if (account === 'missing') {
-        logRefusal('speak_unavailable', 'speak not_set_up', { why: 'not_set_up' });
+        logRefusal('speak_unavailable', 'speak not_set_up', { why: 'not_set_up' }, now);
         return null;
     }
     if (account === 'unreadable') {
-        logEvent('config_error', { missing: 'GOOGLE_TTS_SERVICE_ACCOUNT', why: 'unreadable' }, 'error');
+        const minute = Math.floor(now / 60_000);
+        if (!unreadableLogged || unreadableLogged.raw !== raw || unreadableLogged.minute !== minute) {
+            unreadableLogged = { raw, minute };
+            logEvent('config_error', { missing: 'GOOGLE_TTS_SERVICE_ACCOUNT', why: 'unreadable' }, 'error');
+        }
         return null;
     }
     return account;
 }
 
-// Why a line can't be read now. Off or not set up: nothing changes until the
-// owner acts, so there's no retryAfter, and the page stops asking. Held back
-// for a while (below), or this server's characters spent for the day: the
-// seconds until it may, which the route sends as Retry-After.
-export type Unavailable = { kind: 'unavailable'; retryAfter?: number };
+// Why a line can't be read now, and when to ask again, which the route sends
+// as Retry-After and the page waits out. Every case passes on its own or can
+// be fixed without the page knowing, so every one carries a time: off or not
+// set up, ten minutes (the owner may switch it on); held back (below), the
+// rest of the minute; this server's characters spent, a few minutes.
+export type Unavailable = { kind: 'unavailable'; retryAfter: number };
 
 const seconds = (ms: number) => Math.max(1, Math.ceil(ms / 1000));
+const OFF_RETRY_S = 600;
 
 // After a refusal about the account rather than the line (sign-in refused, a
 // key that can't sign, the API or billing switched off for its project), the
@@ -115,19 +128,27 @@ function block(account: Account): Unavailable {
     return { kind: 'unavailable', retryAfter: seconds(BLOCKED_MS) };
 }
 
-// The day's characters are spent until midnight UTC.
-function dayOver(chars: number, now: number): Unavailable {
-    logEvent('speak_ceiling', { chars }, 'warn');
-    return { kind: 'unavailable', retryAfter: seconds((Math.floor(now / DAY_MS) + 1) * DAY_MS - now) };
+// This server's characters for the day can't take the line. Each warm server
+// keeps its own count, so another (or this one after a cold start) may have
+// room: with nothing left, a page waits a quarter of an hour at most, not
+// until midnight UTC; a line merely too long for what is left fails alone,
+// and shorter ones are still read. Logged a line a minute at most.
+const CEILING_RETRY_S = 15 * 60;
+function overCeiling(chars: number, now: number): Unavailable | { kind: 'failed' } {
+    logRefusal('speak_ceiling', 'speak ceiling', { chars }, now);
+    if (speakAllowance.remaining() > 0) return { kind: 'failed' };
+    const toMidnight = seconds((Math.floor(now / DAY_MS) + 1) * DAY_MS - now);
+    return { kind: 'unavailable', retryAfter: Math.min(toMidnight, CEILING_RETRY_S) };
 }
 
 // Whether a line of `chars` characters can be read now, and the account to
-// read it with.
-export function speakReady(chars: number, now = Date.now()): { kind: 'ready'; account: Account } | Unavailable {
-    const account = speakAccount();
-    if (!account) return { kind: 'unavailable' };
+// read it with; or why not, before anyone is counted.
+export function speakReady(chars: number): { kind: 'ready'; account: Account } | Unavailable | { kind: 'failed' } {
+    const now = Date.now();
+    const account = speakAccount(now);
+    if (!account) return { kind: 'unavailable', retryAfter: OFF_RETRY_S };
     if (blocked?.account === idOf(account) && blocked.until > now) return { kind: 'unavailable', retryAfter: seconds(blocked.until - now) };
-    if (speakAllowance.remaining() < chars) return dayOver(chars, now);
+    if (speakAllowance.remaining() < chars) return overCeiling(chars, now);
     return { kind: 'ready', account };
 }
 
@@ -150,7 +171,8 @@ async function accessToken(account: Account, signal: AbortSignal): Promise<strin
     try {
         assertion = `${unsigned}.${createSign('RSA-SHA256').update(unsigned).sign(account.privateKey).toString('base64url')}`;
     } catch (error) {
-        // The private key isn't one. Its name only: never the key.
+        // A key read as RSA that still won't sign (parseAccount checks it):
+        // held back, as a refusal is. Its name only: never the key.
         logEvent('config_error', { missing: 'GOOGLE_TTS_SERVICE_ACCOUNT', why: 'unsigned', error: error instanceof Error ? error.name : typeof error }, 'error');
         return block(account);
     }
@@ -190,18 +212,22 @@ export type Spoken =
 // script the language's voice reads (speakable in ./voice.ts). `account` is
 // what speakReady() found.
 export async function synthesize(account: Account, text: string, lang: SpeakLang, signal?: AbortSignal): Promise<Spoken> {
-    // Charged before the request, as ./cloud.ts is: speakReady() saw room,
-    // but another line may have taken it since.
-    if (!speakAllowance.spend(text.length)) return dayOver(text.length, Date.now());
+    // Charged before the request, as ./cloud.ts is. speakReady() saw room,
+    // and nothing runs between the two: the route calls this straight after.
+    speakAllowance.spend(text.length);
 
     const voice = speakVoice(lang);
     const started = Date.now();
     const timeout = AbortSignal.timeout(TIMEOUT_MS);
     const either = signal ? AbortSignal.any([signal, timeout]) : timeout;
+    // Which service a thrown error came from: the sign-in, until there is a
+    // token, then Text-to-Speech.
+    let upstream: 'google_oauth' | 'cloud_tts' = 'google_oauth';
     try {
         const bearer = await accessToken(account, either);
         if (bearer === null) return { kind: 'failed' };
         if (typeof bearer !== 'string') return bearer;
+        upstream = 'cloud_tts';
         const base = process.env.GOOGLE_TTS_BASE_URL?.trim() || API;
         const res = await fetch(`${base}/v1/text:synthesize`, {
             method: 'POST',
@@ -238,7 +264,7 @@ export async function synthesize(account: Account, text: string, lang: SpeakLang
     } catch (error) {
         if (signal?.aborted) return { kind: 'aborted' };
         // The name only, as in ./cloud.ts.
-        logEvent('upstream_error', { upstream: 'cloud_tts', error: error instanceof Error ? error.name : typeof error }, 'warn');
+        logEvent('upstream_error', { upstream, error: error instanceof Error ? error.name : typeof error }, 'warn');
         return { kind: 'failed' };
     }
 }

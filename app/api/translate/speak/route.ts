@@ -30,12 +30,12 @@ const MAX_BODY_CHARS = 2 * MAX_SPEAK_CHARS + 500;
 
 const refuse = (status: number, code: string, error: string) =>
   NextResponse.json({ error, code }, { status, headers: NO_STORE });
-// Off or not set up: no Retry-After, and the page stops asking. Held back a
-// while, or the day's characters spent: the page waits as long as it says.
-const unavailable = (retryAfter?: number) =>
+// Off, not set up, held back, or out of characters: the page waits as long
+// as Retry-After says, then asks again (lib/translate/speak.ts says how long).
+const unavailable = (retryAfter: number) =>
   NextResponse.json(
     { error: UNAVAILABLE_ERROR, code: "speak_unavailable" },
-    { status: 503, headers: { ...NO_STORE, ...(retryAfter ? { "Retry-After": String(retryAfter) } : {}) } },
+    { status: 503, headers: { ...NO_STORE, "Retry-After": String(retryAfter) } },
   );
 
 async function handlePost(req: Request) {
@@ -57,9 +57,11 @@ async function handlePost(req: Request) {
     if (!isSpeakLang(lang) || !speakable(line, lang)) return refuse(400, "speak_invalid", INVALID_ERROR);
 
     // Off, not set up, held back, or out of characters for the day: said
-    // before a visitor is counted, so nothing is spent on it.
+    // before a visitor is counted, so nothing is spent on it. A line too long
+    // for this server's characters left fails alone.
     const ready = speakReady(line.length);
     if (ready.kind === "unavailable") return unavailable(ready.retryAfter);
+    if (ready.kind === "failed") return refuse(502, "speak_failed", FAILED_ERROR);
     const limited = limitVisitor(req, "speak");
     if (limited) return limited;
 

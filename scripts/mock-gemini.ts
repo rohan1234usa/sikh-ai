@@ -32,7 +32,8 @@
 // service account's token_uri is this server's /token (mockServiceAccount()):
 //   POST /token                   a service account's access token, for any
 //                                 well-formed JWT; an issuer containing
-//                                 MOCK_OAUTH_400 is refused
+//                                 MOCK_OAUTH_400 is refused, and one with
+//                                 MOCK_OAUTH_HTML answered with a web page
 //   POST /v1/text:synthesize      a short silent MP3, for a token /token gave;
 //                                 MOCK_TTS_500, MOCK_TTS_403, MOCK_TTS_429, MOCK_TTS_400,
 //                                 MOCK_TTS_EMPTY or MOCK_TTS_HANG in the text
@@ -265,6 +266,11 @@ export async function startMockGemini(opts: MockOptions = {}): Promise<MockGemin
                 && assertion.split('.').length === 3 && typeof claims.iss === 'string';
             if (!wellFormed || String(claims.iss).includes('MOCK_OAUTH_400')) {
                 return json(400, { error: 'invalid_grant', error_description: 'Invalid JWT Signature.' });
+            }
+            if (String(claims.iss).includes('MOCK_OAUTH_HTML')) {
+                res.writeHead(200, { 'content-type': 'text/html' });
+                res.end('<html>Sign in</html>');
+                return;
             }
             const token = `mock-token-${++tokensIssued}`;
             tokens.add(token);
