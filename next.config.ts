@@ -23,8 +23,9 @@ const SECURITY_HEADERS = [
   // same-origin, which would also cut off the popups this site opens, Google
   // sign-in's among them.
   { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
-  // Nothing on the site uses these. A voice feature would need microphone=(self).
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  // Only the Talk page (/translate/talk) uses the microphone, and only this
+  // site's own documents may ask for it; nothing uses the camera or location.
+  { key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=()" },
   { key: "Content-Security-Policy", value: CSP },
   { key: "Reporting-Endpoints", value: `${CSP_REPORT_GROUP}="${CSP_REPORT_PATH}"` },
 ];
