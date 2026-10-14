@@ -75,11 +75,11 @@ test('the silent WAV is a well-formed RIFF file of silence', () => {
     assert.ok(wav.subarray(44).every(b => b === 128));
 });
 
-test('English is read by a voice on the device first', () => {
+test('English is read only by a voice on the device, its default first', () => {
     const v = (lang: string, localService: boolean, isDefault = false) => ({ lang, localService, default: isDefault, name: `${lang}-${localService}` });
     assert.equal(pickEnglishVoice([v('pa-IN', true), v('en-US', false, true), v('en-GB', true)])?.name, 'en-GB-true');
     assert.equal(pickEnglishVoice([v('en-US', true), v('en_GB', true, true)])?.name, 'en_GB-true', 'the default among local ones');
-    assert.equal(pickEnglishVoice([v('en-US', false), v('en-IN', false, true)])?.name, 'en-IN-false');
+    assert.equal(pickEnglishVoice([v('en-US', false), v('en-IN', false, true)]), null, 'an online voice would send the line elsewhere');
     assert.equal(pickEnglishVoice([v('pa-IN', true), v('hi-IN', true)]), null);
     assert.equal(pickEnglishVoice([v('eng', true)]), null, 'not a language tag for English');
     assert.equal(pickEnglishVoice([]), null);

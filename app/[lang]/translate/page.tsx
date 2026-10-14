@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useT } from '@/app/context/LanguageContext';
+import { MicrophoneIcon } from '@heroicons/react/24/outline';
+import IntentLink from '@/app/components/IntentLink';
+import { useLocalePath, useT } from '@/app/context/LanguageContext';
 import { FriendlyError, responseErrorText } from '@/lib/i18n/apiError';
 import {
   MAX_TRANSLATE_CHARS,
@@ -27,6 +29,7 @@ import { useLiveSwitch } from '@/app/components/translate/useLiveSwitch';
 
 export default function TranslatePage() {
   const t = useT();
+  const to = useLocalePath();
   const [text, setText] = useState('');
   const [hint, setHint] = useState<SourceHint>('auto');
   const [loading, setLoading] = useState(false);
@@ -226,9 +229,17 @@ export default function TranslatePage() {
         <h1 className="text-3xl font-bold mb-2 text-center">
           {titleBefore}<span className="text-accent-text">{t.translate.titleWord}</span>{titleAfter}
         </h1>
-        <p className="mb-6 text-sm text-ink-muted text-center max-w-xl">
+        <p className="mb-3 text-sm text-ink-muted text-center max-w-xl">
           {t.translate.subtitle}
         </p>
+        {/* Talk: the same translator, spoken (#37). */}
+        <IntentLink
+          href={to('/translate/talk')}
+          className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-link hover:underline"
+        >
+          <MicrophoneIcon className="h-4 w-4" aria-hidden="true" />
+          {t.translate.talk.link}
+        </IntentLink>
         <TranslateInput
           text={text}
           onText={handleText}

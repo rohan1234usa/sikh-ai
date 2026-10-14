@@ -100,15 +100,13 @@ export function silentWav(ms = 50, sampleRate = 8_000): Uint8Array<ArrayBuffer> 
     return bytes;
 }
 
-// The device's English voice for speechSynthesis: one on the device first
-// (it works offline and starts at once), then the device's default, then any.
+// The device's English voice for speechSynthesis: only one on the device
+// itself, its default first. A voice that is a browser maker's online service
+// would send the line to them, which /privacy doesn't say; without one on the
+// device, the speak route reads English too.
 export function pickEnglishVoice<V extends { lang: string; localService: boolean; default: boolean }>(voices: readonly V[]): V | null {
-    const english = voices.filter(v => /^en(?:[-_]|$)/i.test(v.lang));
-    return english.find(v => v.localService && v.default)
-        ?? english.find(v => v.localService)
-        ?? english.find(v => v.default)
-        ?? english[0]
-        ?? null;
+    const english = voices.filter(v => v.localService && /^en(?:[-_]|$)/i.test(v.lang));
+    return english.find(v => v.default) ?? english[0] ?? null;
 }
 
 // ── The conversation ────────────────────────────────────────────────────────
