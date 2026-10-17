@@ -740,7 +740,11 @@ const en = {
             atQuiz: 'Ready for the quiz',
             // The outline under a lesson's title.
             outline: 'In this lesson',
-            sectionCount: '{n} sections',
+            outlineSummary: '{n} sections · about {min} min',
+            // How long a lesson takes: 200 words a minute, 20 seconds a question.
+            minutes: 'About {n} min',
+            minutesLeft: 'About {n} min left',
+            sectionMinutes: '{n} min',
         },
         quiz: {
             heading: 'Check yourself',

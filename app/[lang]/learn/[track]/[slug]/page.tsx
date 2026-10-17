@@ -13,6 +13,7 @@ import { localePath } from '@/lib/i18n/paths';
 import { getServerT } from '@/lib/i18n/server';
 import { LESSON_META, isLessonSlug, lessonMeta, lessonPath } from '@/lib/learn/config';
 import { getLesson, neighbors } from '@/lib/learn/curriculum';
+import { lessonPace } from '@/lib/learn/pace';
 import { pageMetadata } from '@/lib/metadata';
 import Mixed from '@/app/components/learn/Mixed';
 
@@ -68,7 +69,7 @@ export default async function LessonPage({ params }: PageProps<'/[lang]/learn/[t
             lead={lesson.summary}
             lang="en"
           >
-            <LessonOutline t={t} headings={lesson.sections.map((section) => section.heading)} />
+            <LessonOutline t={t} headings={lesson.sections.map((section) => section.heading)} pace={lessonPace(lesson)} />
           </LearnPageHeader>
 
           <LessonSections t={t} sections={lesson.sections} />

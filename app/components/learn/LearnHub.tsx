@@ -13,8 +13,10 @@ import { PRIMARY_BUTTON } from '@/app/components/buttons';
 import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { LessonTrackId, TrackId } from '@/lib/learn/config';
+import type { LessonPace } from '@/lib/learn/pace';
 import { isLessonDone, lessonPlace, nextLesson, placeHash, trackProgress, type LessonPlace } from '@/lib/learn/progress';
 import { cardCounts } from '@/lib/learn/srs';
+import { placeWords, timeWords } from './lessonStatus';
 import { useLearnProgress } from './useLearnProgress';
 import Mixed from './Mixed';
 
@@ -23,7 +25,7 @@ export type HubLesson = {
     track: LessonTrackId;
     title: string;
     href: string;
-    sections: number; // its section count, for "Section 2 of 4"
+    pace: LessonPace; // its sections' and quiz's seconds: "Section 2 of 4", "About 6 min"
 };
 
 type Props = {
@@ -42,7 +44,8 @@ const ICONS: Record<TrackId, typeof PencilSquareIcon> = {
 // The /learn hub: where to pick up, each track's progress, and a way to wipe
 // the slate. Everything that depends on this browser's progress waits for
 // it to be read, so the server's HTML and the first render agree. "Continue"
-// reopens a lesson at the section the learner reached.
+// reopens a lesson at the section the learner reached, and says how long
+// the rest takes.
 export default function LearnHub({ lessons, wordIds, tracks }: Props) {
     const t = useT();
     const { progress, hydrated, now, reset } = useLearnProgress();
@@ -63,12 +66,9 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
     const nextLink = lessons.find((lesson) => lesson.slug === next);
     const started = slugs.some((slug) => isLessonDone(progress, slug));
     const label = next === progress.lastLesson ? t.learn.hub.continue : started ? t.learn.hub.upNext : t.learn.hub.start;
-    const place: LessonPlace = nextLink ? lessonPlace(progress, nextLink.slug, nextLink.sections) : { kind: 'new' };
-    // How far into it the learner is, once they've started it.
-    const where = !nextLink ? null
-        : place.kind === 'section' ? fmt(t.learn.lesson.sectionOf, { n: place.index + 1, total: nextLink.sections })
-            : place.kind === 'quiz' ? t.learn.lesson.atQuiz
-                : null;
+    const place: LessonPlace = nextLink ? lessonPlace(progress, nextLink.slug, nextLink.pace.sections.length) : { kind: 'new' };
+    // How far into it the learner is, and how long it (or the rest of it) takes.
+    const meta = nextLink ? [placeWords(t, place, nextLink.pace), timeWords(t, place, nextLink.pace)].filter(Boolean).join(' · ') : '';
     const cards = now !== null ? cardCounts(wordIds, progress.cards, now) : null;
 
     const progressLine = (id: TrackId): string | null => {
@@ -88,9 +88,9 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
         <div className="space-y-8">
             {/* Held at the panel's usual height until progress is read, so the
                 tracks below don't jump: 226px on a phone, where the button
-                drops below, most lesson titles take two lines and the place in
-                the lesson has a line of its own; 120px wider, where it shares
-                the track's line. */}
+                drops below, most lesson titles take two lines and the place
+                and time have a line of their own; 120px wider, where they
+                share the track's line. */}
             {!hydrated ? (
                 <div aria-hidden="true" className="h-56.5 animate-pulse rounded-2xl bg-edge/40 sm:h-30" />
             ) : nextLink ? (
@@ -100,9 +100,9 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
                         <p lang="en" className="text-xl font-bold"><Mixed text={nextLink.title} /></p>
                         <p className="text-sm text-ink-muted">
                             {t.learn.tracks[nextLink.track].title}
-                            {where && <span className="hidden sm:inline"> · </span>}
-                            {/* Its own line on a phone, held even when empty. */}
-                            <span className="block sm:inline">{where ?? ' '}</span>
+                            <span className="hidden sm:inline"> · </span>
+                            {/* A line of its own on a phone. */}
+                            <span className="block sm:inline">{meta}</span>
                         </p>
                     </div>
                     <IntentLink

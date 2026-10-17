@@ -716,7 +716,10 @@ const pa: Dictionary = {
             sectionOf: 'ਹਿੱਸਾ {n} / {total}',
             atQuiz: 'ਕੁਇਜ਼ ਲਈ ਤਿਆਰ',
             outline: 'ਇਸ ਸਬਕ ਵਿੱਚ',
-            sectionCount: '{n} ਹਿੱਸੇ',
+            outlineSummary: '{n} ਹਿੱਸੇ · ਲਗਭਗ {min} ਮਿੰਟ',
+            minutes: 'ਲਗਭਗ {n} ਮਿੰਟ',
+            minutesLeft: 'ਲਗਭਗ {n} ਮਿੰਟ ਬਾਕੀ',
+            sectionMinutes: '{n} ਮਿੰਟ',
         },
         quiz: {
             heading: 'ਆਪਣੇ ਆਪ ਨੂੰ ਪਰਖੋ',
