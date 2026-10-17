@@ -745,6 +745,7 @@ const en = {
             minutes: 'About {n} min',
             minutesLeft: 'About {n} min left',
             sectionMinutes: '{n} min',
+            skipToQuiz: 'Skip to the quiz',
         },
         quiz: {
             heading: 'Check yourself',

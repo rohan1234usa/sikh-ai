@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import { ArrowDownIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import IntentLink from '@/app/components/IntentLink';
 import LearnPageHeader from '@/app/components/learn/LearnPageHeader';
 import LessonOutline from '@/app/components/learn/LessonOutline';
@@ -11,7 +11,7 @@ import LessonSections from '@/app/components/learn/LessonSections';
 import { fmt } from '@/lib/i18n/fmt';
 import { localePath } from '@/lib/i18n/paths';
 import { getServerT } from '@/lib/i18n/server';
-import { LESSON_META, isLessonSlug, lessonMeta, lessonPath } from '@/lib/learn/config';
+import { LESSON_META, QUIZ_ANCHOR, isLessonSlug, lessonMeta, lessonPath } from '@/lib/learn/config';
 import { getLesson, neighbors } from '@/lib/learn/curriculum';
 import { lessonPace } from '@/lib/learn/pace';
 import { pageMetadata } from '@/lib/metadata';
@@ -65,6 +65,13 @@ export default async function LessonPage({ params }: PageProps<'/[lang]/learn/[t
               { href: to(`/learn/${meta.track}`), label: t.learn.tracks[meta.track].title },
             ]}
             eyebrow={fmt(t.learn.lesson.lessonOf, { n: index + 1, total })}
+            action={
+              // For a learner who knows it already: straight to the questions.
+              <a href={`#${QUIZ_ANCHOR}`} className="inline-flex items-center gap-1 text-sm font-semibold text-link hover:underline">
+                {t.learn.lesson.skipToQuiz}
+                <ArrowDownIcon className="h-4 w-4" aria-hidden="true" />
+              </a>
+            }
             title={lesson.title}
             lead={lesson.summary}
             lang="en"
