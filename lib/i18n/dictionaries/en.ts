@@ -752,7 +752,11 @@ const en = {
             questionN: 'Question {n}',
             typedLabel: 'Your answer',
             typedPlaceholder: 'Type it in English letters',
-            check: 'Check answers',
+            // Each question is checked on its own; its button is named with
+            // its number, since a quiz has six to ten alike.
+            check: 'Check',
+            checkAria: 'Check question {n}',
+            progress: '{n} of {total} checked',
             tryAgain: 'Try again',
             newQuestions: 'New questions',
             correct: 'Correct',
