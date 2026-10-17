@@ -4,7 +4,7 @@ import LearnHub from '@/app/components/learn/LearnHub';
 import { localePath } from '@/lib/i18n/paths';
 import { getServerT } from '@/lib/i18n/server';
 import { LESSON_META, TRACK_IDS, lessonPath } from '@/lib/learn/config';
-import { VOCAB } from '@/lib/learn/curriculum';
+import { VOCAB, getLesson } from '@/lib/learn/curriculum';
 import { pageMetadata } from '@/lib/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -13,7 +13,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // The Learn Punjabi hub. Built ahead of time like every page; the parts that
-// depend on this browser's progress fill in once it is read (LearnHub).
+// depend on this browser's progress fill in once it is read (LearnHub). It
+// reads each lesson only for numbers: no lesson text reaches the browser.
 export default async function LearnPage() {
   const { lang, t } = await getServerT();
   const to = (path: string) => localePath(lang, path);
@@ -23,7 +24,13 @@ export default async function LearnPage() {
       <LearnHero t={t} />
       <div className="max-w-5xl mx-auto w-full p-6 flex-1">
         <LearnHub
-          lessons={LESSON_META.map((meta) => ({ slug: meta.slug, track: meta.track, title: meta.title, href: to(lessonPath(meta)) }))}
+          lessons={LESSON_META.map((meta) => ({
+            slug: meta.slug,
+            track: meta.track,
+            title: meta.title,
+            href: to(lessonPath(meta)),
+            sections: getLesson(meta.slug).sections.length,
+          }))}
           wordIds={Object.values(VOCAB).flatMap((words) => words.map((word) => word.id))}
           tracks={TRACK_IDS.map((id) => ({ id, href: to(`/learn/${id}`) }))}
         />

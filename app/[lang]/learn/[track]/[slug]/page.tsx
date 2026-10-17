@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import IntentLink from '@/app/components/IntentLink';
 import LearnPageHeader from '@/app/components/learn/LearnPageHeader';
+import LessonProgress from '@/app/components/learn/LessonProgress';
 import LessonQuiz from '@/app/components/learn/LessonQuiz';
 import LessonSections from '@/app/components/learn/LessonSections';
 import { fmt } from '@/lib/i18n/fmt';
@@ -18,7 +19,8 @@ import Mixed from '@/app/components/learn/Mixed';
 // lesson under the wrong track, gets the site's own 404
 // (app/global-not-found.tsx, checked against a production build), because of
 // dynamicParams below; the redirect is only a fallback. Only this lesson's
-// quiz reaches the browser as data: the teaching is rendered here.
+// quiz reaches the browser as data: the teaching is rendered here, and
+// LessonProgress, around it, needs only its section count.
 export function generateStaticParams() {
   return LESSON_META.map((meta) => ({ track: meta.track, slug: meta.slug }));
 }
@@ -52,54 +54,56 @@ export default async function LessonPage({ params }: PageProps<'/[lang]/learn/[t
 
   return (
     <main className="flex-1 flex flex-col">
-      <div className="max-w-3xl mx-auto w-full p-6 flex-1 space-y-10">
-        <LearnPageHeader
-          t={t}
-          crumbs={[
-            { href: to('/learn'), label: t.meta.learnTitle },
-            { href: to(`/learn/${meta.track}`), label: t.learn.tracks[meta.track].title },
-          ]}
-          eyebrow={fmt(t.learn.lesson.lessonOf, { n: index + 1, total })}
-          title={lesson.title}
-          lead={lesson.summary}
-          lang="en"
-        />
+      <LessonProgress slug={lesson.slug} sections={lesson.sections.length}>
+        <div className="max-w-3xl mx-auto w-full p-6 flex-1 space-y-10">
+          <LearnPageHeader
+            t={t}
+            crumbs={[
+              { href: to('/learn'), label: t.meta.learnTitle },
+              { href: to(`/learn/${meta.track}`), label: t.learn.tracks[meta.track].title },
+            ]}
+            eyebrow={fmt(t.learn.lesson.lessonOf, { n: index + 1, total })}
+            title={lesson.title}
+            lead={lesson.summary}
+            lang="en"
+          />
 
-        <LessonSections t={t} sections={lesson.sections} />
+          <LessonSections t={t} sections={lesson.sections} />
 
-        <IntentLink
-          href={`${to('/learn/tutor')}?lesson=${lesson.slug}`}
-          className="inline-flex items-center gap-2 rounded-xl border border-link/40 px-4 py-2.5 text-sm font-semibold text-link transition-colors hover:bg-link/10"
-        >
-          <ChatBubbleLeftRightIcon className="h-5 w-5" aria-hidden="true" />
-          {t.learn.lesson.askTutor}
-        </IntentLink>
+          <IntentLink
+            href={`${to('/learn/tutor')}?lesson=${lesson.slug}`}
+            className="inline-flex items-center gap-2 rounded-xl border border-link/40 px-4 py-2.5 text-sm font-semibold text-link transition-colors hover:bg-link/10"
+          >
+            <ChatBubbleLeftRightIcon className="h-5 w-5" aria-hidden="true" />
+            {t.learn.lesson.askTutor}
+          </IntentLink>
 
-        <LessonQuiz slug={lesson.slug} questions={lesson.quiz} />
+          <LessonQuiz slug={lesson.slug} questions={lesson.quiz} />
 
-        {/* Plain Links, like the Ang page's: the next lesson is prefetched
-            as it scrolls into view, since reading on is the likely move. */}
-        <nav aria-label={t.learn.lesson.pagerAria} className="grid gap-3 border-t border-edge pt-6 text-sm sm:grid-cols-2">
-          {prev ? (
-            <Link rel="prev" href={to(lessonPath(prev))} className="rounded-xl border border-edge p-3 transition-colors hover:border-accent-text/40">
-              <span className="block text-ink-muted">← {t.learn.lesson.previous}</span>
-              <span lang="en" className="block font-semibold text-ink"><Mixed text={prev.title} /></span>
-            </Link>
-          ) : <span className="hidden sm:block" />}
-          {next ? (
-            <Link rel="next" href={to(lessonPath(next))} className="rounded-xl border border-edge p-3 text-right transition-colors hover:border-accent-text/40">
-              <span className="block text-ink-muted">{t.learn.lesson.next} →</span>
-              <span lang="en" className="block font-semibold text-ink"><Mixed text={next.title} /></span>
-            </Link>
-          ) : (
-            <Link href={to(`/learn/${meta.track}`)} className="rounded-xl border border-edge p-3 text-right font-semibold text-link transition-colors hover:border-accent-text/40">
-              {t.learn.lesson.allLessons}
-            </Link>
-          )}
-        </nav>
+          {/* Plain Links, like the Ang page's: the next lesson is prefetched
+              as it scrolls into view, since reading on is the likely move. */}
+          <nav aria-label={t.learn.lesson.pagerAria} className="grid gap-3 border-t border-edge pt-6 text-sm sm:grid-cols-2">
+            {prev ? (
+              <Link rel="prev" href={to(lessonPath(prev))} className="rounded-xl border border-edge p-3 transition-colors hover:border-accent-text/40">
+                <span className="block text-ink-muted">← {t.learn.lesson.previous}</span>
+                <span lang="en" className="block font-semibold text-ink"><Mixed text={prev.title} /></span>
+              </Link>
+            ) : <span className="hidden sm:block" />}
+            {next ? (
+              <Link rel="next" href={to(lessonPath(next))} className="rounded-xl border border-edge p-3 text-right transition-colors hover:border-accent-text/40">
+                <span className="block text-ink-muted">{t.learn.lesson.next} →</span>
+                <span lang="en" className="block font-semibold text-ink"><Mixed text={next.title} /></span>
+              </Link>
+            ) : (
+              <Link href={to(`/learn/${meta.track}`)} className="rounded-xl border border-edge p-3 text-right font-semibold text-link transition-colors hover:border-accent-text/40">
+                {t.learn.lesson.allLessons}
+              </Link>
+            )}
+          </nav>
 
-        <p className="text-xs italic text-ink-muted">{t.learn.caveat}</p>
-      </div>
+          <p className="text-xs italic text-ink-muted">{t.learn.caveat}</p>
+        </div>
+      </LessonProgress>
     </main>
   );
 }

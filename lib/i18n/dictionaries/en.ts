@@ -735,6 +735,9 @@ const en = {
             lettersAria: 'Letters',
             examplesAria: 'Examples',
             askTutor: 'Ask the tutor about this lesson',
+            // How far into a lesson the learner has read: its checkpoints.
+            sectionOf: 'Section {n} of {total}',
+            atQuiz: 'Ready for the quiz',
         },
         quiz: {
             heading: 'Check yourself',

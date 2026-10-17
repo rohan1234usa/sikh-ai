@@ -713,6 +713,8 @@ const pa: Dictionary = {
             lettersAria: 'ਅੱਖਰ',
             examplesAria: 'ਉਦਾਹਰਨਾਂ',
             askTutor: 'ਇਸ ਸਬਕ ਬਾਰੇ ਟਿਊਟਰ ਨੂੰ ਪੁੱਛੋ',
+            sectionOf: 'ਹਿੱਸਾ {n} / {total}',
+            atQuiz: 'ਕੁਇਜ਼ ਲਈ ਤਿਆਰ',
         },
         quiz: {
             heading: 'ਆਪਣੇ ਆਪ ਨੂੰ ਪਰਖੋ',

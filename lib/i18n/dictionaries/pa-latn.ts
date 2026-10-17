@@ -713,6 +713,8 @@ const paLatn: Dictionary = {
             lettersAria: 'Akhar',
             examplesAria: 'Udaharnan',
             askTutor: 'Is sabak baare tutor nu puchho',
+            sectionOf: 'Hissa {n} / {total}',
+            atQuiz: 'Quiz layi tiaar',
         },
         quiz: {
             heading: 'Aapne aap nu parkho',

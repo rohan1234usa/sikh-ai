@@ -13,12 +13,18 @@ import { PRIMARY_BUTTON } from '@/app/components/buttons';
 import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { LessonTrackId, TrackId } from '@/lib/learn/config';
-import { isLessonDone, nextLesson, trackProgress } from '@/lib/learn/progress';
+import { isLessonDone, lessonPlace, nextLesson, placeHash, trackProgress, type LessonPlace } from '@/lib/learn/progress';
 import { cardCounts } from '@/lib/learn/srs';
 import { useLearnProgress } from './useLearnProgress';
 import Mixed from './Mixed';
 
-export type HubLesson = { slug: string; track: LessonTrackId; title: string; href: string };
+export type HubLesson = {
+    slug: string;
+    track: LessonTrackId;
+    title: string;
+    href: string;
+    sections: number; // its section count, for "Section 2 of 4"
+};
 
 type Props = {
     lessons: HubLesson[];                             // every lesson, in curriculum order
@@ -35,7 +41,8 @@ const ICONS: Record<TrackId, typeof PencilSquareIcon> = {
 
 // The /learn hub: where to pick up, each track's progress, and a way to wipe
 // the slate. Everything that depends on this browser's progress waits for
-// it to be read, so the server's HTML and the first render agree.
+// it to be read, so the server's HTML and the first render agree. "Continue"
+// reopens a lesson at the section the learner reached.
 export default function LearnHub({ lessons, wordIds, tracks }: Props) {
     const t = useT();
     const { progress, hydrated, now, reset } = useLearnProgress();
@@ -56,6 +63,12 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
     const nextLink = lessons.find((lesson) => lesson.slug === next);
     const started = slugs.some((slug) => isLessonDone(progress, slug));
     const label = next === progress.lastLesson ? t.learn.hub.continue : started ? t.learn.hub.upNext : t.learn.hub.start;
+    const place: LessonPlace = nextLink ? lessonPlace(progress, nextLink.slug, nextLink.sections) : { kind: 'new' };
+    // How far into it the learner is, once they've started it.
+    const where = !nextLink ? null
+        : place.kind === 'section' ? fmt(t.learn.lesson.sectionOf, { n: place.index + 1, total: nextLink.sections })
+            : place.kind === 'quiz' ? t.learn.lesson.atQuiz
+                : null;
     const cards = now !== null ? cardCounts(wordIds, progress.cards, now) : null;
 
     const progressLine = (id: TrackId): string | null => {
@@ -74,19 +87,26 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
     return (
         <div className="space-y-8">
             {/* Held at the panel's usual height until progress is read, so the
-                tracks below don't jump: 208px on a phone, where the button
-                drops below and most lesson titles take two lines, 120px wider. */}
+                tracks below don't jump: 226px on a phone, where the button
+                drops below, most lesson titles take two lines and the place in
+                the lesson has a line of its own; 120px wider, where it shares
+                the track's line. */}
             {!hydrated ? (
-                <div aria-hidden="true" className="h-52 animate-pulse rounded-2xl bg-edge/40 sm:h-30" />
+                <div aria-hidden="true" className="h-56.5 animate-pulse rounded-2xl bg-edge/40 sm:h-30" />
             ) : nextLink ? (
                 <div className="flex flex-col gap-4 rounded-2xl border border-edge-strong bg-surface-raised p-6 text-ink sm:flex-row sm:items-center">
                     <div className="min-w-0 flex-1 space-y-1">
                         <p className="text-xs font-bold uppercase tracking-widest text-accent-text">{label}</p>
                         <p lang="en" className="text-xl font-bold"><Mixed text={nextLink.title} /></p>
-                        <p className="text-sm text-ink-muted">{t.learn.tracks[nextLink.track].title}</p>
+                        <p className="text-sm text-ink-muted">
+                            {t.learn.tracks[nextLink.track].title}
+                            {where && <span className="hidden sm:inline"> · </span>}
+                            {/* Its own line on a phone, held even when empty. */}
+                            <span className="block sm:inline">{where ?? ' '}</span>
+                        </p>
                     </div>
                     <IntentLink
-                        href={nextLink.href}
+                        href={nextLink.href + placeHash(place)}
                         className={PRIMARY_BUTTON}
                     >
                         {t.learn.hub.openLesson}
@@ -94,7 +114,7 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
                     </IntentLink>
                 </div>
             ) : (
-                <div className="flex min-h-52 flex-col justify-center rounded-2xl border border-edge-strong bg-surface-raised p-6 text-ink sm:min-h-30">
+                <div className="flex min-h-56.5 flex-col justify-center rounded-2xl border border-edge-strong bg-surface-raised p-6 text-ink sm:min-h-30">
                     <p className="text-xl font-bold">{t.learn.hub.allDone}</p>
                     <p className="text-sm text-ink-muted">{t.learn.hub.allDoneBody}</p>
                 </div>
