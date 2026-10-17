@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useRef, type ReactNode } from 'react';
 import { QUIZ_ANCHOR, sectionAnchor } from '@/lib/learn/config';
-import { checkpointReached } from '@/lib/learn/progress';
+import { checkpointReached, isLessonDone } from '@/lib/learn/progress';
 import { useLearnProgress } from './useLearnProgress';
 
 type LessonProgressValue = ReturnType<typeof useLearnProgress>;
@@ -40,6 +40,12 @@ function furthestOnScreen(sections: number): number {
 // shared with the page's parts. Opening the lesson makes it the one the
 // hub's "Continue" returns to, and each section read past is saved as a
 // checkpoint, so "Continue" reopens the lesson there.
+//
+// Across the top, under the navbar, a thin gold rule (Pothi's rule for
+// progress) fills as checkpoints are passed: a share for each section and
+// one for the quiz, and the whole once the lesson is done. The fill is a
+// border, so forced colours keep it; the track is a background, so they
+// drop it. It only pictures what the hub and the track list say in words.
 export default function LessonProgress({ slug, sections, children }: {
     slug: string;
     sections: number; // the lesson's section count; its quiz is the checkpoint after them
@@ -85,5 +91,17 @@ export default function LessonProgress({ slug, sections, children }: {
         };
     }, [hydrated, slug, sections, reachCheckpoint]);
 
-    return <LessonProgressContext.Provider value={learn}>{children}</LessonProgressContext.Provider>;
+    const passed = hydrated && isLessonDone(progress, slug) ? 1 : Math.max(0, saved) / (sections + 1);
+
+    return (
+        <LessonProgressContext.Provider value={learn}>
+            {/* A sliver of ground above it keeps it apart from the navbar's band. */}
+            <div aria-hidden="true" className="sticky top-16 z-40 mx-auto w-full max-w-3xl bg-surface px-6 pt-1">
+                <div className="h-0.5 bg-edge">
+                    <div className="h-0.5 border-t-2 border-rule-gold" style={{ width: `${passed * 100}%` }} />
+                </div>
+            </div>
+            {children}
+        </LessonProgressContext.Provider>
+    );
 }

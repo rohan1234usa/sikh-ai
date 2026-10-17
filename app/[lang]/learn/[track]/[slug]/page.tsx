@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import IntentLink from '@/app/components/IntentLink';
 import LearnPageHeader from '@/app/components/learn/LearnPageHeader';
+import LessonOutline from '@/app/components/learn/LessonOutline';
 import LessonProgress from '@/app/components/learn/LessonProgress';
 import LessonQuiz from '@/app/components/learn/LessonQuiz';
 import LessonSections from '@/app/components/learn/LessonSections';
@@ -66,7 +67,9 @@ export default async function LessonPage({ params }: PageProps<'/[lang]/learn/[t
             title={lesson.title}
             lead={lesson.summary}
             lang="en"
-          />
+          >
+            <LessonOutline t={t} headings={lesson.sections.map((section) => section.heading)} />
+          </LearnPageHeader>
 
           <LessonSections t={t} sections={lesson.sections} />
 

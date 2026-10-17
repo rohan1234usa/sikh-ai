@@ -715,6 +715,8 @@ const paLatn: Dictionary = {
             askTutor: 'Is sabak baare tutor nu puchho',
             sectionOf: 'Hissa {n} / {total}',
             atQuiz: 'Quiz layi tiaar',
+            outline: 'Is sabak vich',
+            sectionCount: '{n} hisse',
         },
         quiz: {
             heading: 'Aapne aap nu parkho',

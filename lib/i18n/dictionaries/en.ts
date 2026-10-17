@@ -738,6 +738,9 @@ const en = {
             // How far into a lesson the learner has read: its checkpoints.
             sectionOf: 'Section {n} of {total}',
             atQuiz: 'Ready for the quiz',
+            // The outline under a lesson's title.
+            outline: 'In this lesson',
+            sectionCount: '{n} sections',
         },
         quiz: {
             heading: 'Check yourself',

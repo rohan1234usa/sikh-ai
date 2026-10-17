@@ -715,6 +715,8 @@ const pa: Dictionary = {
             askTutor: 'ਇਸ ਸਬਕ ਬਾਰੇ ਟਿਊਟਰ ਨੂੰ ਪੁੱਛੋ',
             sectionOf: 'ਹਿੱਸਾ {n} / {total}',
             atQuiz: 'ਕੁਇਜ਼ ਲਈ ਤਿਆਰ',
+            outline: 'ਇਸ ਸਬਕ ਵਿੱਚ',
+            sectionCount: '{n} ਹਿੱਸੇ',
         },
         quiz: {
             heading: 'ਆਪਣੇ ਆਪ ਨੂੰ ਪਰਖੋ',
