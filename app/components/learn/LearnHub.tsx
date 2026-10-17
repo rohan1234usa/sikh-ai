@@ -65,8 +65,10 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
     const next = hydrated ? nextLesson(progress, slugs) : undefined;
     const nextLink = lessons.find((lesson) => lesson.slug === next);
     const started = slugs.some((slug) => isLessonDone(progress, slug));
-    const label = next === progress.lastLesson ? t.learn.hub.continue : started ? t.learn.hub.upNext : t.learn.hub.start;
     const place: LessonPlace = nextLink ? lessonPlace(progress, nextLink.slug, nextLink.pace.sections.length) : { kind: 'new' };
+    // A lesson read partway is one to continue, even when another was opened since.
+    const resuming = next === progress.lastLesson || place.kind === 'section' || place.kind === 'quiz';
+    const label = resuming ? t.learn.hub.continue : started ? t.learn.hub.upNext : t.learn.hub.start;
     // How far into it the learner is, and how long it (or the rest of it) takes.
     const meta = nextLink ? [placeWords(t, place, nextLink.pace), timeWords(t, place, nextLink.pace)].filter(Boolean).join(' · ') : '';
     const cards = now !== null ? cardCounts(wordIds, progress.cards, now) : null;

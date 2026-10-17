@@ -764,6 +764,7 @@ const en = {
             check: 'Check',
             checkAria: 'Check question {n}',
             progress: '{n} of {total} checked',
+            checkRest: 'Check the rest',
             tryAgain: 'Try again',
             newQuestions: 'New questions',
             correct: 'Correct',

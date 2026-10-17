@@ -87,9 +87,11 @@ export function useLearnProgress() {
                 const next = apply(saved.progress);
                 try {
                     // A change that changes nothing (a checkpoint already
-                    // passed, a lesson opened again) isn't written.
-                    if (next !== saved.progress) localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-                    setProgress(next);
+                    // passed, a lesson opened again) isn't written or shown.
+                    if (next !== saved.progress) {
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+                        setProgress(next);
+                    }
                     return;
                 } catch { /* storage full: this visit only, from now on */ }
             }

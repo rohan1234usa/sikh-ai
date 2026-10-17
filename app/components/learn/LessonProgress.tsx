@@ -23,16 +23,15 @@ const READING_LINE = 0.4;
 // The furthest checkpoint reached on screen now, or -1 for none: a section's
 // heading, then the quiz's. Measured rather than observed, so a jump (End,
 // a link to the quiz) counts the checkpoints it passes.
-function furthestOnScreen(sections: number): number {
+function furthestOnScreen(headings: (HTMLElement | null)[]): number {
     const line = window.innerHeight * READING_LINE;
     const atFoot = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
     let furthest = -1;
-    for (let checkpoint = 0; checkpoint <= sections; checkpoint++) {
-        const heading = document.getElementById(checkpoint < sections ? sectionAnchor(checkpoint) : QUIZ_ANCHOR);
-        if (!heading) continue;
+    headings.forEach((heading, checkpoint) => {
+        if (!heading) return;
         const top = heading.getBoundingClientRect().top;
         if (top <= line || (atFoot && top < window.innerHeight)) furthest = checkpoint;
-    }
+    });
     return furthest;
 }
 
@@ -69,10 +68,14 @@ export default function LessonProgress({ slug, sections, children }: {
 
     useEffect(() => {
         if (!hydrated) return;
+        // Each section's heading, then the quiz's: found once, since the
+        // page's headings never change.
+        const headings = Array.from({ length: sections + 1 }, (_, checkpoint) =>
+            document.getElementById(checkpoint < sections ? sectionAnchor(checkpoint) : QUIZ_ANCHOR));
         let frame = 0;
         const measure = () => {
             frame = 0;
-            const reached = furthestOnScreen(sections);
+            const reached = furthestOnScreen(headings);
             if (reached > furthest.current) {
                 furthest.current = reached;
                 reachCheckpoint(slug, reached);
@@ -91,7 +94,8 @@ export default function LessonProgress({ slug, sections, children }: {
         };
     }, [hydrated, slug, sections, reachCheckpoint]);
 
-    const passed = hydrated && isLessonDone(progress, slug) ? 1 : Math.max(0, saved) / (sections + 1);
+    // A checkpoint saved before the lesson lost a section counts as its quiz.
+    const passed = hydrated && isLessonDone(progress, slug) ? 1 : Math.min(Math.max(0, saved), sections) / (sections + 1);
 
     return (
         <LessonProgressContext.Provider value={learn}>

@@ -76,20 +76,27 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
         else if (target?.kind === 'first') listRef.current?.querySelector('input')?.focus();
     }, [checked]);
 
-    // A question's Check gives way to its result, and the last one's to the
-    // score and Try again, so a double-click must not press what appears
-    // there (./useSwapGuard.ts).
+    // Check the rest and Try again are one button in one place, so a
+    // double-click must not press the second (./useSwapGuard.ts). A
+    // question's own Check gives way to its result, which is text, so a
+    // quick press on another question's Check always counts.
     const { mark, allowed, noRepeat } = useSwapGuard();
 
-    const check = (index: number) => {
-        if (checked[index]) return;
+    // Checks the given questions; the last check scores the quiz, once.
+    const checkThese = (indexes: number[]) => {
         mark();
-        const next = checked.map((done, i) => done || i === index);
+        const next = checked.map((done, i) => done || indexes.includes(i));
         const last = next.every(Boolean);
-        focusNext.current = last ? { kind: 'score' } : { kind: 'result', index };
+        focusNext.current = last ? { kind: 'score' } : { kind: 'result', index: indexes[0] };
         setChecked(next);
         if (last) onChecked?.(scoreQuiz(questions, answers).score);
     };
+    const check = (index: number) => {
+        if (!checked[index]) checkThese([index]);
+    };
+    // For a learner who has skipped one: the rest at once, blanks counted wrong.
+    const checkRest = () => checkThese(checked.flatMap((done, i) => (done ? [] : [i])));
+    const checkedCount = checked.filter(Boolean).length;
 
     const again = () => {
         mark();
@@ -192,7 +199,7 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                 {!done && (
                                     <button
                                         type="button"
-                                        onClick={(e) => allowed(e) && check(i)}
+                                        onClick={() => check(i)}
                                         onKeyDown={noRepeat}
                                         aria-label={fmt(t.learn.quiz.checkAria, { n: i + 1 })}
                                         className={SECONDARY_BUTTON}
@@ -250,10 +257,17 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                         {onNewQuestions ? t.learn.quiz.newQuestions : t.learn.quiz.tryAgain}
                     </button>
                 )}
+                {/* Once one is checked, a way to finish with any left; it
+                    gives way to Try again in the same place. */}
+                {!finished && checkedCount > 0 && (
+                    <button type="button" onClick={(e) => allowed(e) && checkRest()} onKeyDown={noRepeat} className={SECONDARY_BUTTON}>
+                        {t.learn.quiz.checkRest}
+                    </button>
+                )}
                 {/* How many are checked, until the score takes its place. */}
                 {!finished && (
                     <p className="text-sm text-ink-muted">
-                        {fmt(t.learn.quiz.progress, { n: checked.filter(Boolean).length, total: questions.length })}
+                        {fmt(t.learn.quiz.progress, { n: checkedCount, total: questions.length })}
                     </p>
                 )}
                 <p ref={scoreRef} tabIndex={-1} aria-live="polite" className="font-semibold text-ink outline-none">

@@ -733,6 +733,7 @@ const pa: Dictionary = {
             check: 'ਜਾਂਚੋ',
             checkAria: 'ਸਵਾਲ {n} ਜਾਂਚੋ',
             progress: 'ਜਾਂਚੇ: {total} ਵਿੱਚੋਂ {n}',
+            checkRest: 'ਬਾਕੀ ਜਾਂਚੋ',
             tryAgain: 'ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ',
             newQuestions: 'ਨਵੇਂ ਸਵਾਲ',
             correct: 'ਸਹੀ',

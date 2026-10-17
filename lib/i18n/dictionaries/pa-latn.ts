@@ -733,6 +733,7 @@ const paLatn: Dictionary = {
             check: 'Jaancho',
             checkAria: 'Sawal {n} jaancho',
             progress: 'Jaanche: {total} vichon {n}',
+            checkRest: 'Baki jaancho',
             tryAgain: 'Dubara koshish karo',
             newQuestions: 'Nave sawal',
             correct: 'Sahi',
