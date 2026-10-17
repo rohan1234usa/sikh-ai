@@ -1,5 +1,4 @@
 import type { Dictionary } from '@/lib/i18n';
-import { fmt } from '@/lib/i18n/fmt';
 import { sectionAnchor, type LessonSection } from '@/lib/learn/config';
 import ExampleRow from './ExampleRow';
 import LetterGrid from './LetterGrid';
@@ -7,9 +6,9 @@ import Mixed from './Mixed';
 
 // A lesson's teaching, rendered on the server: its explanations are English
 // in every UI language, and every Punjabi example comes in all three
-// renditions. Each heading carries the anchor its checkpoint links to.
+// renditions, as ruled rows like the tracks' lessons. Each heading carries
+// the anchor its checkpoint links to.
 export default function LessonSections({ t, sections }: { t: Dictionary; sections: LessonSection[] }) {
-    const copyLabel = fmt(t.translate.copyAria, { label: t.translate.gurmukhiLabel });
     return (
         <div className="space-y-10">
             {sections.map((section, i) => (
@@ -20,10 +19,10 @@ export default function LessonSections({ t, sections }: { t: Dictionary; section
                     ))}
                     {section.letters && <LetterGrid letters={section.letters} label={t.learn.lesson.lettersAria} />}
                     {section.examples && (
-                        <ul aria-label={t.learn.lesson.examplesAria} className="space-y-3">
+                        <ul aria-label={t.learn.lesson.examplesAria} className="border-t border-edge">
                             {section.examples.map((example, j) => (
-                                <li key={j} className="bg-surface-raised border border-edge rounded-xl shadow-sm p-4">
-                                    <ExampleRow example={example} copyLabel={copyLabel} />
+                                <li key={j} className="border-b border-edge py-3">
+                                    <ExampleRow example={example} />
                                 </li>
                             ))}
                         </ul>
