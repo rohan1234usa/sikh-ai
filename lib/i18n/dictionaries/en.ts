@@ -752,6 +752,13 @@ const en = {
             questionN: 'Question {n}',
             typedLabel: 'Your answer',
             typedPlaceholder: 'Type it in English letters',
+            // Above a quiz's first typed question; the examples are pairs
+            // lib/learn/quiz.ts (foldRoman) really grades the same.
+            typedHint: 'Type it the way you’d text it. Spelling is forgiving: roti or rotee, achha or acha.',
+            // Under a question graded strictly (TypedQuestion.strict).
+            strictNote: 'Vowel length and doubled letters count on this one.',
+            // After a miss: the other spellings a typed question takes.
+            alsoAccepted: 'Also accepted: {spellings}',
             // Each question is checked on its own; its button is named with
             // its number, since a quiz has six to ten alike.
             check: 'Check',

@@ -6,7 +6,7 @@ import { PRIMARY_BUTTON, SECONDARY_BUTTON } from '@/app/components/buttons';
 import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { QuizQuestion } from '@/lib/learn/config';
-import { isCorrect, scoreQuiz, seededShuffle, type QuizScore } from '@/lib/learn/quiz';
+import { isCorrect, otherSpellings, scoreQuiz, seededShuffle, type QuizScore } from '@/lib/learn/quiz';
 import { useSwapGuard } from './useSwapGuard';
 import Mixed from './Mixed';
 
@@ -29,9 +29,11 @@ const choiceLang = (question: QuizQuestion) =>
 // shows as soon as it is answered and checked, so nobody meets every red at
 // once. The score comes when the last one is checked, and that is when the
 // quiz counts (onChecked), once. Typed answers are graded leniently
-// (lib/learn/quiz.ts), and the house spelling is always shown afterwards,
-// so the leniency never teaches a wrong spelling. The parent remounts it
-// (key) for a fresh set of questions.
+// (lib/learn/quiz.ts), and the quiz says so once, above the first of them;
+// a strict question says what it counts. The house spelling is always shown
+// afterwards, with the other accepted ones after a miss, so the leniency
+// never teaches a wrong spelling. The parent remounts it (key) for a fresh
+// set of questions.
 export default function Quiz({ questions, seed, onChecked, onNewQuestions, promptLang, focusFirst }: Props) {
     const t = useT();
     const id = useId();
@@ -52,6 +54,10 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
     const result = finished ? scoreQuiz(questions, answers) : null;
     // The answer is styled on its own, wherever the language puts it.
     const [answerBefore, answerAfter] = t.learn.quiz.answer.split('{answer}');
+    const [alsoBefore, alsoAfter] = t.learn.quiz.alsoAccepted.split('{spellings}');
+    // How forgiving typed answers are, said once, above the first of them.
+    const firstTyped = questions.findIndex((question) => question.kind === 'typed');
+    const hintId = `${id}-hint`;
 
     const setAnswer = (index: number, value: string) =>
         setAnswers((prev) => prev.map((answer, i) => (i === index ? value : answer)));
@@ -112,8 +118,14 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                     const done = checked[i];
                     const right = done && isCorrect(question, answer);
                     const inputId = `${id}-q${i}`;
+                    const strict = question.kind === 'typed' && question.strict;
+                    const others = question.kind === 'typed' && done && !right ? otherSpellings(question) : [];
+                    const describedBy = [i === firstTyped ? hintId : null, strict ? `${inputId}-strict` : null].filter(Boolean).join(' ');
                     return (
                         <li key={i}>
+                            {i === firstTyped && (
+                                <p id={hintId} className="mb-3 border-l-2 border-edge-strong py-0.5 pl-3 text-sm text-ink-muted">{t.learn.quiz.typedHint}</p>
+                            )}
                             <fieldset disabled={done} className="space-y-3">
                                 {/* The word asked about is part of the legend, so it is
                                     read out with the question. */}
@@ -163,12 +175,14 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                             autoComplete="off"
                                             spellCheck={false}
                                             enterKeyHint="done"
+                                            aria-describedby={describedBy || undefined}
                                             value={answer ?? ''}
                                             onChange={(e) => setAnswer(i, e.target.value)}
                                             onKeyDown={(e) => onTypedKey(e, i)}
                                             placeholder={t.learn.quiz.typedPlaceholder}
                                             className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-base text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-focus-ring sm:max-w-md"
                                         />
+                                        {strict && <p id={`${inputId}-strict`} className="mt-1.5 text-sm text-ink-muted">{t.learn.quiz.strictNote}</p>}
                                     </div>
                                 )}
 
@@ -211,6 +225,13 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                                     {question.kind === 'choice' && !question.choicesLang ? <Mixed text={question.answer} /> : question.answer}
                                                 </span>
                                                 {answerAfter}
+                                            </p>
+                                        )}
+                                        {others.length > 0 && (
+                                            <p className="text-ink">
+                                                {alsoBefore}
+                                                <span lang="pa-Latn" className="font-semibold">{others.join(', ')}</span>
+                                                {alsoAfter}
                                             </p>
                                         )}
                                         {question.explanation && <p lang="en" className="text-ink-muted"><Mixed text={question.explanation} /></p>}
