@@ -102,6 +102,7 @@ export default function VocabTopic({ topic, words }: { topic: VocabTopicId; word
                         seed={`${topic}:${round}`}
                         onChecked={(score) => recordTopicQuiz(topic, score)}
                         onNewQuestions={() => setRound((r) => r + 1)}
+                        focusFirst={round > 0}
                     />
                 )}
             </div>

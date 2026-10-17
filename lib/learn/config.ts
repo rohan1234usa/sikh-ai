@@ -272,6 +272,12 @@ export function lessonsFor(track: LessonTrackId): LessonEntry[] {
 }
 
 export const lessonPath = (meta: Pick<LessonMeta, 'track' | 'slug'>): string => `/learn/${meta.track}/${meta.slug}`;
+
+// A lesson page's anchors: each section's heading, numbered from 1 as the
+// page shows them, and the quiz. Its sections and quiz are its checkpoints
+// (lib/learn/progress.ts), which count from 0.
+export const QUIZ_ANCHOR = 'lesson-quiz';
+export const sectionAnchor = (index: number): string => `section-${index + 1}`;
 export const topicPath = (topic: VocabTopicId): string => `/learn/vocab/${topic}`;
 
 // Every page of the section, for the sitemap.
