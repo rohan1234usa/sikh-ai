@@ -141,9 +141,10 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                 </legend>
 
                                 {question.kind === 'choice' ? (
-                                    // Each choice as wide as its text: short ones share a row,
-                                    // even on a phone, and a long one takes a row and wraps.
-                                    <div className="flex flex-wrap gap-2">
+                                    // On a phone each choice is as wide as its text, so short
+                                    // ones share a row and a long one takes a row and wraps;
+                                    // wider, two columns as before.
+                                    <div className="flex flex-wrap gap-2 sm:grid sm:grid-cols-2">
                                         {orders[i].map((choice) => (
                                             <label
                                                 key={choice}
