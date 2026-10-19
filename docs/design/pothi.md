@@ -118,6 +118,13 @@ One commit per step, in this order, so no commit put the new palette on the old 
 
    Three smaller clean-ups are filed as [#62](https://github.com/rohan1234usa/sikh-ai/issues/62): the dead `shadow-*` classes, one weight for page titles, and the home masthead's fade.
 
+### Since the build
+
+- **Learn's lessons** ([#67](https://github.com/rohan1234usa/sikh-ai/pull/67)):
+  - A lesson's examples were the last boxed cards. They are now ruled rows in the tukk style, with the note under the row and no copy button.
+  - A lesson page shows its progress as a 2px gold rule under the navbar, the width of the text, held apart from the band by a sliver of ground. Its fill is a border, so forced colours keep it.
+  - The outline under a lesson's title is a numbered list with kesri numerals, between hairlines.
+
 ## Checks for the build
 
 - Run axe on every page in both modes, and check the contrast of any new pair.
