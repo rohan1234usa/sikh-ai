@@ -1,9 +1,11 @@
+// A lesson's place and time in words, for the hub and the track list: where
+// the learner is in it (lib/learn/progress.ts) and how long it, or the rest
+// of it, takes (lib/learn/pace.ts).
+
 import type { Dictionary } from '@/lib/i18n';
 import { fmt } from '@/lib/i18n/fmt';
-import { minutes, secondsFrom, type LessonPace } from '@/lib/learn/pace';
-import type { LessonPlace } from '@/lib/learn/progress';
-
-// A lesson's place and time in words, for the hub and the track list.
+import { minutes, secondsFrom, type LessonPace } from './pace';
+import type { LessonPlace } from './progress';
 
 // Where the learner is in it, once started and until done.
 export function placeWords(t: Dictionary, place: LessonPlace, pace: LessonPace): string | null {

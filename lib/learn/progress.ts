@@ -95,15 +95,15 @@ function records<T>(raw: unknown, parse: (value: unknown) => T | null): Record<s
     return out;
 }
 
-// Anything at all in, a usable LearnProgress out: junk or another version
-// gives the empty one, and a damaged record is dropped on its own.
 // Saved by a newer version of the site than this page: it can't be read
 // here, and it must not be written over.
 export function isNewerProgress(raw: unknown): boolean {
     return isObject(raw) && typeof raw.v === 'number' && raw.v > PROGRESS_VERSION;
 }
 
-// Version 1, from before checkpoints, comes back as version 2 with none: its
+// Anything at all in, a usable LearnProgress out: junk or another version
+// gives the empty one, and a damaged record is dropped on its own. Version
+// 1, from before checkpoints, comes back as version 2 with none: its
 // lessons, scores and cards are all kept, and it is saved as version 2 at
 // the next change.
 export function parseProgress(raw: unknown): LearnProgress {
@@ -180,8 +180,9 @@ export function withVisit(progress: LearnProgress, slug: string, now: number): L
     return { ...progress, lastLesson: slug, updatedAt: now };
 }
 
-// Checking a lesson's quiz completes the lesson, whatever the score: the
-// first completion's time stays, the best score is kept, and every try counts.
+// Finishing a lesson's quiz (its last question checked) completes the lesson,
+// whatever the score: the first completion's time stays, the best score is
+// kept, and every try counts.
 export function withLessonComplete(progress: LearnProgress, slug: string, score: QuizScore, now: number): LearnProgress {
     const kept = own(progress.lessons, slug);
     return {

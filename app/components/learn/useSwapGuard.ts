@@ -3,7 +3,7 @@
 import { useCallback, useRef, type KeyboardEvent, type MouseEvent } from 'react';
 
 // For a button that another takes the place of when pressed (Show answer and
-// the flashcard answers; Check and Try again): the second click of a
+// the flashcard answers; a quiz's Check the rest and Try again): the second click of a
 // double-click, or a held key's repeat, would press the new button too.
 // A click this soon after the change is dropped; any later one counts,
 // however quick the learner. A key press always counts, but not its repeats.

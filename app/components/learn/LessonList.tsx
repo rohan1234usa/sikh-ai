@@ -6,7 +6,7 @@ import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { LessonPace } from '@/lib/learn/pace';
 import { lessonPlace, lessonRecord, placeHash } from '@/lib/learn/progress';
-import { placeWords, timeWords } from './lessonStatus';
+import { placeWords, timeWords } from '@/lib/learn/status';
 import { useLearnProgress } from './useLearnProgress';
 import Mixed from './Mixed';
 

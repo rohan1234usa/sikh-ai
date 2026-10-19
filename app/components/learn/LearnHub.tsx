@@ -16,7 +16,7 @@ import type { LessonTrackId, TrackId } from '@/lib/learn/config';
 import type { LessonPace } from '@/lib/learn/pace';
 import { isLessonDone, lessonPlace, nextLesson, placeHash, trackProgress, type LessonPlace } from '@/lib/learn/progress';
 import { cardCounts } from '@/lib/learn/srs';
-import { placeWords, timeWords } from './lessonStatus';
+import { placeWords, timeWords } from '@/lib/learn/status';
 import { useLearnProgress } from './useLearnProgress';
 import Mixed from './Mixed';
 

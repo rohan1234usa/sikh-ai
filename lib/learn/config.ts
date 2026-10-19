@@ -71,7 +71,7 @@ type QuestionBase = {
     prompt: string;       // English
     promptPa?: string;    // Gurmukhi, shown large under the prompt
     promptRoman?: string; // its romanization, when the question isn't about reading it
-    explanation?: string; // shown once the quiz is checked
+    explanation?: string; // shown once the question is checked
 };
 
 export type ChoiceQuestion = QuestionBase & {
@@ -272,13 +272,13 @@ export function lessonsFor(track: LessonTrackId): LessonEntry[] {
 }
 
 export const lessonPath = (meta: Pick<LessonMeta, 'track' | 'slug'>): string => `/learn/${meta.track}/${meta.slug}`;
+export const topicPath = (topic: VocabTopicId): string => `/learn/vocab/${topic}`;
 
 // A lesson page's anchors: each section's heading, numbered from 1 as the
 // page shows them, and the quiz. Its sections and quiz are its checkpoints
 // (lib/learn/progress.ts), which count from 0.
 export const QUIZ_ANCHOR = 'lesson-quiz';
 export const sectionAnchor = (index: number): string => `section-${index + 1}`;
-export const topicPath = (topic: VocabTopicId): string => `/learn/vocab/${topic}`;
 
 // Every page of the section, for the sitemap.
 export function learnPaths(): string[] {

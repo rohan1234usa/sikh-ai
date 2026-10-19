@@ -27,8 +27,9 @@ const choiceLang = (question: QuizQuestion) =>
 
 // A quiz of choice and typed questions, each checked on its own: its result
 // shows as soon as it is answered and checked, so nobody meets every red at
-// once. The score comes when the last one is checked, and that is when the
-// quiz counts (onChecked), once. Typed answers are graded leniently
+// once. The score comes when the last one is checked (or the rest, at once,
+// for a learner who skipped one), and that is when the quiz counts
+// (onChecked), once. Typed answers are graded leniently
 // (lib/learn/quiz.ts), and the quiz says so once, above the first of them;
 // a strict question says what it counts. The house spelling is always shown
 // afterwards, with the other accepted ones after a miss, so the leniency
@@ -195,7 +196,7 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                 )}
 
                                 {/* Inside the question's group, so it is read as part of
-                                    it; named with its number among seven alike. */}
+                                    it; named with its number, since a quiz has several. */}
                                 {!done && (
                                     <button
                                         type="button"

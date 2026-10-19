@@ -7,8 +7,9 @@ import { lessonRecord } from '@/lib/learn/progress';
 import { useLessonProgress } from './LessonProgress';
 import Quiz from './Quiz';
 
-// The quiz at the end of a lesson, and its last checkpoint. Checking the quiz
-// completes the lesson, whatever the score, and keeps the best one.
+// The quiz at the end of a lesson, and its last checkpoint. Checking its last
+// question (or the rest at once) completes the lesson, whatever the score,
+// and keeps the best one.
 export default function LessonQuiz({ slug, questions }: { slug: string; questions: QuizQuestion[] }) {
     const t = useT();
     const { progress, hydrated, completeLesson } = useLessonProgress();
