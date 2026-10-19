@@ -5,8 +5,7 @@ import LessonList from '@/app/components/learn/LessonList';
 import { localePath } from '@/lib/i18n/paths';
 import { getServerT } from '@/lib/i18n/server';
 import { LESSON_TRACK_IDS, isLessonTrack, lessonPath, lessonsFor } from '@/lib/learn/config';
-import { getLesson } from '@/lib/learn/curriculum';
-import { lessonPace } from '@/lib/learn/pace';
+import { getLessonPace } from '@/lib/learn/curriculum';
 import { pageMetadata } from '@/lib/metadata';
 
 // /learn/script and /learn/grammar, built ahead of time in every language.
@@ -46,7 +45,7 @@ export default async function TrackPage({ params }: PageProps<'/[lang]/learn/[tr
             title: meta.title,
             summary: meta.summary,
             href: to(lessonPath(meta)),
-            pace: lessonPace(getLesson(meta.slug)),
+            pace: getLessonPace(meta.slug),
           }))}
         />
       </div>

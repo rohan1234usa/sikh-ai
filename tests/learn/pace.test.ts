@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { LESSON_META, type LessonBody, type LessonSection } from '@/lib/learn/config';
-import { getLesson } from '@/lib/learn/curriculum';
-import { SECONDS_PER_QUESTION, WORDS_PER_MINUTE, lessonPace, minutes, secondsFrom, sectionWords } from '@/lib/learn/pace';
+import { getLesson, getLessonPace } from '@/lib/learn/curriculum';
+import { SECONDS_PER_QUESTION, WORDS_PER_MINUTE, lessonPace, minutes, secondsFrom, sectionMinutes, sectionWords } from '@/lib/learn/pace';
 
 const SECTION: LessonSection = {
     heading: 'Two words',                                  // 2
@@ -57,4 +57,16 @@ test('every lesson comes to a few minutes, the first to about six', () => {
         assert.ok(total >= 2 && total <= 10, `${meta.slug}: ${total} min`);
     }
     assert.equal(minutes(secondsFrom(lessonPace(getLesson('how-gurmukhi-works')))), 6);
+});
+
+test('a short section says so rather than rounding up, so the outline adds up', () => {
+    assert.equal(sectionMinutes(44), null);
+    assert.equal(sectionMinutes(45), 1);
+    assert.equal(sectionMinutes(150), 3);
+    for (const meta of LESSON_META) {
+        const pace = getLessonPace(meta.slug);
+        assert.deepEqual(pace, lessonPace(getLesson(meta.slug)), meta.slug);
+        const shown = pace.sections.reduce((sum, seconds) => sum + (sectionMinutes(seconds) ?? 0), 0) + minutes(pace.quiz);
+        assert.ok(shown <= minutes(secondsFrom(pace)) + 1, `${meta.slug}: rows add to ${shown} min`);
+    }
 });

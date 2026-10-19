@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     EMPTY_PROGRESS,
     isNewerProgress,
@@ -139,7 +139,9 @@ export function useLearnProgress() {
         setProgress(EMPTY_PROGRESS);
     }, []);
 
-    return {
+    // One object until something in it changes, so a context that passes it
+    // on (LessonProgress) re-renders its readers only then.
+    return useMemo(() => ({
         progress,
         hydrated: loadedAt !== null,
         // When the saved copy was last read: it changes when another tab or
@@ -154,5 +156,5 @@ export function useLearnProgress() {
         recordTopicQuiz,
         reviewCard,
         reset,
-    };
+    }), [progress, loadedAt, visitLesson, reachCheckpoint, completeLesson, recordTopicQuiz, reviewCard, reset]);
 }

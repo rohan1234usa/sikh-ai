@@ -46,3 +46,10 @@ export function secondsFrom(pace: LessonPace, checkpoint = 0): number {
 export function minutes(seconds: number): number {
     return Math.max(1, Math.round(seconds / 60));
 }
+
+// A section's own time for the outline: whole minutes, or null when it is
+// under 45 seconds. Rounding each short section up to a minute would make
+// the rows add up to more than the lesson's total.
+export function sectionMinutes(seconds: number): number | null {
+    return seconds < 45 ? null : minutes(seconds);
+}

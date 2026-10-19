@@ -2,7 +2,7 @@ import { ChevronRightIcon } from '@heroicons/react/24/outline';
 import type { Dictionary } from '@/lib/i18n';
 import { fmt } from '@/lib/i18n/fmt';
 import { sectionAnchor } from '@/lib/learn/config';
-import { minutes, secondsFrom, type LessonPace } from '@/lib/learn/pace';
+import { minutes, secondsFrom, sectionMinutes, type LessonPace } from '@/lib/learn/pace';
 import Mixed from './Mixed';
 
 // "In this lesson": the section headings as links, each with its time, so
@@ -12,6 +12,10 @@ import Mixed from './Mixed';
 // copy of the list is out of the tab order and the reading order.
 export default function LessonOutline({ t, headings, pace }: { t: Dictionary; headings: string[]; pace: LessonPace }) {
     const count = fmt(t.learn.lesson.outlineSummary, { n: headings.length, min: minutes(secondsFrom(pace)) });
+    const time = (seconds: number) => {
+        const n = sectionMinutes(seconds);
+        return n === null ? t.learn.lesson.underAMinute : fmt(t.learn.lesson.sectionMinutes, { n });
+    };
     const list = (
         <ol className="space-y-1.5">
             {headings.map((heading, i) => (
@@ -20,7 +24,7 @@ export default function LessonOutline({ t, headings, pace }: { t: Dictionary; he
                     <a href={`#${sectionAnchor(i)}`} lang="en" className="min-w-0 flex-1 text-link hover:underline">
                         <Mixed text={heading} />
                     </a>
-                    <span className="shrink-0 tabular-nums text-ink-muted">{fmt(t.learn.lesson.sectionMinutes, { n: minutes(pace.sections[i]) })}</span>
+                    <span className="shrink-0 tabular-nums text-ink-muted">{time(pace.sections[i])}</span>
                 </li>
             ))}
         </ol>

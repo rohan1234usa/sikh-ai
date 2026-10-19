@@ -50,4 +50,7 @@ test('the outline links every section, with its time, and is closed on a phone',
     const first = LESSONS[0];
     const html = renderToStaticMarkup(createElement(LessonOutline, { t, headings: first.sections.map((s) => s.heading), pace: lessonPace(first) }));
     assert.match(html, /4 sections · about 6 min/);
+    const tones = getLesson('tones');
+    const tonesHtml = renderToStaticMarkup(createElement(LessonOutline, { t, headings: tones.sections.map((s) => s.heading), pace: lessonPace(tones) }));
+    assert.match(tonesHtml, /under 1 min/, 'a short section says so');
 });

@@ -720,6 +720,7 @@ const pa: Dictionary = {
             minutes: 'ਲਗਭਗ {n} ਮਿੰਟ',
             minutesLeft: 'ਲਗਭਗ {n} ਮਿੰਟ ਬਾਕੀ',
             sectionMinutes: '{n} ਮਿੰਟ',
+            underAMinute: 'ਇੱਕ ਮਿੰਟ ਤੋਂ ਘੱਟ',
             skipToQuiz: 'ਸਿੱਧਾ ਕੁਇਜ਼ ਉੱਤੇ ਜਾਓ',
         },
         quiz: {

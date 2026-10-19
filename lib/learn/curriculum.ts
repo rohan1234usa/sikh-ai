@@ -13,6 +13,7 @@ import {
     type VocabTopicId,
     type VocabWord,
 } from './config';
+import { lessonPace, type LessonPace } from './pace';
 import howGurmukhiWorks from './content/script/01-how-gurmukhi-works';
 import rows34 from './content/script/02-rows-3-4-palatal-retroflex';
 import rows57 from './content/script/03-rows-5-7-dental-labial-last';
@@ -73,6 +74,12 @@ const BODIES: Record<LessonSlug, LessonBody> = {
 
 export function getLesson(slug: LessonSlug): Lesson {
     return { ...lessonMeta(slug), ...BODIES[slug] };
+}
+
+// How long a lesson takes, as the numbers a page may hand the browser in
+// place of its text (lib/learn/pace.ts).
+export function getLessonPace(slug: LessonSlug): LessonPace {
+    return lessonPace(BODIES[slug]);
 }
 
 // A lesson's place in its track, for "Lesson 3 of 9" and the links either side.

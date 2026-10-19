@@ -4,8 +4,7 @@ import LearnHub from '@/app/components/learn/LearnHub';
 import { localePath } from '@/lib/i18n/paths';
 import { getServerT } from '@/lib/i18n/server';
 import { LESSON_META, TRACK_IDS, lessonPath } from '@/lib/learn/config';
-import { VOCAB, getLesson } from '@/lib/learn/curriculum';
-import { lessonPace } from '@/lib/learn/pace';
+import { VOCAB, getLessonPace } from '@/lib/learn/curriculum';
 import { pageMetadata } from '@/lib/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -30,7 +29,7 @@ export default async function LearnPage() {
             track: meta.track,
             title: meta.title,
             href: to(lessonPath(meta)),
-            pace: lessonPace(getLesson(meta.slug)),
+            pace: getLessonPace(meta.slug),
           }))}
           wordIds={Object.values(VOCAB).flatMap((words) => words.map((word) => word.id))}
           tracks={TRACK_IDS.map((id) => ({ id, href: to(`/learn/${id}`) }))}

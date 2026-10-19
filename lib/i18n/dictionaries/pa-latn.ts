@@ -720,6 +720,7 @@ const paLatn: Dictionary = {
             minutes: 'Lagbhag {n} minute',
             minutesLeft: 'Lagbhag {n} minute baki',
             sectionMinutes: '{n} minute',
+            underAMinute: 'Ikk minute ton ghatt',
             skipToQuiz: 'Sidha quiz te jao',
         },
         quiz: {

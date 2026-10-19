@@ -738,13 +738,15 @@ const en = {
             // How far into a lesson the learner has read: its checkpoints.
             sectionOf: 'Section {n} of {total}',
             atQuiz: 'Ready for the quiz',
-            // The outline under a lesson's title.
+            // The outline under a lesson's title. Plural only: every lesson
+            // has two sections or more (tests/learn/content.test.ts).
             outline: 'In this lesson',
             outlineSummary: '{n} sections · about {min} min',
             // How long a lesson takes: 200 words a minute, 20 seconds a question.
             minutes: 'About {n} min',
             minutesLeft: 'About {n} min left',
             sectionMinutes: '{n} min',
+            underAMinute: 'under 1 min',
             skipToQuiz: 'Skip to the quiz',
         },
         quiz: {
