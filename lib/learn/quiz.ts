@@ -39,6 +39,23 @@ export function typedMatches(input: string, question: Pick<TypedQuestion, 'answe
     return [question.answer, ...(question.accept ?? [])].some((answer) => foldRoman(answer, question.strict) === given);
 }
 
+// The other spellings a typed question takes, to show after a miss beside
+// the house one: those written differently from it (not just in case,
+// spacing or punctuation), each once, in the order the content lists them.
+export function otherSpellings(question: Pick<TypedQuestion, 'answer' | 'accept'>): string[] {
+    const shown = (text: string) =>
+        text.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const seen = new Set([shown(question.answer)]);
+    const out: string[] = [];
+    for (const spelling of question.accept ?? []) {
+        const key = shown(spelling);
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        out.push(spelling);
+    }
+    return out;
+}
+
 export function choiceMatches(choice: string | null, question: Pick<ChoiceQuestion, 'answer'>): boolean {
     return choice === question.answer;
 }

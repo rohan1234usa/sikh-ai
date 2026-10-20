@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     EMPTY_PROGRESS,
     isNewerProgress,
     parseProgress,
     withCardReview,
+    withCheckpoint,
     withLessonComplete,
     withTopicQuiz,
     withVisit,
@@ -16,7 +17,8 @@ import type { QuizScore } from '@/lib/learn/quiz';
 // Learn Punjabi's progress, kept in this browser only. The rules live in
 // lib/learn/progress.ts; this hook reads the saved copy once the page has
 // hydrated (the server renders no progress) and follows other tabs. One
-// island per page uses it.
+// island per page uses it; a lesson page's parts share it through
+// LessonProgress.
 //
 // Each change is made to the saved copy as it is at that moment, not to this
 // page's copy of it, so a page that missed another tab's writes (one restored
@@ -84,8 +86,12 @@ export function useLearnProgress() {
             if (saved.writable) {
                 const next = apply(saved.progress);
                 try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-                    setProgress(next);
+                    // A change that changes nothing (a checkpoint already
+                    // passed, a lesson opened again) isn't written or shown.
+                    if (next !== saved.progress) {
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+                        setProgress(next);
+                    }
                     return;
                 } catch { /* storage full: this visit only, from now on */ }
             }
@@ -99,6 +105,11 @@ export function useLearnProgress() {
     const visitLesson = useCallback((slug: string) => {
         const now = Date.now();
         change((p) => withVisit(p, slug, now));
+    }, [change]);
+
+    const reachCheckpoint = useCallback((slug: string, checkpoint: number) => {
+        const now = Date.now();
+        change((p) => withCheckpoint(p, slug, checkpoint, now));
     }, [change]);
 
     const completeLesson = useCallback((slug: string, score: QuizScore) => {
@@ -128,7 +139,9 @@ export function useLearnProgress() {
         setProgress(EMPTY_PROGRESS);
     }, []);
 
-    return {
+    // One object until something in it changes, so a context that passes it
+    // on (LessonProgress) re-renders its readers only then.
+    return useMemo(() => ({
         progress,
         hydrated: loadedAt !== null,
         // When the saved copy was last read: it changes when another tab or
@@ -138,9 +151,10 @@ export function useLearnProgress() {
         // the last change, so a card just missed counts as due at once.
         now: loadedAt === null ? null : Math.max(loadedAt, progress.updatedAt),
         visitLesson,
+        reachCheckpoint,
         completeLesson,
         recordTopicQuiz,
         reviewCard,
         reset,
-    };
+    }), [progress, loadedAt, visitLesson, reachCheckpoint, completeLesson, recordTopicQuiz, reviewCard, reset]);
 }

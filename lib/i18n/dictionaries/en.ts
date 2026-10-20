@@ -735,13 +735,38 @@ const en = {
             lettersAria: 'Letters',
             examplesAria: 'Examples',
             askTutor: 'Ask the tutor about this lesson',
+            // How far into a lesson the learner has read: its checkpoints.
+            sectionOf: 'Section {n} of {total}',
+            atQuiz: 'Ready for the quiz',
+            // The outline under a lesson's title. Plural only: every lesson
+            // has two sections or more (tests/learn/content.test.ts).
+            outline: 'In this lesson',
+            outlineSummary: '{n} sections · about {min} min',
+            // How long a lesson takes: 200 words a minute, 20 seconds a question.
+            minutes: 'About {n} min',
+            minutesLeft: 'About {n} min left',
+            sectionMinutes: '{n} min',
+            underAMinute: 'under 1 min',
+            skipToQuiz: 'Skip to the quiz',
         },
         quiz: {
             heading: 'Check yourself',
             questionN: 'Question {n}',
             typedLabel: 'Your answer',
             typedPlaceholder: 'Type it in English letters',
-            check: 'Check answers',
+            // Above a quiz's first typed question; the examples are pairs
+            // lib/learn/quiz.ts (foldRoman) really grades the same.
+            typedHint: 'Type it the way you’d text it. Spelling is forgiving: roti or rotee, achha or acha.',
+            // Under a question graded strictly (TypedQuestion.strict).
+            strictNote: 'Vowel length and doubled letters count on this one.',
+            // After a miss: the other spellings a typed question takes.
+            alsoAccepted: 'Also accepted: {spellings}',
+            // Each question is checked on its own; its button is named with
+            // its number, since a quiz has six to ten alike.
+            check: 'Check',
+            checkAria: 'Check question {n}',
+            progress: '{n} of {total} checked',
+            checkRest: 'Check the rest',
             tryAgain: 'Try again',
             newQuestions: 'New questions',
             correct: 'Correct',

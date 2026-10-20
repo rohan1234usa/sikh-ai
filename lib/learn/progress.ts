@@ -1,8 +1,8 @@
 // What Learn Punjabi remembers about a learner: finished lessons and their
 // best quiz score, each vocabulary topic's best quiz score, every
-// flashcard's schedule, and the lesson opened last. It is kept in the
-// browser (app/components/learn/useLearnProgress.ts); these are its pure
-// rules.
+// flashcard's schedule, the lesson opened last, and how far into each lesson
+// they have read. It is kept in the browser
+// (app/components/learn/useLearnProgress.ts); these are its pure rules.
 //
 // Saved data comes back through parseProgress, which never throws and keeps
 // every record it can vouch for. A later change of shape bumps `v` and
@@ -10,10 +10,12 @@
 // change leaves the newer shape alone (isNewerProgress), so progress is never
 // dropped just because the format moved on.
 
+import { QUIZ_ANCHOR, sectionAnchor } from './config';
 import type { QuizScore } from './quiz';
 import { MAX_BOX, cardOf, review, type CardState } from './srs';
 
-export const PROGRESS_VERSION = 1;
+// 2 added `reached`. Version 1 is still read: it had no checkpoints.
+export const PROGRESS_VERSION = 2;
 
 export type LessonRecord = { completedAt: number; best: QuizScore; attempts: number };
 export type TopicRecord = { lastAt: number; best: QuizScore; attempts: number };
@@ -25,6 +27,9 @@ export type LearnProgress = {
     topics: Record<string, TopicRecord>;   // by vocabulary topic id
     cards: Record<string, CardState>;      // by word id
     lastLesson: string | null;             // the slug opened last
+    // By lesson slug, the furthest checkpoint reached: a lesson's sections
+    // count from 0, and its section count stands for its quiz.
+    reached: Record<string, number>;
 };
 
 export const EMPTY_PROGRESS: LearnProgress = Object.freeze({
@@ -34,10 +39,13 @@ export const EMPTY_PROGRESS: LearnProgress = Object.freeze({
     topics: Object.freeze({}),
     cards: Object.freeze({}),
     lastLesson: null,
+    reached: Object.freeze({}),
 }) as LearnProgress;
 
 // Slugs, topic ids and word ids are all lowercase, digits and hyphens.
 const KEY = /^[a-z0-9-]{1,80}$/;
+// More checkpoints than any lesson has: a bigger number is junk.
+const MAX_CHECKPOINT = 99;
 
 type Obj = Record<string, unknown>;
 const isObject = (value: unknown): value is Obj => typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -72,27 +80,34 @@ function parseCard(raw: unknown): CardState | null {
     return { box: Math.min(MAX_BOX, Math.max(0, Math.floor(raw.box))), due: raw.due, reviews: raw.reviews, lastAt: raw.lastAt };
 }
 
+function parseCheckpoint(raw: unknown): number | null {
+    return isCount(raw) && raw <= MAX_CHECKPOINT ? raw : null;
+}
+
 function records<T>(raw: unknown, parse: (value: unknown) => T | null): Record<string, T> {
     const out: Record<string, T> = {};
     if (!isObject(raw)) return out;
     for (const [key, value] of Object.entries(raw)) {
         if (!KEY.test(key)) continue;
         const parsed = parse(value);
-        if (parsed) out[key] = parsed;
+        if (parsed !== null) out[key] = parsed; // a checkpoint can be 0
     }
     return out;
 }
 
-// Anything at all in, a usable LearnProgress out: junk or another version
-// gives the empty one, and a damaged record is dropped on its own.
 // Saved by a newer version of the site than this page: it can't be read
 // here, and it must not be written over.
 export function isNewerProgress(raw: unknown): boolean {
     return isObject(raw) && typeof raw.v === 'number' && raw.v > PROGRESS_VERSION;
 }
 
+// Anything at all in, a usable LearnProgress out: junk or another version
+// gives the empty one, and a damaged record is dropped on its own. Version
+// 1, from before checkpoints, comes back as version 2 with none: its
+// lessons, scores and cards are all kept, and it is saved as version 2 at
+// the next change.
 export function parseProgress(raw: unknown): LearnProgress {
-    if (!isObject(raw) || raw.v !== PROGRESS_VERSION) return EMPTY_PROGRESS;
+    if (!isObject(raw) || (raw.v !== 1 && raw.v !== PROGRESS_VERSION)) return EMPTY_PROGRESS;
     return {
         v: PROGRESS_VERSION,
         updatedAt: isTime(raw.updatedAt) ? raw.updatedAt : 0,
@@ -100,6 +115,7 @@ export function parseProgress(raw: unknown): LearnProgress {
         topics: records(raw.topics, parseTopic),
         cards: records(raw.cards, parseCard),
         lastLesson: typeof raw.lastLesson === 'string' && KEY.test(raw.lastLesson) ? raw.lastLesson : null,
+        reached: raw.v === 1 ? {} : records(raw.reached, parseCheckpoint),
     };
 }
 
@@ -121,14 +137,52 @@ export function topicRecord(progress: LearnProgress, topic: string): TopicRecord
     return own(progress.topics, topic);
 }
 
+// Reading past a checkpoint: the furthest one is kept, so scrolling back up
+// never loses the place. Nothing changes when it is no further.
+export function withCheckpoint(progress: LearnProgress, slug: string, checkpoint: number, now: number): LearnProgress {
+    if (!isCount(checkpoint) || checkpoint > MAX_CHECKPOINT) return progress;
+    const kept = own(progress.reached, slug);
+    if (kept !== undefined && kept >= checkpoint) return progress;
+    return { ...progress, updatedAt: now, reached: { ...progress.reached, [slug]: checkpoint } };
+}
+
+export function checkpointReached(progress: LearnProgress, slug: string): number | undefined {
+    return own(progress.reached, slug);
+}
+
+// Where a learner stands in a lesson of `sections` sections: not started,
+// at a section (from 0), at its quiz, or done. A checkpoint saved before the
+// lesson lost a section counts as its quiz.
+export type LessonPlace =
+    | { kind: 'new' }
+    | { kind: 'section'; index: number }
+    | { kind: 'quiz' }
+    | { kind: 'done' };
+
+export function lessonPlace(progress: LearnProgress, slug: string, sections: number): LessonPlace {
+    if (isLessonDone(progress, slug)) return { kind: 'done' };
+    const reached = own(progress.reached, slug);
+    if (reached === undefined) return { kind: 'new' };
+    return reached >= sections ? { kind: 'quiz' } : { kind: 'section', index: reached };
+}
+
+// The anchor that reopens a lesson where the learner left it: the section
+// they reached, or the quiz. Its first section is the top of the page.
+export function placeHash(place: LessonPlace): string {
+    if (place.kind === 'quiz') return `#${QUIZ_ANCHOR}`;
+    if (place.kind === 'section' && place.index > 0) return `#${sectionAnchor(place.index)}`;
+    return '';
+}
+
 // Opening a lesson makes it the one "Continue" goes back to.
 export function withVisit(progress: LearnProgress, slug: string, now: number): LearnProgress {
     if (progress.lastLesson === slug) return progress;
     return { ...progress, lastLesson: slug, updatedAt: now };
 }
 
-// Checking a lesson's quiz completes the lesson, whatever the score: the
-// first completion's time stays, the best score is kept, and every try counts.
+// Finishing a lesson's quiz (its last question checked) completes the lesson,
+// whatever the score: the first completion's time stays, the best score is
+// kept, and every try counts.
 export function withLessonComplete(progress: LearnProgress, slug: string, score: QuizScore, now: number): LearnProgress {
     const kept = own(progress.lessons, slug);
     return {
