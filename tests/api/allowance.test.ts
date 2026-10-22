@@ -243,10 +243,10 @@ test('every refusal the chat, the tutor, the translators and Shabad Search show 
     assert.equal(responseErrorText(t, refused, REFUSALS.search.minute, 'search_busy'), t.errors.search_busy);
 });
 
-// Last: it counts at today's real time, which starts the tutor's day afresh.
-test('spendDay refuses a visitor already counted today, by however little', () => {
+test('spendDay refuses a visitor already counted today, by however little, and a leave outside the day', () => {
     assert.equal(limitVisitor(from('203.0.113.14'), 'learn'), null);
     assert.throws(() => spendDay('learn', '203.0.113.14', 1), /already counted today/);
+    for (const leave of [-1, VISITOR_LIMITS.learn.perDay + 1, NaN]) assert.throws(() => spendDay('learn', '203.0.113.17', leave), RangeError, String(leave));
     spendDay('learn', '203.0.113.15', 1);
     assert.equal(limitVisitor(from('203.0.113.15'), 'learn'), null, 'a fresh visitor keeps the one left');
     assert.equal(limitVisitor(from('203.0.113.15'), 'learn')?.status, 429);

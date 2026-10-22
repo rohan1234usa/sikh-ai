@@ -83,12 +83,15 @@ export async function captured<T>(mock: MockGemini, run: () => Promise<T>) {
 
 // Spends the day of a visitor not yet counted today with one feature, all
 // but `leave` of it, in one request at midnight UTC that costs that much, so
-// no minute's limit stops it. It throws for a visitor already counted, by
-// however little, which would leave less than the test expects. The routes
-// share these counts: they run in the test's own process.
+// no minute's limit stops it. It throws for a `leave` outside the day, and for
+// a visitor already counted, by however little, which would leave less than
+// the test expects. The routes share these counts: they run in the test's
+// own process.
 export function spendDay(feature: Feature, visitor: string, leave = 0): void {
+    const { perDay } = VISITOR_LIMITS[feature];
+    if (!(leave >= 0 && leave <= perDay)) throw new RangeError(`spendDay: leave is 0 to ${perDay} for ${feature}, not ${leave}`);
     const midnight = Math.floor(Date.now() / DAY_MS) * DAY_MS;
     const allowance = allowances[feature];
     if (allowance.used(visitor, midnight) > 0) throw new Error(`spendDay: ${visitor} was already counted today for ${feature}`);
-    if (!allowance.take(visitor, midnight, VISITOR_LIMITS[feature].perDay - leave).ok) throw new Error(`spendDay: ${feature}'s day couldn't be spent for ${visitor}`);
+    allowance.take(visitor, midnight, perDay - leave);
 }
