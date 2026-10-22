@@ -39,7 +39,13 @@ export const MAX_VISITORS = 5_000;
 
 export type Limits = { perMinute: number; perDay: number };
 export type Window = 'minute' | 'day';
-export type Verdict = { ok: true } | { ok: false; window: Window; retryAfter: number };
+export type Verdict =
+    | { ok: true }
+    | { ok: false; window: Window; retryAfter: number }
+    // Costs more than is left of a day not yet spent, which only a request
+    // that costs more than 1 can: a smaller one may still go through, so
+    // there's nothing to wait for.
+    | { ok: false; tooBig: true };
 
 // Per visitor, per running server.
 // - The chat and the tutor: the firewall allows 20 posts a minute from one
@@ -196,9 +202,8 @@ export type Allowance = {
 // UTC day, like dailyMeter's. The minute counts requests; `cost` is what a
 // request spends of the day, 1 unless its feature's note (VISITOR_LIMITS)
 // says otherwise. A request that costs more than is left of a day not yet
-// spent waits only for the minute's end: a smaller one may still fit, and a
-// page that waits out Retry-After (Talk's) mustn't stop reading aloud until
-// midnight over one long line.
+// spent is too big, not past the day: a smaller one may still go through, so
+// it has nothing to wait for (`tooBig`).
 export function visitorAllowance({ perMinute, perDay }: Limits, maxVisitors = MAX_VISITORS): Allowance {
     let day = -1;
     let secret = randomBytes(32);
@@ -223,13 +228,13 @@ export function visitorAllowance({ perMinute, perDay }: Limits, maxVisitors = MA
                 mine.minute = minute;
                 mine.inMinute = 0;
             }
-            const toMinuteEnd = Math.ceil(((minute + 1) * MINUTE_MS - now) / 1000);
             let verdict: Verdict = { ok: true };
-            if (mine.inDay + cost > perDay) {
-                const spent = mine.inDay >= perDay;
-                verdict = { ok: false, window: 'day', retryAfter: spent ? Math.ceil(((today + 1) * DAY_MS - now) / 1000) : toMinuteEnd };
+            if (mine.inDay >= perDay) {
+                verdict = { ok: false, window: 'day', retryAfter: Math.ceil(((today + 1) * DAY_MS - now) / 1000) };
+            } else if (mine.inDay + cost > perDay) {
+                verdict = { ok: false, tooBig: true };
             } else if (mine.inMinute >= perMinute) {
-                verdict = { ok: false, window: 'minute', retryAfter: toMinuteEnd };
+                verdict = { ok: false, window: 'minute', retryAfter: Math.ceil(((minute + 1) * MINUTE_MS - now) / 1000) };
             } else {
                 mine.inMinute++;
                 mine.inDay += cost;
@@ -265,18 +270,22 @@ export const allowances: Record<Feature, Allowance> = {
 
 let unaddressed = false;
 
+// How a request counts: once, unless its feature's note (VISITOR_LIMITS)
+// gives it a cost. A route that passes a cost also passes `tooBig`, its answer
+// for a request that costs more than the visitor has left of a day not yet
+// spent. That request fails alone, as one too big for the route's own budget
+// does, and isn't counted: a page should go on asking for smaller ones, so it
+// mustn't get the day's 429, whose Retry-After runs to midnight.
+type Counting = { now?: number; cost?: never; tooBig?: never } | { now?: number; cost: number; tooBig: () => Response };
+
 // Counts a request against its visitor's allowance for `feature`: the
 // refusal to send back, or null to go on. A route calls it once the request
 // has passed its own checks, just before it would cost anything, so a
 // request refused for what it is, or answered for free, isn't counted.
-// Error reports are the exception: anyone can post one, so that route
-// counts every post before reading it (app/api/error-report). `cost` is the
-// request's share of the day, as its feature's note (VISITOR_LIMITS) says.
-export function limitVisitor(
-    req: Request,
-    feature: Feature,
-    { now = Date.now(), cost = 1 }: { now?: number; cost?: number } = {},
-): Response | null {
+// Error reports are the exception: anyone can post one, so that route counts
+// each post that gets past the guard before reading it (app/api/error-report).
+export function limitVisitor(req: Request, feature: Feature, counting: Counting = {}): Response | null {
+    const now = counting.now ?? Date.now();
     const visitor = visitorOf(req.headers);
     if (visitor === null) {
         // Never on Vercel. Said once, so a change there shows in the logs.
@@ -284,8 +293,15 @@ export function limitVisitor(
         unaddressed = true;
         return null;
     }
-    const verdict = allowances[feature].take(visitor, now, cost);
+    const verdict = allowances[feature].take(visitor, now, counting.cost ?? 1);
     if (verdict.ok) return null;
+    if ('tooBig' in verdict) {
+        logRefusal('visitor_limited', `${feature} too_big`, { window: 'day', limit: VISITOR_LIMITS[feature].perDay, why: 'too_big' }, now);
+        // Only a request that costs more than 1 can be too big, and a route
+        // that gives one a cost says how it fails.
+        if (counting.tooBig) return counting.tooBig();
+        return Response.json(REFUSALS[feature].day, { status: 429, headers: { 'Cache-Control': 'no-store' } });
+    }
     const limit = verdict.window === 'day' ? VISITOR_LIMITS[feature].perDay : VISITOR_LIMITS[feature].perMinute;
     logRefusal('visitor_limited', `${feature} ${verdict.window}`, { window: verdict.window, limit }, now);
     const { code, error } = REFUSALS[feature][verdict.window];

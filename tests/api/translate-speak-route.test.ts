@@ -288,13 +288,7 @@ test("a request refused for what it is doesn't count toward a visitor's day", as
     assert.equal((await say('   ', 'pa', visitor)).status, 400);
     assert.equal((await say('Sat Sri Akal ji', 'pa', visitor)).status, 400, 'romanized: a Punjabi voice reads Gurmukhi only');
     assert.equal((await say(LINE, 'pa', visitor)).status, 200, 'the refused lines spent nothing');
-    // The day counts characters: now even a five-character line is past it,
-    // and a spent day waits for midnight UTC.
-    const res = await say('ਹਾਂਜੀ', 'pa', visitor);
-    assert.equal(res.status, 429);
-    assert.equal((await res.json()).code, 'speak_limit');
-    const toMidnight = (Math.floor(Date.now() / DAY_MS) + 1) * DAY_MS - Date.now();
-    if (toMidnight > 2 * MINUTE_MS) assert.ok(Number(res.headers.get('retry-after')) > 60, 'until midnight UTC');
+    assert.equal((await say('ਹਾਂਜੀ', 'pa', visitor)).status, 429, 'the day counts characters: now even five are past it');
 });
 
 test('lines read aloud count against an allowance of their own', async () => {
@@ -302,9 +296,12 @@ test('lines read aloud count against an allowance of their own', async () => {
     spendDay('speak', '203.0.113.91');
     const { result: res, requests } = await captured(mock, () => say(LINE, 'pa', visitor));
     assert.equal(res.status, 429);
-    assert.ok(Number(res.headers.get('retry-after')) > 0);
     assert.equal((await res.json()).code, 'speak_limit');
     assert.equal(requests.length, 0);
+    // A spent day waits for midnight UTC (unless that's a minute or two off).
+    const toMidnight = (Math.floor(Date.now() / DAY_MS) + 1) * DAY_MS - Date.now();
+    const wait = Number(res.headers.get('retry-after'));
+    assert.ok(toMidnight > 2 * MINUTE_MS ? wait > 60 : wait > 0, `until midnight UTC: ${wait}`);
 
     const other = { 'x-forwarded-for': '203.0.113.92' };
     const minute = () => Math.floor(Date.now() / MINUTE_MS);
@@ -316,14 +313,13 @@ test('lines read aloud count against an allowance of their own', async () => {
     assert.equal((await refused.json()).code, 'speak_busy');
 });
 
-test("a line longer than what's left of the visitor's day waits a minute, not until midnight, and a shorter one is still read", async () => {
+test("a line longer than what's left of the visitor's day fails alone, with nothing to wait for, and a shorter one is still read", async () => {
     const visitor = { 'x-forwarded-for': '203.0.113.96' };
     spendDay('speak', '203.0.113.96', 10);
     const { result: res, requests } = await captured(mock, () => say(LINE, 'pa', visitor));
-    assert.equal(res.status, 429);
-    assert.equal((await res.json()).code, 'speak_limit');
-    const wait = Number(res.headers.get('retry-after'));
-    assert.ok(wait >= 1 && wait <= 60, `the page waits out Retry-After, so only until the minute ends: ${wait}`);
+    assert.equal(res.status, 502, "as a line too long for the server's characters fails");
+    assert.equal(res.headers.get('retry-after'), null, 'the page pauses only for a Retry-After');
+    assert.equal((await res.json()).code, 'speak_failed');
     assert.equal(requests.length, 0);
     assert.equal((await say('ਹਾਂਜੀ', 'pa', visitor)).status, 200, 'five characters fit in the ten left');
 });

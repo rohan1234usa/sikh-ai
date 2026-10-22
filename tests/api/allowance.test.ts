@@ -102,7 +102,7 @@ test("a request's cost counts toward the day, and the minute still counts reques
     const allowance = visitorAllowance({ perMinute: 3, perDay: 10 });
     const t = DAY_START + 5 * MINUTE_MS;
     assert.deepEqual(allowance.take('a', t, 6), { ok: true });
-    assert.deepEqual(allowance.take('a', t, 5), { ok: false, window: 'day', retryAfter: 60 }, '6 + 5 is past 10, but 4 are left: a smaller one may fit, so only until the minute ends');
+    assert.deepEqual(allowance.take('a', t, 5), { ok: false, tooBig: true }, '6 + 5 is past 10, but 4 are left: too big, not past the day');
     assert.deepEqual(allowance.take('a', t, 4), { ok: true }, 'the refused 5 spent nothing; 6 + 4 is exactly 10');
     assert.deepEqual(allowance.take('a', t + MINUTE_MS, 1), { ok: false, window: 'day', retryAfter: (DAY_MS - 6 * MINUTE_MS) / 1000 }, 'the day is spent: until midnight UTC');
     for (let i = 0; i < 3; i++) assert.deepEqual(allowance.take('b', t, 1), { ok: true });
@@ -135,20 +135,32 @@ test("one visitor can't use up a server's day of characters: it takes four", () 
     assert.ok(VISITOR_LIMITS.speak.perDay * 4 <= SPEAK_DAILY_CHAR_CEILING, 'read-aloud');
 });
 
-test("limitVisitor charges read-aloud by the line's length", () => {
-    const req = new Request('http://local/api/translate/speak', { method: 'POST', headers: { 'x-forwarded-for': '203.0.113.13' } });
-    const t = DAY_START + 50_000;
-    assert.equal(limitVisitor(req, 'speak', { now: t, cost: VISITOR_LIMITS.speak.perDay - 400 }), null);
-    assert.equal(limitVisitor(req, 'speak', { now: t, cost: 400 }), null, 'exactly the day');
-    assert.equal(limitVisitor(req, 'speak', { now: t + MINUTE_MS, cost: 1 })?.status, 429);
+// What a route answers for a request too big for what's left (its own 502).
+const tooBig = () => new Response(null, { status: 502 });
+
+test('limitVisitor charges read-aloud and Compare by their text\'s length', () => {
+    for (const [feature, address, last] of [['speak', '203.0.113.13', 400], ['crosscheck', '203.0.113.12', 10]] as const) {
+        const t = DAY_START + 40_000;
+        assert.equal(limitVisitor(from(address), feature, { now: t, cost: VISITOR_LIMITS[feature].perDay - last, tooBig }), null, feature);
+        assert.equal(limitVisitor(from(address), feature, { now: t, cost: last, tooBig }), null, `${feature}: exactly the day`);
+        assert.equal(limitVisitor(from(address), feature, { now: t + MINUTE_MS, cost: 1, tooBig })?.status, 429, `${feature}: the day is spent`);
+    }
 });
 
-test("limitVisitor charges Compare by its text's length", () => {
-    const req = new Request('http://local/api/translate/crosscheck', { method: 'POST', headers: { 'x-forwarded-for': '203.0.113.12' } });
-    const t = DAY_START + 40_000;
-    assert.equal(limitVisitor(req, 'crosscheck', { now: t, cost: VISITOR_LIMITS.crosscheck.perDay - 10 }), null);
-    assert.equal(limitVisitor(req, 'crosscheck', { now: t, cost: 10 }), null, 'exactly the day');
-    assert.equal(limitVisitor(req, 'crosscheck', { now: t + MINUTE_MS, cost: 1 })?.status, 429);
+test("a request too big for what's left fails as its route says, apart from a spent day, and smaller ones still go", () => {
+    const t = DAY_START + 9 * MINUTE_MS;
+    const { lines, value } = capture(() => {
+        assert.equal(limitVisitor(from('203.0.113.16'), 'speak', { now: t, cost: VISITOR_LIMITS.speak.perDay - 10, tooBig }), null);
+        const res = limitVisitor(from('203.0.113.16'), 'speak', { now: t, cost: 11, tooBig });
+        assert.equal(res?.status, 502, "the route's own answer, with nothing to wait for");
+        assert.equal(limitVisitor(from('203.0.113.16'), 'speak', { now: t, cost: 10, tooBig }), null, 'the ten left still go');
+        return limitVisitor(from('203.0.113.16'), 'speak', { now: t, cost: 1, tooBig });
+    });
+    assert.equal(value?.status, 429, 'then the day is spent');
+    assert.deepEqual(lines.map(({ evt, window, why }) => ({ evt, window, why })), [
+        { evt: 'visitor_limited', window: 'day', why: 'too_big' },
+        { evt: 'visitor_limited', window: 'day', why: undefined },
+    ], 'each case on its own line');
 });
 
 test('one feature remembers a bounded number of visitors, forgetting the one seen longest ago', () => {

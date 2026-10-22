@@ -223,6 +223,9 @@ test("Compare counts a visitor's day in characters, and charges nothing when Clo
     } finally {
         delete process.env.TRANSLATE_FALLBACK;
     }
+    const tooLong = await compare('Twenty-three characters', '203.0.113.72');
+    assert.equal(tooLong.status, 502, 'one character more than is left fails alone');
+    assert.equal(tooLong.headers.get('retry-after'), null);
     assert.equal((await compare('Twenty-two characters.', '203.0.113.72')).status, 200, 'the refused ones cost nothing');
     const res = await compare('Nine more', '203.0.113.72');
     assert.equal(res.status, 429, 'the day is spent');

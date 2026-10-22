@@ -66,8 +66,13 @@ async function handlePost(req: Request) {
     // One visitor's too many (lib/api/allowance.ts), counted in characters,
     // since characters are what run out: no one visitor can spend a server's
     // whole day of reading aloud. Like every route's count, it comes before
-    // the call, so a line Google then fails still counts.
-    const limited = limitVisitor(req, "speak", { cost: line.length });
+    // the call, so a line Google then fails still counts. A line too long for
+    // what's left of the visitor's day fails alone, as one too long for this
+    // server's does, and shorter ones are still read.
+    const limited = limitVisitor(req, "speak", {
+      cost: line.length,
+      tooBig: () => refuse(502, "speak_failed", FAILED_ERROR),
+    });
     if (limited) return limited;
 
     const spoken = await synthesize(ready.account, line, lang, req.signal);

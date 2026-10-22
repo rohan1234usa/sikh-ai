@@ -88,8 +88,10 @@ async function handlePost(req: Request) {
     // answer has to be bought, and in characters, since characters are what
     // run out: no one visitor can spend a server's whole day of comparisons.
     // Like every route's count, it comes before the call, so a comparison
-    // Cloud then fails (busy, down) still counts.
-    const limited = limitVisitor(req, "crosscheck", { cost: trimmed.length });
+    // Cloud then fails (busy, down) still counts. One too long for what's
+    // left of the visitor's day fails alone, as one Cloud has no room for
+    // does.
+    const limited = limitVisitor(req, "crosscheck", { cost: trimmed.length, tooBig: unavailable });
     if (limited) return limited;
 
     // Source is always explicit here — the caller sends a rendition whose
