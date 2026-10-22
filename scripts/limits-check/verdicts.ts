@@ -101,8 +101,9 @@ export function howLong(seconds: number): string {
 }
 
 // A burst whose first answer is already a refusal ran into a limit left over
-// from before it, an earlier burst or run: it shows nothing. A route's day
-// limit (`_limit`) lasts until midnight UTC, so a minute's wait won't do.
+// from before it, an earlier burst or run: it shows nothing. For the requests
+// this check sends, each counted as one, a route's day limit (`_limit`) lasts
+// until midnight UTC, so a minute's wait won't do.
 function leftOver(answers: Answer[]): Verdict | null {
     const first = answers[0];
     if (!first) return { ok: false, detail: 'no answers' };

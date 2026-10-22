@@ -117,7 +117,7 @@ function cloudReady(purpose: CloudPurpose, chars: number, now: number): string |
 // Whether a call for `purpose` with `chars` characters would go out now. A
 // route asks before counting its visitor (app/api/translate/crosscheck), so
 // no one is charged for a call that was never going to be made. Asking
-// spends nothing.
+// spends nothing. `now` times only the log line (the day is the UTC date's).
 export function cloudCanTranslate(purpose: CloudPurpose, chars: number, now = Date.now()): boolean {
     return cloudReady(purpose, chars, now) !== null;
 }
