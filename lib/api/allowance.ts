@@ -184,7 +184,11 @@ export function visitorOf(headers: Headers): string | null {
     return null;
 }
 
-export type Allowance = { take(visitor: string, now?: number, cost?: number): Verdict; size(): number };
+export type Allowance = {
+    take(visitor: string, now?: number, cost?: number): Verdict;
+    used(visitor: string, now?: number): number;
+    size(): number;
+};
 
 // One feature's counts. take() counts a request, or says which limit it's
 // past and how many seconds until that limit's window ends. A refused
@@ -198,6 +202,7 @@ export type Allowance = { take(visitor: string, now?: number, cost?: number): Ve
 export function visitorAllowance({ perMinute, perDay }: Limits, maxVisitors = MAX_VISITORS): Allowance {
     let day = -1;
     let secret = randomBytes(32);
+    const codeOf = (visitor: string) => createHmac('sha256', secret).update(visitor).digest('base64url').slice(0, 16);
     // Each visitor is moved to the end when seen, so the first is the one
     // seen longest ago.
     const counts = new Map<string, { minute: number; inMinute: number; inDay: number }>();
@@ -210,7 +215,7 @@ export function visitorAllowance({ perMinute, perDay }: Limits, maxVisitors = MA
                 secret = randomBytes(32);
                 counts.clear();
             }
-            const code = createHmac('sha256', secret).update(visitor).digest('base64url').slice(0, 16);
+            const code = codeOf(visitor);
             const minute = Math.floor(now / MINUTE_MS);
             const mine = counts.get(code) ?? { minute, inMinute: 0, inDay: 0 };
             counts.delete(code);
@@ -235,6 +240,11 @@ export function visitorAllowance({ perMinute, perDay }: Limits, maxVisitors = MA
                 if (oldest !== undefined) counts.delete(oldest);
             }
             return verdict;
+        },
+        // What a visitor has spent of today, counting nothing. Like size(),
+        // it's for the tests (spendDay in tests/helpers/routes.ts).
+        used(visitor, now = Date.now()) {
+            return Math.floor(now / DAY_MS) === day ? (counts.get(codeOf(visitor))?.inDay ?? 0) : 0;
         },
         size: () => counts.size,
     };

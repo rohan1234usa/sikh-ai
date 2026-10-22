@@ -12,6 +12,7 @@ import { DAILY_CHAR_CEILING } from '@/lib/translate/cloud';
 import { MAX_CROSSCHECK_CHARS } from '@/lib/translate/config';
 import { SPEAK_DAILY_CHAR_CEILING } from '@/lib/translate/speak';
 import { MAX_SPEAK_CHARS } from '@/lib/translate/voice';
+import { spendDay } from '../helpers/routes';
 
 // Its own file: `allowances` is module state, and these tests spend it. A
 // test that does uses addresses no other test uses.
@@ -107,6 +108,18 @@ test("a request's cost counts toward the day, and the minute still counts reques
     for (let i = 0; i < 3; i++) assert.deepEqual(allowance.take('b', t, 1), { ok: true });
     assert.deepEqual(allowance.take('b', t, 1), { ok: false, window: 'minute', retryAfter: 60 }, 'three requests in the minute, whatever they cost');
     assert.equal(allowance.take('c', t, 11).ok, false, 'one request costing more than a whole day never goes through');
+});
+
+test('used() says what a visitor has spent of today, and counts nothing', () => {
+    const allowance = visitorAllowance({ perMinute: 2, perDay: 10 });
+    const t = DAY_START + 7 * MINUTE_MS;
+    assert.equal(allowance.used('a', t), 0, 'not seen yet');
+    assert.deepEqual(allowance.take('a', t, 4), { ok: true });
+    assert.equal(allowance.used('a', t), 4);
+    assert.equal(allowance.used('a', t), 4, 'asking twice spends nothing');
+    assert.deepEqual(allowance.take('a', t, 1), { ok: true }, 'nor counts toward the minute');
+    assert.equal(allowance.used('b', t), 0);
+    assert.equal(allowance.used('a', t + DAY_MS), 0, 'a new day');
 });
 
 test("one comparison, however long, fits in a visitor's day of them", () => {
@@ -216,4 +229,13 @@ test('every refusal the chat, the tutor, the translators and Shabad Search show 
     assert.equal(responseErrorText(t, refused, REFUSALS.translate.day, 'translate_busy'), t.errors.translate_limit);
     assert.equal(responseErrorText(t, refused, REFUSALS.search.day, 'search_busy'), t.errors.search_limit);
     assert.equal(responseErrorText(t, refused, REFUSALS.search.minute, 'search_busy'), t.errors.search_busy);
+});
+
+// Last: it counts at today's real time, which starts the tutor's day afresh.
+test('spendDay refuses a visitor already counted today, by however little', () => {
+    assert.equal(limitVisitor(from('203.0.113.14'), 'learn'), null);
+    assert.throws(() => spendDay('learn', '203.0.113.14', 1), /already counted today/);
+    spendDay('learn', '203.0.113.15', 1);
+    assert.equal(limitVisitor(from('203.0.113.15'), 'learn'), null, 'a fresh visitor keeps the one left');
+    assert.equal(limitVisitor(from('203.0.113.15'), 'learn')?.status, 429);
 });
