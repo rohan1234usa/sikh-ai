@@ -30,8 +30,10 @@ const TIMEOUT_MS = 8000;
 
 // Best-effort, like Cloud Translation's (./cloud.ts): each warm server keeps
 // its own count, and a cold start resets it. 50,000 characters is a few
-// hundred translations read aloud, about $0.20 a day at $4 a million.
-const SPEAK_DAILY_CHAR_CEILING = 50_000;
+// hundred translations read aloud, about $0.20 a day at $4 a million. One
+// visitor's day is a quarter of it (VISITOR_LIMITS.speak in
+// lib/api/allowance.ts).
+export const SPEAK_DAILY_CHAR_CEILING = 50_000;
 export const speakAllowance = charAllowance(SPEAK_DAILY_CHAR_CEILING);
 
 // Punjabi's voices that are generally available are pa-IN Standard and

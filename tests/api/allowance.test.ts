@@ -8,7 +8,10 @@ import { LANGS } from '@/lib/i18n/config';
 import en from '@/lib/i18n/dictionaries/en';
 import { getTalkCopy } from '@/lib/i18n/talk';
 import { TUTOR_ERROR_CODES } from '@/lib/learn/tutor';
+import { DAILY_CHAR_CEILING } from '@/lib/translate/cloud';
 import { MAX_CROSSCHECK_CHARS } from '@/lib/translate/config';
+import { SPEAK_DAILY_CHAR_CEILING } from '@/lib/translate/speak';
+import { MAX_SPEAK_CHARS } from '@/lib/translate/voice';
 
 // Its own file: `allowances` is module state, and these tests spend it. A
 // test that does uses addresses no other test uses.
@@ -108,6 +111,23 @@ test("a request's cost counts toward the day, and the minute still counts reques
 
 test("one comparison, however long, fits in a visitor's day of them", () => {
     assert.ok(MAX_CROSSCHECK_CHARS <= VISITOR_LIMITS.crosscheck.perDay, 'or the longest comparisons would always be refused');
+});
+
+test("one line read aloud, however long, fits in a visitor's day of them", () => {
+    assert.ok(MAX_SPEAK_CHARS <= VISITOR_LIMITS.speak.perDay, 'or the longest lines would always be refused');
+});
+
+test("one visitor can't use up a server's day of characters: it takes four", () => {
+    assert.ok(VISITOR_LIMITS.crosscheck.perDay * 4 <= DAILY_CHAR_CEILING, 'Compare');
+    assert.ok(VISITOR_LIMITS.speak.perDay * 4 <= SPEAK_DAILY_CHAR_CEILING, 'read-aloud');
+});
+
+test("limitVisitor charges read-aloud by the line's length", () => {
+    const req = new Request('http://local/api/translate/speak', { method: 'POST', headers: { 'x-forwarded-for': '203.0.113.13' } });
+    const t = DAY_START + 50_000;
+    assert.equal(limitVisitor(req, 'speak', { now: t, cost: VISITOR_LIMITS.speak.perDay - 400 }), null);
+    assert.equal(limitVisitor(req, 'speak', { now: t, cost: 400 }), null, 'exactly the day');
+    assert.equal(limitVisitor(req, 'speak', { now: t + MINUTE_MS, cost: 1 })?.status, 429);
 });
 
 test("limitVisitor charges Compare by its text's length", () => {

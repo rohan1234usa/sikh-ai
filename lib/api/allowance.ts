@@ -69,9 +69,12 @@ export type Verdict = { ok: true } | { ok: false; window: Window; retryAfter: nu
 //   server (twice that from 2027).
 // - Talk's read-aloud (/api/translate/speak, Cloud Text-to-Speech): up to
 //   400 characters each, 15 a minute so a quick back-and-forth can be heard
-//   again, and 300 a day, at most about $0.50 at $4 a million characters;
-//   the server's own 50,000 characters a day (lib/translate/speak.ts) stop
-//   it well before that.
+//   again. Its day counts characters, as Compare's does (the route passes
+//   each line's length as the cost), since what runs out is the server's
+//   own 50,000 a day (lib/translate/speak.ts). 12,500 is a quarter of that,
+//   so it takes four visitors to use up a server's day; it's a couple of
+//   hundred spoken sentences, and at $4 a million characters at most $0.05
+//   per visitor per server.
 // - Compare with Google Translate: its day counts characters, not requests
 //   (the route passes each text's length as the cost), since what runs out
 //   is its own 10,000 characters a day (lib/translate/cloud.ts), and one
@@ -91,7 +94,7 @@ export const VISITOR_LIMITS = {
     translate: { perMinute: 15, perDay: 300 },
     translateLive: { perMinute: 12, perDay: 500 },
     translateVoice: { perMinute: 10, perDay: 200 },
-    speak: { perMinute: 15, perDay: 300 },
+    speak: { perMinute: 15, perDay: 12_500 },
     crosscheck: { perMinute: 5, perDay: 2_500 },
     search: { perMinute: 20, perDay: 300 },
     errorReport: { perMinute: 10, perDay: 100 },
@@ -188,7 +191,7 @@ export type Allowance = { take(visitor: string, now?: number, cost?: number): Ve
 // request doesn't count. Both windows are fixed: the clock minute, and the
 // UTC day, like dailyMeter's. The minute counts requests; `cost` is what a
 // request spends of the day, 1 unless the feature's day is in other units
-// (Compare's characters).
+// (Compare's and read-aloud's characters).
 export function visitorAllowance({ perMinute, perDay }: Limits, maxVisitors = MAX_VISITORS): Allowance {
     let day = -1;
     let secret = randomBytes(32);
@@ -253,7 +256,8 @@ let unaddressed = false;
 // request refused for what it is, or answered for free, isn't counted.
 // Error reports are the exception: anyone can post one, so that route
 // counts every post before reading it (app/api/error-report). `cost` is the
-// request's share of the day (Compare passes its text's length).
+// request's share of the day (Compare and read-aloud pass their text's
+// length).
 export function limitVisitor(
     req: Request,
     feature: Feature,

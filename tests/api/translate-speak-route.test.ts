@@ -299,6 +299,16 @@ test('lines read aloud count against an allowance of their own', async () => {
     assert.equal((await refused.json()).code, 'speak_busy');
 });
 
+test("a visitor's day counts characters, not lines", async () => {
+    const visitor = { 'x-forwarded-for': '203.0.113.96' };
+    spendDay('speak', '203.0.113.96', LINE.length);
+    assert.equal((await say(LINE, 'pa', visitor)).status, 200, 'exactly what was left');
+    const { result: res, requests } = await captured(mock, () => say('ਹਾਂਜੀ', 'pa', visitor));
+    assert.equal(res.status, 429, 'a short line is still past the day');
+    assert.equal((await res.json()).code, 'speak_limit');
+    assert.equal(requests.length, 0);
+});
+
 test('the log line says what a call cost, and never what was read', async () => {
     const lines = await logged(async () => {
         assert.equal((await say(LINE)).status, 200);
