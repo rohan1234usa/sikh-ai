@@ -93,9 +93,14 @@ test('whether a call would go out: Cloud on, a key, and enough of that day left'
         assert.equal(cloud.cloudCanTranslate('fallback', 5), false, 'no key');
         const lines = await capture(async () => { cloud.cloudCanTranslate('compare', 5); });
         assert.deepEqual(lines.map((l) => [l.evt, l.missing]), [['config_error', 'GOOGLE_TRANSLATE_API_KEY']], 'a missing key is logged');
+        // As .env.local's `GOOGLE_TRANSLATE_API_KEY=` arrives.
+        process.env.GOOGLE_TRANSLATE_API_KEY = '';
+        process.env.GEMINI_API_KEY = 'gemini-key';
+        assert.equal(cloud.cloudCanTranslate('fallback', 5), true, 'a blank Translate key borrows the Gemini key');
     } finally {
         process.env.GOOGLE_TRANSLATE_API_KEY = key;
-        if (gemini !== undefined) process.env.GEMINI_API_KEY = gemini;
+        if (gemini === undefined) delete process.env.GEMINI_API_KEY;
+        else process.env.GEMINI_API_KEY = gemini;
     }
     assert.equal(calls, 0, 'asking sends nothing');
     assert.equal(cloud.cloudAllowances.compare.remaining(), left, 'and spends nothing');

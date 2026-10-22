@@ -87,7 +87,9 @@ export function switchedOff(name: string): boolean {
 // error, which reaches Sentry (lib/log.ts).
 export const passingStatus = (status: number) => status === 429 || status >= 500;
 
-const cloudKey = () => process.env.GOOGLE_TRANSLATE_API_KEY ?? process.env.GEMINI_API_KEY;
+// Until it has its own key, Cloud borrows the Gemini key (README, Running in
+// production, step 4). A blank one is no key, as for read-aloud's account.
+const cloudKey = () => process.env.GOOGLE_TRANSLATE_API_KEY?.trim() || process.env.GEMINI_API_KEY;
 
 // The key to call Cloud with for `purpose` and `chars` characters now, or
 // null, logged, when the call wouldn't go out. One switch disables every
