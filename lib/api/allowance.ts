@@ -191,7 +191,10 @@ export type Allowance = { take(visitor: string, now?: number, cost?: number): Ve
 // request doesn't count. Both windows are fixed: the clock minute, and the
 // UTC day, like dailyMeter's. The minute counts requests; `cost` is what a
 // request spends of the day, 1 unless the feature's day is in other units
-// (Compare's and read-aloud's characters).
+// (Compare's and read-aloud's characters). A request that costs more than is
+// left of a day not yet spent waits only for the minute's end: a smaller one
+// may still fit, and a page that waits out Retry-After (Talk's) mustn't stop
+// reading aloud until midnight over one long line.
 export function visitorAllowance({ perMinute, perDay }: Limits, maxVisitors = MAX_VISITORS): Allowance {
     let day = -1;
     let secret = randomBytes(32);
@@ -215,11 +218,13 @@ export function visitorAllowance({ perMinute, perDay }: Limits, maxVisitors = MA
                 mine.minute = minute;
                 mine.inMinute = 0;
             }
+            const toMinuteEnd = Math.ceil(((minute + 1) * MINUTE_MS - now) / 1000);
             let verdict: Verdict = { ok: true };
             if (mine.inDay + cost > perDay) {
-                verdict = { ok: false, window: 'day', retryAfter: Math.ceil(((today + 1) * DAY_MS - now) / 1000) };
+                const spent = mine.inDay >= perDay;
+                verdict = { ok: false, window: 'day', retryAfter: spent ? Math.ceil(((today + 1) * DAY_MS - now) / 1000) : toMinuteEnd };
             } else if (mine.inMinute >= perMinute) {
-                verdict = { ok: false, window: 'minute', retryAfter: Math.ceil(((minute + 1) * MINUTE_MS - now) / 1000) };
+                verdict = { ok: false, window: 'minute', retryAfter: toMinuteEnd };
             } else {
                 mine.inMinute++;
                 mine.inDay += cost;

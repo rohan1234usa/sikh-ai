@@ -101,9 +101,9 @@ test("a request's cost counts toward the day, and the minute still counts reques
     const allowance = visitorAllowance({ perMinute: 3, perDay: 10 });
     const t = DAY_START + 5 * MINUTE_MS;
     assert.deepEqual(allowance.take('a', t, 6), { ok: true });
-    assert.deepEqual(allowance.take('a', t, 5), { ok: false, window: 'day', retryAfter: (DAY_MS - 5 * MINUTE_MS) / 1000 }, '6 + 5 is past 10');
+    assert.deepEqual(allowance.take('a', t, 5), { ok: false, window: 'day', retryAfter: 60 }, '6 + 5 is past 10, but 4 are left: a smaller one may fit, so only until the minute ends');
     assert.deepEqual(allowance.take('a', t, 4), { ok: true }, 'the refused 5 spent nothing; 6 + 4 is exactly 10');
-    assert.equal(allowance.take('a', t + MINUTE_MS, 1).ok, false, 'the day is spent');
+    assert.deepEqual(allowance.take('a', t + MINUTE_MS, 1), { ok: false, window: 'day', retryAfter: (DAY_MS - 6 * MINUTE_MS) / 1000 }, 'the day is spent: until midnight UTC');
     for (let i = 0; i < 3; i++) assert.deepEqual(allowance.take('b', t, 1), { ok: true });
     assert.deepEqual(allowance.take('b', t, 1), { ok: false, window: 'minute', retryAfter: 60 }, 'three requests in the minute, whatever they cost');
     assert.equal(allowance.take('c', t, 11).ok, false, 'one request costing more than a whole day never goes through');

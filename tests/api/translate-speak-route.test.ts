@@ -2,7 +2,7 @@ import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { verify, type KeyObject } from 'node:crypto';
 import { SILENT_MP3, mockServiceAccount, type MockGemini } from '../../scripts/mock-gemini';
-import { MINUTE_MS, VISITOR_LIMITS } from '@/lib/api/allowance';
+import { DAY_MS, MINUTE_MS, VISITOR_LIMITS } from '@/lib/api/allowance';
 import type * as Speak from '@/lib/translate/speak';
 import { MAX_SPEAK_CHARS } from '@/lib/translate/voice';
 import { captured, logged, postJson, spendDay, startRouteMock } from '../helpers/routes';
@@ -288,7 +288,13 @@ test("a request refused for what it is doesn't count toward a visitor's day", as
     assert.equal((await say('   ', 'pa', visitor)).status, 400);
     assert.equal((await say('Sat Sri Akal ji', 'pa', visitor)).status, 400, 'romanized: a Punjabi voice reads Gurmukhi only');
     assert.equal((await say(LINE, 'pa', visitor)).status, 200, 'the refused lines spent nothing');
-    assert.equal((await say(LINE, 'pa', visitor)).status, 429);
+    // The day counts characters: now even a five-character line is past it,
+    // and a spent day waits for midnight UTC.
+    const res = await say('ਹਾਂਜੀ', 'pa', visitor);
+    assert.equal(res.status, 429);
+    assert.equal((await res.json()).code, 'speak_limit');
+    const toMidnight = (Math.floor(Date.now() / DAY_MS) + 1) * DAY_MS - Date.now();
+    if (toMidnight > 2 * MINUTE_MS) assert.ok(Number(res.headers.get('retry-after')) > 60, 'until midnight UTC');
 });
 
 test('lines read aloud count against an allowance of their own', async () => {
@@ -310,14 +316,16 @@ test('lines read aloud count against an allowance of their own', async () => {
     assert.equal((await refused.json()).code, 'speak_busy');
 });
 
-test("a visitor's day counts characters, not lines", async () => {
+test("a line longer than what's left of the visitor's day waits a minute, not until midnight, and a shorter one is still read", async () => {
     const visitor = { 'x-forwarded-for': '203.0.113.96' };
-    spendDay('speak', '203.0.113.96', LINE.length);
-    assert.equal((await say(LINE, 'pa', visitor)).status, 200, 'exactly what was left');
-    const { result: res, requests } = await captured(mock, () => say('ਹਾਂਜੀ', 'pa', visitor));
-    assert.equal(res.status, 429, 'a short line is still past the day');
+    spendDay('speak', '203.0.113.96', 10);
+    const { result: res, requests } = await captured(mock, () => say(LINE, 'pa', visitor));
+    assert.equal(res.status, 429);
     assert.equal((await res.json()).code, 'speak_limit');
+    const wait = Number(res.headers.get('retry-after'));
+    assert.ok(wait >= 1 && wait <= 60, `the page waits out Retry-After, so only until the minute ends: ${wait}`);
     assert.equal(requests.length, 0);
+    assert.equal((await say('ਹਾਂਜੀ', 'pa', visitor)).status, 200, 'five characters fit in the ten left');
 });
 
 test('the log line says what a call cost, and never what was read', async () => {
