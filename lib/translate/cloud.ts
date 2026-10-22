@@ -73,10 +73,18 @@ export const cloudAllowances: Record<CloudPurpose, CharAllowance> = {
     compare: charAllowance(DAILY_CHAR_CEILING),
 };
 
-function disabled(): boolean {
-    const flag = (process.env.TRANSLATE_FALLBACK ?? '').trim().toLowerCase();
+// Whether a switch in the environment is set to off: '0', 'false' or 'off',
+// in any case. Read on each call, so it takes effect without a redeploy.
+export function switchedOff(name: string): boolean {
+    const flag = (process.env[name] ?? '').trim().toLowerCase();
     return flag === '0' || flag === 'false' || flag === 'off';
 }
+
+// Whether a Google API's refusal passes on its own: busy (429) or down
+// (5xx). Anything else, such as a key restricted to another API, the API
+// switched off or billing off, the owner has to fix, so it's logged as an
+// error, which reaches Sentry (lib/log.ts).
+export const passingStatus = (status: number) => status === 429 || status >= 500;
 
 const cloudKey = () => process.env.GOOGLE_TRANSLATE_API_KEY ?? process.env.GEMINI_API_KEY;
 
@@ -87,7 +95,7 @@ const cloudKey = () => process.env.GOOGLE_TRANSLATE_API_KEY ?? process.env.GEMIN
 // key or a spent day is logged here as cloudTranslate would log it, since
 // that call never comes.
 export function cloudCanTranslate(purpose: CloudPurpose, chars: number): boolean {
-    if (disabled()) return false;
+    if (switchedOff('TRANSLATE_FALLBACK')) return false;
     if (!cloudKey()) {
         logEvent('config_error', { missing: 'GOOGLE_TRANSLATE_API_KEY' }, 'error');
         return false;
@@ -102,7 +110,7 @@ export function cloudCanTranslate(purpose: CloudPurpose, chars: number): boolean
 export async function cloudTranslate(opts: CloudTranslateOpts): Promise<CloudTranslateResult | null> {
     // One switch disables every runtime call to Cloud Translation — fallback
     // and cross-check alike — without a redeploy.
-    if (disabled()) return null;
+    if (switchedOff('TRANSLATE_FALLBACK')) return null;
 
     const key = cloudKey();
     if (!key) {
@@ -132,11 +140,7 @@ export async function cloudTranslate(opts: CloudTranslateOpts): Promise<CloudTra
 
         if (!res.ok) {
             // Never log the body verbatim — it can echo the request URL, key included.
-            // Busy (429) or down (5xx) passes on its own. Anything else, such as a
-            // key restricted to Gemini, the API switched off or billing off, the
-            // owner has to fix, so it's an error, which reaches Sentry (lib/log.ts).
-            const passing = res.status === 429 || res.status >= 500;
-            logEvent('upstream_error', { upstream: 'cloud_translate', status: res.status }, passing ? 'warn' : 'error');
+            logEvent('upstream_error', { upstream: 'cloud_translate', status: res.status }, passingStatus(res.status) ? 'warn' : 'error');
             return null;
         }
 

@@ -57,6 +57,21 @@ export type Verdict = { ok: true } | { ok: false; window: Window; retryAfter: nu
 //   there's room left for the Translate button. 500 a day, at about $0.0014
 //   a call (measured: 1,600 tokens in, 50 out), is at most about $0.70 per
 //   visitor per server (twice that from 2027).
+// - Talk's voice translator (/api/translate/voice): one call per clip of up
+//   to 15 s, and a person records, waits for the lines and listens before
+//   the next, so 10 a minute is more than a conversation gets through, and
+//   leaves room under the firewall's 20 for the read-aloud call each
+//   exchange can make. At most about 2,000 tokens in (480 of them audio,
+//   32 a second; the instruction is most of the rest) and a few hundred out
+//   with its thinking (up to about 1,000 thought tokens when it thinks):
+//   about $0.003 a call on 3.8 Flash ($0.75 a million in, $3.75 out), at
+//   most about $0.006, so 200 a day is at most about $1.20 per visitor per
+//   server (twice that from 2027).
+// - Talk's read-aloud (/api/translate/speak, Cloud Text-to-Speech): up to
+//   400 characters each, 15 a minute so a quick back-and-forth can be heard
+//   again, and 300 a day, at most about $0.50 at $4 a million characters;
+//   the server's own 50,000 characters a day (lib/translate/speak.ts) stop
+//   it well before that.
 // - Compare with Google Translate: its day counts characters, not requests
 //   (the route passes each text's length as the cost), since what runs out
 //   is its own 10,000 characters a day (lib/translate/cloud.ts), and one
@@ -75,6 +90,8 @@ export const VISITOR_LIMITS = {
     learn: { perMinute: 10, perDay: 300 },
     translate: { perMinute: 15, perDay: 300 },
     translateLive: { perMinute: 12, perDay: 500 },
+    translateVoice: { perMinute: 10, perDay: 200 },
+    speak: { perMinute: 15, perDay: 300 },
     crosscheck: { perMinute: 5, perDay: 2_500 },
     search: { perMinute: 20, perDay: 300 },
     errorReport: { perMinute: 10, perDay: 100 },
@@ -83,8 +100,9 @@ export type Feature = keyof typeof VISITOR_LIMITS;
 
 // What a refused visitor is told: the busy code past the minute's limit
 // (try again in a minute), the limit code past the day's. The English is the
-// dictionary's for the same code (lib/i18n/dictionaries/en.ts; a test holds
-// them equal), for the logs and for a page loaded before a code existed. The
+// dictionary's for the same code (lib/i18n/dictionaries/en.ts), or for Talk's
+// two routes its page's own (lib/i18n/talk/en.ts); a test holds them equal.
+// It's for the logs and for a page loaded before a code existed. The
 // quote check, Compare and error reports don't show their errors, so theirs
 // are for logs.
 export const REFUSALS: Record<Feature, Record<Window, { code: string; error: string }>> = {
@@ -109,6 +127,14 @@ export const REFUSALS: Record<Feature, Record<Window, { code: string; error: str
     translateLive: {
         minute: { code: 'translate_live_busy', error: 'Too many live translations. Please wait a minute.' },
         day: { code: 'translate_live_limit', error: "Today's limit for live translation is reached." },
+    },
+    translateVoice: {
+        minute: { code: 'translate_voice_busy', error: 'The voice translator is busy right now. Please wait a minute and try again.' },
+        day: { code: 'translate_voice_limit', error: "Your connection has reached today's limit for the voice translator. Please come back later." },
+    },
+    speak: {
+        minute: { code: 'speak_busy', error: 'Reading aloud is busy right now. Please wait a minute.' },
+        day: { code: 'speak_limit', error: "Your connection has reached today's limit for reading aloud. Please come back later." },
     },
     crosscheck: {
         minute: { code: 'crosscheck_busy', error: 'Too many comparisons. Please wait a minute.' },
@@ -212,6 +238,8 @@ export const allowances: Record<Feature, Allowance> = {
     learn: visitorAllowance(VISITOR_LIMITS.learn),
     translate: visitorAllowance(VISITOR_LIMITS.translate),
     translateLive: visitorAllowance(VISITOR_LIMITS.translateLive),
+    translateVoice: visitorAllowance(VISITOR_LIMITS.translateVoice),
+    speak: visitorAllowance(VISITOR_LIMITS.speak),
     crosscheck: visitorAllowance(VISITOR_LIMITS.crosscheck),
     search: visitorAllowance(VISITOR_LIMITS.search),
     errorReport: visitorAllowance(VISITOR_LIMITS.errorReport),

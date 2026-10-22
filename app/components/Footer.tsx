@@ -21,9 +21,9 @@ export default function Footer() {
         { href: to('/terms'), label: t.footer.terms },
     ];
 
-    // The chat screen (/chat and each saved chat) and the Punjabi tutor are
-    // fixed-height app screens with no room for a footer
-    if (path === '/chat' || path.startsWith('/chat/') || path === '/learn/tutor') return null;
+    // The chat screen (/chat and each saved chat), the Punjabi tutor and Talk
+    // are fixed-height app screens with no room for a footer
+    if (path === '/chat' || path.startsWith('/chat/') || path === '/learn/tutor' || path === '/translate/talk') return null;
 
     return (
         <footer className="border-t border-edge bg-surface-raised mt-auto">

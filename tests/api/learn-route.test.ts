@@ -5,7 +5,7 @@ import { getLesson } from '@/lib/learn/curriculum';
 import { LEARN_MAX_OUTPUT_TOKENS, MAX_LEARN_BODY_CHARS } from '@/lib/learn/request';
 import { MAX_TUTOR_HISTORY_TURNS, MAX_TUTOR_HISTORY_TURN_CHARS, MAX_TUTOR_MESSAGE_CHARS } from '@/lib/learn/tutor';
 import { ROMANIZATION_RULES } from '@/lib/translate/romanization';
-import { captured, postJson, readStream, spendDay, startRouteMock } from '../helpers/routes';
+import { captured, instructionOf, postJson, readStream, spendDay, startRouteMock } from '../helpers/routes';
 
 let mock: MockGemini;
 let POST: (req: Request) => Promise<Response>;
@@ -24,8 +24,6 @@ type WireBody = {
     systemInstruction: { parts: { text: string }[] };
     generationConfig: Record<string, unknown> & { maxOutputTokens: number; thinkingConfig: { thinkingLevel: string } };
 };
-
-const instructionOf = (body: unknown) => (body as WireBody).systemInstruction.parts[0].text;
 
 test('streams the tutor’s reply, skipping the signature-only first chunk', async () => {
     const { result: res, requests } = await captured(mock, () => ask('MOCK_REPLY:tutor Why kita and not kiti?'));

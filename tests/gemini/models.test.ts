@@ -5,7 +5,7 @@ import { geminiFallbackModel, geminiModel } from '@/lib/gemini/models';
 const VARS = [
     'GEMINI_CHAT_MODEL', 'GEMINI_TRANSLATE_MODEL', 'GEMINI_LEARN_MODEL', 'GEMINI_TRANSLATE_LIVE_MODEL',
     'GEMINI_CHAT_FALLBACK_MODEL', 'GEMINI_TRANSLATE_FALLBACK_MODEL', 'GEMINI_LEARN_FALLBACK_MODEL',
-    'GEMINI_TRANSLATE_LIVE_FALLBACK_MODEL',
+    'GEMINI_TRANSLATE_LIVE_FALLBACK_MODEL', 'GEMINI_TRANSLATE_VOICE_MODEL', 'GEMINI_TRANSLATE_VOICE_FALLBACK_MODEL',
 ];
 afterEach(() => { for (const name of VARS) delete process.env[name]; });
 
@@ -14,6 +14,7 @@ test('every feature uses the pinned model by default', () => {
     assert.equal(geminiModel('translate'), 'gemini-3.8-flash');
     assert.equal(geminiModel('learn'), 'gemini-3.8-flash');
     assert.equal(geminiModel('translateLive'), 'gemini-3.8-flash');
+    assert.equal(geminiModel('translateVoice'), 'gemini-3.8-flash');
 });
 
 test('an env override applies to its own feature only, trimmed', () => {
@@ -32,6 +33,16 @@ test('the fallback model defaults to 3.7 Flash', () => {
     assert.equal(geminiFallbackModel('translate'), 'gemini-3.7-flash');
     assert.equal(geminiFallbackModel('learn'), 'gemini-3.7-flash');
     assert.equal(geminiFallbackModel('translateLive'), 'gemini-3.7-flash');
+    assert.equal(geminiFallbackModel('translateVoice'), 'gemini-3.7-flash');
+});
+
+test('Talk’s voice route has its own override, apart from the translators', () => {
+    process.env.GEMINI_TRANSLATE_VOICE_MODEL = 'gemini-3.6-flash';
+    process.env.GEMINI_TRANSLATE_VOICE_FALLBACK_MODEL = 'off';
+    assert.equal(geminiModel('translateVoice'), 'gemini-3.6-flash');
+    assert.equal(geminiFallbackModel('translateVoice'), null);
+    assert.equal(geminiModel('translateLive'), 'gemini-3.8-flash');
+    assert.equal(geminiFallbackModel('translate'), 'gemini-3.7-flash');
 });
 
 test('the live translator has its own override, apart from the full translator', () => {

@@ -13,7 +13,7 @@ import {
     parseLiveLines,
     refusalPauseMs,
 } from '@/lib/translate/live';
-import { buildLiveTranslateRequest, composeLiveTranslateInstruction, composeTranslateInstruction } from '@/lib/translate/prompts';
+import { LINES_MAX_OUTPUT_TOKENS, buildLiveTranslateRequest, composeLiveTranslateInstruction, composeTranslateInstruction } from '@/lib/translate/prompts';
 import { ROMANIZATION_CAPITALS, ROMANIZATION_RULES } from '@/lib/translate/romanization';
 
 const REPLY = 'INPUT: english\nGURMUKHI: ਤੁਸੀਂ ਕਿਵੇਂ ਹੋ?\nROMAN: Tusi kiven ho?\nENGLISH: How are you?';
@@ -59,6 +59,12 @@ test('a line without a label carries on the one before it; an unknown INPUT is l
     assert.equal(lines.english, 'Note: first line', 'a label later in a line is part of its text');
     // Once the stream is done, a short last line is text, not a label to come.
     assert.equal(parseLiveLines('INPUT: english\nENGLISH: in the\nin', true).english, 'in the in');
+});
+
+test('INPUT: none, which Talk’s voice route sends for a clip with no speech, is kept', () => {
+    assert.deepEqual(parseLiveLines('INPUT: none', true), { input: 'none' });
+    assert.deepEqual(parseLiveLines('INPUT: no'), {}, 'not yet a value it knows');
+    assert.deepEqual(liveFieldsFor('none'), ['gurmukhi', 'roman', 'english']);
 });
 
 test('the lines shown are the translation, never the input echoed back', () => {
@@ -143,7 +149,8 @@ test('the live request streams plain text quickly, with no schema', () => {
     const { config, contents } = buildLiveTranslateRequest('m', 'ki haal hai', { sourceHint: 'auto', detectedScript: 'latin' });
     assert.equal(config?.responseMimeType, undefined);
     assert.equal(config?.responseSchema, undefined);
-    assert.equal(config?.maxOutputTokens, 1024);
+    assert.equal(config?.maxOutputTokens, LINES_MAX_OUTPUT_TOKENS);
+    assert.ok(LINES_MAX_OUTPUT_TOKENS >= 4096, 'room for LOW thinking before the lines');
     assert.equal(config?.thinkingConfig?.thinkingLevel, 'LOW');
     assert.match(String(contents), /^--- BEGIN TEXT [0-9a-f]{8} ---\nki haal hai\n--- END TEXT [0-9a-f]{8} ---$/);
 });

@@ -34,7 +34,7 @@ const policy: PolicyDictionary = {
                     'Tuhade aakhri {maxTranslations} anuvaad. “Haalia anuvaad” vich tusi ik-ik karke jaan saare hata sakde ho.',
                     'Tuhadi “Punjabi Sikho” tarakki: poore keete sabak, quiz de sab ton vadhia ank, ate har flashcard kadon dubara aavega.',
                     'Punjabi tutor naal tuhadi gallbaat, tab band hon tak.',
-                    'Tuhadian chat settings (Drishtikon, Jawab di shaili ate Jawab di bhasha), ki anuvadak da live anuvaad chaalu hai, tuhadi theme, ki tusi pheriaan di ginti band kiti hai, ate ki tusi sign in si, taan jo tuhada session chheti vapas aa jave.',
+                    'Tuhadian chat settings (Drishtikon, Jawab di shaili ate Jawab di bhasha), ki anuvadak da live anuvaad chaalu hai, ki “Bol ke anuvaad” anuvaad parh ke sunaunda hai, tuhadi theme, ki tusi pheriaan di ginti band kiti hai, ate ki tusi sign in si, taan jo tuhada session chheti vapas aa jave.',
                     'Seva samagaman vale panne utte tuhada aakhri chuniaa desh; ate jo samagam tusi likhna shuru kita par paaya nahi, tab band hon tak.',
                     'Ik cookie, {langCookie}, jo sirf bhasha badlan vele lagdi hai. Ih tuhadi chon ik saal layi rakhdi hai, taan jo link tuhadi bhasha vich khulle.',
                     'Jadon tusi sign in hunde ho, Google di sign-in seva Firebase tuhada session ithe rakhdi hai: tuhade khaate di ID, naam, email pata, tuhadi profile photo da pata, ate sign-in token. Sign out karan naal ih hat jaanda hai. Firebase ih vi darj karda hai ki usda code is browser vich kehre din chaliaa, apni varton di ginti layi.',
@@ -63,17 +63,18 @@ const policy: PolicyDictionary = {
             services: {
                 heading: 'Hor sevavan nu bhejia jaanda',
                 items: [
-                    'Google Gemini jawab likhda hai. Har chat suneha gallbaat de {maxEarlierMessages} tak pichhle sunehian, tuhade jode kise paath (jo har sunehe naal dubara jaanda hai), ate tuhadian chat settings samet usnu jaanda hai. Jis likhat da tusi anuvaad karde ho, oh vi usnu jaandi hai: jadon tusi “Anuvaad karo” dabaunde ho, ate jadon live anuvaad chaalu hove, likhde-likhde, har vaar jadon tusi rukde ho.',
+                    'Google Gemini jawab likhda hai. Har chat suneha gallbaat de {maxEarlierMessages} tak pichhle sunehian, tuhade jode kise paath (jo har sunehe naal dubara jaanda hai), ate tuhadian chat settings samet usnu jaanda hai. Jis likhat da tusi anuvaad karde ho, oh vi usnu jaandi hai: jadon tusi “Anuvaad karo” dabaunde ho, ate jadon live anuvaad chaalu hove, likhde-likhde, har vaar jadon tusi rukde ho. “Bol ke anuvaad” vale panne utte, tuhadi har recording vi usnu jaandi hai, taan jo oh isnu likhe ate isda anuvaad kare. Site sirf odon record kardi hai jadon tusi button daba ke rakhde ho (keyboard jaan screen reader naal, isnu ik vaar dabaun ton agli vaar tak), kade vi {maxClipSeconds} seconds ton vadh nahi, ate koi recording nahi rakhdi.',
                     'Punjabi tutor nu bheje sunehe vi Gemini nu jaande han, gallbaat de {maxTutorMessages} tak pichhle sunehian ate us sabak samet jithon tusi tutor kholia.',
-                    'Inhan naal tuhadi pachhaan baare kujh nahi jaanda: na tuhada naam, na khaate di ID, na IP pata. Jo tusi likhde ho oh jiven likhia uven jaanda hai, is layi jo gall tusi niji rakhni chahunde ho oh na likho.',
+                    'Inhan naal tuhada naam, khaate di ID jaan IP pata kade nahi jaanda. Jo tusi likhde ho oh jiven likhia uven jaanda hai, ate recording vich jo vi bolda hai usdi avaaz jaandi hai, is layi jo gall tusi niji rakhni chahunde ho oh na likho, na bolo.',
                     'SikhAI Gemini di adaigi vali seva vartda hai. Us layi Google dian shartan heth, Google site da bhejia apne utpaad sudharan layi nahi vartda. Ih usnu 55 dinan tak rakhda hai, sirf durvarton phadan layi ate kanoon valon lorhinde khulasian layi.',
                     'Jadon Gemini rujhia hove, taan English jaan Gurmukhi likhat layi Google Cloud Translation usdi thaan kamm karda hai, ate “Google Translate naal tulna karo” usnu dikhaya gaya anuvaad bhejda hai. Google oh likhat sirf anuvaad karan de samen tak rakhda hai.',
+                    '“Bol ke anuvaad” vale panne utte, Google Cloud Text-to-Speech Punjabi anuvaad parh ke sunaunda hai, ate English anuvaad vi, je tuhade device vich apni English avaaz na hove, jaan oh avaaz kamm na kare jaan kujh seconds vich shuru na hove (nahi taan tuhada device English aap parhda hai). Site da server usnu anuvaad di likhat bhejda hai, jo Google sirf parhan de samen tak rakhda hai, ate avaaz tuhade browser nu bhej dinda hai, jo isnu sirf panna chhadan tak rakhda hai.',
                     'GurbaniNow ton Hukamnama, Ang ate shabad aunde han. Jawab vichli Gurbani jaanchan layi, site da server oh tukkan uthe labbhda hai. Tuhada sawal kade nahi bhejia jaanda. Shabad Khoj vich jo tusi likhde ho, oh vi tukk labbhan layi site de server ton uthe jaanda hai. Ih khoj de pate da hissa vi hunda hai, jisnu Vercel de log kise vi mange panne vaang darj karde han.',
                     'Google da app platform Firebase sign-in chalaunda hai ate khaate, sambhalian gallbaatan, saanjhe link, ate seva samagam unhan vich shamil naaman ate shikayatan samet rakhda hai. Sign in karan layi, sign in rehndian, ate saanjhe link utte tuhada browser sidha is naal judda hai, is layi odon Google tuhada IP pata dekhda hai. Seva de panne is site de server utte bande han, is layi samagam dekhan naal tuhada browser Firebase naal nahi judda. Nahi taan tuhada browser sirf is site naal judda hai.',
                     'Kise samagam tak pahunchan de raah ate calendar vale link Google Maps jaan Google Calendar kholde han, ate isnu WhatsApp utte saanjha karan naal WhatsApp khulda hai, samagam de vervian samet. Phir oh sevavan ih verve ate tuhada IP pata apnian nijjta nitian heth laindian han. Hor calendaran layi calendar file isse site ton aundi hai.',
                     'Vercel site nu chalaunda hai. Isde log thorhe samay layi tuhada IP pata ate mange panne darj karde han. Site de apne logan vich tuhada likhia kade nahi hunda, bhaven unhan vich kise panne da pata ho sakda hai.',
                     'Jadon site utte kujh kharab hunda hai, tuhade browser vich jaan isde server utte, taan ik chhoti galti report Sentry nu jaandi hai, jo galtiaan darj karan vali ik seva hai, taan jo site chalaun valian nu isda pata lag sake. Is vich dassia hunda hai ki ki kharab hoia ate site de code vich kithe, panne da pata (kise ID ton bina, ate tusi jo khojia us ton bina), site da version, ate tuhada browser ate operating system. Is vich tuhada likhia, tuhade khaate di ID jaan tuhada IP pata kade nahi hunda: tuhada browser apnian reportan is site nu bhejda hai, jisda server agge bhejan ton pehlan unhan nu dubara jaanchda hai. Kise report nu tuhade naal nahi jodia ja sakda, is layi ih benti karan utte hatai nahi ja sakdi; Sentry isnu 30 dinan baad mita dinda hai.',
-                    'Kise ik aun vale nu AI vartan valian sahulatan jaan Shabad Khoj muka den ton, jaan galti reportan di bharmaar karan ton rokan layi, site da server ginda hai ki har IP pata inhan nu is minute ate ajj kinni vaar vartda hai. Ih pate ton bane ik code heth ginda hai, jo har roz badlan vali ik gupt kunji naal banda hai, ih code sirf apni memory vich rakhda hai, ate isnu kade na likhda hai na kithe bhejda hai.',
+                    'Kise ik aun vale nu AI vartan valian sahulatan, parh ke sunauna jaan Shabad Khoj muka den ton, jaan galti reportan di bharmaar karan ton rokan layi, site da server ginda hai ki har IP pata inhan nu is minute ate ajj kinni vaar vartda hai. Ih pate ton bane ik code heth ginda hai, jo har roz badlan vali ik gupt kunji naal banda hai, ih code sirf apni memory vich rakhda hai, ate isnu kade na likhda hai na kithe bhejda hai.',
                 ],
             },
             analytics: {
@@ -88,7 +89,7 @@ const policy: PolicyDictionary = {
             age: {
                 heading: 'Umar dian hadda',
                 items: [
-                    'AI vartan valian sahulatan (SikhAI nu Puchho, Anuvadak ate Punjabi tutor) 18 saal jaan vadh umar de lokan layi han, jiven {terms} vich likhia hai. Gemini layi Google dian shartan ih mangdian han.',
+                    'AI vartan valian sahulatan (SikhAI nu Puchho, Anuvadak ate isda “Bol ke anuvaad” panna, ate Punjabi tutor) 18 saal jaan vadh umar de lokan layi han, jiven {terms} vich likhia hai. Gemini layi Google dian shartan ih mangdian han.',
                     'SikhAI jaan-bujh ke 13 saal ton ghatt umar de bacheyan ton jaankari ikatthi nahi karda. Je tuhanu lagda hai ki kise bache ne ithe sign in kita hai jaan kujh saanjha kita hai, taan {email} utte email karo ate oh mita ditta jaavega.',
                 ],
             },
@@ -96,7 +97,7 @@ const policy: PolicyDictionary = {
                 heading: 'Ih kithe sambhalia jaanda hai',
                 items: [
                     'SikhAI America ton chalda hai: Vercel site da server code uthe chalaunda hai, Firebase khaate, sambhalian gallbaatan, saanjhe link ate seva samagam uthe rakhda hai, ate Sentry galti reportan uthe rakhda hai. Je tusi kise hor desh ton aunde ho, taan tuhadi jaankari America jaandi hai.',
-                    'Google site valon Gemini ate Cloud Translation nu bheji likhat unhan hor deshan vich vi sambhal sakda hai jithe usde data center han.',
+                    'Google site valon Gemini, Cloud Translation ate Cloud Text-to-Speech nu bhejia unhan hor deshan vich vi sambhal sakda hai jithe usde data center han.',
                 ],
             },
             removing: {
@@ -141,7 +142,7 @@ const policy: PolicyDictionary = {
             ai: {
                 heading: 'AI de jawab galat ho sakde han',
                 items: [
-                    'SikhAI de jawab ate anuvaad, ate tutor de jawab vi, AI likhda hai: Google Gemini, jaan jadon Gemini rujhia hove taan anuvaad layi Google Cloud Translation. Ih galat ho sakde han, bhaven poore yakeen naal likhe lagan.',
+                    'SikhAI de jawab ate anuvaad, ate tutor de jawab vi, AI likhda hai: Google Gemini (jo “Bol ke anuvaad” vale panne utte jo sunda hai oh vi likhda hai), jaan jadon Gemini rujhia hove taan anuvaad layi Google Cloud Translation. Ih galat ho sakde han, bhaven poore yakeen naal likhe lagan.',
                     'Ih Gurbani nahi han, ate inhan nu koi dharmik adhikar prapt nahi hai. Gurbani di har tuk asal sarot naal mila ke jaancho (jawab de heth “Gurbani di jaanch” is vich madad kardi hai), ate sedh layi kise Granthi jaan apni Sangat nu puchho.',
                     'Ih doctori, kanooni jaan maali salah nahi han, ate sankat vele di madad vi nahi. Je tuhanu jaan kise hor nu khatra hai, taan apne ilaake de emergency number utte phone karo.',
                 ],
@@ -149,7 +150,7 @@ const policy: PolicyDictionary = {
             age: {
                 heading: 'AI layi 18 saal jaan vadh',
                 items: [
-                    'SikhAI de oh hisse jo AI vartde han (SikhAI nu Puchho, Anuvadak ate Punjabi tutor) 18 saal jaan vadh umar de lokan layi han, jiven Gemini layi Google dian shartan mangdian han. Je tuhadi umar 18 saal ton ghatt hai, taan kirpa karke inhan nu na varto.',
+                    'SikhAI de oh hisse jo AI vartde han (SikhAI nu Puchho, Anuvadak ate isda “Bol ke anuvaad” panna, ate Punjabi tutor) 18 saal jaan vadh umar de lokan layi han, jiven Gemini layi Google dian shartan mangdian han. Je tuhadi umar 18 saal ton ghatt hai, taan kirpa karke inhan nu na varto.',
                 ],
             },
             use: {

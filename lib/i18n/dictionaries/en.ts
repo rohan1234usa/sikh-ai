@@ -650,6 +650,9 @@ const en = {
         livePaused: 'Live translation is paused for a minute. Translate still works.',
         livePausedToday: 'Live translation has reached today’s limit. Translate still works.',
         liveFailed: 'Live translation isn’t available right now. Translate still works.',
+        // The link to Talk (/translate/talk, #37), whose own words are
+        // lib/i18n/talk.
+        talkLink: 'Talk: speak, and hear the translation',
     },
 
     // /learn (app/[lang]/learn): the Learn Punjabi section's own words. The
@@ -732,13 +735,38 @@ const en = {
             lettersAria: 'Letters',
             examplesAria: 'Examples',
             askTutor: 'Ask the tutor about this lesson',
+            // How far into a lesson the learner has read: its checkpoints.
+            sectionOf: 'Section {n} of {total}',
+            atQuiz: 'Ready for the quiz',
+            // The outline under a lesson's title. Plural only: every lesson
+            // has two sections or more (tests/learn/content.test.ts).
+            outline: 'In this lesson',
+            outlineSummary: '{n} sections · about {min} min',
+            // How long a lesson takes: 200 words a minute, 20 seconds a question.
+            minutes: 'About {n} min',
+            minutesLeft: 'About {n} min left',
+            sectionMinutes: '{n} min',
+            underAMinute: 'under 1 min',
+            skipToQuiz: 'Skip to the quiz',
         },
         quiz: {
             heading: 'Check yourself',
             questionN: 'Question {n}',
             typedLabel: 'Your answer',
             typedPlaceholder: 'Type it in English letters',
-            check: 'Check answers',
+            // Above a quiz's first typed question; the examples are pairs
+            // lib/learn/quiz.ts (foldRoman) really grades the same.
+            typedHint: 'Type it the way you’d text it. Spelling is forgiving: roti or rotee, achha or acha.',
+            // Under a question graded strictly (TypedQuestion.strict).
+            strictNote: 'Vowel length and doubled letters count on this one.',
+            // After a miss: the other spellings a typed question takes.
+            alsoAccepted: 'Also accepted: {spellings}',
+            // Each question is checked on its own; its button is named with
+            // its number, since a quiz has six to ten alike.
+            check: 'Check',
+            checkAria: 'Check question {n}',
+            progress: '{n} of {total} checked',
+            checkRest: 'Check the rest',
             tryAgain: 'Try again',
             newQuestions: 'New questions',
             correct: 'Correct',
@@ -855,6 +883,7 @@ const en = {
         shabadTitle: 'Shabad Search',
         hukamnamaTitle: "Today's Hukamnama",
         translateTitle: 'Punjabi Translator',
+        talkTitle: 'Talk: Voice Translator',
         learnTitle: 'Learn Punjabi',
         notFoundTitle: 'Page not found',
         // What each page is for, in search results and link previews.
@@ -863,6 +892,7 @@ const en = {
             hukamnama: 'Today\'s Hukamnama from Sri Darbar Sahib, in Gurmukhi with an English translation, and a way to ask about it.',
             chat: 'Ask SikhAI about Sikhi, Gurbani and Sikh history. Answers quote Gurbani, and every quote is checked against the source.',
             translate: 'Translate between English, Gurmukhi and romanized Punjabi, with a word-by-word breakdown, tricky parts explained, and pronunciation tips.',
+            talk: 'Hold a button, speak Punjabi or English, and hear the translation read aloud: a voice translator for talking with family.',
             learn: 'Learn Punjabi as a Punjabi American: read Gurmukhi, understand the grammar, build everyday vocabulary with flashcards, and practice with a tutor.',
             shabad: 'Find any shabad of Sri Guru Granth Sahib Ji from one of its lines, in Gurmukhi or English letters, or its first letters, and read it whole with transliteration and translation. Or open any Ang, 1 to 1430.',
         },

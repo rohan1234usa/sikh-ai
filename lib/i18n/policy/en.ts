@@ -32,7 +32,7 @@ const policy = {
                     'Your last {maxTranslations} translations. You can remove one, or all of them, under Recent translations.',
                     'Your Learn Punjabi progress: the lessons you finished, your best quiz scores, and when each flashcard comes back.',
                     'Your conversation with the Punjabi tutor, until you close the tab.',
-                    'Your chat settings (perspective, response style and reply language), whether the translator\'s live translation is on, your theme, whether you turned off visit counting, and whether you were signed in, so your session comes back quickly.',
+                    'Your chat settings (perspective, response style and reply language), whether the translator\'s live translation is on, whether Talk reads translations aloud, your theme, whether you turned off visit counting, and whether you were signed in, so your session comes back quickly.',
                     'On the Seva board, the country you last chose; and an event you\'ve started writing but not posted, until you close the tab.',
                     'One cookie, {langCookie}, set only when you change the language. It keeps your choice for a year, so a link opens in your language.',
                     'While you are signed in, Firebase, Google\'s sign-in service, keeps your session here: your account ID, name, email address, the address of your profile photo, and sign-in tokens. Signing out removes it. Firebase also notes which days its code ran in this browser, for its own usage counts.',
@@ -61,17 +61,18 @@ const policy = {
             services: {
                 heading: 'Sent to other services',
                 items: [
-                    'Google Gemini writes the answers. Each chat message goes to it with up to {maxEarlierMessages} earlier messages from the chat, any passage you attached (sent again with every message), and your chat settings. Text you translate goes to it too: when you press Translate, and, while live translation is on, as you type, each time you pause.',
+                    'Google Gemini writes the answers. Each chat message goes to it with up to {maxEarlierMessages} earlier messages from the chat, any passage you attached (sent again with every message), and your chat settings. Text you translate goes to it too: when you press Translate, and, while live translation is on, as you type, each time you pause. On the Talk page, each recording you make goes to it too, to be written down and translated. The site records only while you hold the button (with a keyboard or a screen reader, from one press of it to the next), never for more than {maxClipSeconds} seconds, and keeps no recording.',
                     'Messages to the Punjabi tutor go to Gemini too, with up to {maxTutorMessages} earlier messages from the conversation and the lesson you opened it from.',
-                    'Nothing about who you are goes with them: not your name, account ID or IP address. What you write goes as you wrote it, so leave out anything you want to keep private.',
+                    'Your name, account ID and IP address never go with them. What you write goes as you wrote it, and a recording carries the voice of whoever speaks in it, so leave out anything you want to keep private.',
                     'SikhAI uses Gemini\'s paid service. Under Google\'s terms for it, Google doesn\'t use what the site sends to improve its products. It keeps it for up to 55 days, only to detect misuse and for disclosures the law requires.',
                     'Google Cloud Translation stands in when Gemini is busy, for English or Gurmukhi text, and “Compare with Google Translate” sends it the translation shown. Google holds that text only while translating it.',
+                    'On the Talk page, Google Cloud Text-to-Speech reads the Punjabi translations aloud, and English ones when your device has no English voice of its own, or its voice fails or doesn\'t start within a few seconds (otherwise your device reads English itself). The site\'s server sends it the translated text, which Google holds only while reading it, and passes the audio on to your browser, which keeps it only until you leave the page.',
                     'GurbaniNow supplies the Hukamnama, the Angs and the shabads. To check the Gurbani a reply quotes, the site\'s server looks up the quoted lines there. Your question is never sent. What you type into Shabad Search goes there too, from the site\'s server, to find the line. It is also part of the search\'s address, which Vercel\'s logs record like any page you request.',
                     'Firebase, Google\'s app platform, runs sign-in and keeps accounts, saved chats, share links, and Seva events with their sign-ups and reports. Your browser connects to it directly for signing in, while you\'re signed in, and on a share link, so Google sees your IP address then. The Seva pages are built on this site\'s server, so looking at events doesn\'t connect your browser to Firebase. Otherwise your browser connects only to this site.',
                     'An event\'s directions and calendar links open Google Maps or Google Calendar, and sharing it on WhatsApp opens WhatsApp, with the event\'s details. Those services then get the details, and your IP address, under their own privacy policies. The calendar file for other calendars comes from this site.',
                     'Vercel hosts the site. Its logs record your IP address and the pages you request, for a short time. The site\'s own logs never contain what you write, though they can contain a page\'s address.',
                     'When something on the site fails, in your browser or on its server, a short error report goes to Sentry, an error-tracking service, so the site\'s owner hears about it. It says what failed and where in the site\'s code, the page\'s address (without any ID, and without what you searched for), the site\'s version, and your browser and operating system. It never contains what you write, your account ID or your IP address: your browser sends its reports to this site, whose server checks them again before passing them on. A report can\'t be traced back to you, so it can\'t be removed on request; Sentry deletes it after 30 days.',
-                    'To keep any one visitor from using up the AI features or Shabad Search, or flooding the site with error reports, the site\'s server counts how often each IP address uses them, this minute and today. It counts under a code made from the address with a secret that changes every day, keeps the code only in its memory, and never writes it down or sends it anywhere.',
+                    'To keep any one visitor from using up the AI features, reading aloud or Shabad Search, or flooding the site with error reports, the site\'s server counts how often each IP address uses them, this minute and today. It counts under a code made from the address with a secret that changes every day, keeps the code only in its memory, and never writes it down or sends it anywhere.',
                 ],
             },
             analytics: {
@@ -86,7 +87,7 @@ const policy = {
             age: {
                 heading: 'Age limits',
                 items: [
-                    'The features that use AI (Ask SikhAI, the translator and the Punjabi tutor) are for people 18 and over, as the {terms} say. Google\'s terms for Gemini require it.',
+                    'The features that use AI (Ask SikhAI, the translator with its Talk page, and the Punjabi tutor) are for people 18 and over, as the {terms} say. Google\'s terms for Gemini require it.',
                     'SikhAI doesn\'t knowingly collect information from children under 13. If you think a child has signed in or shared something here, email {email} and it will be deleted.',
                 ],
             },
@@ -94,7 +95,7 @@ const policy = {
                 heading: 'Where it is handled',
                 items: [
                     'SikhAI is run from the United States: Vercel runs the site\'s server code there, Firebase keeps accounts, saved chats, share links and Seva events there, and Sentry keeps error reports there. If you visit from another country, your information goes to the US.',
-                    'Google may handle what the site sends to Gemini and Cloud Translation in other countries where it has data centers.',
+                    'Google may handle what the site sends to Gemini, Cloud Translation and Cloud Text-to-Speech in other countries where it has data centers.',
                 ],
             },
             removing: {
@@ -139,7 +140,7 @@ const policy = {
             ai: {
                 heading: 'AI answers can be wrong',
                 items: [
-                    'SikhAI\'s answers and translations, and the tutor\'s replies, are written by AI: Google Gemini, or, for a translation when Gemini is busy, Google Cloud Translation. They can be wrong, even when they sound sure.',
+                    'SikhAI\'s answers and translations, and the tutor\'s replies, are written by AI: Google Gemini (which on the Talk page also writes down what it hears), or, for a translation when Gemini is busy, Google Cloud Translation. They can be wrong, even when they sound sure.',
                     'They are not Gurbani, and they carry no religious authority. Check every Gurbani quote against the source (the Gurbani check under a reply helps), and for guidance, ask a Granthi or your Sangat.',
                     'They are not medical, legal or financial advice, and not help in a crisis. If you or someone else is in danger, call your local emergency number.',
                 ],
@@ -147,7 +148,7 @@ const policy = {
             age: {
                 heading: '18 and over for AI',
                 items: [
-                    'The parts of SikhAI that use AI (Ask SikhAI, the translator and the Punjabi tutor) are for people 18 and over, as Google\'s terms for Gemini require. If you are under 18, please don\'t use them.',
+                    'The parts of SikhAI that use AI (Ask SikhAI, the translator with its Talk page, and the Punjabi tutor) are for people 18 and over, as Google\'s terms for Gemini require. If you are under 18, please don\'t use them.',
                 ],
             },
             use: {

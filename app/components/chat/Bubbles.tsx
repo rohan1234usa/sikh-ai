@@ -6,6 +6,10 @@ import remarkGfm from 'remark-gfm';
 import { rehypeGurmukhiRuns, type GurbaniIn } from '@/lib/chat/gurmukhiRuns';
 import { splitMarkdownBlocks } from '@/lib/chat/markdownBlocks';
 import { markdownComponents } from './markdownComponents';
+import { TURN_LABEL, TURN_TEXT } from './turns';
+
+// The plain pieces live in ./turns.tsx, for pages that show no markdown.
+export { ERROR_TURN, TURN_LABEL, TURN_TEXT, Waiting } from './turns';
 
 // The transcript's pieces, shared by the chat (./ChatMessage.tsx) and the
 // Punjabi tutor (app/components/learn/), so the tutor's replies read like the
@@ -17,12 +21,6 @@ import { markdownComponents } from './markdownComponents';
 // the reader's turn hangs on a kesri rule; the assistant's is plain prose
 // under its name; and Gurbani quoted in a reply is set like the source
 // (lib/chat/gurmukhiRuns.ts). The names keep "Bubble" for their callers.
-
-export const TURN_LABEL = 'text-sm italic text-accent-text';
-export const TURN_TEXT = 'text-base leading-relaxed md:text-[1.0625rem]';
-// A reply that failed, in the reply's place. No role="alert" here: see
-// ChatMessage.
-export const ERROR_TURN = 'border-l-2 border-red-700 pl-4 text-red-700 dark:border-red-400 dark:text-red-400';
 
 // The reader's turn. The label is "You" in the chat and the tutor; a shared
 // chat shows someone else's questions, so there the rule alone marks them.
@@ -73,15 +71,3 @@ export const GreetingBubble = memo(function GreetingBubble({ text, label }: { te
         </div>
     );
 });
-
-// "Thinking", while a reply has started and has no words yet: three dots that
-// fade in turn (nothing bounces), named for a screen reader by the caller.
-export function Waiting({ label }: { label: string }) {
-    return (
-        <span className="flex items-center gap-1.5 py-2" role="img" aria-label={label}>
-            <span className="h-1.5 w-1.5 rounded-full bg-ink-faint animate-pulse" />
-            <span className="h-1.5 w-1.5 rounded-full bg-ink-faint animate-pulse [animation-delay:300ms]" />
-            <span className="h-1.5 w-1.5 rounded-full bg-ink-faint animate-pulse [animation-delay:600ms]" />
-        </span>
-    );
-}
