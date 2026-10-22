@@ -32,8 +32,11 @@ const label = (status: number, code?: string | null) => (code ? `${status} ${cod
 const labelOf = (a: Answer) => label(a.status, a.code);
 
 // The route's own limit (lib/api/allowance.ts): `<feature>_busy` past the
-// minute's count, `<feature>_limit` past the day's.
-export const isRouteLimit = (a: Answer) => a.status === 429 && /_(busy|limit)$/.test(a.code ?? '');
+// minute's count, `<feature>_limit` past the day's. The rule for both is here
+// alone, and a test holds it to the codes the routes send (REFUSALS).
+const routeLimit = (a: Answer) => (a.status === 429 ? /_(busy|limit)$/.exec(a.code ?? '')?.[1] : undefined);
+export const isRouteLimit = (a: Answer) => routeLimit(a) !== undefined;
+export const isRouteDayLimit = (a: Answer) => routeLimit(a) === 'limit';
 
 // The firewall's rate limit: any other 429, unless Vercel says it's a challenge.
 export const isFirewallLimit = (a: Answer) => a.status === 429 && !isRouteLimit(a) && a.mitigated !== 'challenge';
@@ -89,6 +92,14 @@ export function judgeNotRefused(a: Answer): Verdict {
     return { ok: true, detail: `${labelOf(a)}, not refused` };
 }
 
+// A wait as a person says it: "1 minute", "59 minutes", "about 6 hours".
+export function howLong(seconds: number): string {
+    const minutes = Math.ceil(seconds / 60);
+    if (minutes < 60) return minutes === 1 ? '1 minute' : `${minutes} minutes`;
+    const hours = Math.round(minutes / 60);
+    return hours === 1 ? 'about an hour' : `about ${hours} hours`;
+}
+
 // A burst whose first answer is already a refusal ran into a limit left over
 // from before it, an earlier burst or run: it shows nothing. A route's day
 // limit (`_limit`) lasts until midnight UTC, so a minute's wait won't do.
@@ -96,9 +107,9 @@ function leftOver(answers: Answer[]): Verdict | null {
     const first = answers[0];
     if (!first) return { ok: false, detail: 'no answers' };
     if (first.status !== 429 && first.status !== 403) return null;
-    if (first.status === 429 && first.code?.endsWith('_limit')) {
+    if (isRouteDayLimit(first)) {
         const seconds = Number(first.retryAfter);
-        const until = Number.isFinite(seconds) && seconds > 0 ? `, for another ${Math.ceil(seconds / 60)} minutes,` : '';
+        const until = Number.isFinite(seconds) && seconds > 0 ? `, for another ${howLong(seconds)},` : '';
         return { ok: null, detail: `the first answer was already ${labelOf(first)}: this address has used the day's allowance${until} until midnight UTC, so run it again after that, or from another address` };
     }
     return { ok: null, detail: `the first answer was already ${labelOf(first)}, a limit left over from before: wait a minute and run it again` };

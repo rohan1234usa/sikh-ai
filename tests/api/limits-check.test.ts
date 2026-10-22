@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import {
     codeOf,
     edgeOf,
+    howLong,
     isFirewallLimit,
+    isRouteDayLimit,
     isRouteLimit,
     judgeAnswer,
     judgeLeftOut,
@@ -16,6 +18,7 @@ import {
     tally,
     type Answer,
 } from '../../scripts/limits-check/verdicts';
+import { REFUSALS } from '@/lib/api/allowance';
 
 type Like = Partial<Omit<Answer, 'n'>> & { status: number };
 
@@ -41,6 +44,19 @@ test("the routes' 429 carries a code; the firewall's has none, and a challenge i
     assert.equal(isFirewallLimit(one(FIREWALL)), true);
     assert.equal(isFirewallLimit(one({ status: 429, mitigated: 'challenge' })), false);
     assert.equal(isFirewallLimit(one(EMPTY)), false);
+});
+
+test('every code the routes send past a limit reads as theirs, and only the day codes as a day limit', () => {
+    for (const { minute, day } of Object.values(REFUSALS)) {
+        assert.equal(isRouteLimit(one({ status: 429, code: minute.code })), true, minute.code);
+        assert.equal(isRouteDayLimit(one({ status: 429, code: minute.code })), false, minute.code);
+        assert.equal(isRouteDayLimit(one({ status: 429, code: day.code })), true, day.code);
+    }
+    assert.equal(isRouteDayLimit(one({ status: 400, code: 'chat_limit' })), false, 'only a 429');
+});
+
+test('a wait reads as a person would say it', () => {
+    assert.deepEqual([45, 60, 61, 3540, 3600, 5400, 86_400].map(howLong), ['1 minute', '1 minute', '2 minutes', '59 minutes', 'about an hour', 'about 2 hours', 'about 24 hours']);
 });
 
 test('codeOf reads only a top-level string code', () => {
