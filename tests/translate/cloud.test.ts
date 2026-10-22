@@ -1,5 +1,6 @@
 import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
+import { MINUTE_MS } from '@/lib/api/allowance';
 import type * as Cloud from '@/lib/translate/cloud';
 
 // Its own file: the allowances are module state, and these tests spend them.
@@ -78,7 +79,9 @@ test('a failed request still spends: a broken API can never be called forever', 
 test('whether a call would go out: Cloud on, a key, and enough of that day left', async () => {
     const left = cloud.cloudAllowances.compare.remaining();
     assert.equal(cloud.cloudCanTranslate('compare', left), true, 'all that is left');
-    assert.equal(cloud.cloudCanTranslate('compare', cloud.cloudAllowances.compare.remaining() + 1), false, 'one more than is left');
+    // An hour ago, so its log line (held back or not) leaves this minute's
+    // to the last test.
+    assert.equal(cloud.cloudCanTranslate('compare', left + 1, Date.now() - 60 * MINUTE_MS), false, 'one more than is left');
     process.env.TRANSLATE_FALLBACK = 'off';
     assert.equal(cloud.cloudCanTranslate('fallback', 5), false, 'switched off');
     delete process.env.TRANSLATE_FALLBACK;
@@ -136,10 +139,16 @@ test("a day of comparisons leaves the fallback working, and the log says whose a
     });
     assert.equal(calls, 0, 'nothing is bought');
     assert.deepEqual(lines.map(({ evt, purpose, chars }) => ({ evt, purpose, chars })), [{ evt: 'cloud_translate_ceiling', purpose: 'compare', chars: 5 }]);
+    // Compare asks the same before counting anyone, and says why at most
+    // once a minute: a minute nothing else has used, then once more in it.
+    const later = Date.now() + 2 * MINUTE_MS;
     const asked = await capture(async () => {
-        assert.equal(cloud.cloudCanTranslate('compare', 5), false, 'Compare says no before anyone is charged');
+        assert.equal(cloud.cloudCanTranslate('compare', 5, later), false, 'Compare says no before anyone is charged');
+        assert.equal(cloud.cloudCanTranslate('compare', 5, later), false);
     });
-    assert.deepEqual(asked.map(({ evt, purpose, chars }) => ({ evt, purpose, chars })), [{ evt: 'cloud_translate_ceiling', purpose: 'compare', chars: 5 }], 'and says why, as the call would have');
+    assert.deepEqual(asked.map(({ evt, purpose, chars, refused }) => ({ evt, purpose, chars, refused })), [{ evt: 'cloud_translate_ceiling', purpose: 'compare', chars: 5, refused: 1 }], 'one line for the minute, so a spent day can’t flood the logs');
+    const next = await capture(async () => { cloud.cloudCanTranslate('compare', 5, later + MINUTE_MS); });
+    assert.deepEqual(next.map(({ evt, refused }) => ({ evt, refused })), [{ evt: 'cloud_translate_ceiling', refused: 2 }], 'the next minute’s line counts the one held back');
     assert.equal(cloud.cloudCanTranslate('fallback', 5), true);
     assert.ok(await cloud.cloudTranslate({ text: 'hello', target: 'pa', purpose: 'fallback' }), 'the fallback still translates');
     assert.equal(calls, 1);

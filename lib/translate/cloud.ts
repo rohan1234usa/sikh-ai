@@ -7,6 +7,7 @@
 // and caches for an offline audit and wants loud failures. This one is on a
 // user request path, so it times out fast, meters itself, and never throws.
 
+import { logRefusal } from '../api/refusals';
 import { logEvent } from '../log';
 
 export type CloudLang = 'en' | 'pa';
@@ -94,7 +95,10 @@ const cloudKey = () => process.env.GOOGLE_TRANSLATE_API_KEY ?? process.env.GEMIN
 // a redeploy; then there must be a key, and that much of the purpose's day
 // left on this server. These checks live only here: cloudTranslate makes
 // them, and a route that asks first (cloudCanTranslate) gets the same answer.
-function cloudReady(purpose: CloudPurpose, chars: number): string | null {
+// A spent day is logged at most once a minute for each purpose, with a count
+// of the rest (lib/api/refusals.ts): Compare asks before it counts anyone, so
+// a line for every request would let one script flood the logs.
+function cloudReady(purpose: CloudPurpose, chars: number, now: number): string | null {
     if (switchedOff('TRANSLATE_FALLBACK')) return null;
     const key = cloudKey();
     if (!key) {
@@ -102,7 +106,7 @@ function cloudReady(purpose: CloudPurpose, chars: number): string | null {
         return null;
     }
     if (cloudAllowances[purpose].remaining() < chars) {
-        logEvent('cloud_translate_ceiling', { purpose, chars }, 'warn');
+        logRefusal('cloud_translate_ceiling', `cloud ${purpose} ceiling`, { purpose, chars }, now);
         return null;
     }
     return key;
@@ -112,13 +116,13 @@ function cloudReady(purpose: CloudPurpose, chars: number): string | null {
 // route asks before counting its visitor (app/api/translate/crosscheck), so
 // no one is charged for a call that was never going to be made. Asking
 // spends nothing.
-export function cloudCanTranslate(purpose: CloudPurpose, chars: number): boolean {
-    return cloudReady(purpose, chars) !== null;
+export function cloudCanTranslate(purpose: CloudPurpose, chars: number, now = Date.now()): boolean {
+    return cloudReady(purpose, chars, now) !== null;
 }
 
 export async function cloudTranslate(opts: CloudTranslateOpts): Promise<CloudTranslateResult | null> {
     if (!opts.text.trim()) return null;
-    const key = cloudReady(opts.purpose, opts.text.length);
+    const key = cloudReady(opts.purpose, opts.text.length, Date.now());
     if (!key) return null;
     // Charged before the request (charAllowance says why). cloudReady saw
     // room, and nothing runs between the two.
