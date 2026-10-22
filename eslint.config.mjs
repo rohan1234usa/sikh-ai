@@ -21,6 +21,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // axe-core, copied for local accessibility checks (npm run a11y:prepare).
     "public/__dev/**",
+    // Claude Code's local settings and worktrees: other checkouts of this
+    // repo, with their own builds, that would otherwise be linted as source.
+    ".claude/**",
   ]),
 ]);
 

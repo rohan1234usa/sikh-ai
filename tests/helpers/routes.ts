@@ -2,7 +2,7 @@
 // routes read, and small request/response helpers.
 
 import { startMockGemini, type MockGemini } from '../../scripts/mock-gemini';
-import { DAY_MS, MINUTE_MS, VISITOR_LIMITS, allowances, type Feature } from '@/lib/api/allowance';
+import { DAY_MS, VISITOR_LIMITS, allowances, type Feature } from '@/lib/api/allowance';
 
 export async function startRouteMock(): Promise<MockGemini> {
     const mock = await startMockGemini();
@@ -81,10 +81,17 @@ export async function captured<T>(mock: MockGemini, run: () => Promise<T>) {
     return { result, requests: mock.requests.slice(start) };
 }
 
-// Spends a visitor's day with one feature, all but `leave` of it, as if a
-// request came every minute from midnight UTC, so no minute's limit stops it
-// first. The routes share these counts: they run in the test's own process.
+// Spends the day of a visitor not yet counted today with one feature, all
+// but `leave` of it, in one request at midnight UTC that costs that much, so
+// no minute's limit stops it. It throws for a `leave` outside the day, and for
+// a visitor already counted, by however little, which would leave less than
+// the test expects. The routes share these counts: they run in the test's
+// own process.
 export function spendDay(feature: Feature, visitor: string, leave = 0): void {
+    const { perDay } = VISITOR_LIMITS[feature];
+    if (!(leave >= 0 && leave <= perDay)) throw new RangeError(`spendDay: leave is 0 to ${perDay} for ${feature}, not ${leave}`);
     const midnight = Math.floor(Date.now() / DAY_MS) * DAY_MS;
-    for (let i = 0; i < VISITOR_LIMITS[feature].perDay - leave; i++) allowances[feature].take(visitor, midnight + i * MINUTE_MS);
+    const allowance = allowances[feature];
+    if (allowance.used(visitor, midnight) > 0) throw new Error(`spendDay: ${visitor} was already counted today for ${feature}`);
+    allowance.take(visitor, midnight, perDay - leave);
 }

@@ -7,6 +7,7 @@
 // and caches for an offline audit and wants loud failures. This one is on a
 // user request path, so it times out fast, meters itself, and never throws.
 
+import { logRefusal } from '../api/refusals';
 import { logEvent } from '../log';
 
 export type CloudLang = 'en' | 'pa';
@@ -86,23 +87,53 @@ export function switchedOff(name: string): boolean {
 // error, which reaches Sentry (lib/log.ts).
 export const passingStatus = (status: number) => status === 429 || status >= 500;
 
-export async function cloudTranslate(opts: CloudTranslateOpts): Promise<CloudTranslateResult | null> {
-    // One switch disables every runtime call to Cloud Translation — fallback
-    // and cross-check alike — without a redeploy.
-    if (switchedOff('TRANSLATE_FALLBACK')) return null;
+// Until it has its own key, Cloud borrows the Gemini key (README, Running in
+// production, step 4). A blank one is no key, as for read-aloud's account.
+const cloudKey = () => process.env.GOOGLE_TRANSLATE_API_KEY?.trim() || process.env.GEMINI_API_KEY;
 
-    const key = process.env.GOOGLE_TRANSLATE_API_KEY ?? process.env.GEMINI_API_KEY;
+// The key to call Cloud with for `purpose` and `chars` characters now, or
+// null when the call wouldn't go out: Cloud switched off (one switch for every
+// runtime call, fallback and cross-check alike, without a redeploy; it says
+// nothing), no key (an error line), or less than that left of the purpose's
+// day on this server (`spent` says so). These checks live only here:
+// cloudTranslate makes them, and a route that asks first (cloudCanTranslate)
+// gets the same answer.
+function cloudReady(purpose: CloudPurpose, chars: number, spent: () => void): string | null {
+    if (switchedOff('TRANSLATE_FALLBACK')) return null;
+    const key = cloudKey();
     if (!key) {
         logEvent('config_error', { missing: 'GOOGLE_TRANSLATE_API_KEY' }, 'error');
         return null;
     }
-
-    if (!opts.text.trim()) return null;
-    if (!cloudAllowances[opts.purpose].spend(opts.text.length)) {
-        // This instance's daily ceiling for that purpose.
-        logEvent('cloud_translate_ceiling', { purpose: opts.purpose, chars: opts.text.length }, 'warn');
+    if (cloudAllowances[purpose].remaining() < chars) {
+        spent();
         return null;
     }
+    return key;
+}
+
+// Whether a call for `purpose` with `chars` characters would go out now. A
+// route asks before counting its visitor (app/api/translate/crosscheck), so
+// no one is charged for a call that was never going to be made. Asking
+// spends nothing. Since nobody has been counted yet, a spent day is said at
+// most once a minute for each purpose, with a count of the rest
+// (lib/api/refusals.ts): a line for every request would let one script flood
+// the logs.
+export function cloudCanTranslate(purpose: CloudPurpose, chars: number): boolean {
+    const spent = () => logRefusal('cloud_translate_ceiling', `cloud ${purpose} ceiling`, { purpose, chars });
+    return cloudReady(purpose, chars, spent) !== null;
+}
+
+export async function cloudTranslate(opts: CloudTranslateOpts): Promise<CloudTranslateResult | null> {
+    if (!opts.text.trim()) return null;
+    // A call comes after its route has counted the visitor, so a spent day is
+    // said for each one: the logs can follow a request that found no room.
+    const spent = () => logEvent('cloud_translate_ceiling', { purpose: opts.purpose, chars: opts.text.length }, 'warn');
+    const key = cloudReady(opts.purpose, opts.text.length, spent);
+    if (!key) return null;
+    // Charged before the request (charAllowance says why). cloudReady saw
+    // room, and nothing runs between the two.
+    cloudAllowances[opts.purpose].spend(opts.text.length);
 
     try {
         const res = await fetch(`${ENDPOINT}?key=${key}`, {

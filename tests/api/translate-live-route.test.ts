@@ -163,10 +163,22 @@ test('the largest text a page sends still gets an answer', async () => {
 
 test("another site's request, or a post that isn't JSON, is refused before any model call", async () => {
     for (const [headers, status] of [[{ 'sec-fetch-site': 'cross-site' }, 403], [{ 'content-type': 'text/plain;charset=UTF-8' }, 415]] as const) {
-        const { result: res, requests } = await captured(mock, () => live('ki haal hai', {}, headers));
+        const req = postJson(URL, { text: 'ki haal hai', sourceHint: 'auto' }, headers);
+        const { result: res, requests } = await captured(mock, () => POST(req));
         assert.equal(res.status, status, JSON.stringify(headers));
         assert.equal(requests.length, 0);
+        assert.equal(req.bodyUsed, false, 'refused before the body was read');
     }
+});
+
+test("a request refused for what it is doesn't count toward a visitor's day", async () => {
+    const visitor = { 'x-forwarded-for': '203.0.113.76' };
+    spendDay('translateLive', '203.0.113.76', 1);
+    assert.equal((await live('   ', {}, visitor)).status, 400);
+    const last = await live('ki haal hai', {}, visitor);
+    assert.equal(last.status, 200, 'the empty text spent nothing');
+    await readStream(last);
+    assert.equal((await live('ki haal hai', {}, visitor)).status, 429);
 });
 
 test('live calls count against their own allowance, not the Translate button’s', async () => {

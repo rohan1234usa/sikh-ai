@@ -2,7 +2,7 @@ import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { verify, type KeyObject } from 'node:crypto';
 import { SILENT_MP3, mockServiceAccount, type MockGemini } from '../../scripts/mock-gemini';
-import { MINUTE_MS, VISITOR_LIMITS } from '@/lib/api/allowance';
+import { DAY_MS, MINUTE_MS, VISITOR_LIMITS } from '@/lib/api/allowance';
 import type * as Speak from '@/lib/translate/speak';
 import { MAX_SPEAK_CHARS } from '@/lib/translate/voice';
 import { captured, logged, postJson, spendDay, startRouteMock } from '../helpers/routes';
@@ -274,10 +274,21 @@ test('a line the page abandons answers 499', async () => {
 
 test("another site's request, or a post that isn't JSON, is refused before Google hears of it", async () => {
     for (const [headers, status] of [[{ 'sec-fetch-site': 'cross-site' }, 403], [{ 'content-type': 'text/plain;charset=UTF-8' }, 415]] as const) {
-        const { result: res, requests } = await captured(mock, () => say(LINE, 'pa', headers));
+        const req = postJson(URL, { text: LINE, lang: 'pa' }, headers);
+        const { result: res, requests } = await captured(mock, () => POST(req));
         assert.equal(res.status, status, JSON.stringify(headers));
         assert.equal(requests.length, 0);
+        assert.equal(req.bodyUsed, false, 'refused before the body was read');
     }
+});
+
+test("a request refused for what it is doesn't count toward a visitor's day", async () => {
+    const visitor = { 'x-forwarded-for': '203.0.113.97' };
+    spendDay('speak', '203.0.113.97', LINE.length);
+    assert.equal((await say('   ', 'pa', visitor)).status, 400);
+    assert.equal((await say('Sat Sri Akal ji', 'pa', visitor)).status, 400, 'romanized: a Punjabi voice reads Gurmukhi only');
+    assert.equal((await say(LINE, 'pa', visitor)).status, 200, 'the refused lines spent nothing');
+    assert.equal((await say('ਹਾਂਜੀ', 'pa', visitor)).status, 429, 'the day counts characters: now even five are past it');
 });
 
 test('lines read aloud count against an allowance of their own', async () => {
@@ -285,9 +296,12 @@ test('lines read aloud count against an allowance of their own', async () => {
     spendDay('speak', '203.0.113.91');
     const { result: res, requests } = await captured(mock, () => say(LINE, 'pa', visitor));
     assert.equal(res.status, 429);
-    assert.ok(Number(res.headers.get('retry-after')) > 0);
     assert.equal((await res.json()).code, 'speak_limit');
     assert.equal(requests.length, 0);
+    // A spent day waits for midnight UTC (unless that's a minute or two off).
+    const toMidnight = (Math.floor(Date.now() / DAY_MS) + 1) * DAY_MS - Date.now();
+    const wait = Number(res.headers.get('retry-after'));
+    assert.ok(toMidnight > 2 * MINUTE_MS ? wait > 60 : wait > 0, `until midnight UTC: ${wait}`);
 
     const other = { 'x-forwarded-for': '203.0.113.92' };
     const minute = () => Math.floor(Date.now() / MINUTE_MS);
@@ -297,6 +311,17 @@ test('lines read aloud count against an allowance of their own', async () => {
     if (minute() !== started) return;
     assert.equal(refused.status, 429);
     assert.equal((await refused.json()).code, 'speak_busy');
+});
+
+test("a line longer than what's left of the visitor's day fails alone, with nothing to wait for, and a shorter one is still read", async () => {
+    const visitor = { 'x-forwarded-for': '203.0.113.96' };
+    spendDay('speak', '203.0.113.96', 10);
+    const { result: res, requests } = await captured(mock, () => say(LINE, 'pa', visitor));
+    assert.equal(res.status, 502, "as a line too long for the server's characters fails");
+    assert.equal(res.headers.get('retry-after'), null, 'the page pauses only for a Retry-After');
+    assert.equal((await res.json()).code, 'speak_failed');
+    assert.equal(requests.length, 0);
+    assert.equal((await say('ਹਾਂਜੀ', 'pa', visitor)).status, 200, 'five characters fit in the ten left');
 });
 
 test('the log line says what a call cost, and never what was read', async () => {

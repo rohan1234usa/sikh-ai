@@ -1,6 +1,7 @@
-// SERVER-ONLY: the log line for a refused request (lib/api/guard.ts and
-// lib/api/allowance.ts). At most one a minute for each route and reason on
-// each server, carrying how many were refused since the last one written. A
+// SERVER-ONLY: the log line for a refusal that can come in a flood, such as
+// a refused request or a spent day asked about before anyone is counted. At
+// most one a minute for each key (what was refused, and why) on each server,
+// carrying how many were refused since the last one written. A
 // refusal costs nothing to answer, and a flood of them mustn't flood the logs
 // either. A count still held back when a flood stops is never written.
 
