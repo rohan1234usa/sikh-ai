@@ -274,10 +274,21 @@ test('a line the page abandons answers 499', async () => {
 
 test("another site's request, or a post that isn't JSON, is refused before Google hears of it", async () => {
     for (const [headers, status] of [[{ 'sec-fetch-site': 'cross-site' }, 403], [{ 'content-type': 'text/plain;charset=UTF-8' }, 415]] as const) {
-        const { result: res, requests } = await captured(mock, () => say(LINE, 'pa', headers));
+        const req = postJson(URL, { text: LINE, lang: 'pa' }, headers);
+        const { result: res, requests } = await captured(mock, () => POST(req));
         assert.equal(res.status, status, JSON.stringify(headers));
         assert.equal(requests.length, 0);
+        assert.equal(req.bodyUsed, false, 'refused before the body was read');
     }
+});
+
+test("a request refused for what it is doesn't count toward a visitor's day", async () => {
+    const visitor = { 'x-forwarded-for': '203.0.113.97' };
+    spendDay('speak', '203.0.113.97', LINE.length);
+    assert.equal((await say('   ', 'pa', visitor)).status, 400);
+    assert.equal((await say('Sat Sri Akal ji', 'pa', visitor)).status, 400, 'romanized: a Punjabi voice reads Gurmukhi only');
+    assert.equal((await say(LINE, 'pa', visitor)).status, 200, 'the refused lines spent nothing');
+    assert.equal((await say(LINE, 'pa', visitor)).status, 429);
 });
 
 test('lines read aloud count against an allowance of their own', async () => {

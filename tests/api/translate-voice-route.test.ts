@@ -212,10 +212,22 @@ test('the longest clip a page may send still gets an answer', async () => {
 
 test("another site's request, or a post that isn't JSON, is refused before any model call", async () => {
     for (const [headers, status] of [[{ 'sec-fetch-site': 'cross-site' }, 403], [{ 'content-type': 'text/plain;charset=UTF-8' }, 415]] as const) {
-        const { result: res, requests } = await captured(mock, () => voice(clip(), {}, headers));
+        const req = postJson(URL, { audio: clip(), mimeType: 'audio/webm;codecs=opus', speaker: 'auto' }, headers);
+        const { result: res, requests } = await captured(mock, () => POST(req));
         assert.equal(res.status, status, JSON.stringify(headers));
         assert.equal(requests.length, 0);
+        assert.equal(req.bodyUsed, false, 'refused before the body was read');
     }
+});
+
+test("a request refused for what it is doesn't count toward a visitor's day", async () => {
+    const visitor = { 'x-forwarded-for': '203.0.113.82' };
+    spendDay('translateVoice', '203.0.113.82', 1);
+    assert.equal((await voice('abc', {}, visitor)).status, 400);
+    const last = await voice(clip(), {}, visitor);
+    assert.equal(last.status, 200, 'the bad clip spent nothing');
+    await readStream(last);
+    assert.equal((await voice(clip(), {}, visitor)).status, 429);
 });
 
 test('clips count against an allowance of their own', async () => {
