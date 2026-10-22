@@ -213,8 +213,9 @@ test("Compare counts a visitor's day in characters, and charges nothing when Clo
     const { POST: crosscheck } = await import('@/app/api/translate/crosscheck/route');
     const compare = (text: string, address: string) =>
         crosscheck(postJson('http://local/api/translate/crosscheck', { text, direction: 'en-pa' }, { 'x-forwarded-for': address }));
-    // 30 characters left of this visitor's day.
-    spendDay('crosscheck', '203.0.113.72', 30);
+    // Exactly what the comparison below costs is left of this visitor's day,
+    // so anything a refused request spent would turn its 200 into a 429.
+    spendDay('crosscheck', '203.0.113.72', 'Twenty-two characters.'.length);
     assert.equal((await compare('   ', '203.0.113.72')).status, 400, 'nothing to compare, and nothing spent');
     process.env.TRANSLATE_FALLBACK = 'off';
     try {
@@ -222,9 +223,9 @@ test("Compare counts a visitor's day in characters, and charges nothing when Clo
     } finally {
         delete process.env.TRANSLATE_FALLBACK;
     }
-    assert.equal((await compare('Twenty-two characters.', '203.0.113.72')).status, 200, 'the refused one cost nothing');
+    assert.equal((await compare('Twenty-two characters.', '203.0.113.72')).status, 200, 'the refused ones cost nothing');
     const res = await compare('Nine more', '203.0.113.72');
-    assert.equal(res.status, 429, '22 + 9 is past 30');
+    assert.equal(res.status, 429, 'the day is spent');
     assert.equal((await res.json()).code, 'crosscheck_limit');
     assert.equal((await compare('Nine more', '203.0.113.73')).status, 200, 'someone else');
 });
