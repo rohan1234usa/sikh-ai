@@ -1,6 +1,6 @@
-// SERVER-ONLY: how many requests one visitor makes to the AI routes, quote
-// checking, Shabad Search and error reports, in a minute and in a UTC day, on
-// this server.
+// SERVER-ONLY: how much one visitor uses the AI routes, quote checking,
+// Shabad Search and error reports on this server: requests in a minute, and
+// in a UTC day requests, or characters for read-aloud and Compare.
 // A backup for the firewall's rate limit (README, Running in production,
 // step 3): it holds while that rule is off or only logging, and it counts a
 // whole day, which the firewall can't on the Hobby plan.
@@ -194,11 +194,11 @@ export type Allowance = {
 // past and how many seconds until that limit's window ends. A refused
 // request doesn't count. Both windows are fixed: the clock minute, and the
 // UTC day, like dailyMeter's. The minute counts requests; `cost` is what a
-// request spends of the day, 1 unless the feature's day is in other units
-// (Compare's and read-aloud's characters). A request that costs more than is
-// left of a day not yet spent waits only for the minute's end: a smaller one
-// may still fit, and a page that waits out Retry-After (Talk's) mustn't stop
-// reading aloud until midnight over one long line.
+// request spends of the day, 1 unless its feature's note (VISITOR_LIMITS)
+// says otherwise. A request that costs more than is left of a day not yet
+// spent waits only for the minute's end: a smaller one may still fit, and a
+// page that waits out Retry-After (Talk's) mustn't stop reading aloud until
+// midnight over one long line.
 export function visitorAllowance({ perMinute, perDay }: Limits, maxVisitors = MAX_VISITORS): Allowance {
     let day = -1;
     let secret = randomBytes(32);
@@ -271,8 +271,7 @@ let unaddressed = false;
 // request refused for what it is, or answered for free, isn't counted.
 // Error reports are the exception: anyone can post one, so that route
 // counts every post before reading it (app/api/error-report). `cost` is the
-// request's share of the day (Compare and read-aloud pass their text's
-// length).
+// request's share of the day, as its feature's note (VISITOR_LIMITS) says.
 export function limitVisitor(
     req: Request,
     feature: Feature,
