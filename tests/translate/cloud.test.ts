@@ -76,7 +76,8 @@ test('a failed request still spends: a broken API can never be called forever', 
 });
 
 test('whether a call would go out: Cloud on, a key, and enough of that day left', async () => {
-    assert.equal(cloud.cloudCanTranslate('compare', cloud.cloudAllowances.compare.remaining()), true, 'all that is left');
+    const left = cloud.cloudAllowances.compare.remaining();
+    assert.equal(cloud.cloudCanTranslate('compare', left), true, 'all that is left');
     assert.equal(cloud.cloudCanTranslate('compare', cloud.cloudAllowances.compare.remaining() + 1), false, 'one more than is left');
     process.env.TRANSLATE_FALLBACK = 'off';
     assert.equal(cloud.cloudCanTranslate('fallback', 5), false, 'switched off');
@@ -93,7 +94,8 @@ test('whether a call would go out: Cloud on, a key, and enough of that day left'
         process.env.GOOGLE_TRANSLATE_API_KEY = key;
         if (gemini !== undefined) process.env.GEMINI_API_KEY = gemini;
     }
-    assert.equal(calls, 0, 'asking spends nothing and sends nothing');
+    assert.equal(calls, 0, 'asking sends nothing');
+    assert.equal(cloud.cloudAllowances.compare.remaining(), left, 'and spends nothing');
 });
 
 test('the switch turns every call off, fallback and Compare alike', async () => {

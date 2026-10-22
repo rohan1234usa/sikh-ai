@@ -88,42 +88,41 @@ export const passingStatus = (status: number) => status === 429 || status >= 500
 
 const cloudKey = () => process.env.GOOGLE_TRANSLATE_API_KEY ?? process.env.GEMINI_API_KEY;
 
-// Whether a call for `purpose` with `chars` characters would go out now:
-// Cloud switched on, a key, and that much of the day's allowance left. A
-// route asks before counting its visitor (app/api/translate/crosscheck), so
-// no one is charged for a call that was never going to be made. A missing
-// key or a spent day is logged here as cloudTranslate would log it, since
-// that call never comes.
-export function cloudCanTranslate(purpose: CloudPurpose, chars: number): boolean {
-    if (switchedOff('TRANSLATE_FALLBACK')) return false;
-    if (!cloudKey()) {
-        logEvent('config_error', { missing: 'GOOGLE_TRANSLATE_API_KEY' }, 'error');
-        return false;
-    }
-    if (cloudAllowances[purpose].remaining() < chars) {
-        logEvent('cloud_translate_ceiling', { purpose, chars }, 'warn');
-        return false;
-    }
-    return true;
-}
-
-export async function cloudTranslate(opts: CloudTranslateOpts): Promise<CloudTranslateResult | null> {
-    // One switch disables every runtime call to Cloud Translation — fallback
-    // and cross-check alike — without a redeploy.
+// The key to call Cloud with for `purpose` and `chars` characters now, or
+// null, logged, when the call wouldn't go out. One switch disables every
+// runtime call to Cloud Translation, fallback and cross-check alike, without
+// a redeploy; then there must be a key, and that much of the purpose's day
+// left on this server. These checks live only here: cloudTranslate makes
+// them, and a route that asks first (cloudCanTranslate) gets the same answer.
+function cloudReady(purpose: CloudPurpose, chars: number): string | null {
     if (switchedOff('TRANSLATE_FALLBACK')) return null;
-
     const key = cloudKey();
     if (!key) {
         logEvent('config_error', { missing: 'GOOGLE_TRANSLATE_API_KEY' }, 'error');
         return null;
     }
-
-    if (!opts.text.trim()) return null;
-    if (!cloudAllowances[opts.purpose].spend(opts.text.length)) {
-        // This instance's daily ceiling for that purpose.
-        logEvent('cloud_translate_ceiling', { purpose: opts.purpose, chars: opts.text.length }, 'warn');
+    if (cloudAllowances[purpose].remaining() < chars) {
+        logEvent('cloud_translate_ceiling', { purpose, chars }, 'warn');
         return null;
     }
+    return key;
+}
+
+// Whether a call for `purpose` with `chars` characters would go out now. A
+// route asks before counting its visitor (app/api/translate/crosscheck), so
+// no one is charged for a call that was never going to be made. Asking
+// spends nothing.
+export function cloudCanTranslate(purpose: CloudPurpose, chars: number): boolean {
+    return cloudReady(purpose, chars) !== null;
+}
+
+export async function cloudTranslate(opts: CloudTranslateOpts): Promise<CloudTranslateResult | null> {
+    if (!opts.text.trim()) return null;
+    const key = cloudReady(opts.purpose, opts.text.length);
+    if (!key) return null;
+    // Charged before the request (charAllowance says why). cloudReady saw
+    // room, and nothing runs between the two.
+    cloudAllowances[opts.purpose].spend(opts.text.length);
 
     try {
         const res = await fetch(`${ENDPOINT}?key=${key}`, {
