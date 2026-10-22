@@ -55,6 +55,13 @@ test('every code the routes send past a limit reads as theirs, and only the day 
     assert.equal(isRouteDayLimit(one({ status: 400, code: 'chat_limit' })), false, 'only a 429');
 });
 
+test("a visitor limit is judged by its feature's own codes, camelCase features too", () => {
+    const stoppedBy = (code: string) => run([10, { status: 200 }], [2, { status: 429, code, retryAfter: '30' }]);
+    assert.equal(judgeVisitorLimit(stoppedBy('translate_live_busy'), 'translateLive').ok, true);
+    assert.equal(judgeVisitorLimit(stoppedBy('error_report_limit'), 'errorReport').ok, true);
+    assert.equal(judgeVisitorLimit(stoppedBy('translate_live_busy'), 'translate').ok, false, "the live lines' limit isn't the translator's");
+});
+
 test('a wait reads as a person would say it', () => {
     assert.deepEqual([45, 60, 61, 3540, 3600, 5400, 86_400].map(howLong), ['1 minute', '1 minute', '2 minutes', '59 minutes', 'about an hour', 'about 2 hours', 'about 24 hours']);
 });
@@ -146,7 +153,9 @@ test("a limit left over from before says how long to wait: a minute for the minu
     assert.match(minute.detail, /left over from before: wait a minute and run it again/);
     const day = judgeVisitorLimit(run([12, { status: 429, code: 'verify_limit', retryAfter: '3540' }]), 'verify');
     assert.equal(day.ok, null);
-    assert.match(day.detail, /used the day's allowance, for another 59 minutes, until midnight UTC/);
+    assert.match(day.detail, /used the day's allowance until midnight UTC, 59 minutes from now, so run it again/);
+    const hours = judgeVisitorLimit(run([12, { status: 429, code: 'verify_limit', retryAfter: '21600' }]), 'verify');
+    assert.match(hours.detail, /until midnight UTC, about 6 hours from now, so/);
     assert.match(judgeRateLimited(run([45, { status: 429, code: 'chat_limit' }]), EMPTY, 20).detail, /until midnight UTC/);
     assert.match(judgeVisitorLimit(run([12, { status: 429, code: 'verify_limit' }]), 'verify').detail, /allowance until midnight UTC/);
 });

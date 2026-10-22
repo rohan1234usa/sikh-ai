@@ -2,7 +2,7 @@
 // apart from the network so tests/api/limits-check.test.ts can try every
 // case: the README's (Running in production, step 3) and the ways it fails.
 
-import { MINUTE_MS } from '../../lib/api/allowance';
+import { MINUTE_MS, REFUSALS, type Feature, type Window } from '../../lib/api/allowance';
 
 // One answer, as the check keeps it.
 // - code: the JSON body's top-level `code`. The routes' own refusals and
@@ -31,12 +31,17 @@ const matches = (a: Answer, want: Expected) => a.status === want.status && (want
 const label = (status: number, code?: string | null) => (code ? `${status} ${code}` : String(status));
 const labelOf = (a: Answer) => label(a.status, a.code);
 
-// The route's own limit (lib/api/allowance.ts): `<feature>_busy` past the
-// minute's count, `<feature>_limit` past the day's. The rule for both is here
-// alone, and a test holds it to the codes the routes send (REFUSALS).
-const routeLimit = (a: Answer) => (a.status === 429 ? /_(busy|limit)$/.exec(a.code ?? '')?.[1] : undefined);
+// The routes' own limits (lib/api/allowance.ts), by the code a 429 carries:
+// a feature's busy code past the minute's count, its limit code past the
+// day's. Read from REFUSALS, the codes the routes send, so the check can't
+// drift from them, and a code tells whose limit it is.
+const ROUTE_LIMITS = new Map<string, { feature: Feature; window: Window }>(
+    (Object.keys(REFUSALS) as Feature[]).flatMap((feature) =>
+        (['minute', 'day'] as const).map((window) => [REFUSALS[feature][window].code, { feature, window }] as const)),
+);
+const routeLimit = (a: Answer) => (a.status === 429 && a.code ? ROUTE_LIMITS.get(a.code) : undefined);
 export const isRouteLimit = (a: Answer) => routeLimit(a) !== undefined;
-export const isRouteDayLimit = (a: Answer) => routeLimit(a) === 'limit';
+export const isRouteDayLimit = (a: Answer) => routeLimit(a)?.window === 'day';
 
 // The firewall's rate limit: any other 429, unless Vercel says it's a challenge.
 export const isFirewallLimit = (a: Answer) => a.status === 429 && !isRouteLimit(a) && a.mitigated !== 'challenge';
@@ -92,7 +97,8 @@ export function judgeNotRefused(a: Answer): Verdict {
     return { ok: true, detail: `${labelOf(a)}, not refused` };
 }
 
-// A wait as a person says it: "1 minute", "59 minutes", "about 6 hours".
+// A wait of a positive number of seconds as a person says it: "1 minute",
+// "59 minutes", "about 6 hours".
 export function howLong(seconds: number): string {
     const minutes = Math.ceil(seconds / 60);
     if (minutes < 60) return minutes === 1 ? '1 minute' : `${minutes} minutes`;
@@ -109,8 +115,8 @@ function leftOver(answers: Answer[]): Verdict | null {
     if (first.status !== 429 && first.status !== 403) return null;
     if (isRouteDayLimit(first)) {
         const seconds = Number(first.retryAfter);
-        const until = Number.isFinite(seconds) && seconds > 0 ? `, for another ${howLong(seconds)},` : '';
-        return { ok: null, detail: `the first answer was already ${labelOf(first)}: this address has used the day's allowance${until} until midnight UTC, so run it again after that, or from another address` };
+        const when = Number.isFinite(seconds) && seconds > 0 ? `, ${howLong(seconds)} from now` : '';
+        return { ok: null, detail: `the first answer was already ${labelOf(first)}: this address has used the day's allowance until midnight UTC${when}, so run it again after that, or from another address` };
     }
     return { ok: null, detail: `the first answer was already ${labelOf(first)}, a limit left over from before: wait a minute and run it again` };
 }
@@ -119,7 +125,7 @@ function leftOver(answers: Answer[]): Verdict | null {
 // (or `_limit` once the day's is spent) and a Retry-After. A route can only
 // count a visitor whose address the host passes on, so this is also the
 // proof that it does: without one, the route counts no one.
-export function judgeVisitorLimit(answers: Answer[], feature: string): Verdict {
+export function judgeVisitorLimit(answers: Answer[], feature: Feature): Verdict {
     const early = leftOver(answers);
     if (early) return early;
     const stop = answers.find((a) => a.status !== 200);
@@ -129,7 +135,7 @@ export function judgeVisitorLimit(answers: Answer[], feature: string): Verdict {
             detail: `${tally(answers)}: never limited. Either they reached more than one server, each counting on its own (run it again), or the route isn't counting (a limit_skipped log line means it gets no address)`,
         };
     }
-    if (isRouteLimit(stop) && stop.code?.startsWith(`${feature}_`)) {
+    if (routeLimit(stop)?.feature === feature) {
         return stop.retryAfter
             ? { ok: true, detail: `${tally(answers)}: ${stop.code} from #${stop.n}, Retry-After ${stop.retryAfter}` }
             : { ok: false, detail: `${tally(answers)}: ${stop.code} from #${stop.n}, but without a Retry-After` };
