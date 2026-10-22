@@ -2,11 +2,13 @@ import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { MINUTE_MS } from '@/lib/api/allowance';
 import type * as Cloud from '@/lib/translate/cloud';
+import { logged as capture } from '../helpers/routes';
 
 // Its own file: the allowances are module state, and these tests spend them.
 // Cloud Translation is stubbed; each test says what it answers.
 const realFetch = globalThis.fetch;
 let calls = 0;
+let lastUrl = '';
 let answer: () => Response;
 let cloud: typeof Cloud;
 
@@ -15,8 +17,9 @@ const translated = () => Response.json({ data: { translations: [{ translatedText
 before(async () => {
     process.env.GOOGLE_TRANSLATE_API_KEY = 'test-key';
     delete process.env.TRANSLATE_FALLBACK;
-    globalThis.fetch = (async () => {
+    globalThis.fetch = (async (url: string | URL) => {
         calls++;
+        lastUrl = String(url);
         return answer();
     }) as typeof fetch;
     cloud = await import('@/lib/translate/cloud');
@@ -27,24 +30,6 @@ beforeEach(() => {
     answer = translated;
     process.env.APP_LOG = 'off';
 });
-
-// Runs `run` with logging on, and collects the JSON lines it writes.
-async function capture(run: () => Promise<unknown>): Promise<Record<string, unknown>[]> {
-    delete process.env.APP_LOG;
-    const lines: Record<string, unknown>[] = [];
-    const saved = { log: console.log, warn: console.warn, error: console.error };
-    const collect = (line: string) => { lines.push(JSON.parse(line)); };
-    console.log = collect;
-    console.warn = collect;
-    console.error = collect;
-    try {
-        await run();
-    } finally {
-        Object.assign(console, saved);
-        process.env.APP_LOG = 'off';
-    }
-    return lines;
-}
 
 test("a day's allowance of characters refuses what would go past it, and starts again the next day", () => {
     let day = '2026-10-04';
@@ -79,9 +64,8 @@ test('a failed request still spends: a broken API can never be called forever', 
 test('whether a call would go out: Cloud on, a key, and enough of that day left', async () => {
     const left = cloud.cloudAllowances.compare.remaining();
     assert.equal(cloud.cloudCanTranslate('compare', left), true, 'all that is left');
-    // An hour ago, so its log line (held back or not) leaves this minute's
-    // to the last test.
-    assert.equal(cloud.cloudCanTranslate('compare', left + 1, Date.now() - 60 * MINUTE_MS), false, 'one more than is left');
+    // The fallback's, so Compare's once-a-minute line is left for the last test.
+    assert.equal(cloud.cloudCanTranslate('fallback', cloud.cloudAllowances.fallback.remaining() + 1), false, 'one more than is left');
     process.env.TRANSLATE_FALLBACK = 'off';
     assert.equal(cloud.cloudCanTranslate('fallback', 5), false, 'switched off');
     delete process.env.TRANSLATE_FALLBACK;
@@ -93,10 +77,6 @@ test('whether a call would go out: Cloud on, a key, and enough of that day left'
         assert.equal(cloud.cloudCanTranslate('fallback', 5), false, 'no key');
         const lines = await capture(async () => { cloud.cloudCanTranslate('compare', 5); });
         assert.deepEqual(lines.map((l) => [l.evt, l.missing]), [['config_error', 'GOOGLE_TRANSLATE_API_KEY']], 'a missing key is logged');
-        // As .env.local's `GOOGLE_TRANSLATE_API_KEY=` arrives.
-        process.env.GOOGLE_TRANSLATE_API_KEY = '';
-        process.env.GEMINI_API_KEY = 'gemini-key';
-        assert.equal(cloud.cloudCanTranslate('fallback', 5), true, 'a blank Translate key borrows the Gemini key');
     } finally {
         process.env.GOOGLE_TRANSLATE_API_KEY = key;
         if (gemini === undefined) delete process.env.GEMINI_API_KEY;
@@ -120,40 +100,54 @@ test("a refusal only the owner can fix is an error line, which reaches Sentry; b
     const levels: [number, string][] = [];
     for (const status of [400, 403, 429, 503]) {
         answer = () => new Response('{}', { status });
-        delete process.env.APP_LOG;
-        const saved = { log: console.log, warn: console.warn, error: console.error };
-        console.log = () => { levels.push([status, 'info']); };
-        console.warn = () => { levels.push([status, 'warn']); };
-        console.error = () => { levels.push([status, 'error']); };
-        try {
-            await cloud.cloudTranslate({ text: 'a', target: 'pa', purpose: 'fallback' });
-        } finally {
-            Object.assign(console, saved);
-            process.env.APP_LOG = 'off';
-        }
+        const lines = await capture(() => cloud.cloudTranslate({ text: 'a', target: 'pa', purpose: 'fallback' }));
+        for (const { level } of lines) levels.push([status, level]);
     }
     assert.deepEqual(levels, [[400, 'error'], [403, 'error'], [429, 'warn'], [503, 'warn']]);
+});
+
+test('a blank Translate key borrows the Gemini key, and the call sends it', async () => {
+    const saved = { key: process.env.GOOGLE_TRANSLATE_API_KEY, gemini: process.env.GEMINI_API_KEY };
+    try {
+        // As .env.local's `GOOGLE_TRANSLATE_API_KEY=` arrives.
+        process.env.GOOGLE_TRANSLATE_API_KEY = '';
+        process.env.GEMINI_API_KEY = 'gemini-key';
+        assert.ok(await cloud.cloudTranslate({ text: 'hi', target: 'pa', purpose: 'fallback' }));
+        assert.equal(new URL(lastUrl).searchParams.get('key'), 'gemini-key');
+        process.env.GOOGLE_TRANSLATE_API_KEY = ' own-key ';
+        assert.ok(await cloud.cloudTranslate({ text: 'hi', target: 'pa', purpose: 'fallback' }));
+        assert.equal(new URL(lastUrl).searchParams.get('key'), 'own-key', 'its own, trimmed');
+    } finally {
+        for (const [name, value] of [['GOOGLE_TRANSLATE_API_KEY', saved.key], ['GEMINI_API_KEY', saved.gemini]] as const) {
+            if (value === undefined) delete process.env[name];
+            else process.env[name] = value;
+        }
+    }
 });
 
 // Last: it spends this process's Compare allowance.
 test("a day of comparisons leaves the fallback working, and the log says whose allowance ran out", async () => {
     while (cloud.cloudAllowances.compare.spend(1000));
     while (cloud.cloudAllowances.compare.spend(1));
+    // A call is made once its route has counted the visitor: each one that
+    // finds the day spent says so.
     const lines = await capture(async () => {
-        assert.equal(await cloud.cloudTranslate({ text: 'hello', target: 'pa', purpose: 'compare' }), null);
+        for (let i = 0; i < 2; i++) assert.equal(await cloud.cloudTranslate({ text: 'hello', target: 'pa', purpose: 'compare' }), null);
     });
     assert.equal(calls, 0, 'nothing is bought');
-    assert.deepEqual(lines.map(({ evt, purpose, chars }) => ({ evt, purpose, chars })), [{ evt: 'cloud_translate_ceiling', purpose: 'compare', chars: 5 }]);
-    // Compare asks the same before counting anyone, and says why at most
-    // once a minute: a minute nothing else has used, then once more in it.
-    const later = Date.now() + 2 * MINUTE_MS;
+    const ceiling = { evt: 'cloud_translate_ceiling', purpose: 'compare', chars: 5 };
+    assert.deepEqual(lines.map(({ evt, purpose, chars }) => ({ evt, purpose, chars })), [ceiling, ceiling], 'a line for each call');
+    // Compare asks before counting anyone, so it says why at most once a
+    // minute, with a count, and a spent day can't flood the logs. The
+    // minute is the clock's, so a run that crosses into the next one proves
+    // nothing.
+    const minute = () => Math.floor(Date.now() / MINUTE_MS);
+    const started = minute();
     const asked = await capture(async () => {
-        assert.equal(cloud.cloudCanTranslate('compare', 5, later), false, 'Compare says no before anyone is charged');
-        assert.equal(cloud.cloudCanTranslate('compare', 5, later), false);
+        assert.equal(cloud.cloudCanTranslate('compare', 5), false, 'Compare says no before anyone is charged');
+        assert.equal(cloud.cloudCanTranslate('compare', 5), false);
     });
-    assert.deepEqual(asked.map(({ evt, purpose, chars, refused }) => ({ evt, purpose, chars, refused })), [{ evt: 'cloud_translate_ceiling', purpose: 'compare', chars: 5, refused: 1 }], 'one line for the minute, so a spent day can’t flood the logs');
-    const next = await capture(async () => { cloud.cloudCanTranslate('compare', 5, later + MINUTE_MS); });
-    assert.deepEqual(next.map(({ evt, refused }) => ({ evt, refused })), [{ evt: 'cloud_translate_ceiling', refused: 2 }], 'the next minute’s line counts the one held back');
+    if (minute() === started) assert.deepEqual(asked.map(({ evt, purpose, chars, refused }) => ({ evt, purpose, chars, refused })), [{ ...ceiling, refused: 1 }], 'one line for the minute');
     assert.equal(cloud.cloudCanTranslate('fallback', 5), true);
     assert.ok(await cloud.cloudTranslate({ text: 'hello', target: 'pa', purpose: 'fallback' }), 'the fallback still translates');
     assert.equal(calls, 1);

@@ -92,15 +92,13 @@ export const passingStatus = (status: number) => status === 429 || status >= 500
 const cloudKey = () => process.env.GOOGLE_TRANSLATE_API_KEY?.trim() || process.env.GEMINI_API_KEY;
 
 // The key to call Cloud with for `purpose` and `chars` characters now, or
-// null, logged, when the call wouldn't go out. One switch disables every
-// runtime call to Cloud Translation, fallback and cross-check alike, without
-// a redeploy; then there must be a key, and that much of the purpose's day
-// left on this server. These checks live only here: cloudTranslate makes
-// them, and a route that asks first (cloudCanTranslate) gets the same answer.
-// A spent day is logged at most once a minute for each purpose, with a count
-// of the rest (lib/api/refusals.ts): Compare asks before it counts anyone, so
-// a line for every request would let one script flood the logs.
-function cloudReady(purpose: CloudPurpose, chars: number, now: number): string | null {
+// null when the call wouldn't go out: Cloud switched off (one switch for every
+// runtime call, fallback and cross-check alike, without a redeploy; it says
+// nothing), no key (an error line), or less than that left of the purpose's
+// day on this server (`spent` says so). These checks live only here:
+// cloudTranslate makes them, and a route that asks first (cloudCanTranslate)
+// gets the same answer.
+function cloudReady(purpose: CloudPurpose, chars: number, spent: () => void): string | null {
     if (switchedOff('TRANSLATE_FALLBACK')) return null;
     const key = cloudKey();
     if (!key) {
@@ -108,7 +106,7 @@ function cloudReady(purpose: CloudPurpose, chars: number, now: number): string |
         return null;
     }
     if (cloudAllowances[purpose].remaining() < chars) {
-        logRefusal('cloud_translate_ceiling', `cloud ${purpose} ceiling`, { purpose, chars }, now);
+        spent();
         return null;
     }
     return key;
@@ -117,14 +115,21 @@ function cloudReady(purpose: CloudPurpose, chars: number, now: number): string |
 // Whether a call for `purpose` with `chars` characters would go out now. A
 // route asks before counting its visitor (app/api/translate/crosscheck), so
 // no one is charged for a call that was never going to be made. Asking
-// spends nothing. `now` times only the log line (the day is the UTC date's).
-export function cloudCanTranslate(purpose: CloudPurpose, chars: number, now = Date.now()): boolean {
-    return cloudReady(purpose, chars, now) !== null;
+// spends nothing. Since nobody has been counted yet, a spent day is said at
+// most once a minute for each purpose, with a count of the rest
+// (lib/api/refusals.ts): a line for every request would let one script flood
+// the logs.
+export function cloudCanTranslate(purpose: CloudPurpose, chars: number): boolean {
+    const spent = () => logRefusal('cloud_translate_ceiling', `cloud ${purpose} ceiling`, { purpose, chars });
+    return cloudReady(purpose, chars, spent) !== null;
 }
 
 export async function cloudTranslate(opts: CloudTranslateOpts): Promise<CloudTranslateResult | null> {
     if (!opts.text.trim()) return null;
-    const key = cloudReady(opts.purpose, opts.text.length, Date.now());
+    // A call comes after its route has counted the visitor, so a spent day is
+    // said for each one: the logs can follow a request that found no room.
+    const spent = () => logEvent('cloud_translate_ceiling', { purpose: opts.purpose, chars: opts.text.length }, 'warn');
+    const key = cloudReady(opts.purpose, opts.text.length, spent);
     if (!key) return null;
     // Charged before the request (charAllowance says why). cloudReady saw
     // room, and nothing runs between the two.
