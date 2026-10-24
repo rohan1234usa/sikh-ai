@@ -116,6 +116,10 @@ export type VocabWord = {
     note?: string;     // English, one line
 };
 
+// What a flashcard shows of a word. The review page carries every topic's
+// words in this shape, without the fields only a quiz or the word list uses.
+export type FlashcardWord = Pick<VocabWord, 'id' | 'topic' | 'gurmukhi' | 'roman' | 'english' | 'note'>;
+
 export type LessonMeta = {
     slug: string;         // its URL segment, unique across tracks
     track: LessonTrackId;

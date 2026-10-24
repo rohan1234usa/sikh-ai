@@ -809,6 +809,19 @@ const en = {
             practice: 'Practice anyway',
             checkAgain: 'Check again',
         },
+        // /learn/review: every topic's due flashcards in one session.
+        review: {
+            title: 'Flashcard review',
+            description: 'Every flashcard that is due, from every topic, the ones you know least first.',
+            eyebrow: 'Every topic',
+            lead: 'The cards due from every topic, the ones you know least first. Each card says which topic it is from.',
+            nothingDue: 'Nothing is due from any topic. Every card is scheduled for later.',
+            practiceTopic: 'Practice a topic instead',
+            // The way in, on the hub and the vocabulary page. Two strings,
+            // since fmt has no plurals.
+            dueOne: 'Review 1 card due',
+            dueMany: 'Review {n} cards due',
+        },
         // /learn/tutor: the Punjabi tutor, a conversation kept in the tab.
         tutor: {
             greeting: 'Sat Sri Akal! I’m your Punjabi tutor. Ask me about any sentence, ask how to say something, or practice a conversation with me. Every bit of Punjabi comes in Gurmukhi, in English letters, and in English.',

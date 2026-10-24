@@ -1,21 +1,25 @@
 'use client';
 
 import { useEffect, useRef, useState, type SetStateAction } from 'react';
+import IntentLink from '@/app/components/IntentLink';
 import { PRIMARY_BUTTON } from '@/app/components/StatusPage';
 import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
-import type { VocabWord } from '@/lib/learn/config';
+import type { FlashcardWord } from '@/lib/learn/config';
 import { seededShuffle } from '@/lib/learn/quiz';
-import { cardCounts, reviewQueue, type CardState } from '@/lib/learn/srs';
+import { cardCounts, dueQueue, reviewQueue, type CardState } from '@/lib/learn/srs';
 import { useSwapGuard } from './useSwapGuard';
 import Mixed from './Mixed';
 
 type Props = {
-    words: VocabWord[];
+    words: readonly FlashcardWord[];
     cards: Readonly<Record<string, CardState>>; // this browser's schedule
     now: number;                                // the time, moving (useLiveNow)
     onReview: (wordId: string, correct: boolean) => void;
-};
+} & (
+    | { mode?: 'topic' }                     // one topic: its due cards, then new ones
+    | { mode: 'review'; topicsHref: string } // every topic's due cards, nothing new
+);
 
 type Session = {
     queue: string[];
@@ -30,14 +34,20 @@ const SESSION_SIZE = 20;
 
 const startSession = (queue: string[]): Session => ({ queue, index: 0, revealed: false, right: 0, wrong: 0, missed: [] });
 
-// One flashcard at a time: the due cards first, then new ones (lib/learn/srs.ts).
-// "Not yet" sends a card to the back of this session once, as well as back
-// to the first box of the schedule. Rendered only once progress is read.
-export default function Flashcards({ words, cards, now, onReview }: Props) {
+// One flashcard at a time: a topic's due cards first, then new ones; or, in a
+// review, every topic's due cards and nothing new, each card naming its topic
+// (lib/learn/srs.ts). "Not yet" sends a card to the back of this session
+// once, as well as back to the first box of the schedule. Rendered only once
+// progress is read.
+export default function Flashcards(props: Props) {
+    const { words, cards, now, onReview } = props;
+    const reviewing = props.mode === 'review';
     const t = useT();
     const ids = words.map((word) => word.id);
+    // What a session takes, from the schedule as it is at `at`.
+    const queueAt = (at: number) => (reviewing ? dueQueue : reviewQueue)(ids, cards, at, SESSION_SIZE);
     const [direction, setDirection] = useState<'pa' | 'en'>('pa');
-    const [session, setSession] = useState<Session>(() => startSession(reviewQueue(ids, cards, now, SESSION_SIZE)));
+    const [session, setSession] = useState<Session>(() => startSession(queueAt(now)));
     const showRef = useRef<HTMLButtonElement>(null);
     const answerRef = useRef<HTMLDivElement>(null);
     const doneRef = useRef<HTMLDivElement>(null);
@@ -83,7 +93,7 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
     };
 
     // A new session reads the schedule as it is now, answers included.
-    const reviewAgain = () => change(startSession(reviewQueue(ids, cards, Date.now(), SESSION_SIZE)));
+    const reviewAgain = () => change(startSession(queueAt(Date.now())));
     const practiceAll = () => change(startSession(seededShuffle(ids, String(Date.now())).slice(0, SESSION_SIZE)));
 
     const directionPicker = (
@@ -112,7 +122,7 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
         return (
             <div ref={doneRef} tabIndex={-1} className="space-y-4 rounded-xl border border-edge bg-surface-raised p-6 text-center outline-none">
                 <p aria-live="polite" className="text-ink-muted">
-                    {dueNow > 0 ? fmt(t.learn.cards.dueNow, { n: dueNow }) : t.learn.cards.nothingDue}
+                    {dueNow > 0 ? fmt(t.learn.cards.dueNow, { n: dueNow }) : reviewing ? t.learn.review.nothingDue : t.learn.cards.nothingDue}
                 </p>
                 <div className="flex flex-wrap justify-center gap-3">
                     <button
@@ -122,7 +132,12 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
                     >
                         {t.learn.cards.checkAgain}
                     </button>
-                    <button type="button" onClick={(e) => allowed(e) && practiceAll()} className={PRIMARY_BUTTON}>{t.learn.cards.practice}</button>
+                    {props.mode === 'review' ? (
+                        // A review brings in no new words: they wait in their topics.
+                        <IntentLink href={props.topicsHref} className={PRIMARY_BUTTON}>{t.learn.review.practiceTopic}</IntentLink>
+                    ) : (
+                        <button type="button" onClick={(e) => allowed(e) && practiceAll()} className={PRIMARY_BUTTON}>{t.learn.cards.practice}</button>
+                    )}
                 </div>
             </div>
         );
@@ -154,6 +169,9 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
             </div>
 
             <div className="flex min-h-64 flex-col items-center justify-center gap-4 rounded-2xl border border-edge bg-surface-raised p-6 text-center shadow-sm">
+                {/* A review mixes the topics, and a word can be in two (ਖਾਣਾ is
+                    food, and to eat), so each card says where it is from. */}
+                {reviewing && <p className="text-xs font-bold uppercase tracking-widest text-accent-text">{t.learn.topics[word.topic]}</p>}
                 {direction === 'pa' ? punjabi : english}
                 {session.revealed && (
                     <div ref={answerRef} tabIndex={-1} className="w-full space-y-2 border-t border-edge pt-4 outline-none">

@@ -27,6 +27,7 @@ export default async function VocabPage() {
         />
         <TopicList
           topics={VOCAB_TOPIC_IDS.map((id) => ({ id, href: to(topicPath(id)), wordIds: VOCAB[id].map((word) => word.id) }))}
+          reviewHref={to('/learn/review')}
         />
       </div>
     </main>

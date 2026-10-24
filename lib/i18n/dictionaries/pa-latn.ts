@@ -776,6 +776,16 @@ const paLatn: Dictionary = {
             practice: 'Phir vi abhiaas karo',
             checkAgain: 'Dubara dekho',
         },
+        review: {
+            title: 'Flashcard duhrai',
+            description: 'Har vishe de duhraun vale saare flashcard, pehlan uh jo tuhanu sabh ton ghatt aunde han.',
+            eyebrow: 'Har visha',
+            lead: 'Har vishe de duhraun vale card, pehlan uh jo tuhanu sabh ton ghatt aunde han. Har card dassda hai ki uh kis vishe da hai.',
+            nothingDue: 'Kise vi vishe vich kujh duhraun vala nahi. Har card baad layi tai hai.',
+            practiceTopic: 'Kise vishe da abhiaas karo',
+            dueOne: '1 card duhrao',
+            dueMany: '{n} card duhrao',
+        },
         tutor: {
             greeting: 'Sat Sri Akal! Main tuhada Punjabi tutor haan. Kise vi vaak baare puchho, puchho ki kujh kiven kahida hai, jaan mere naal gallbaat da abhiaas karo. Har Punjabi gall Gurmukhi, Angrezi akhran ate Angrezi vich milegi, ate samjhauna Angrezi vich hovega.',
             starters: [
