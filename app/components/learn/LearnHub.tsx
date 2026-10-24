@@ -17,7 +17,7 @@ import type { LessonPace } from '@/lib/learn/pace';
 import { isLessonDone, lessonPlace, nextLesson, placeHash, trackProgress, type LessonPlace } from '@/lib/learn/progress';
 import { cardCounts } from '@/lib/learn/srs';
 import { placeWords, timeWords } from '@/lib/learn/status';
-import { useLearnProgress } from './useLearnProgress';
+import { useLearnProgress, useLiveNow } from './useLearnProgress';
 import Mixed from './Mixed';
 
 export type HubLesson = {
@@ -49,6 +49,7 @@ const ICONS: Record<TrackId, typeof PencilSquareIcon> = {
 export default function LearnHub({ lessons, wordIds, tracks }: Props) {
     const t = useT();
     const { progress, hydrated, now, reset } = useLearnProgress();
+    const liveNow = useLiveNow(now);
     const [confirming, setConfirming] = useState(false);
     // Asking and answering swap the buttons, so focus moves with them: to
     // Cancel when the question appears (the group's label reads it out),
@@ -71,7 +72,7 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
     const label = resuming ? t.learn.hub.continue : started ? t.learn.hub.upNext : t.learn.hub.start;
     // How far into it the learner is, and how long it (or the rest of it) takes.
     const meta = nextLink ? [placeWords(t, place, nextLink.pace), timeWords(t, place, nextLink.pace)].filter(Boolean).join(' · ') : '';
-    const cards = now !== null ? cardCounts(wordIds, progress.cards, now) : null;
+    const cards = liveNow !== null ? cardCounts(wordIds, progress.cards, liveNow) : null;
 
     const progressLine = (id: TrackId): string | null => {
         if (!hydrated) return null;

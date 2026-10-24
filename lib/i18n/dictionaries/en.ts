@@ -804,6 +804,8 @@ const en = {
             doneBody: 'Known: {right}. To see again: {wrong}.',
             again: 'Review again',
             nothingDue: 'Nothing is due. Every card here is scheduled for later.',
+            // In its place once cards come due on a page left open.
+            dueNow: 'Due now: {n}. Check again to start.',
             practice: 'Practice anyway',
             checkAgain: 'Check again',
         },

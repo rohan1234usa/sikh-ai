@@ -9,7 +9,7 @@ import { buildVocabQuiz } from '@/lib/learn/quiz';
 import { cardCounts } from '@/lib/learn/srs';
 import Flashcards from './Flashcards';
 import Quiz from './Quiz';
-import { useLearnProgress } from './useLearnProgress';
+import { useLearnProgress, useLiveNow } from './useLearnProgress';
 import WordList from './WordList';
 
 const MODES = ['words', 'cards', 'quiz'] as const;
@@ -21,6 +21,7 @@ type Mode = (typeof MODES)[number];
 export default function VocabTopic({ topic, words }: { topic: VocabTopicId; words: VocabWord[] }) {
     const t = useT();
     const { progress, now, loadedAt, reviewCard, recordTopicQuiz } = useLearnProgress();
+    const liveNow = useLiveNow(now);
     const [mode, setMode] = useState<Mode>('words');
     // Tabs opened so far: a panel is built the first time its tab opens.
     const [opened, setOpened] = useState<ReadonlySet<Mode>>(() => new Set<Mode>(['words']));
@@ -35,7 +36,7 @@ export default function VocabTopic({ topic, words }: { topic: VocabTopicId; word
         () => buildVocabQuiz(words, `${topic}:${round}`, { meaning: t.learn.quiz.vocabMeaning, say: t.learn.quiz.vocabSay }),
         [words, topic, round, t],
     );
-    const counts = now !== null ? cardCounts(words.map((w) => w.id), progress.cards, now) : null;
+    const counts = liveNow !== null ? cardCounts(words.map((w) => w.id), progress.cards, liveNow) : null;
     const best = now !== null ? topicRecord(progress, topic)?.best : undefined;
 
     // Arrow keys move between the tabs, as a tab list should.
@@ -85,13 +86,15 @@ export default function VocabTopic({ topic, words }: { topic: VocabTopicId; word
                 hidden, so looking a word up keeps a quiz's answers and a
                 flashcard session where they were, and a page carries no quiz
                 until one is asked for. A flashcard session starts again when
-                another tab, or a page restored by Back, brings new progress. */}
+                another tab, or a page restored by Back, brings new progress,
+                never for the clock: a session opened later starts with the
+                cards that have come due since the page loaded. */}
             <div role="tabpanel" id="panel-words" aria-labelledby="tab-words" hidden={mode !== 'words'}>
                 <WordList words={words} />
             </div>
             <div role="tabpanel" id="panel-cards" aria-labelledby="tab-cards" hidden={mode !== 'cards'}>
-                {opened.has('cards') && (now !== null
-                    ? <Flashcards key={loadedAt} words={words} cards={progress.cards} now={now} onReview={reviewCard} />
+                {opened.has('cards') && (liveNow !== null
+                    ? <Flashcards key={loadedAt} words={words} cards={progress.cards} now={liveNow} onReview={reviewCard} />
                     : <div aria-hidden="true" className="h-64 animate-pulse rounded-2xl bg-edge/40" />)}
             </div>
             <div role="tabpanel" id="panel-quiz" aria-labelledby="tab-quiz" hidden={mode !== 'quiz'}>

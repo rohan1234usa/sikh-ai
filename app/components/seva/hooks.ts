@@ -13,15 +13,9 @@ const noSubscription = () => () => {};
 // there (the hosting form, which starts from what this tab kept).
 export const useMounted = () => useSyncExternalStore(noSubscription, () => true, () => false);
 
-// The time, to the minute: a cached page shows events as they were when it
-// was built, and this keeps "ended" and "happening now" true as time passes.
-// Null until the page is interactive.
-const subscribeMinute = (onChange: () => void) => {
-    const timer = setInterval(onChange, 15_000);
-    return () => clearInterval(timer);
-};
-const thisMinute = () => Math.floor(Date.now() / 60_000) * 60_000;
-export const useMinute = (): number | null => useSyncExternalStore(subscribeMinute, thisMinute, () => null);
+// The time, to the minute, lives in app/components/useMinute.ts: a cached
+// page shows events as they were when it was built, and it keeps "ended" and
+// "happening now" true as time passes. Learn's flashcards use it too.
 
 // Whether the device has a share sheet (phones, mostly).
 export const useCanShare = () =>

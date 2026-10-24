@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import IntentLink from '@/app/components/IntentLink';
 import { ERROR_TEXT } from '@/app/components/form/Field';
 import { useAnnouncer } from '@/app/components/useAnnouncer';
+import { useMinute } from '@/app/components/useMinute';
 import { useAuth } from '@/app/context/AuthContext';
 import type { Lang } from '@/lib/i18n/config';
 import { fmt } from '@/lib/i18n/fmt';
@@ -11,7 +12,7 @@ import type { SevaCopy } from '@/lib/i18n/seva';
 import { isFull } from '@/lib/seva/event';
 import type { Hosting, SevaEvent, Signup } from '@/lib/seva/model';
 import { formatDate } from '@/lib/seva/time';
-import { setMyEvents, useMinute } from './hooks';
+import { setMyEvents } from './hooks';
 import { loadSeva } from './sevaClient';
 import { PANEL, STATE_CHIP } from './styles';
 

@@ -6,14 +6,14 @@ import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { VocabWord } from '@/lib/learn/config';
 import { seededShuffle } from '@/lib/learn/quiz';
-import { reviewQueue, type CardState } from '@/lib/learn/srs';
+import { cardCounts, reviewQueue, type CardState } from '@/lib/learn/srs';
 import { useSwapGuard } from './useSwapGuard';
 import Mixed from './Mixed';
 
 type Props = {
     words: VocabWord[];
     cards: Readonly<Record<string, CardState>>; // this browser's schedule
-    now: number;                                // when that schedule was read
+    now: number;                                // the time, moving (useLiveNow)
     onReview: (wordId: string, correct: boolean) => void;
 };
 
@@ -105,10 +105,15 @@ export default function Flashcards({ words, cards, now, onReview }: Props) {
     );
 
     if (session.queue.length === 0) {
+        // Cards come due while this is open, as the clock moves. Say so, and
+        // leave starting them to Check again rather than swap the screen
+        // (and focus) under the learner.
+        const dueNow = cardCounts(ids, cards, now).due;
         return (
             <div ref={doneRef} tabIndex={-1} className="space-y-4 rounded-xl border border-edge bg-surface-raised p-6 text-center outline-none">
-                <p className="text-ink-muted">{t.learn.cards.nothingDue}</p>
-                {/* A page left open overnight: check the schedule again. */}
+                <p aria-live="polite" className="text-ink-muted">
+                    {dueNow > 0 ? fmt(t.learn.cards.dueNow, { n: dueNow }) : t.learn.cards.nothingDue}
+                </p>
                 <div className="flex flex-wrap justify-center gap-3">
                     <button
                         type="button"

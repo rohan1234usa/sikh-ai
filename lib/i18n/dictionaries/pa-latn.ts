@@ -772,6 +772,7 @@ const paLatn: Dictionary = {
             doneBody: 'Aunde san: {right}. Dubara dekhan layi: {wrong}.',
             again: 'Dubara duhrao',
             nothingDue: 'Is vele kujh duhraun vala nahi. Har card baad layi tai hai.',
+            dueNow: 'Hun duhraun layi: {n}. Shuru karan layi dubara dekho.',
             practice: 'Phir vi abhiaas karo',
             checkAgain: 'Dubara dekho',
         },

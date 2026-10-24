@@ -6,7 +6,7 @@ import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { VocabTopicId } from '@/lib/learn/config';
 import { cardCounts } from '@/lib/learn/srs';
-import { useLearnProgress } from './useLearnProgress';
+import { useLearnProgress, useLiveNow } from './useLearnProgress';
 
 export type TopicLink = { id: VocabTopicId; href: string; wordIds: string[] };
 
@@ -16,11 +16,12 @@ export type TopicLink = { id: VocabTopicId; href: string; wordIds: string[] };
 export default function TopicList({ topics }: { topics: TopicLink[] }) {
     const t = useT();
     const { progress, now } = useLearnProgress();
+    const liveNow = useLiveNow(now);
 
     return (
         <ul className="grid border-l border-t border-edge sm:grid-cols-2">
             {topics.map(({ id, href, wordIds }) => {
-                const counts = now !== null ? cardCounts(wordIds, progress.cards, now) : null;
+                const counts = liveNow !== null ? cardCounts(wordIds, progress.cards, liveNow) : null;
                 return (
                     <li key={id} className="border-b border-r border-edge sm:last:odd:col-span-2">
                         <IntentLink
