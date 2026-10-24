@@ -33,6 +33,7 @@ export default async function LearnPage() {
           }))}
           wordIds={Object.values(VOCAB).flatMap((words) => words.map((word) => word.id))}
           tracks={TRACK_IDS.map((id) => ({ id, href: to(`/learn/${id}`) }))}
+          reviewHref={to('/learn/review')}
         />
       </div>
     </main>

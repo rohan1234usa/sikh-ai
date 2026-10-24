@@ -707,7 +707,9 @@ const en = {
             f: 'feminine',
         } satisfies Record<Gender, string>,
         hub: {
-            continue: 'Continue where you left off',
+            // The Today panel's rubric, then what kind of step it holds.
+            today: 'Today',
+            continue: 'Continue',
             start: 'Start here',
             upNext: 'Up next',
             allDone: 'You’ve finished every lesson',

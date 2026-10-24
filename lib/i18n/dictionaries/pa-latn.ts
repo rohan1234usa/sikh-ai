@@ -685,7 +685,8 @@ const paLatn: Dictionary = {
             f: 'istri ling',
         },
         hub: {
-            continue: 'Jithe chhaddia si, uthon jaari rakho',
+            today: 'Ajj',
+            continue: 'Jaari rakho',
             start: 'Ithon shuru karo',
             upNext: 'Agla sabak',
             allDone: 'Tusi saare sabak poore kar laye han',

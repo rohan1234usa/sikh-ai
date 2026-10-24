@@ -9,14 +9,15 @@ import {
     RectangleStackIcon,
 } from '@heroicons/react/24/outline';
 import IntentLink from '@/app/components/IntentLink';
-import { PRIMARY_BUTTON } from '@/app/components/buttons';
+import { BUTTON_LG, PRIMARY_BUTTON, SECONDARY_BUTTON } from '@/app/components/buttons';
 import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { LessonTrackId, TrackId } from '@/lib/learn/config';
 import type { LessonPace } from '@/lib/learn/pace';
-import { isLessonDone, lessonPlace, nextLesson, placeHash, trackProgress, type LessonPlace } from '@/lib/learn/progress';
+import { stepKind } from '@/lib/learn/hub';
+import { lessonPlace, nextLesson, placeHash, trackProgress, type LessonPlace } from '@/lib/learn/progress';
 import { cardCounts } from '@/lib/learn/srs';
-import { placeWords, timeWords } from '@/lib/learn/status';
+import { placeWords, reviewLabel, timeWords } from '@/lib/learn/status';
 import { useLearnProgress, useLiveNow } from './useLearnProgress';
 import Mixed from './Mixed';
 
@@ -32,6 +33,7 @@ type Props = {
     lessons: HubLesson[];                             // every lesson, in curriculum order
     wordIds: string[];                                // every vocabulary word
     tracks: { id: TrackId; href: string }[];          // the tracks, in order
+    reviewHref: string;                               // every topic's due flashcards
 };
 
 const ICONS: Record<TrackId, typeof PencilSquareIcon> = {
@@ -41,12 +43,13 @@ const ICONS: Record<TrackId, typeof PencilSquareIcon> = {
     tutor: ChatBubbleLeftRightIcon,
 };
 
-// The /learn hub: where to pick up, each track's progress, and a way to wipe
+// The /learn hub: today's next step, each track's progress, and a way to wipe
 // the slate. Everything that depends on this browser's progress waits for
-// it to be read, so the server's HTML and the first render agree. "Continue"
-// reopens a lesson at the section the learner reached, and says how long
-// the rest takes.
-export default function LearnHub({ lessons, wordIds, tracks }: Props) {
+// it to be read, so the server's HTML and the first render agree. The Today
+// panel holds at most two actions: the next lesson, reopened at the section
+// the learner reached with how long the rest takes, and a review of every
+// flashcard due, once one is.
+export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props) {
     const t = useT();
     const { progress, hydrated, now, reset } = useLearnProgress();
     const liveNow = useLiveNow(now);
@@ -55,6 +58,7 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
     // Cancel when the question appears (the group's label reads it out),
     // then back to Reset progress. Not on arrival.
     const promptId = useId();
+    const todayId = useId();
     const resetRef = useRef<HTMLButtonElement>(null);
     const asked = useRef(false);
     useEffect(() => {
@@ -65,14 +69,12 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
     const slugs = lessons.map((lesson) => lesson.slug);
     const next = hydrated ? nextLesson(progress, slugs) : undefined;
     const nextLink = lessons.find((lesson) => lesson.slug === next);
-    const started = slugs.some((slug) => isLessonDone(progress, slug));
     const place: LessonPlace = nextLink ? lessonPlace(progress, nextLink.slug, nextLink.pace.sections.length) : { kind: 'new' };
-    // A lesson read partway is one to continue, even when another was opened since.
-    const resuming = next === progress.lastLesson || place.kind === 'section' || place.kind === 'quiz';
-    const label = resuming ? t.learn.hub.continue : started ? t.learn.hub.upNext : t.learn.hub.start;
+    const kind = nextLink ? stepKind(progress, nextLink.slug, place, slugs) : null;
     // How far into it the learner is, and how long it (or the rest of it) takes.
     const meta = nextLink ? [placeWords(t, place, nextLink.pace), timeWords(t, place, nextLink.pace)].filter(Boolean).join(' · ') : '';
     const cards = liveNow !== null ? cardCounts(wordIds, progress.cards, liveNow) : null;
+    const review = cards ? reviewLabel(t, cards.due) : null;
 
     const progressLine = (id: TrackId): string | null => {
         if (!hydrated) return null;
@@ -90,37 +92,49 @@ export default function LearnHub({ lessons, wordIds, tracks }: Props) {
     return (
         <div className="space-y-8">
             {/* Held at the panel's usual height until progress is read, so the
-                tracks below don't jump: 226px on a phone, where the button
+                tracks below don't jump: 230px on a phone, where the button
                 drops below, most lesson titles take two lines and the place
                 and time have a line of their own; 120px wider, where they
-                share the track's line. */}
+                share the track's line. The panel never ends shorter. With
+                cards due it holds their button too, and grows by it. */}
             {!hydrated ? (
-                <div aria-hidden="true" className="h-56.5 animate-pulse rounded-2xl bg-edge/40 sm:h-30" />
-            ) : nextLink ? (
-                <div className="flex flex-col gap-4 rounded-2xl border border-edge-strong bg-surface-raised p-6 text-ink sm:flex-row sm:items-center">
-                    <div className="min-w-0 flex-1 space-y-1">
-                        <p className="text-xs font-bold uppercase tracking-widest text-accent-text">{label}</p>
-                        <p lang="en" className="text-xl font-bold"><Mixed text={nextLink.title} /></p>
-                        <p className="text-sm text-ink-muted">
-                            {t.learn.tracks[nextLink.track].title}
-                            <span className="hidden sm:inline"> · </span>
-                            {/* A line of its own on a phone. */}
-                            <span className="block sm:inline">{meta}</span>
-                        </p>
-                    </div>
-                    <IntentLink
-                        href={nextLink.href + placeHash(place)}
-                        className={PRIMARY_BUTTON}
-                    >
-                        {t.learn.hub.openLesson}
-                        <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
-                    </IntentLink>
-                </div>
+                <div aria-hidden="true" className="h-57.5 animate-pulse rounded-2xl bg-edge/40 sm:h-30" />
             ) : (
-                <div className="flex min-h-56.5 flex-col justify-center rounded-2xl border border-edge-strong bg-surface-raised p-6 text-ink sm:min-h-30">
-                    <p className="text-xl font-bold">{t.learn.hub.allDone}</p>
-                    <p className="text-sm text-ink-muted">{t.learn.hub.allDoneBody}</p>
-                </div>
+                <section
+                    aria-labelledby={todayId}
+                    className="flex min-h-57.5 flex-col gap-4 rounded-2xl border border-edge-strong bg-surface-raised p-6 text-ink sm:min-h-30 sm:flex-row sm:items-center"
+                >
+                    <div className={`min-w-0 flex-1 space-y-1 ${nextLink ? '' : 'flex flex-col justify-center'}`}>
+                        <h2 id={todayId} className="text-xs font-bold uppercase tracking-widest text-accent-text">{t.learn.hub.today}</h2>
+                        {nextLink && kind ? (
+                            <>
+                                <p lang="en" className="text-xl font-bold"><Mixed text={nextLink.title} /></p>
+                                <p className="text-sm text-ink-muted">
+                                    {t.learn.hub[kind]} · {t.learn.tracks[nextLink.track].title}
+                                    <span className="hidden sm:inline"> · </span>
+                                    {/* A line of its own on a phone. */}
+                                    <span className="block sm:inline">{meta}</span>
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <p className="text-xl font-bold">{t.learn.hub.allDone}</p>
+                                <p className="text-sm text-ink-muted">{t.learn.hub.allDoneBody}</p>
+                            </>
+                        )}
+                    </div>
+                    {(nextLink || review) && (
+                        <div className="flex flex-col gap-2 sm:shrink-0">
+                            {nextLink && (
+                                <IntentLink href={nextLink.href + placeHash(place)} className={`${PRIMARY_BUTTON} ${BUTTON_LG}`}>
+                                    {t.learn.hub.openLesson}
+                                    <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
+                                </IntentLink>
+                            )}
+                            {review && <IntentLink href={reviewHref} className={`${SECONDARY_BUTTON} ${BUTTON_LG}`}>{review}</IntentLink>}
+                        </div>
+                    )}
+                </section>
             )}
 
             {/* Equal cells, as on the home page: the four tracks fill one
