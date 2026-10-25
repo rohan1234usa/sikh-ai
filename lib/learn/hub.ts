@@ -45,3 +45,11 @@ export function trackLine(t: Dictionary, id: TrackId, facts: TrackFacts | null):
         ? { kind: 'milestone', text: t.learn.hub.milestones[id] }
         : { kind: 'count', text: fmt(t.learn.hub.lessonsDone, { done, total }), fill };
 }
+
+// Where a track fits, in a line beside its icon. Every learner gets the
+// default order (for those who grew up hearing Punjabi) until the
+// starting-point chooser (#66, step 3) adds a set per starting point beside
+// it, and the starting point here.
+export function orderLine(t: Dictionary, id: TrackId): string {
+    return t.learn.hub.order.default[id];
+}

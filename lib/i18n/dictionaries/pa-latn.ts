@@ -693,6 +693,14 @@ const paLatn: Dictionary = {
             allDoneBody: 'Flashcardan naal aapne shabad taaza rakho.',
             openLesson: 'Sabak kholo',
             open: 'Kholo',
+            order: {
+                default: {
+                    script: 'Ithon shuru karo',
+                    grammar: 'Lipi de sabakan de naal-naal',
+                    vocab: 'Jadon tusi kujh shabad parh sako',
+                    tutor: 'Kise vi vele',
+                },
+            },
             milestones: {
                 script: 'Aapna pehla shabad parho',
                 grammar: 'Aapna pehla vaak banao',

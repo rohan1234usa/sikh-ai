@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import en from '@/lib/i18n/dictionaries/en';
-import { FIRST_WORDS, stepKind, trackLine } from '@/lib/learn/hub';
+import { TRACK_IDS } from '@/lib/learn/config';
+import { FIRST_WORDS, orderLine, stepKind, trackLine } from '@/lib/learn/hub';
 import { EMPTY_PROGRESS, withCheckpoint, withLessonComplete, withVisit } from '@/lib/learn/progress';
 
 const NOW = Date.UTC(2026, 9, 24, 20, 0);
@@ -47,4 +48,13 @@ test('the tutor has no line, nor does any track before progress is read, and the
     };
     assert.equal(fill(12, 9), 1, 'a lesson removed since it was done');
     assert.equal(fill(3, 0), 0);
+});
+
+test('each track says where it fits for the default learner, in the hub\'s order', () => {
+    assert.deepEqual(TRACK_IDS.map((id) => orderLine(en, id)), [
+        'Start here',
+        'Alongside the script lessons',
+        'Once you can read a few words',
+        'Any time',
+    ]);
 });

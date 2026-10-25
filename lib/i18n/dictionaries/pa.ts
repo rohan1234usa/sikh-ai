@@ -693,6 +693,14 @@ const pa: Dictionary = {
             allDoneBody: 'ਫ਼ਲੈਸ਼ਕਾਰਡਾਂ ਨਾਲ ਆਪਣੇ ਸ਼ਬਦ ਤਾਜ਼ਾ ਰੱਖੋ।',
             openLesson: 'ਸਬਕ ਖੋਲ੍ਹੋ',
             open: 'ਖੋਲ੍ਹੋ',
+            order: {
+                default: {
+                    script: 'ਇੱਥੋਂ ਸ਼ੁਰੂ ਕਰੋ',
+                    grammar: 'ਲਿਪੀ ਦੇ ਸਬਕਾਂ ਦੇ ਨਾਲ-ਨਾਲ',
+                    vocab: 'ਜਦੋਂ ਤੁਸੀਂ ਕੁਝ ਸ਼ਬਦ ਪੜ੍ਹ ਸਕੋ',
+                    tutor: 'ਕਿਸੇ ਵੀ ਵੇਲੇ',
+                },
+            },
             milestones: {
                 script: 'ਆਪਣਾ ਪਹਿਲਾ ਸ਼ਬਦ ਪੜ੍ਹੋ',
                 grammar: 'ਆਪਣਾ ਪਹਿਲਾ ਵਾਕ ਬਣਾਓ',

@@ -13,7 +13,7 @@ import { BUTTON_LG, PRIMARY_BUTTON, SECONDARY_BUTTON } from '@/app/components/bu
 import { useT } from '@/app/context/LanguageContext';
 import type { LessonTrackId, TrackId } from '@/lib/learn/config';
 import type { LessonPace } from '@/lib/learn/pace';
-import { stepKind, trackLine, type TrackFacts } from '@/lib/learn/hub';
+import { orderLine, stepKind, trackLine, type TrackFacts } from '@/lib/learn/hub';
 import { lessonPlace, nextLesson, placeHash, trackProgress, type LessonPlace } from '@/lib/learn/progress';
 import { cardCounts } from '@/lib/learn/srs';
 import { placeWords, reviewLabel, timeWords } from '@/lib/learn/status';
@@ -132,7 +132,8 @@ export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props
             )}
 
             {/* Equal cells, as on the home page: the four tracks fill one
-                column or two evenly, and an odd last one would span the row. */}
+                column or two evenly, and an odd last one would span the row.
+                Each says where it fits, then how far it has come. */}
             <ul className="grid border-l border-t border-edge sm:grid-cols-2">
                 {tracks.map(({ id, href }) => {
                     const Icon = ICONS[id];
@@ -143,7 +144,12 @@ export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props
                                 href={href}
                                 className="flex h-full flex-col gap-3 p-6 transition-colors hover:bg-surface-raised"
                             >
-                                <Icon className="h-6 w-6 text-accent-text" aria-hidden="true" />
+                                {/* Where the track fits: needs no progress, so it is
+                                    in the server's HTML. */}
+                                <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                    <Icon className="h-6 w-6 text-accent-text" aria-hidden="true" />
+                                    <span className="text-xs font-semibold text-ink-muted">{orderLine(t, id)}</span>
+                                </span>
                                 <span className="text-lg font-semibold text-ink">{t.learn.tracks[id].title}</span>
                                 <span className="text-sm leading-relaxed text-ink-muted">{t.learn.tracks[id].desc}</span>
                                 <span className="mt-auto flex flex-col gap-2 pt-2 text-sm">

@@ -716,6 +716,17 @@ const en = {
             allDoneBody: 'Keep your words fresh with flashcards.',
             openLesson: 'Open lesson',
             open: 'Open',
+            // Where each track fits, by starting point. Only the default
+            // learner's order (grew up hearing it) exists until the
+            // starting-point chooser (#66, step 3).
+            order: {
+                default: {
+                    script: 'Start here',
+                    grammar: 'Alongside the script lessons',
+                    vocab: 'Once you can read a few words',
+                    tutor: 'Any time',
+                },
+            } satisfies Record<'default', Record<TrackId, string>>,
             // A track's first milestone, shown in place of its count until
             // it is reached: a lesson track's first lesson, ten words.
             milestones: {
