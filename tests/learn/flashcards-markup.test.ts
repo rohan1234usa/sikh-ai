@@ -53,6 +53,8 @@ test('a topic\'s session takes its due cards, then new ones, and names no topic'
 test('with nothing due, a review says so for every topic and points to the topics, not to practice', () => {
     const html = render({ ...base, cards: LATER, mode: 'review', topicsHref: '/learn/vocab' });
     assert.ok(html.includes('Nothing is due from any topic.'));
+    // A learner who has met no card yet reads the same, and it holds for them.
+    assert.ok(render({ ...base, cards: {}, mode: 'review', topicsHref: '/learn/vocab' }).includes('new words wait in their topics'));
     assert.ok(html.includes('Check again'));
     assert.match(html, /<a [^>]*href="\/learn\/vocab"[^>]*>Practice a topic instead<\/a>/);
     assert.ok(!html.includes('Practice anyway'));
