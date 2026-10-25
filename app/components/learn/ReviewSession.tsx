@@ -31,10 +31,13 @@ export default function ReviewSession({ words, topicsHref }: { words: FlashcardW
             </p>
 
             {/* A session starts again when another tab, or a page restored by
-                Back, brings new progress, never for the clock. */}
+                Back, brings new progress, never for the clock. Until progress
+                is read, its place is held at a card's height (358px: the side
+                to show first, the card, Show answer), since a learner mostly
+                arrives here with cards due. */}
             {liveNow !== null
                 ? <Flashcards key={loadedAt} mode="review" topicsHref={topicsHref} words={words} cards={progress.cards} now={liveNow} onReview={reviewCard} />
-                : <div aria-hidden="true" className="h-64 animate-pulse rounded-2xl bg-edge/40" />}
+                : <div aria-hidden="true" className="h-89.5 animate-pulse rounded-2xl bg-edge/40" />}
         </div>
     );
 }
