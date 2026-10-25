@@ -135,7 +135,15 @@ export default function Flashcards(props: Props) {
                         {t.learn.cards.checkAgain}
                     </button>
                     {topicsHref !== null ? (
-                        <IntentLink href={topicsHref} className={PRIMARY_BUTTON}>{t.learn.review.practiceTopic}</IntentLink>
+                        // A link, but in a button's place: a click that lands on
+                        // it as the screen changes doesn't count either.
+                        <IntentLink
+                            href={topicsHref}
+                            onClick={(e) => { if (!allowed(e)) e.preventDefault(); }}
+                            className={PRIMARY_BUTTON}
+                        >
+                            {t.learn.review.practiceTopic}
+                        </IntentLink>
                     ) : (
                         <button type="button" onClick={(e) => allowed(e) && practiceAll()} className={PRIMARY_BUTTON}>{t.learn.cards.practice}</button>
                     )}
