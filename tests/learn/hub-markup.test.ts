@@ -4,29 +4,24 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createElement, type ComponentProps } from 'react';
+import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import LearnHero from '@/app/components/learn/LearnHero';
 import LearnHub from '@/app/components/learn/LearnHub';
 import ReviewSlot from '@/app/components/learn/ReviewSlot';
-import { LanguageProvider } from '@/app/context/LanguageContext';
 import { getDictionary } from '@/lib/i18n';
 import { LESSON_META, TRACK_IDS, lessonPath } from '@/lib/learn/config';
 import { VOCAB, getLessonPace } from '@/lib/learn/curriculum';
+import { renderIn } from '../helpers/markup';
 
 const t = getDictionary('en');
 
-const hub = () => renderToStaticMarkup(createElement(
-    LanguageProvider,
-    // The child goes as an argument, which the props' type doesn't know.
-    { lang: 'en' } as ComponentProps<typeof LanguageProvider>,
-    createElement(LearnHub, {
-        lessons: LESSON_META.map((meta) => ({ slug: meta.slug, track: meta.track, title: meta.title, href: lessonPath(meta), pace: getLessonPace(meta.slug) })),
-        wordIds: Object.values(VOCAB).flatMap((words) => words.map((word) => word.id)),
-        tracks: TRACK_IDS.map((id) => ({ id, href: `/learn/${id}` })),
-        reviewHref: '/learn/review',
-    }),
-));
+const hub = () => renderIn('en', createElement(LearnHub, {
+    lessons: LESSON_META.map((meta) => ({ slug: meta.slug, track: meta.track, title: meta.title, href: lessonPath(meta), pace: getLessonPace(meta.slug) })),
+    wordIds: Object.values(VOCAB).flatMap((words) => words.map((word) => word.id)),
+    tracks: TRACK_IDS.map((id) => ({ id, href: `/learn/${id}` })),
+    reviewHref: '/learn/review',
+}));
 
 test('the caveat has left the hero', () => {
     const html = renderToStaticMarkup(createElement(LearnHero, { t }));
@@ -48,11 +43,7 @@ test('the hub as built: the Today panel held, every cell placed, and the foot wi
 });
 
 test('the review slot holds its room before progress is read, says when nothing is due, then offers the review', () => {
-    const slot = (due: number | null) => renderToStaticMarkup(createElement(
-        LanguageProvider,
-        { lang: 'en' } as ComponentProps<typeof LanguageProvider>,
-        createElement(ReviewSlot, { href: '/learn/review', due }),
-    ));
+    const slot = (due: number | null) => renderIn('en', createElement(ReviewSlot, { href: '/learn/review', due }));
     const before = slot(null);
     assert.match(before, /min-h-11/, 'its room is held');
     assert.ok(!before.includes('<a') && !before.includes('<p'), 'and empty');
