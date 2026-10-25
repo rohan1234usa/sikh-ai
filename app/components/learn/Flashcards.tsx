@@ -32,6 +32,10 @@ type Session = {
 
 const SESSION_SIZE = 20;
 
+// The quieter of two buttons side by side: Not yet beside I knew it, and on
+// the empty screen whichever of its two isn't leading.
+const PLAIN_BUTTON = 'rounded-lg border border-edge bg-surface-raised px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-edge/40';
+
 const startSession = (queue: string[]): Session => ({ queue, index: 0, revealed: false, right: 0, wrong: 0, missed: [] });
 
 // One flashcard at a time: a topic's due cards first, then new ones; or, in a
@@ -94,8 +98,10 @@ export default function Flashcards(props: Props) {
         });
     };
 
-    // A new session reads the schedule as it is now, answers included.
-    const reviewAgain = () => change(startSession(queueAt(Date.now())));
+    // A new session reads the schedule as it is now, answers included, and
+    // never earlier than the time the counts on screen use (useLiveNow), so a
+    // card they call due is in it.
+    const reviewAgain = () => change(startSession(queueAt(Math.max(Date.now(), now))));
     const practiceAll = () => change(startSession(seededShuffle(ids, String(Date.now())).slice(0, SESSION_SIZE)));
 
     const directionPicker = (
@@ -121,17 +127,15 @@ export default function Flashcards(props: Props) {
         // leave starting them to Check again rather than swap the screen
         // (and focus) under the learner.
         const dueNow = cardCounts(ids, cards, now).due;
+        // Once one has, Check again is the way to it, so it leads.
+        const [checkLook, otherLook] = dueNow > 0 ? [PRIMARY_BUTTON, PLAIN_BUTTON] : [PLAIN_BUTTON, PRIMARY_BUTTON];
         return (
             <div ref={doneRef} tabIndex={-1} className="space-y-4 rounded-xl border border-edge bg-surface-raised p-6 text-center outline-none">
                 <p aria-live="polite" className="text-ink-muted">
                     {dueNow > 0 ? fmt(t.learn.cards.dueNow, { n: dueNow }) : reviewing ? t.learn.review.nothingDue : t.learn.cards.nothingDue}
                 </p>
                 <div className="flex flex-wrap justify-center gap-3">
-                    <button
-                        type="button"
-                        onClick={(e) => allowed(e) && reviewAgain()}
-                        className="rounded-lg border border-edge bg-surface-raised px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-edge/40"
-                    >
+                    <button type="button" onClick={(e) => allowed(e) && reviewAgain()} className={checkLook}>
                         {t.learn.cards.checkAgain}
                     </button>
                     {topicsHref !== null ? (
@@ -140,12 +144,12 @@ export default function Flashcards(props: Props) {
                         <IntentLink
                             href={topicsHref}
                             onClick={(e) => { if (!allowed(e)) e.preventDefault(); }}
-                            className={PRIMARY_BUTTON}
+                            className={otherLook}
                         >
                             {t.learn.review.practiceTopic}
                         </IntentLink>
                     ) : (
-                        <button type="button" onClick={(e) => allowed(e) && practiceAll()} className={PRIMARY_BUTTON}>{t.learn.cards.practice}</button>
+                        <button type="button" onClick={(e) => allowed(e) && practiceAll()} className={otherLook}>{t.learn.cards.practice}</button>
                     )}
                 </div>
             </div>
@@ -196,7 +200,7 @@ export default function Flashcards(props: Props) {
                         type="button"
                         onClick={(e) => allowed(e) && answer(false)}
                         onKeyDown={noRepeat}
-                        className="rounded-lg border border-edge bg-surface-raised px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-edge/40"
+                        className={PLAIN_BUTTON}
                     >
                         {t.learn.cards.notYet}
                     </button>
