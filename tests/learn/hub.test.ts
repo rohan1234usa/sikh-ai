@@ -51,10 +51,18 @@ test('the tutor has no line, nor does any track before progress is read, and the
 });
 
 test('each track says where it fits for the default learner, in the hub\'s order', () => {
-    assert.deepEqual(TRACK_IDS.map((id) => orderLine(en, id)), [
+    assert.deepEqual(TRACK_IDS.map((id) => orderLine(en, id, null)), [
         'Start here',
         'Alongside the script lessons',
         'Once you can read a few words',
         'Any time',
     ]);
+});
+
+test('a finished lesson track stops saying where it fits; the others keep their line', () => {
+    assert.equal(orderLine(en, 'script', { done: 9, total: 9 }), null);
+    assert.equal(orderLine(en, 'script', { done: 8, total: 9 }), 'Start here');
+    assert.equal(orderLine(en, 'grammar', { done: 12, total: 12 }), null);
+    assert.equal(orderLine(en, 'vocab', { done: 210, total: 210 }), 'Once you can read a few words');
+    assert.equal(orderLine(en, 'tutor', null), 'Any time');
 });

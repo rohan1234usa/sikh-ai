@@ -3,7 +3,7 @@
 
 import type { Dictionary } from '@/lib/i18n';
 import { fmt } from '@/lib/i18n/fmt';
-import type { TrackId } from './config';
+import { isLessonTrack, type TrackId } from './config';
 import { isLessonDone, type LearnProgress, type LessonPlace } from './progress';
 
 // What the Today panel calls the next lesson (t.learn.hub[kind]).
@@ -23,15 +23,18 @@ export const FIRST_WORDS = 10;
 // How far a track has come: lessons done, or words learned.
 export type TrackFacts = { done: number; total: number };
 
-// What a track's cell says: a first milestone until it is reached, then the
-// count, with the share of the track done (0 to 1) for its gold rule.
+// What a track's cell says: its first milestone while its count is short of
+// it, then the count, with the share of the track done (0 to 1) for its gold
+// rule. Lessons done only grow; words learned can fall after a miss, and the
+// cell then shows the milestone again. A milestone that stays reached needs
+// progress to remember it, which #66's step 3 can add with its new fields.
 export type TrackLine =
     | { kind: 'milestone'; text: string }
     | { kind: 'count'; text: string; fill: number };
 
 // Null for the tutor, which has nothing to count, and before progress is
-// read (the cell keeps the line's place). A word is learned once it has
-// earned the week-long box, as on the topic pages.
+// read (the cell keeps the line's place). A word is learned while it is in
+// the week-long box or above, as on the topic pages.
 export function trackLine(t: Dictionary, id: TrackId, facts: TrackFacts | null): TrackLine | null {
     if (id === 'tutor' || facts === null) return null;
     const { done, total } = facts;
@@ -46,10 +49,14 @@ export function trackLine(t: Dictionary, id: TrackId, facts: TrackFacts | null):
         : { kind: 'count', text: fmt(t.learn.hub.lessonsDone, { done, total }), fill };
 }
 
-// Where a track fits, in a line beside its icon. Every learner gets the
-// default order (for those who grew up hearing Punjabi) until the
-// starting-point chooser (#66, step 3) adds a set per starting point beside
-// it, and the starting point here.
-export function orderLine(t: Dictionary, id: TrackId): string {
+// Where a track fits, in a line beside its icon, until a lesson track is
+// finished: "Start here" over a finished script track would contradict the
+// Today panel. Null then, and the cell keeps the line's place. Before
+// progress is read (`facts` null) every line shows, as the page is built.
+// Every learner gets the default order (for those who grew up hearing
+// Punjabi) until the starting-point chooser (#66, step 3) adds a set per
+// starting point beside it, and the starting point here.
+export function orderLine(t: Dictionary, id: TrackId, facts: TrackFacts | null): string | null {
+    if (isLessonTrack(id) && facts !== null && facts.total > 0 && facts.done >= facts.total) return null;
     return t.learn.hub.order.default[id];
 }

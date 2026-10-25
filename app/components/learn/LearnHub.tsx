@@ -138,18 +138,20 @@ export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props
             <ul className="grid border-l border-t border-edge sm:grid-cols-2">
                 {tracks.map(({ id, href }) => {
                     const Icon = ICONS[id];
-                    const line = trackLine(t, id, facts(id));
+                    const known = facts(id);
+                    const line = trackLine(t, id, known);
                     return (
                         <li key={id} className="border-b border-r border-edge sm:last:odd:col-span-2">
                             <IntentLink
                                 href={href}
                                 className="flex h-full flex-col gap-3 p-6 transition-colors hover:bg-surface-raised"
                             >
-                                {/* Where the track fits: needs no progress, so it is
-                                    in the server's HTML. */}
+                                {/* Where the track fits: in the page as built, and
+                                    gone (its place kept) once a lesson track is
+                                    finished. */}
                                 <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
                                     <Icon className="h-6 w-6 text-accent-text" aria-hidden="true" />
-                                    <span className="text-xs font-semibold text-ink-muted">{orderLine(t, id)}</span>
+                                    <span className="text-xs font-semibold text-ink-muted">{orderLine(t, id, known) ?? ' '}</span>
                                 </span>
                                 <span className="text-lg font-semibold text-ink">{t.learn.tracks[id].title}</span>
                                 <span className="text-sm leading-relaxed text-ink-muted">{t.learn.tracks[id].desc}</span>
