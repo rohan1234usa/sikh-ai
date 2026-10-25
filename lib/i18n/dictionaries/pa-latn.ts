@@ -799,6 +799,7 @@ const paLatn: Dictionary = {
             practiceTopic: 'Kise vishe da abhiaas karo',
             dueOne: '1 card duhrao',
             dueMany: '{n} card duhrao',
+            noneDue: 'Is vele koi flashcard duhraun layi nahi.',
         },
         tutor: {
             greeting: 'Sat Sri Akal! Main tuhada Punjabi tutor haan. Kise vi vaak baare puchho, puchho ki kujh kiven kahida hai, jaan mere naal gallbaat da abhiaas karo. Har Punjabi gall Gurmukhi, Angrezi akhran ate Angrezi vich milegi, ate samjhauna Angrezi vich hovega.',

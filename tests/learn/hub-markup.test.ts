@@ -8,6 +8,7 @@ import { createElement, type ComponentProps } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import LearnHero from '@/app/components/learn/LearnHero';
 import LearnHub from '@/app/components/learn/LearnHub';
+import ReviewSlot from '@/app/components/learn/ReviewSlot';
 import { LanguageProvider } from '@/app/context/LanguageContext';
 import { getDictionary } from '@/lib/i18n';
 import { LESSON_META, TRACK_IDS, lessonPath } from '@/lib/learn/config';
@@ -44,4 +45,18 @@ test('the hub as built: the Today panel held, every cell placed, and the foot wi
     assert.ok(foot.includes(t.learn.caveat), 'the caveat at the foot');
     assert.ok(!html.includes(t.learn.hub.reset), 'Reset waits for progress to be read');
     assert.ok(!html.includes(t.learn.hub.milestones.script), 'so do the milestones');
+});
+
+test('the review slot holds its room before progress is read, says when nothing is due, then offers the review', () => {
+    const slot = (due: number | null) => renderToStaticMarkup(createElement(
+        LanguageProvider,
+        { lang: 'en' } as ComponentProps<typeof LanguageProvider>,
+        createElement(ReviewSlot, { href: '/learn/review', due }),
+    ));
+    const before = slot(null);
+    assert.match(before, /min-h-11/, 'its room is held');
+    assert.ok(!before.includes('<a') && !before.includes('<p'), 'and empty');
+    assert.ok(slot(0).includes(t.learn.review.noneDue));
+    assert.match(slot(1), /<a [^>]*href="\/learn\/review"[^>]*>Review 1 card due/);
+    assert.ok(slot(12).includes('Review 12 cards due'));
 });

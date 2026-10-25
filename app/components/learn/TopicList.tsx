@@ -2,12 +2,11 @@
 
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
 import IntentLink from '@/app/components/IntentLink';
-import { BUTTON_LG, SECONDARY_BUTTON } from '@/app/components/buttons';
 import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { VocabTopicId } from '@/lib/learn/config';
 import { cardCounts } from '@/lib/learn/srs';
-import { reviewLabel } from '@/lib/learn/status';
+import ReviewSlot from './ReviewSlot';
 import { useLearnProgress, useLiveNow } from './useLearnProgress';
 
 export type TopicLink = { id: VocabTopicId; href: string; wordIds: string[] };
@@ -21,16 +20,11 @@ export default function TopicList({ topics, reviewHref }: { topics: TopicLink[];
     const { progress, now } = useLearnProgress();
     const liveNow = useLiveNow(now);
     const all = topics.map(({ wordIds }) => (liveNow !== null ? cardCounts(wordIds, progress.cards, liveNow) : null));
-    const review = reviewLabel(t, all.reduce((sum, counts) => sum + (counts?.due ?? 0), 0));
+    const due = liveNow !== null ? all.reduce((sum, counts) => sum + (counts?.due ?? 0), 0) : null;
 
     return (
         <div className="space-y-4">
-            {review && (
-                <IntentLink href={reviewHref} className={`${SECONDARY_BUTTON} ${BUTTON_LG}`}>
-                    {review}
-                    <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
-                </IntentLink>
-            )}
+            <ReviewSlot href={reviewHref} due={due} />
             <ul className="grid border-l border-t border-edge sm:grid-cols-2">
                 {topics.map(({ id, href, wordIds }, i) => {
                     const counts = all[i];

@@ -9,16 +9,17 @@ import {
     RectangleStackIcon,
 } from '@heroicons/react/24/outline';
 import IntentLink from '@/app/components/IntentLink';
-import { BUTTON_LG, PRIMARY_BUTTON, SECONDARY_BUTTON } from '@/app/components/buttons';
+import { BUTTON_LG, PRIMARY_BUTTON } from '@/app/components/buttons';
 import { useLocalePath, useT } from '@/app/context/LanguageContext';
 import type { LessonTrackId, TrackId } from '@/lib/learn/config';
 import type { LessonPace } from '@/lib/learn/pace';
 import { orderLine, stepKind, trackLine, type TrackFacts } from '@/lib/learn/hub';
 import { lessonPlace, nextLesson, placeHash, trackProgress, type LessonPlace } from '@/lib/learn/progress';
 import { cardCounts } from '@/lib/learn/srs';
-import { placeWords, reviewLabel, timeWords } from '@/lib/learn/status';
+import { placeWords, timeWords } from '@/lib/learn/status';
 import { useLearnProgress, useLiveNow } from './useLearnProgress';
 import Mixed from './Mixed';
+import ReviewSlot from './ReviewSlot';
 
 export type HubLesson = {
     slug: string;
@@ -75,7 +76,6 @@ export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props
     // How far into it the learner is, and how long it (or the rest of it) takes.
     const meta = nextLink ? [placeWords(t, place, nextLink.pace), timeWords(t, place, nextLink.pace)].filter(Boolean).join(' · ') : '';
     const cards = liveNow !== null ? cardCounts(wordIds, progress.cards, liveNow) : null;
-    const review = cards ? reviewLabel(t, cards.due) : null;
 
     // How far each track has come, once progress is read: lessons done, or
     // words learned. Its cell shows a first milestone, then the count.
@@ -87,19 +87,19 @@ export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props
 
     return (
         <div className="space-y-8">
-            {/* Held at the panel's usual height until progress is read, so the
-                tracks below don't jump: 230px on a phone, where the button
-                drops below, most lesson titles take two lines and the place
-                and time have a line of their own; 122px wider (its border
-                included), where they share the track's line. The panel never
-                ends shorter. With cards due it holds their button too, and
-                grows by it. */}
+            {/* Held at the panel's height until progress is read, so the tracks
+                below don't jump: 282px on a phone, where the actions drop below,
+                most lesson titles take two lines and the place and time have a
+                line of their own; 146px wider (its border included), where the
+                actions stand beside them. The review button's room is held
+                from the start (ReviewSlot), so a card coming due moves nothing,
+                and the panel never ends shorter. */}
             {!hydrated ? (
-                <div aria-hidden="true" className="h-57.5 animate-pulse rounded-2xl bg-edge/40 sm:h-30.5" />
+                <div aria-hidden="true" className="h-70.5 animate-pulse rounded-2xl bg-edge/40 sm:h-36.5" />
             ) : (
                 <section
                     aria-labelledby={todayId}
-                    className="flex min-h-57.5 flex-col gap-4 rounded-2xl border border-edge-strong bg-surface-raised p-6 text-ink sm:min-h-30.5 sm:flex-row sm:items-center"
+                    className="flex min-h-70.5 flex-col gap-4 rounded-2xl border border-edge-strong bg-surface-raised p-6 text-ink sm:min-h-36.5 sm:flex-row sm:items-center"
                 >
                     <div className={`min-w-0 flex-1 space-y-1 ${nextLink ? '' : 'flex flex-col justify-center'}`}>
                         <h2 id={todayId} className="text-xs font-bold uppercase tracking-widest text-accent-text">{t.learn.hub.today}</h2>
@@ -120,17 +120,15 @@ export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props
                             </>
                         )}
                     </div>
-                    {(nextLink || review) && (
-                        <div className="flex flex-col gap-2 sm:shrink-0">
-                            {nextLink && (
-                                <IntentLink href={nextLink.href + placeHash(place)} className={`${PRIMARY_BUTTON} ${BUTTON_LG}`}>
-                                    {t.learn.hub.openLesson}
-                                    <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
-                                </IntentLink>
-                            )}
-                            {review && <IntentLink href={reviewHref} className={`${SECONDARY_BUTTON} ${BUTTON_LG}`}>{review}</IntentLink>}
-                        </div>
-                    )}
+                    <div className="flex flex-col gap-2 sm:shrink-0">
+                        {nextLink && (
+                            <IntentLink href={nextLink.href + placeHash(place)} className={`${PRIMARY_BUTTON} ${BUTTON_LG}`}>
+                                {t.learn.hub.openLesson}
+                                <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
+                            </IntentLink>
+                        )}
+                        <ReviewSlot href={reviewHref} due={cards?.due ?? null} className="justify-center" />
+                    </div>
                 </section>
             )}
 

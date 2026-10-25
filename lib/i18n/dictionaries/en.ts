@@ -843,6 +843,8 @@ const en = {
             // since fmt has no plurals.
             dueOne: 'Review 1 card due',
             dueMany: 'Review {n} cards due',
+            // In the button's place while nothing is due, so nothing moves.
+            noneDue: 'No flashcards are due right now.',
         },
         // /learn/tutor: the Punjabi tutor, a conversation kept in the tab.
         tutor: {
