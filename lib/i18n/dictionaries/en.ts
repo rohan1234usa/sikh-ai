@@ -836,9 +836,8 @@ const en = {
             description: 'Every flashcard that is due, from every topic, the ones you know least first.',
             eyebrow: 'Every topic',
             lead: 'The cards due from every topic, the ones you know least first. Each card says which topic it is from.',
-            // True whether or not the learner has met a card yet: a review
-            // brings in no new words.
-            nothingDue: 'Nothing is due from any topic. A card comes back here on its day, and new words wait in their topics.',
+            // True for a learner who has met no card, some, or every one.
+            nothingDue: 'Nothing is due from any topic. Each card comes back here on its day.',
             practiceTopic: 'Practice a topic instead',
             // The way in, on the hub and the vocabulary page. Two strings,
             // since fmt has no plurals.
