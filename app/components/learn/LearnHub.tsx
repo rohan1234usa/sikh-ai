@@ -11,7 +11,7 @@ import {
 import IntentLink from '@/app/components/IntentLink';
 import { BUTTON_LG, PRIMARY_BUTTON } from '@/app/components/buttons';
 import { useLocalePath, useT } from '@/app/context/LanguageContext';
-import type { LessonTrackId, TrackId } from '@/lib/learn/config';
+import { isLessonTrack, type LessonTrackId, type TrackId } from '@/lib/learn/config';
 import type { LessonPace } from '@/lib/learn/pace';
 import { orderLine, stepKind, trackLine, type TrackFacts } from '@/lib/learn/hub';
 import { lessonPlace, nextLesson, placeHash, trackProgress, type LessonPlace } from '@/lib/learn/progress';
@@ -81,7 +81,7 @@ export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props
     // words learned. Its cell shows a first milestone, then the count.
     const facts = (id: TrackId): TrackFacts | null => {
         if (!hydrated) return null;
-        if (id === 'script' || id === 'grammar') return trackProgress(progress, lessons.filter((l) => l.track === id).map((l) => l.slug));
+        if (isLessonTrack(id)) return trackProgress(progress, lessons.filter((l) => l.track === id).map((l) => l.slug));
         return id === 'vocab' && cards ? { done: cards.learned, total: cards.total } : null;
     };
 
