@@ -90,15 +90,16 @@ export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props
             {/* Held at the panel's usual height until progress is read, so the
                 tracks below don't jump: 230px on a phone, where the button
                 drops below, most lesson titles take two lines and the place
-                and time have a line of their own; 120px wider, where they
-                share the track's line. The panel never ends shorter. With
-                cards due it holds their button too, and grows by it. */}
+                and time have a line of their own; 122px wider (its border
+                included), where they share the track's line. The panel never
+                ends shorter. With cards due it holds their button too, and
+                grows by it. */}
             {!hydrated ? (
-                <div aria-hidden="true" className="h-57.5 animate-pulse rounded-2xl bg-edge/40 sm:h-30" />
+                <div aria-hidden="true" className="h-57.5 animate-pulse rounded-2xl bg-edge/40 sm:h-30.5" />
             ) : (
                 <section
                     aria-labelledby={todayId}
-                    className="flex min-h-57.5 flex-col gap-4 rounded-2xl border border-edge-strong bg-surface-raised p-6 text-ink sm:min-h-30 sm:flex-row sm:items-center"
+                    className="flex min-h-57.5 flex-col gap-4 rounded-2xl border border-edge-strong bg-surface-raised p-6 text-ink sm:min-h-30.5 sm:flex-row sm:items-center"
                 >
                     <div className={`min-w-0 flex-1 space-y-1 ${nextLink ? '' : 'flex flex-col justify-center'}`}>
                         <h2 id={todayId} className="text-xs font-bold uppercase tracking-widest text-accent-text">{t.learn.hub.today}</h2>
