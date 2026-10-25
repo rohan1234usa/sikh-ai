@@ -11,10 +11,9 @@ import {
 import IntentLink from '@/app/components/IntentLink';
 import { BUTTON_LG, PRIMARY_BUTTON, SECONDARY_BUTTON } from '@/app/components/buttons';
 import { useT } from '@/app/context/LanguageContext';
-import { fmt } from '@/lib/i18n/fmt';
 import type { LessonTrackId, TrackId } from '@/lib/learn/config';
 import type { LessonPace } from '@/lib/learn/pace';
-import { stepKind } from '@/lib/learn/hub';
+import { stepKind, trackLine, type TrackFacts } from '@/lib/learn/hub';
 import { lessonPlace, nextLesson, placeHash, trackProgress, type LessonPlace } from '@/lib/learn/progress';
 import { cardCounts } from '@/lib/learn/srs';
 import { placeWords, reviewLabel, timeWords } from '@/lib/learn/status';
@@ -76,17 +75,12 @@ export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props
     const cards = liveNow !== null ? cardCounts(wordIds, progress.cards, liveNow) : null;
     const review = cards ? reviewLabel(t, cards.due) : null;
 
-    const progressLine = (id: TrackId): string | null => {
+    // How far each track has come, once progress is read: lessons done, or
+    // words learned. Its cell shows a first milestone, then the count.
+    const facts = (id: TrackId): TrackFacts | null => {
         if (!hydrated) return null;
-        if (id === 'script' || id === 'grammar') {
-            const { done, total } = trackProgress(progress, lessons.filter((l) => l.track === id).map((l) => l.slug));
-            return fmt(t.learn.hub.lessonsDone, { done, total });
-        }
-        if (id === 'vocab' && cards) {
-            const learned = fmt(t.learn.hub.wordsLearned, { n: cards.learned, total: cards.total });
-            return cards.due > 0 ? `${learned} · ${fmt(t.learn.hub.cardsDue, { n: cards.due })}` : learned;
-        }
-        return null;
+        if (id === 'script' || id === 'grammar') return trackProgress(progress, lessons.filter((l) => l.track === id).map((l) => l.slug));
+        return id === 'vocab' && cards ? { done: cards.learned, total: cards.total } : null;
     };
 
     return (
@@ -142,7 +136,7 @@ export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props
             <ul className="grid border-l border-t border-edge sm:grid-cols-2">
                 {tracks.map(({ id, href }) => {
                     const Icon = ICONS[id];
-                    const line = progressLine(id);
+                    const line = trackLine(t, id, facts(id));
                     return (
                         <li key={id} className="border-b border-r border-edge sm:last:odd:col-span-2">
                             <IntentLink
@@ -152,12 +146,24 @@ export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props
                                 <Icon className="h-6 w-6 text-accent-text" aria-hidden="true" />
                                 <span className="text-lg font-semibold text-ink">{t.learn.tracks[id].title}</span>
                                 <span className="text-sm leading-relaxed text-ink-muted">{t.learn.tracks[id].desc}</span>
-                                <span className="mt-auto flex items-center justify-between gap-2 pt-2 text-sm">
-                                    {/* Reserves its line before progress is read. */}
-                                    <span className="font-semibold text-accent-text">{line ?? ' '}</span>
-                                    <span className="inline-flex items-center gap-1 font-semibold text-link">
-                                        {t.learn.hub.open}
-                                        <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
+                                <span className="mt-auto flex flex-col gap-2 pt-2 text-sm">
+                                    <span className="flex items-center justify-between gap-2">
+                                        {/* Reserves its line before progress is read. */}
+                                        <span className="font-semibold text-accent-text">{line?.text ?? ' '}</span>
+                                        <span className="inline-flex items-center gap-1 font-semibold text-link">
+                                            {t.learn.hub.open}
+                                            <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
+                                        </span>
+                                    </span>
+                                    {/* The track's share done, a gold rule as on a lesson
+                                        page: its fill is a border, so forced colours keep
+                                        it. In the flow from the start, and shown with the
+                                        count, so a cell never changes height. */}
+                                    <span aria-hidden="true" className={`block h-0.5 bg-edge ${line?.kind === 'count' ? '' : 'invisible'}`}>
+                                        <span
+                                            className="block h-0.5 border-t-2 border-rule-gold"
+                                            style={{ width: `${line?.kind === 'count' ? line.fill * 100 : 0}%` }}
+                                        />
                                     </span>
                                 </span>
                             </IntentLink>

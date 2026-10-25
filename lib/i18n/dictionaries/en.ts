@@ -716,9 +716,15 @@ const en = {
             allDoneBody: 'Keep your words fresh with flashcards.',
             openLesson: 'Open lesson',
             open: 'Open',
+            // A track's first milestone, shown in place of its count until
+            // it is reached: a lesson track's first lesson, ten words.
+            milestones: {
+                script: 'Read your first word',
+                grammar: 'Make your first sentence',
+                vocab: 'Learn your first {n} words',
+            } satisfies Record<Exclude<TrackId, 'tutor'>, string>,
             lessonsDone: 'Lessons done: {done} of {total}',
             wordsLearned: 'Words learned: {n} of {total}',
-            cardsDue: 'Flashcards due: {n}',
             savedHere: 'Your progress is saved in this browser only.',
             reset: 'Reset progress',
             resetPrompt: 'Clear every lesson, score and flashcard?',
