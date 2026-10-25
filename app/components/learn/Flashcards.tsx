@@ -41,7 +41,9 @@ const startSession = (queue: string[]): Session => ({ queue, index: 0, revealed:
 // progress is read.
 export default function Flashcards(props: Props) {
     const { words, cards, now, onReview } = props;
-    const reviewing = props.mode === 'review';
+    // Set in a review, which brings in no new words: the way to them instead.
+    const topicsHref = props.mode === 'review' ? props.topicsHref : null;
+    const reviewing = topicsHref !== null;
     const t = useT();
     const ids = words.map((word) => word.id);
     // What a session takes, from the schedule as it is at `at`.
@@ -132,9 +134,8 @@ export default function Flashcards(props: Props) {
                     >
                         {t.learn.cards.checkAgain}
                     </button>
-                    {props.mode === 'review' ? (
-                        // A review brings in no new words: they wait in their topics.
-                        <IntentLink href={props.topicsHref} className={PRIMARY_BUTTON}>{t.learn.review.practiceTopic}</IntentLink>
+                    {topicsHref !== null ? (
+                        <IntentLink href={topicsHref} className={PRIMARY_BUTTON}>{t.learn.review.practiceTopic}</IntentLink>
                     ) : (
                         <button type="button" onClick={(e) => allowed(e) && practiceAll()} className={PRIMARY_BUTTON}>{t.learn.cards.practice}</button>
                     )}
