@@ -10,7 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import IntentLink from '@/app/components/IntentLink';
 import { BUTTON_LG, PRIMARY_BUTTON, SECONDARY_BUTTON } from '@/app/components/buttons';
-import { useT } from '@/app/context/LanguageContext';
+import { useLocalePath, useT } from '@/app/context/LanguageContext';
 import type { LessonTrackId, TrackId } from '@/lib/learn/config';
 import type { LessonPace } from '@/lib/learn/pace';
 import { orderLine, stepKind, trackLine, type TrackFacts } from '@/lib/learn/hub';
@@ -42,14 +42,16 @@ const ICONS: Record<TrackId, typeof PencilSquareIcon> = {
     tutor: ChatBubbleLeftRightIcon,
 };
 
-// The /learn hub: today's next step, each track's progress, and a way to wipe
-// the slate. Everything that depends on this browser's progress waits for
-// it to be read, so the server's HTML and the first render agree. The Today
-// panel holds at most two actions: the next lesson, reopened at the section
-// the learner reached with how long the rest takes, and a review of every
-// flashcard due, once one is.
+// The /learn hub: today's next step, each track's progress, and at its foot
+// where progress is kept, a way to wipe the slate, and the caveat every
+// lesson carries too. Everything that depends on this browser's progress
+// waits for it to be read, so the server's HTML and the first render agree.
+// The Today panel holds at most two actions: the next lesson, reopened at
+// the section the learner reached with how long the rest takes, and a review
+// of every flashcard due, once one is.
 export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props) {
     const t = useT();
+    const to = useLocalePath();
     const { progress, hydrated, now, reset } = useLearnProgress();
     const liveNow = useLiveNow(now);
     const [confirming, setConfirming] = useState(false);
@@ -178,33 +180,41 @@ export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props
                 })}
             </ul>
 
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-                <p className="text-ink-muted">{t.learn.hub.savedHere}</p>
-                {hydrated && (
-                    <div className="flex items-center gap-2">
-                        {confirming ? (
-                            <div role="group" aria-labelledby={promptId} className="flex items-center gap-2">
-                                <span id={promptId} className="text-ink-muted">{t.learn.hub.resetPrompt}</span>
-                                <button
-                                    type="button"
-                                    onClick={() => { reset(); setConfirming(false); }}
-                                    className="font-semibold text-red-700 hover:underline dark:text-red-400"
-                                >
-                                    {t.learn.hub.resetConfirm}
+            {/* The housekeeping, kept below what a learner can do. */}
+            <footer className="space-y-2 border-t border-edge pt-6 text-sm">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-accent-text">{t.learn.hub.aboutProgress}</h2>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <p className="text-ink-muted">
+                        {t.learn.hub.savedHere}{' '}
+                        <IntentLink href={to('/privacy#browser')} className="underline hover:text-link">{t.footer.privacy}</IntentLink>
+                    </p>
+                    {hydrated && (
+                        <div className="flex items-center gap-2">
+                            {confirming ? (
+                                <div role="group" aria-labelledby={promptId} className="flex items-center gap-2">
+                                    <span id={promptId} className="text-ink-muted">{t.learn.hub.resetPrompt}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => { reset(); setConfirming(false); }}
+                                        className="font-semibold text-red-700 hover:underline dark:text-red-400"
+                                    >
+                                        {t.learn.hub.resetConfirm}
+                                    </button>
+                                    {/* autoFocus: it takes the place of the button just pressed. */}
+                                    <button type="button" autoFocus onClick={() => setConfirming(false)} className="text-ink-muted hover:text-ink hover:underline">
+                                        {t.learn.hub.cancel}
+                                    </button>
+                                </div>
+                            ) : (
+                                <button ref={resetRef} type="button" onClick={() => setConfirming(true)} className="text-ink-muted hover:text-ink hover:underline">
+                                    {t.learn.hub.reset}
                                 </button>
-                                {/* autoFocus: it takes the place of the button just pressed. */}
-                                <button type="button" autoFocus onClick={() => setConfirming(false)} className="text-ink-muted hover:text-ink hover:underline">
-                                    {t.learn.hub.cancel}
-                                </button>
-                            </div>
-                        ) : (
-                            <button ref={resetRef} type="button" onClick={() => setConfirming(true)} className="text-ink-muted hover:text-ink hover:underline">
-                                {t.learn.hub.reset}
-                            </button>
-                        )}
-                    </div>
-                )}
-            </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+                <p className="text-xs italic text-ink-muted">{t.learn.caveat}</p>
+            </footer>
         </div>
     );
 }

@@ -736,6 +736,8 @@ const en = {
             } satisfies Record<Exclude<TrackId, 'tutor'>, string>,
             lessonsDone: 'Lessons done: {done} of {total}',
             wordsLearned: 'Words learned: {n} of {total}',
+            // The hub's foot: where progress is kept, and resetting it.
+            aboutProgress: 'About your progress',
             savedHere: 'Your progress is saved in this browser only.',
             reset: 'Reset progress',
             resetPrompt: 'Clear every lesson, score and flashcard?',

@@ -708,6 +708,7 @@ const paLatn: Dictionary = {
             },
             lessonsDone: 'Poore sabak: {total} vichon {done}',
             wordsLearned: 'Sikhe shabad: {total} vichon {n}',
+            aboutProgress: 'Tuhadi tarakki baare',
             savedHere: 'Tuhadi tarakki sirf is browser vich sambhali jaandi hai.',
             reset: 'Tarakki mitao',
             resetPrompt: 'Saare sabak, ank ate flashcard mitaune han?',

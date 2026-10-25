@@ -708,6 +708,7 @@ const pa: Dictionary = {
             },
             lessonsDone: 'ਪੂਰੇ ਸਬਕ: {total} ਵਿੱਚੋਂ {done}',
             wordsLearned: 'ਸਿੱਖੇ ਸ਼ਬਦ: {total} ਵਿੱਚੋਂ {n}',
+            aboutProgress: 'ਤੁਹਾਡੀ ਤਰੱਕੀ ਬਾਰੇ',
             savedHere: 'ਤੁਹਾਡੀ ਤਰੱਕੀ ਸਿਰਫ਼ ਇਸ ਬ੍ਰਾਊਜ਼ਰ ਵਿੱਚ ਸੰਭਾਲੀ ਜਾਂਦੀ ਹੈ।',
             reset: 'ਤਰੱਕੀ ਮਿਟਾਓ',
             resetPrompt: 'ਸਾਰੇ ਸਬਕ, ਅੰਕ ਅਤੇ ਫ਼ਲੈਸ਼ਕਾਰਡ ਮਿਟਾਉਣੇ ਹਨ?',
