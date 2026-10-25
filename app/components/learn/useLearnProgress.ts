@@ -148,8 +148,10 @@ export function useLearnProgress() {
         // When the saved copy was last read: it changes when another tab or
         // a restored page brings a new copy, never for this page's changes.
         loadedAt,
-        // What due flashcards are counted against: the later of the read and
-        // the last change, so a card just missed counts as due at once.
+        // The floor due flashcards are counted against: the later of the read
+        // and the last change, so a card just missed counts as due at once.
+        // It stands still while the page is open; an island that shows due
+        // counts raises it with the minute (useLiveNow).
         now: loadedAt === null ? null : Math.max(loadedAt, progress.updatedAt),
         visitLesson,
         reachCheckpoint,
@@ -167,6 +169,10 @@ export function useLearnProgress() {
 // show due counts call it; a lesson page, which reads progress through
 // LessonProgress, never renders again for the clock.
 export function useLiveNow(now: number | null): number | null {
-    const minute = useMinute();
+    return liveTime(now, useMinute());
+}
+
+// The rule itself, pure for the tests.
+export function liveTime(now: number | null, minute: number | null): number | null {
     return now === null ? null : Math.max(now, minute ?? 0);
 }

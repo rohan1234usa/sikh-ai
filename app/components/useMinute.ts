@@ -7,8 +7,9 @@ import { useSyncExternalStore } from 'react';
 // is read every 15 seconds and again the moment a hidden tab is shown (a
 // browser slows a background tab's timers), but a reader renders again only
 // when the minute changes. Null on the server and in the first render in the
-// browser, which must match it.
-const subscribeMinute = (onChange: () => void) => {
+// browser, which must match it. The subscription and the reading are
+// exported for the tests.
+export const subscribeMinute = (onChange: () => void) => {
     const timer = setInterval(onChange, 15_000);
     document.addEventListener('visibilitychange', onChange);
     return () => {
@@ -16,5 +17,5 @@ const subscribeMinute = (onChange: () => void) => {
         document.removeEventListener('visibilitychange', onChange);
     };
 };
-const thisMinute = () => Math.floor(Date.now() / 60_000) * 60_000;
+export const thisMinute = () => Math.floor(Date.now() / 60_000) * 60_000;
 export const useMinute = (): number | null => useSyncExternalStore(subscribeMinute, thisMinute, () => null);
