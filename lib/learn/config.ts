@@ -116,9 +116,12 @@ export type VocabWord = {
     note?: string;     // English, one line
 };
 
-// What a flashcard shows of a word. The review page carries every topic's
+// What a flashcard shows of a word, listed once: the type, the copy the
+// review page sends (flashcardWords) and its test all follow this list, so a
+// field added here reaches every card. The review page carries every topic's
 // words in this shape, without the fields only a quiz or the word list uses.
-export type FlashcardWord = Pick<VocabWord, 'id' | 'topic' | 'gurmukhi' | 'roman' | 'english' | 'note'>;
+export const FLASHCARD_FIELDS = ['id', 'topic', 'gurmukhi', 'roman', 'english', 'note'] as const satisfies readonly (keyof VocabWord)[];
+export type FlashcardWord = Pick<VocabWord, (typeof FLASHCARD_FIELDS)[number]>;
 
 export type LessonMeta = {
     slug: string;         // its URL segment, unique across tracks

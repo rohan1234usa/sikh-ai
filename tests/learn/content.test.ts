@@ -8,6 +8,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+    FLASHCARD_FIELDS,
     GENDERS,
     LESSON_META,
     LESSON_TRACK_IDS,
@@ -284,11 +285,13 @@ test('the review page carries every word as a flashcard shows it, and nothing mo
     const words = flashcardWords();
     const all = VOCAB_TOPIC_IDS.flatMap((topic) => VOCAB[topic]);
     assert.deepEqual(words.map((word) => word.id), all.map((word) => word.id), 'every word, topic by topic');
-    const shown = new Set(['id', 'topic', 'gurmukhi', 'roman', 'english', 'note']);
-    for (const word of words) {
-        for (const key of Object.keys(word)) assert.ok(shown.has(key), `${word.id}: ${key}`);
-        if ('note' in word) assert.ok(word.note, `${word.id}: a word without a note leaves the key out`);
-    }
+    const shown = new Set<string>(FLASHCARD_FIELDS);
+    words.forEach((card, i) => {
+        for (const key of Object.keys(card)) assert.ok(shown.has(key), `${card.id}: ${key}`);
+        // Nothing a card shows is lost on the way.
+        for (const key of FLASHCARD_FIELDS) assert.equal(card[key], all[i][key], `${card.id}: ${key}`);
+        if ('note' in card) assert.ok(card.note, `${card.id}: a word without a note leaves the key out`);
+    });
     // What the page hands its island, as JSON: about 24,000 characters for
     // 210 words. The full words would be some 10,000 more.
     const size = JSON.stringify(words).length;

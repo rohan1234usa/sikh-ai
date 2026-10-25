@@ -4,6 +4,7 @@
 // or topic it shows, so no page ships the rest of the course.
 
 import {
+    FLASHCARD_FIELDS,
     VOCAB_TOPIC_IDS,
     lessonMeta,
     lessonsFor,
@@ -105,11 +106,11 @@ export const VOCAB: Record<VocabTopicId, VocabWord[]> = {
     'verbs': verbs,
 };
 
-// Every word as a flashcard shows it, topic by topic: what the review page
-// hands its island, so it carries the cards and not the rest of each word.
+// Every word as a flashcard shows it (FLASHCARD_FIELDS), topic by topic: what
+// the review page hands its island, so it carries the cards and not the rest
+// of each word. A field a word lacks is left out rather than sent empty.
 export function flashcardWords(): FlashcardWord[] {
-    return VOCAB_TOPIC_IDS.flatMap((id) => VOCAB[id].map(({ id: wordId, topic, gurmukhi, roman, english, note }) =>
-        // A word without a note leaves the key out rather than send it empty.
-        (note ? { id: wordId, topic, gurmukhi, roman, english, note } : { id: wordId, topic, gurmukhi, roman, english })));
+    return VOCAB_TOPIC_IDS.flatMap((topic) => VOCAB[topic].map((word) =>
+        Object.fromEntries(FLASHCARD_FIELDS.flatMap((key) => (word[key] === undefined ? [] : [[key, word[key]]]))) as FlashcardWord));
 }
 
