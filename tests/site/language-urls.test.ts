@@ -94,7 +94,7 @@ test('a Punjabi cookie redirects pages, never files, the API or Next and Vercel 
 test("a returning Punjabi reader reaches a page's own address in one redirect (#44)", () => {
     for (const lang of ['pa', 'pa-latn']) {
         assert.equal(hostRedirect('/', lang), `/${lang}`);
-        for (const path of ['/about', '/hukamnama', '/privacy', '/chat/abc-123', '/seva/create', '/shabad/s/823', '/learn/vocab/family']) {
+        for (const path of ['/about', '/hukamnama', '/privacy', '/chat/abc-123', '/seva/create', '/shabad/s/823', '/learn/vocab/family', '/learn/review']) {
             const to = hostRedirect(path, lang);
             assert.equal(to, `/${lang}${path}`, `${path} (${lang})`);
             assert.equal(hostRedirect(to!, lang), null, `${to} is where it stays`);
@@ -120,6 +120,8 @@ test('the sitemap lists every page and every Ang in every language, each with it
     // No Firebase project here, so no events: just the pages.
     const entries = await sitemap();
     assert.equal(entries.length, (10 + learnPaths().length + 1430) * 3);
+    // The flashcard review shows only this browser's progress: noindex, and not listed.
+    assert.ok(!entries.some((e) => e.url.includes('/learn/review')));
     const hukamnama = entries.find((e) => e.url === 'https://sikhai.vercel.app/pa/hukamnama')!;
     assert.deepEqual(hukamnama.alternates?.languages, {
         en: 'https://sikhai.vercel.app/hukamnama',
