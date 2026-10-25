@@ -124,6 +124,11 @@ One commit per step, in this order, so no commit put the new palette on the old 
   - A lesson's examples were the last boxed cards. They are now ruled rows in the tukk style, with the note under the row and no copy button.
   - A lesson page shows its progress as a 2px gold rule under the navbar, the width of the text, held apart from the band by a sliver of ground. Its fill is a border, so forced colours keep it.
   - The outline under a lesson's title is a numbered list with kesri numerals, between hairlines.
+- **The Learn hub** ([#70](https://github.com/rohan1234usa/sikh-ai/pull/70)):
+  - The panel at the top is "Today", with one kesri rubric. The kind of step (Continue, Up next, Start here) moved into the line under the lesson's title. It is still a raised field inside a hairline, the hub's last box, kept as it is for now.
+  - A track's progress is a gold rule under its count, as on a lesson page, its fill a border so forced colours keep it. Until the track's first milestone, the cell shows the milestone in kesri and no rule.
+  - Saving, reset and the AI-drafted caveat sit in a foot ruled off by a hairline, under a kesri "About your progress".
+  - The flashcard review uses the Learn header. Each card names its topic in a kesri rubric, as the word list labels an example.
 
 ## Checks for the build
 
