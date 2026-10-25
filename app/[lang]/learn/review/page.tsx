@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-// Every flashcard that is due, from every topic, in one session
+// Every flashcard that is due, from every topic, twenty a session
 // (ReviewSession). Built ahead of time like every page, it carries each word
 // as a card shows it; the learner's progress picks the cards.
 export default async function ReviewPage() {

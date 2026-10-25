@@ -8,9 +8,11 @@ import { cardCounts } from '@/lib/learn/srs';
 import Flashcards from './Flashcards';
 import { useLearnProgress, useLiveNow } from './useLearnProgress';
 
-// The review page's island: every topic's due flashcards in one session,
-// lowest box first (dueQueue in lib/learn/srs.ts), each card naming its
-// topic. It owns the page's progress, as VocabTopic does a topic's.
+// The review page's island: every topic's due flashcards, twenty a session
+// as on a topic page, lowest box first (dueQueue in lib/learn/srs.ts), each
+// card naming its topic. The line above says how many are due in all, so a
+// learner with more than twenty sees what Review again will bring. It owns
+// the page's progress, as VocabTopic does a topic's.
 export default function ReviewSession({ words, topicsHref }: { words: FlashcardWord[]; topicsHref: string }) {
     const t = useT();
     const { progress, now, loadedAt, reviewCard } = useLearnProgress();

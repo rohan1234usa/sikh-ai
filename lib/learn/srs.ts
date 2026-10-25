@@ -50,8 +50,8 @@ export function review(state: CardState | undefined, correct: boolean, now: numb
 }
 
 // The cards due now, lowest box first, then the longest overdue: what a
-// review puts first. All of them unless `limit` says otherwise, so a review
-// across topics has as many cards as cardCounts() says are due. The sort is
+// review across topics takes, a session (`limit`) at a time. Without a
+// limit, all of them: as many as cardCounts() says are due. The sort is
 // stable, so cards alike keep the order given: topic by topic.
 export function dueQueue(
     ids: readonly string[],

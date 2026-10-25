@@ -830,7 +830,7 @@ const en = {
             practice: 'Practice anyway',
             checkAgain: 'Check again',
         },
-        // /learn/review: every topic's due flashcards in one session.
+        // /learn/review: every topic's due flashcards, twenty a session.
         review: {
             title: 'Flashcard review',
             description: 'Every flashcard that is due, from every topic, the ones you know least first.',
