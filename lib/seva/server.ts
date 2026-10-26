@@ -107,7 +107,7 @@ export async function fetchEvent(id: string, { fresh = false } = {}): Promise<Re
 
 // The moment a page is built, which it shows events as of: server components
 // read the clock through this (React keeps render itself pure), and the
-// browser keeps a cached page current (app/components/seva/hooks.ts).
+// browser keeps a cached page current (app/components/useMinute.ts).
 export const renderTime = () => Date.now();
 
 // While `next build` prerenders pages, a failed read is shown as such (CI has

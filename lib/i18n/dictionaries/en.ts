@@ -707,16 +707,37 @@ const en = {
             f: 'feminine',
         } satisfies Record<Gender, string>,
         hub: {
-            continue: 'Continue where you left off',
+            // The Today panel's rubric, then what kind of step it holds.
+            today: 'Today',
+            continue: 'Continue',
             start: 'Start here',
             upNext: 'Up next',
             allDone: 'You’ve finished every lesson',
             allDoneBody: 'Keep your words fresh with flashcards.',
             openLesson: 'Open lesson',
             open: 'Open',
+            // Where each track fits, by starting point. Only the default
+            // learner's order (grew up hearing it) exists until the
+            // starting-point chooser (#66, step 3).
+            order: {
+                default: {
+                    script: 'Start here',
+                    grammar: 'Alongside the script lessons',
+                    vocab: 'Once you can read a few words',
+                    tutor: 'Any time',
+                },
+            } satisfies Record<'default', Record<TrackId, string>>,
+            // A track's first milestone, shown in place of its count until
+            // it is reached: a lesson track's first lesson, ten words.
+            milestones: {
+                script: 'Read your first word',
+                grammar: 'Make your first sentence',
+                vocab: 'Learn your first {n} words',
+            } satisfies Record<Exclude<TrackId, 'tutor'>, string>,
             lessonsDone: 'Lessons done: {done} of {total}',
             wordsLearned: 'Words learned: {n} of {total}',
-            cardsDue: 'Flashcards due: {n}',
+            // The hub's foot: where progress is kept, and resetting it.
+            aboutProgress: 'About your progress',
             savedHere: 'Your progress is saved in this browser only.',
             reset: 'Reset progress',
             resetPrompt: 'Clear every lesson, score and flashcard?',
@@ -804,8 +825,26 @@ const en = {
             doneBody: 'Known: {right}. To see again: {wrong}.',
             again: 'Review again',
             nothingDue: 'Nothing is due. Every card here is scheduled for later.',
+            // In its place once cards come due on a page left open.
+            dueNow: 'Due now: {n}. Check again to start.',
             practice: 'Practice anyway',
             checkAgain: 'Check again',
+        },
+        // /learn/review: every topic's due flashcards, twenty a session.
+        review: {
+            title: 'Flashcard review',
+            description: 'Every flashcard that is due, from every topic, the ones you know least first.',
+            eyebrow: 'Every topic',
+            lead: 'The cards due from every topic, the ones you know least first. Each card says which topic it is from.',
+            // True for a learner who has met no card, some, or every one.
+            nothingDue: 'Nothing is due from any topic. Each card comes back here on its day.',
+            practiceTopic: 'Practice a topic instead',
+            // The way in, on the hub and the vocabulary page. Two strings,
+            // since fmt has no plurals.
+            dueOne: 'Review 1 card due',
+            dueMany: 'Review {n} cards due',
+            // In the button's place while nothing is due, so nothing moves.
+            noneDue: 'No flashcards are due right now.',
         },
         // /learn/tutor: the Punjabi tutor, a conversation kept in the tab.
         tutor: {

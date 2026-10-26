@@ -13,8 +13,9 @@ import { fetchUpcomingEvents, renderTime } from '@/lib/seva/server';
 // get found too: the site's pages, every Learn Punjabi lesson and topic, then
 // every Ang (/shabad/1 … /shabad/1430), whose text never changes, and every
 // seva still to come (from the board's cached list; none if it can't be
-// read). Saved chats (/chat/{id}), share links (/share/{id}) and the Seva
-// forms are left out; they are noindex.
+// read). Saved chats (/chat/{id}), share links (/share/{id}), the Seva forms
+// and the flashcard review (/learn/review, which has nothing to show without
+// this browser's progress) are left out; they are noindex.
 const PAGES: { path: string; changeFrequency?: MetadataRoute.Sitemap[number]['changeFrequency'] }[] = [
   { path: '/' },
   { path: '/hukamnama', changeFrequency: 'daily' },

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useMinute } from '@/app/components/useMinute';
 import {
     EMPTY_PROGRESS,
     isNewerProgress,
@@ -50,7 +51,7 @@ function readSaved(): Saved {
 export function useLearnProgress() {
     const [progress, setProgress] = useState<LearnProgress>(EMPTY_PROGRESS);
     // When the saved copy was read, or null before then. Render reads the
-    // clock only through this, so it stays pure.
+    // clock only through this and useMinute (useLiveNow), so it stays pure.
     const [loadedAt, setLoadedAt] = useState<number | null>(null);
     // Set when the saved copy can't be written: changes then stay in the page.
     const memoryOnly = useRef(false);
@@ -147,8 +148,10 @@ export function useLearnProgress() {
         // When the saved copy was last read: it changes when another tab or
         // a restored page brings a new copy, never for this page's changes.
         loadedAt,
-        // What due flashcards are counted against: the later of the read and
-        // the last change, so a card just missed counts as due at once.
+        // The floor due flashcards are counted against: the later of the read
+        // and the last change, so a card just missed counts as due at once.
+        // It stands still while the page is open; an island that shows due
+        // counts raises it with the minute (useLiveNow).
         now: loadedAt === null ? null : Math.max(loadedAt, progress.updatedAt),
         visitLesson,
         reachCheckpoint,
@@ -157,4 +160,19 @@ export function useLearnProgress() {
         reviewCard,
         reset,
     }), [progress, loadedAt, visitLesson, reachCheckpoint, completeLesson, recordTopicQuiz, reviewCard, reset]);
+}
+
+// The time due flashcards are counted against, moving: the later of
+// useLearnProgress().now (so a card just missed counts at once, which a
+// minute rounded down might not) and the current minute, so a page left open
+// sees cards come due. Null until progress is read. Only the islands that
+// show due counts call it; a lesson page, which reads progress through
+// LessonProgress, never renders again for the clock.
+export function useLiveNow(now: number | null): number | null {
+    return liveTime(now, useMinute());
+}
+
+// The rule itself, pure for the tests.
+export function liveTime(now: number | null, minute: number | null): number | null {
+    return now === null ? null : Math.max(now, minute ?? 0);
 }

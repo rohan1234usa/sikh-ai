@@ -9,6 +9,7 @@ import { ErrorSummary, type FormError } from '@/app/components/form/ErrorSummary
 import { ERROR_TEXT, Field, INPUT, describedBy } from '@/app/components/form/Field';
 import { Fieldset } from '@/app/components/form/Fieldset';
 import { useAnnouncer } from '@/app/components/useAnnouncer';
+import { useMinute } from '@/app/components/useMinute';
 import { useAuth } from '@/app/context/AuthContext';
 import type { Lang } from '@/lib/i18n/config';
 import { fmt } from '@/lib/i18n/fmt';
@@ -24,7 +25,7 @@ import { eventPatch } from '@/lib/seva/plans';
 import { formatClock, formatDate, formatTime, isTimeZone, suggestEnd, utcToZoned, zoneName, zonedTimeToUtc, type WhenWords } from '@/lib/seva/time';
 import { allTimeZones, countryTimeZones, deviceTimeZone, zoneLabel } from '@/lib/seva/timezones';
 import { textLength, validateEventDraft, type DraftError, type DraftErrors, type EventDraft, type Editing } from '@/lib/seva/validate';
-import { setFlash, useMinute, useMounted } from './hooks';
+import { setFlash, useMounted } from './hooks';
 import { loadSeva, refreshPages } from './sevaClient';
 import { PILL } from './styles';
 

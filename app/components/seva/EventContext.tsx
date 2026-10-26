@@ -2,10 +2,11 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { User } from 'firebase/auth';
+import { useMinute } from '@/app/components/useMinute';
 import { useAuth } from '@/app/context/AuthContext';
 import type { ViewerOfEvent } from '@/lib/seva/client';
 import type { SevaEvent } from '@/lib/seva/model';
-import { clearFlash, useFlash, useMinute, type Flash } from './hooks';
+import { clearFlash, useFlash, type Flash } from './hooks';
 import { loadSeva } from './sevaClient';
 
 // What the page's islands share about one event: the event as it is now

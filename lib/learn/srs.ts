@@ -49,23 +49,35 @@ export function review(state: CardState | undefined, correct: boolean, now: numb
     };
 }
 
-// What a session shows, in order: the cards that are due (lowest box first,
-// then the longest overdue), then cards never seen, in the order given. A
-// card that isn't due yet never appears.
+// The cards due now, lowest box first, then the longest overdue: what a
+// review across topics takes, a session (`limit`) at a time. Without a
+// limit, all of them: as many as cardCounts() says are due. The sort is
+// stable, so cards alike keep the order given: topic by topic.
+export function dueQueue(
+    ids: readonly string[],
+    cards: Readonly<Record<string, CardState>>,
+    now: number,
+    limit = Infinity,
+): string[] {
+    return ids
+        .filter((id) => {
+            const state = cardOf(cards, id);
+            return state !== undefined && state.due <= now;
+        })
+        .sort((a, b) => cardOf(cards, a)!.box - cardOf(cards, b)!.box || cardOf(cards, a)!.due - cardOf(cards, b)!.due)
+        .slice(0, Math.max(0, limit));
+}
+
+// What a topic's session shows, in order: the cards that are due, then cards
+// never seen, in the order given. A card that isn't due yet never appears.
 export function reviewQueue(
     ids: readonly string[],
     cards: Readonly<Record<string, CardState>>,
     now: number,
     limit = 20,
 ): string[] {
-    const due = ids
-        .filter((id) => {
-            const state = cardOf(cards, id);
-            return state !== undefined && state.due <= now;
-        })
-        .sort((a, b) => cardOf(cards, a)!.box - cardOf(cards, b)!.box || cardOf(cards, a)!.due - cardOf(cards, b)!.due);
     const fresh = ids.filter((id) => cardOf(cards, id) === undefined);
-    return [...due, ...fresh].slice(0, Math.max(0, limit));
+    return [...dueQueue(ids, cards, now), ...fresh].slice(0, Math.max(0, limit));
 }
 
 // For a topic's card: due, never seen, and learned. A learned card that is
