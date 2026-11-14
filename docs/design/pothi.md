@@ -95,7 +95,7 @@ Setting `font-synthesis-weight: none` on the `font-gurmukhi` utility stops any b
 - **Three voices.** Source (Gurbani from GurbaniNow), SikhAI, and you each get their own register. Gurbani quoted inside a reply is set like Source, never like the AI's prose.
 - **The tukk.** The Gurmukhi, transliteration and translation are one unit wherever they appear. It is built once.
 - **Chat is a transcript.** Your line hangs on a kesri rule under "You". An answer is always labelled SikhAI, whatever lens it was asked through: the lens, which may be a Guru's name, is a setting said after the name, never the speaker. Quoted Gurbani is indented on a gold rule. The Gurbani check becomes numbered notes.
-- **Motion is a fade.** Nothing floats, bounces or glows, and the existing reduced-motion rule still zeroes every duration.
+- **Almost no motion.** Nothing fades in, floats, bounces or glows. A control eases its colour when its state changes, a placeholder pulses while something loads, and the reduced-motion rule still zeroes every duration.
 
 ## As built
 
@@ -116,7 +116,7 @@ One commit per step, in this order, so no commit put the new palette on the old 
    - Learn's tracks and topics were cards. They sit in equal cells, and a track's lessons are ruled rows led by kesri numerals.
    - The About page still had the old look. It is now set like the other pages.
 
-   Three smaller clean-ups are filed as [#62](https://github.com/rohan1234usa/sikh-ai/issues/62): the dead `shadow-*` classes, one weight for page titles, and the home masthead's fade.
+   Three smaller clean-ups were filed as [#62](https://github.com/rohan1234usa/sikh-ai/issues/62) and are listed under Since the build.
 
 ### Since the build
 
@@ -129,6 +129,10 @@ One commit per step, in this order, so no commit put the new palette on the old 
   - A track's progress is a gold rule under its count, as on a lesson page, its fill a border so forced colours keep it. Until the track's first milestone, the cell shows the milestone in kesri and no rule.
   - Saving, reset and the AI-drafted caveat sit in a foot ruled off by a hairline, under a kesri "About your progress".
   - The flashcard review uses the Learn header. Each card names its topic in a kesri rubric, as the word list labels an example.
+- **The clean-ups** ([#62](https://github.com/rohan1234usa/sikh-ai/issues/62)):
+  - No `shadow-*` class is left in `app/`. The theme clears the shadow scale, so the 23 that remained drew nothing.
+  - Page titles are semibold, the masthead's weight, in all three languages. The small headings in a bar (the tutor's, Talk's, an Ang's) stay bold, since they are body-sized.
+  - The home masthead appears at once. Its fade was the last entrance animation, and `--animate-fade-up` went with it.
 
 ## Checks for the build
 
