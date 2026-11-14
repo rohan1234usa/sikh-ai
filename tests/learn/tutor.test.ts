@@ -10,10 +10,13 @@ import {
     historyFor,
     parseTutorSession,
     settleReply,
+    startSession,
     tutorErrorCode,
     type TutorExchange,
     type TutorReply,
+    type TutorSession,
 } from '@/lib/learn/tutor';
+import { LESSON_META } from '@/lib/learn/config';
 
 const exchange = (id: string, reply: Partial<TutorReply> = {}): TutorExchange => ({
     id,
@@ -124,4 +127,29 @@ test('anything unreadable gives an empty session, and a damaged exchange is drop
     });
     assert.equal(parsed.lesson, null);
     assert.deepEqual(parsed.exchanges.map((e) => e.id), ['ok']);
+});
+
+test('a visit starts from what the tab kept, unless the address asks for another lesson', () => {
+    const [first, second] = LESSON_META;
+    const kept: TutorSession = { lesson: first.slug, exchanges: [exchange('a')] };
+
+    assert.deepEqual(startSession(kept, null), { session: kept, lessonNotFound: false }, 'no lesson asked for: the conversation carries on');
+    assert.equal(startSession(kept, first.slug).session, kept, 'the same lesson again, as a reload before the first save sends it');
+    assert.deepEqual(
+        startSession(kept, second.slug),
+        { session: { lesson: second.slug, exchanges: [] }, lessonNotFound: false },
+        'another lesson starts a new conversation about it',
+    );
+    assert.deepEqual(
+        startSession(EMPTY_SESSION, second.slug).session,
+        { lesson: second.slug, exchanges: [] },
+        'so does a lesson opened with nothing kept',
+    );
+});
+
+test('a lesson that does not exist starts an empty conversation and says so', () => {
+    const kept: TutorSession = { lesson: LESSON_META[0].slug, exchanges: [exchange('a')] };
+    for (const requested of ['no-such-lesson', '', '../script']) {
+        assert.deepEqual(startSession(kept, requested), { session: EMPTY_SESSION, lessonNotFound: true }, JSON.stringify(requested));
+    }
 });

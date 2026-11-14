@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { isLessonSlug } from '@/lib/learn/config';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
     EMPTY_SESSION,
     MAX_TUTOR_REPLY_CHARS,
@@ -11,6 +10,7 @@ import {
     historyFor,
     parseTutorSession,
     settleReply,
+    startSession,
     tutorErrorCode,
     type HistoryTurn,
     type StreamOutcome,
@@ -43,53 +43,72 @@ function save(session: TutorSession): boolean {
     }
 }
 
+// The conversation as the page shows it. Until the tab's copy has been read
+// it is empty and not `hydrated`: on the server, and in the browser's first
+// render, which must match the server's.
+type TutorState = { session: TutorSession; hydrated: boolean; lessonNotFound: boolean };
+const NOT_READ: TutorState = { session: EMPTY_SESSION, hydrated: false, lessonNotFound: false };
+
+// What the tab kept, with the address's lesson applied. Only readable once
+// the tutor is mounted: the server knows neither, and after a link from
+// another page the address is still that page's while this one renders.
+function readStart(): TutorState {
+    let kept = EMPTY_SESSION;
+    try {
+        const raw = sessionStorage.getItem(TUTOR_SESSION_KEY);
+        if (raw) kept = parseTutorSession(JSON.parse(raw));
+    } catch { /* blocked or corrupt: start empty */ }
+    // The address keeps its ?lesson= until the session holding the lesson is
+    // saved (useTutor's saving effect), so reading it twice, as development
+    // does, gives the same thing both times.
+    const requested = new URL(window.location.href).searchParams.get('lesson');
+    return { ...startSession(kept, requested), hydrated: true };
+}
+
+// One mounted tutor's conversation. It lives outside React's state so the
+// page reads it with useSyncExternalStore (the server's answer, then the
+// tab's), and so whatever saves it (a pagehide, leaving by a link) has the
+// latest without waiting for a render.
+function createTutorStore() {
+    let state = NOT_READ;
+    const listeners = new Set<() => void>();
+    return {
+        get: () => state,
+        set(next: TutorState) {
+            state = next;
+            for (const listener of [...listeners]) listener();
+        },
+        subscribe(listener: () => void) {
+            listeners.add(listener);
+            return () => { listeners.delete(listener); };
+        },
+    };
+}
+
 export function useTutor() {
-    const [session, setSession] = useState<TutorSession>(EMPTY_SESSION);
-    const [hydrated, setHydrated] = useState(false);
-    const [lessonNotFound, setLessonNotFound] = useState(false);
+    const [store] = useState(createTutorStore);
+    const { session, hydrated, lessonNotFound } = useSyncExternalStore(store.subscribe, store.get, () => NOT_READ);
     const controllerRef = useRef<AbortController | null>(null);
-    const sessionRef = useRef(session);
     const savedAtRef = useRef(0);
     // A reply is on its way exactly when the last one is streaming.
     const busy = session.exchanges.at(-1)?.reply.status === 'streaming';
 
-    useEffect(() => { sessionRef.current = session; }, [session]);
+    const setSession = useCallback((change: (session: TutorSession) => TutorSession) => {
+        const now = store.get();
+        store.set({ ...now, session: change(now.session) });
+    }, [store]);
 
     useEffect(() => {
-        let stored = EMPTY_SESSION;
-        try {
-            const raw = sessionStorage.getItem(TUTOR_SESSION_KEY);
-            if (raw) stored = parseTutorSession(JSON.parse(raw));
-        } catch { /* blocked or corrupt: start empty */ }
-
-        // The address keeps its ?lesson= until the session holding the lesson
-        // is saved (below), so running this twice, as development does,
-        // reads the same thing both times.
-        const requested = new URL(window.location.href).searchParams.get('lesson');
-        let next = stored;
-        if (requested !== null) {
-            if (!isLessonSlug(requested)) {
-                setLessonNotFound(true);
-                next = EMPTY_SESSION;
-            } else if (requested !== stored.lesson) {
-                next = { lesson: requested, exchanges: [] };
-            }
-        }
-        // Set here, not left to the effect that follows renders, so a save
-        // before the next render (the cleanup below, a pagehide) has it.
-        sessionRef.current = next;
-        setSession(next);
-        setHydrated(true);
-
-        const onHide = () => save(sessionRef.current);
+        store.set(readStart());
+        const onHide = () => save(store.get().session);
         window.addEventListener('pagehide', onHide);
         return () => {
             // Leaving by a link unmounts the tutor without a pagehide.
-            save(sessionRef.current);
+            save(store.get().session);
             window.removeEventListener('pagehide', onHide);
             controllerRef.current?.abort();
         };
-    }, []);
+    }, [store]);
 
     // Saved on every change, and while a reply's text streams in once a
     // second, so a reload keeps what had arrived. A new question is saved at
@@ -113,7 +132,7 @@ export function useTutor() {
 
     const setReply = useCallback((id: string, reply: TutorReply) => {
         setSession((s) => ({ ...s, exchanges: s.exchanges.map((e) => (e.id === id ? { ...e, reply } : e)) }));
-    }, []);
+    }, [setSession]);
 
     const stream = useCallback(async (id: string, message: string, history: HistoryTurn[], lesson: string | null) => {
         const controller = new AbortController();
@@ -161,22 +180,22 @@ export function useTutor() {
     const send = useCallback((raw: string) => {
         const question = raw.trim();
         if (!question || controllerRef.current) return false;
-        const { exchanges, lesson } = sessionRef.current;
+        const { exchanges, lesson } = store.get().session;
         const id = crypto.randomUUID();
         const history = historyFor(exchanges);
         setSession((s) => ({ ...s, exchanges: appendExchange(s.exchanges, { id, question, reply: { text: '', status: 'streaming' } }) }));
         void stream(id, question, history, lesson);
         return true;
-    }, [stream]);
+    }, [store, setSession, stream]);
 
     // Asks the last question again, after an error or a Stop before any text.
     const retry = useCallback(() => {
-        const { exchanges, lesson } = sessionRef.current;
+        const { exchanges, lesson } = store.get().session;
         const last = exchanges.at(-1);
         if (!last || controllerRef.current) return;
         setReply(last.id, { text: '', status: 'streaming' });
         void stream(last.id, last.question, historyFor(exchanges.slice(0, -1)), lesson);
-    }, [setReply, stream]);
+    }, [store, setReply, stream]);
 
     const stop = useCallback(() => controllerRef.current?.abort(), []);
 
@@ -186,11 +205,11 @@ export function useTutor() {
     const reset = useCallback(() => {
         controllerRef.current?.abort();
         controllerRef.current = null;
-        setLessonNotFound(false);
-        setSession((s) => ({ lesson: s.lesson, exchanges: [] }));
-    }, []);
+        const now = store.get();
+        store.set({ ...now, lessonNotFound: false, session: { lesson: now.session.lesson, exchanges: [] } });
+    }, [store]);
 
-    const dismissLesson = useCallback(() => setSession((s) => ({ ...s, lesson: null })), []);
+    const dismissLesson = useCallback(() => setSession((s) => ({ ...s, lesson: null })), [setSession]);
 
     return { session, hydrated, busy, lessonNotFound, send, retry, stop, reset, dismissLesson };
 }
