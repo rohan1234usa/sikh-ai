@@ -29,7 +29,7 @@ export default async function EditEventPage({ params }: PageProps<'/[lang]/seva/
           label={copy.common.breadcrumbAria}
           crumbs={[{ href: to('/seva'), label: copy.board.title }, { href: to(eventHref(id)), label: copy.host.heading }]}
         />
-        <h1 className="mt-3 text-3xl font-bold text-ink">{copy.form.editTitle}</h1>
+        <h1 className="mt-3 text-3xl font-semibold text-ink">{copy.form.editTitle}</h1>
         <EventForm mode="edit" eventId={id} {...formProps(lang, copy)} />
       </div>
     </main>

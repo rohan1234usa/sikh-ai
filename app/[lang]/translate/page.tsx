@@ -226,7 +226,7 @@ export default function TranslatePage() {
 
       {/* Input Header */}
       <div className="border-b border-edge bg-surface text-ink py-12 px-6 flex flex-col items-center">
-        <h1 className="text-3xl font-bold mb-2 text-center">
+        <h1 className="text-3xl font-semibold mb-2 text-center">
           {titleBefore}<span className="text-accent-text">{t.translate.titleWord}</span>{titleAfter}
         </h1>
         <p className="mb-3 text-sm text-ink-muted text-center max-w-xl">

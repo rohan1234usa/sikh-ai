@@ -15,7 +15,7 @@ export default function ShabadHeader({ t, page, ang }: { t: Dictionary; page: 's
     const Title = page === 'search' ? 'h1' : 'p';
     return (
         <div className="border-b border-edge bg-surface text-ink py-12 px-6 flex flex-col items-center">
-            <Title className="text-3xl font-bold mb-6 text-center">
+            <Title className="text-3xl font-semibold mb-6 text-center">
                 {titleBefore}<span className="text-accent-text">{t.shabad.titleWord}</span>{titleAfter}
             </Title>
             <ShabadSearchBox key={ang} initial={ang ? String(ang) : undefined} inline={page === 'search'} />

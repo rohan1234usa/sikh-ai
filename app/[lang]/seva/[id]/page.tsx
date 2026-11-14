@@ -120,7 +120,7 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
               <span className={CHIP}>{copy.common.categories[event.category]}</span>
               {isFull(event) && <span className={STATE_CHIP}>{copy.common.full}</span>}
             </p>
-            <h1 id="event-title" tabIndex={-1} className="mt-3 text-3xl font-bold text-ink md:text-4xl [overflow-wrap:anywhere]"><Mixed text={event.title} /></h1>
+            <h1 id="event-title" tabIndex={-1} className="mt-3 text-3xl font-semibold text-ink md:text-4xl [overflow-wrap:anywhere]"><Mixed text={event.title} /></h1>
             <p className="mt-2 text-ink-muted [overflow-wrap:anywhere]"><Mixed text={fmt(copy.common.hostedBy, { name: event.organizer })} /></p>
           </header>
 
