@@ -107,7 +107,7 @@ export default function TranslationCard({ result, onRetryAs, onRetry }: Props) {
     ].filter(r => r.text !== '');
 
     return (
-        <div className="bg-surface-raised rounded-xl border border-edge shadow-sm p-4 sm:p-6">
+        <div className="bg-surface-raised rounded-xl border border-edge p-4 sm:p-6">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-4">
                 <span className="text-xs uppercase tracking-widest text-accent-text font-bold">
                     {fmt(t.translate.translatedAs, { label: t.translate.inputKinds[result.detectedInput] })}

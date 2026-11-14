@@ -59,7 +59,7 @@ export default function TranslateInput({ text, onText, hint, onHint, loading, ag
                         }
                     }}
                     placeholder={t.translate.inputPlaceholder}
-                    className="w-full resize-none p-2 text-ink bg-surface-raised rounded-lg outline-none border-2 border-transparent focus:border-focus-ring transition-all placeholder:text-ink-faint"
+                    className="w-full resize-none p-2 text-ink bg-surface-raised rounded-lg outline-none border-2 border-transparent focus:border-focus-ring transition-colors placeholder:text-ink-faint"
                 />
                 <LiveStrip view={liveView} />
                 <div className="flex items-center justify-between gap-3 pt-2 border-t border-edge">
@@ -78,7 +78,7 @@ export default function TranslateInput({ text, onText, hint, onHint, loading, ag
                                 aria-hidden
                                 className={`relative inline-block h-4 w-7 shrink-0 rounded-full transition-colors ${live ? 'bg-accent-text' : 'bg-ink-faint'}`}
                             >
-                                <span className={`absolute top-0.5 size-3 rounded-full bg-white shadow transition-[left] ${live ? 'left-3.5' : 'left-0.5'}`} />
+                                <span className={`absolute top-0.5 size-3 rounded-full bg-white transition-[left] ${live ? 'left-3.5' : 'left-0.5'}`} />
                             </span>
                             {t.translate.liveSwitch}
                         </button>

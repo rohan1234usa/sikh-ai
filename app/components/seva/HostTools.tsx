@@ -80,7 +80,7 @@ export default function HostTools({ lang, heading, copy, words, cancelCopy, volu
     };
 
     return (
-        <section aria-labelledby="host-tools" className="rounded-xl border border-edge bg-surface-raised p-5 shadow-sm">
+        <section aria-labelledby="host-tools" className="rounded-xl border border-edge bg-surface-raised p-5">
             <h2 ref={headingRef} id="host-tools" tabIndex={-1} className="text-lg font-bold text-ink">{heading}</h2>
             <p className="mt-1 text-sm text-ink-muted">{copy.intro}</p>
             <p className="mt-3 text-ink-muted">

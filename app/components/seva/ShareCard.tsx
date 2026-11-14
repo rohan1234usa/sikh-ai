@@ -18,7 +18,7 @@ export function CalendarCard({ copy, googleHref, icsHref }: { copy: SevaCopy['ev
     const { event, ended } = useEvent();
     if (ended || event.status === 'cancelled') return null;
     return (
-        <section aria-labelledby="calendar-heading" className="rounded-xl border border-edge bg-surface-raised p-5 shadow-sm">
+        <section aria-labelledby="calendar-heading" className="rounded-xl border border-edge bg-surface-raised p-5">
             <h2 id="calendar-heading" className="flex items-center gap-2 text-lg font-bold text-ink">
                 <CalendarDaysIcon className="h-5 w-5 text-accent-text" aria-hidden="true" />
                 {copy.calendarHeading}
@@ -74,7 +74,7 @@ export function ShareCard({ copy, url, title, text, whatsappHref }: {
     };
 
     return (
-        <section aria-labelledby="share-heading" className="rounded-xl border border-edge bg-surface-raised p-5 shadow-sm">
+        <section aria-labelledby="share-heading" className="rounded-xl border border-edge bg-surface-raised p-5">
             <h2 id="share-heading" className="flex items-center gap-2 text-lg font-bold text-ink">
                 <ShareIcon className="h-5 w-5 text-accent-text" aria-hidden="true" />
                 {copy.heading}

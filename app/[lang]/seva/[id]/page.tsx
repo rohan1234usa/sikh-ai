@@ -129,7 +129,7 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
 
           <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:grid-rows-[auto_1fr] lg:items-start">
             <div className="space-y-6 lg:col-start-1 lg:row-start-1">
-              <dl className="space-y-4 rounded-xl border border-edge bg-surface-raised p-5 shadow-sm">
+              <dl className="space-y-4 rounded-xl border border-edge bg-surface-raised p-5">
                 <div>
                   <dt className="text-sm font-semibold text-ink-muted">{copy.common.whenLabel}</dt>
                   <dd className="mt-1 text-ink">

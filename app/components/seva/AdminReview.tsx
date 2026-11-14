@@ -154,7 +154,7 @@ function AdminRow({ row, lang, copy, reasons, hostedBy, eventBase, onChange }: {
     };
 
     return (
-        <article aria-labelledby={titleId} className="rounded-xl border border-edge bg-surface-raised p-5 shadow-sm">
+        <article aria-labelledby={titleId} className="rounded-xl border border-edge bg-surface-raised p-5">
             <h2 ref={headingRef} id={titleId} tabIndex={-1} className="text-lg font-bold text-ink [overflow-wrap:anywhere]">
                 {event ? <IntentLink href={`${eventBase}${event.id}`} className="hover:underline">{event.title}</IntentLink> : copy.missingEvent}
             </h2>

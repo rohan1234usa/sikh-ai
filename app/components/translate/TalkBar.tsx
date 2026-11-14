@@ -84,7 +84,7 @@ export default function TalkBar({ copy: talk, view, speaker, onSpeaker, speakOn,
                                 aria-hidden
                                 className={`relative inline-block h-4 w-7 shrink-0 rounded-full transition-colors ${speakOn ? 'bg-accent-text' : 'bg-ink-faint'}`}
                             >
-                                <span className={`absolute top-0.5 size-3 rounded-full bg-white shadow transition-[left] ${speakOn ? 'left-3.5' : 'left-0.5'}`} />
+                                <span className={`absolute top-0.5 size-3 rounded-full bg-white transition-[left] ${speakOn ? 'left-3.5' : 'left-0.5'}`} />
                             </span>
                             {talk.speakSwitch}
                         </button>

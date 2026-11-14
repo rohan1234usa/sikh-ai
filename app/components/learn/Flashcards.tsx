@@ -181,7 +181,7 @@ export default function Flashcards(props: Props) {
                 <p className="text-sm text-ink-muted">{fmt(t.learn.cards.progress, { n: session.index + 1, total: session.queue.length })}</p>
             </div>
 
-            <div className="flex min-h-64 flex-col items-center justify-center gap-4 rounded-2xl border border-edge bg-surface-raised p-6 text-center shadow-sm">
+            <div className="flex min-h-64 flex-col items-center justify-center gap-4 rounded-2xl border border-edge bg-surface-raised p-6 text-center">
                 {/* A review mixes the topics, and a word can be in two (ਖਾਣਾ is
                     food, and to eat), so each card says where it is from. */}
                 {reviewing && <p className="text-xs font-bold uppercase tracking-widest text-accent-text">{t.learn.topics[word.topic]}</p>}
