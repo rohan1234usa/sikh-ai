@@ -5,7 +5,7 @@ import { getLesson } from '@/lib/learn/curriculum';
 import { LEARN_MAX_OUTPUT_TOKENS, MAX_LEARN_BODY_CHARS } from '@/lib/learn/request';
 import { MAX_TUTOR_HISTORY_TURNS, MAX_TUTOR_HISTORY_TURN_CHARS, MAX_TUTOR_MESSAGE_CHARS } from '@/lib/learn/tutor';
 import { ROMANIZATION_RULES } from '@/lib/translate/romanization';
-import { captured, instructionOf, postJson, readStream, spendDay, startRouteMock } from '../helpers/routes';
+import { captured, instructionOf, postJson, readStream, spendDay, startRouteMock, TEST_FALLBACK_MODEL, withFallbackModel } from '../helpers/routes';
 
 let mock: MockGemini;
 let POST: (req: Request) => Promise<Response>;
@@ -79,21 +79,30 @@ test('the history is cut to the last turns', async () => {
     assert.deepEqual([texts[0], texts.at(-2), texts.at(-1)], ['turn 4', 'turn 11', 'Next?']);
 });
 
-test('a rate-limited pinned model is answered by the fallback', async () => {
-    const { result: res, requests } = await captured(mock, () => ask('MOCK_429_FIRST hello'));
+test('a rate-limited pinned model is answered by a fallback named for the tutor', async () => {
+    const { result: res, requests } = await withFallbackModel('GEMINI_LEARN_FALLBACK_MODEL', () =>
+        captured(mock, () => ask('MOCK_429_FIRST hello')));
     assert.equal(res.status, 200);
-    assert.match((await readStream(res)).text, /gemini-3\.7-flash/);
-    assert.deepEqual(requests.map((r) => r.model), ['gemini-3.8-flash', 'gemini-3.7-flash']);
+    assert.ok((await readStream(res)).text.includes(TEST_FALLBACK_MODEL));
+    assert.deepEqual(requests.map((r) => r.model), ['gemini-3.8-flash', TEST_FALLBACK_MODEL]);
 });
 
 test('both models rate-limited: 429 learn_busy', async () => {
-    const { result: res, requests } = await captured(mock, () => ask('MOCK_429 hello'));
+    const { result: res, requests } = await withFallbackModel('GEMINI_LEARN_FALLBACK_MODEL', () =>
+        captured(mock, () => ask('MOCK_429 hello')));
     assert.equal(res.status, 429);
     assert.equal((await res.json()).code, 'learn_busy');
     assert.equal(requests.length, 2);
 });
 
-test('both models overloaded: 503 learn_busy', async () => {
+test('with no fallback named, the default, a rate-limited model is busy after one call', async () => {
+    const { result: res, requests } = await captured(mock, () => ask('MOCK_429_FIRST sat sri akal'));
+    assert.equal(res.status, 429);
+    assert.equal((await res.json()).code, 'learn_busy');
+    assert.equal(requests.length, 1);
+});
+
+test('an overloaded model: 503 learn_busy', async () => {
     const res = await ask('MOCK_503 hello');
     assert.equal(res.status, 503);
     assert.equal((await res.json()).code, 'learn_busy');

@@ -5,7 +5,7 @@ import { MINUTE_MS, VISITOR_LIMITS } from '@/lib/api/allowance';
 import { MAX_LIVE_CHARS, parseLiveLines } from '@/lib/translate/live';
 import { LINES_MAX_OUTPUT_TOKENS } from '@/lib/translate/prompts';
 import { ROMANIZATION_RULES } from '@/lib/translate/romanization';
-import { captured, instructionOf, postJson, readStream, spendDay, startRouteMock } from '../helpers/routes';
+import { captured, instructionOf, postJson, readStream, spendDay, startRouteMock, TEST_FALLBACK_MODEL, withFallbackModel } from '../helpers/routes';
 
 let mock: MockGemini;
 let POST: (req: Request) => Promise<Response>;
@@ -77,17 +77,19 @@ test('the script is checked on the server, and the hint shapes the instruction',
     }
 });
 
-test('a rate-limited pinned model is answered by the fallback', async () => {
-    const { result: res, requests } = await captured(mock, () => live('MOCK_429_FIRST ki haal hai'));
+test('a rate-limited pinned model is answered by a fallback named for live lines', async () => {
+    const { result: res, requests } = await withFallbackModel('GEMINI_TRANSLATE_LIVE_FALLBACK_MODEL', () =>
+        captured(mock, () => live('MOCK_429_FIRST ki haal hai')));
     assert.equal(res.status, 200);
     await readStream(res);
-    assert.deepEqual(requests.map((r) => r.model), ['gemini-3.8-flash', 'gemini-3.7-flash']);
+    assert.deepEqual(requests.map((r) => r.model), ['gemini-3.8-flash', TEST_FALLBACK_MODEL]);
 });
 
-test('both models busy: 429 or 503 translate_live_busy', async () => {
+test('with no fallback named, the default, a busy model is 429 or 503 translate_live_busy after one call', async () => {
     for (const [trigger, status] of [['MOCK_429', 429], ['MOCK_503', 503]] as const) {
-        const res = await live(`${trigger} ki haal hai`);
+        const { result: res, requests } = await captured(mock, () => live(`${trigger} ki haal hai`));
         assert.equal(res.status, status, trigger);
+        assert.equal(requests.length, 1, trigger);
         assert.equal(res.headers.get('cache-control'), 'no-store');
         assert.equal((await res.json()).code, 'translate_live_busy');
     }

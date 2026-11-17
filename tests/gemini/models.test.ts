@@ -28,39 +28,44 @@ test('a blank override falls back to the pinned model', () => {
     assert.equal(geminiModel('chat'), 'gemini-3.8-flash');
 });
 
-test('the fallback model defaults to 3.7 Flash', () => {
-    assert.equal(geminiFallbackModel('chat'), 'gemini-3.7-flash');
-    assert.equal(geminiFallbackModel('translate'), 'gemini-3.7-flash');
-    assert.equal(geminiFallbackModel('learn'), 'gemini-3.7-flash');
-    assert.equal(geminiFallbackModel('translateLive'), 'gemini-3.7-flash');
-    assert.equal(geminiFallbackModel('translateVoice'), 'gemini-3.7-flash');
+test('no feature has a fallback model unless one is named', () => {
+    for (const feature of ['chat', 'translate', 'learn', 'translateLive', 'translateVoice'] as const)
+        assert.equal(geminiFallbackModel(feature), null, feature);
+});
+
+test('a named fallback is its own feature’s alone, trimmed', () => {
+    process.env.GEMINI_TRANSLATE_FALLBACK_MODEL = '  gemini-3.6-flash ';
+    assert.equal(geminiFallbackModel('translate'), 'gemini-3.6-flash');
+    assert.equal(geminiFallbackModel('translateLive'), null);
+    assert.equal(geminiFallbackModel('chat'), null);
 });
 
 test('Talk’s voice route has its own override, apart from the translators', () => {
     process.env.GEMINI_TRANSLATE_VOICE_MODEL = 'gemini-3.6-flash';
-    process.env.GEMINI_TRANSLATE_VOICE_FALLBACK_MODEL = 'off';
+    process.env.GEMINI_TRANSLATE_VOICE_FALLBACK_MODEL = 'gemini-3.8-flash';
     assert.equal(geminiModel('translateVoice'), 'gemini-3.6-flash');
-    assert.equal(geminiFallbackModel('translateVoice'), null);
+    assert.equal(geminiFallbackModel('translateVoice'), 'gemini-3.8-flash');
     assert.equal(geminiModel('translateLive'), 'gemini-3.8-flash');
-    assert.equal(geminiFallbackModel('translate'), 'gemini-3.7-flash');
+    assert.equal(geminiFallbackModel('translateLive'), null);
+    assert.equal(geminiFallbackModel('translate'), null);
 });
 
 test('the live translator has its own override, apart from the full translator', () => {
     process.env.GEMINI_TRANSLATE_LIVE_MODEL = 'gemini-3.5-flash-lite';
-    process.env.GEMINI_TRANSLATE_LIVE_FALLBACK_MODEL = 'off';
+    process.env.GEMINI_TRANSLATE_LIVE_FALLBACK_MODEL = 'gemini-3.8-flash';
     assert.equal(geminiModel('translateLive'), 'gemini-3.5-flash-lite');
-    assert.equal(geminiFallbackModel('translateLive'), null);
+    assert.equal(geminiFallbackModel('translateLive'), 'gemini-3.8-flash');
     assert.equal(geminiModel('translate'), 'gemini-3.8-flash');
-    assert.equal(geminiFallbackModel('translate'), 'gemini-3.7-flash');
+    assert.equal(geminiFallbackModel('translate'), null);
 });
 
 test('the tutor has its own override, apart from the chat', () => {
     process.env.GEMINI_LEARN_MODEL = 'gemini-3.6-flash';
-    process.env.GEMINI_LEARN_FALLBACK_MODEL = 'off';
+    process.env.GEMINI_LEARN_FALLBACK_MODEL = 'gemini-3.8-flash';
     assert.equal(geminiModel('learn'), 'gemini-3.6-flash');
-    assert.equal(geminiFallbackModel('learn'), null);
+    assert.equal(geminiFallbackModel('learn'), 'gemini-3.8-flash');
     assert.equal(geminiModel('chat'), 'gemini-3.8-flash');
-    assert.equal(geminiFallbackModel('chat'), 'gemini-3.7-flash');
+    assert.equal(geminiFallbackModel('chat'), null);
 });
 
 test('the fallback can be switched off', () => {
@@ -68,10 +73,12 @@ test('the fallback can be switched off', () => {
         process.env.GEMINI_CHAT_FALLBACK_MODEL = value;
         assert.equal(geminiFallbackModel('chat'), null, `"${value}" should disable it`);
     }
-    assert.equal(geminiFallbackModel('translate'), 'gemini-3.7-flash');
 });
 
 test('a fallback that repeats the primary model is dropped', () => {
-    process.env.GEMINI_CHAT_MODEL = 'gemini-3.7-flash';
-    assert.equal(geminiFallbackModel('chat'), null);
+    process.env.GEMINI_CHAT_FALLBACK_MODEL = 'gemini-3.8-flash';
+    assert.equal(geminiFallbackModel('chat'), null, 'the pinned model');
+    process.env.GEMINI_CHAT_MODEL = 'gemini-3.6-flash';
+    process.env.GEMINI_CHAT_FALLBACK_MODEL = 'gemini-3.6-flash';
+    assert.equal(geminiFallbackModel('chat'), null, 'an override');
 });

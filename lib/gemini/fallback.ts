@@ -1,5 +1,6 @@
 // SERVER-ONLY: try the pinned model, then — only when it failed for reasons of
-// capacity, before producing anything — its one fallback model.
+// capacity, before producing anything — its one fallback model, if one is
+// named (none is by default: lib/gemini/models.ts).
 //
 // Deliberately narrow. A rejected request (400), a bad key (401/403) or an
 // empty prepaid balance (402) fails the same way on every model, so trying
@@ -15,7 +16,7 @@ import { geminiFallbackModel, geminiModel, type GeminiFeature } from './models';
 // Less than this left before the deadline and the fallback is not worth starting.
 export const MIN_FALLBACK_MS = 6000;
 
-// 404 is here so a pinned model Google retires degrades to the fallback
+// 404 is here so a pinned model Google retires degrades to a named fallback
 // instead of taking the feature down.
 const RETRYABLE_STATUS = new Set([404, 429, 500, 502, 503, 504]);
 

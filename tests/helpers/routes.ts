@@ -81,6 +81,19 @@ export async function captured<T>(mock: MockGemini, run: () => Promise<T>) {
     return { result, requests: mock.requests.slice(start) };
 }
 
+// No feature has a fallback model by default (lib/gemini/models.ts), so a
+// test of the fallback path names one in the feature's env var while `run`
+// executes. The routes read it per call.
+export const TEST_FALLBACK_MODEL = 'gemini-3.6-flash';
+export async function withFallbackModel<T>(variable: string, run: () => Promise<T>): Promise<T> {
+    process.env[variable] = TEST_FALLBACK_MODEL;
+    try {
+        return await run();
+    } finally {
+        delete process.env[variable];
+    }
+}
+
 // Spends the day of a visitor not yet counted today with one feature, all
 // but `leave` of it, in one request at midnight UTC that costs that much, so
 // no minute's limit stops it. It throws for a `leave` outside the day, and for

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import type { MockGemini } from '../../scripts/mock-gemini';
 import { MAX_CONTEXT_TEXT_CHARS, MAX_CONTEXT_TITLE_CHARS, MAX_MESSAGE_CHARS } from '@/lib/chat/config';
 import { MAX_CHAT_BODY_CHARS } from '@/lib/chat/request';
-import { captured, postJson, readStream, spendDay, startRouteMock } from '../helpers/routes';
+import { captured, postJson, readStream, spendDay, startRouteMock, TEST_FALLBACK_MODEL, withFallbackModel } from '../helpers/routes';
 
 let mock: MockGemini;
 let POST: (req: Request) => Promise<Response>;
@@ -46,22 +46,31 @@ test('sends the shared request: history, system prompt, LOW thinking, capped out
     assert.equal('httpOptions' in body.generationConfig, false, 'transport settings stay client-side');
 });
 
-test('a rate-limited pinned model is answered by the fallback', async () => {
-    const { result: res, requests } = await captured(mock, () => chat('MOCK_429_FIRST what is hukam?'));
+test('a rate-limited pinned model is answered by a fallback named for the chat', async () => {
+    const { result: res, requests } = await withFallbackModel('GEMINI_CHAT_FALLBACK_MODEL', () =>
+        captured(mock, () => chat('MOCK_429_FIRST what is hukam?')));
     assert.equal(res.status, 200);
     const { text } = await readStream(res);
-    assert.match(text, /gemini-3\.7-flash/);
-    assert.deepEqual(requests.map(r => r.model), ['gemini-3.8-flash', 'gemini-3.7-flash']);
+    assert.ok(text.includes(TEST_FALLBACK_MODEL));
+    assert.deepEqual(requests.map(r => r.model), ['gemini-3.8-flash', TEST_FALLBACK_MODEL]);
 });
 
 test('both models rate-limited: 429 chat_busy', async () => {
-    const { result: res, requests } = await captured(mock, () => chat('MOCK_429 hello'));
+    const { result: res, requests } = await withFallbackModel('GEMINI_CHAT_FALLBACK_MODEL', () =>
+        captured(mock, () => chat('MOCK_429 hello')));
     assert.equal(res.status, 429);
     assert.equal((await res.json()).code, 'chat_busy');
     assert.equal(requests.length, 2);
 });
 
-test('both models overloaded: 503 chat_busy', async () => {
+test('with no fallback named, the default, a rate-limited model is busy after one call', async () => {
+    const { result: res, requests } = await captured(mock, () => chat('MOCK_429_FIRST what is seva?'));
+    assert.equal(res.status, 429);
+    assert.equal((await res.json()).code, 'chat_busy');
+    assert.equal(requests.length, 1);
+});
+
+test('an overloaded model: 503 chat_busy', async () => {
     const res = await chat('MOCK_503 hello');
     assert.equal(res.status, 503);
     assert.equal((await res.json()).code, 'chat_busy');
