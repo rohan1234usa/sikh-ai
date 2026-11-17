@@ -3,6 +3,7 @@
 
 import { ThinkingLevel } from '@google/genai';
 import type { Citation } from '../../lib/gurbani/citations';
+import type { Usage } from '../translate-eval/cache';
 
 export type ChatRun = {
     fixture: string;
@@ -13,7 +14,7 @@ export type ChatRun = {
     text: string;
     finishReason?: string;
     blockReason?: string;
-    usage: { prompt?: number; output?: number; thoughts?: number };
+    usage: Usage;
     ttftMs: number | null;
     latencyMs: number;
     at: string;

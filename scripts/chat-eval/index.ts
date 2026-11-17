@@ -29,7 +29,7 @@ import { verifyReply } from '../../lib/gurbani/verify';
 import { getDictionary } from '../../lib/i18n';
 import { loadEnvLocal } from '../i18n-audit/env';
 import { loadCache, pruneCache, runKey, saveCache } from '../translate-eval/cache';
-import { pacer, withRetries } from '../translate-eval/call';
+import { pacer, usageOf, withRetries } from '../translate-eval/call';
 import { FIXTURES, SETS, type ChatFixture, type Passage, type SetName } from './fixtures';
 import type { Reply } from './checks';
 import { writeReport, type Answer } from './report';
@@ -153,11 +153,7 @@ async function streamOnce(ai: GoogleGenAI, request: GenerateContentParameters): 
         text,
         finishReason: last?.candidates?.[0]?.finishReason,
         blockReason: last?.promptFeedback?.blockReason,
-        usage: {
-            prompt: last?.usageMetadata?.promptTokenCount,
-            output: last?.usageMetadata?.candidatesTokenCount,
-            thoughts: last?.usageMetadata?.thoughtsTokenCount,
-        },
+        usage: usageOf(last?.usageMetadata),
         ttftMs: ttft === null ? null : Math.round(ttft),
         latencyMs: Math.round(performance.now() - started),
         at: new Date().toISOString(),

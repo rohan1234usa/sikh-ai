@@ -53,6 +53,15 @@ function summary(models: string[], rows: Row[]): string {
             return `${fixed(mean(ok.map(r => r.words.length)), 1)} · ${fixed(mean(ok.map(r => r.notes.length)), 1)} · ${fixed(mean(ok.map(r => r.pronunciation.length)), 1)}`;
         }],
         ['Median latency', a => `${fixed(median(a.map(x => x.run.latencyMs)) / 1000, 1)} s`],
+        // What Gemini's implicit cache served is known only when every run
+        // recorded it. Runs saved before 17 Nov 2026 didn't.
+        ['Mean input tokens (cached)', a => {
+            const metered = a.filter(x => x.run.usage.prompt !== undefined);
+            const cached = metered.length && metered.every(x => x.run.usage.cached !== undefined)
+                ? fixed(mean(metered.map(x => x.run.usage.cached ?? 0)), 0)
+                : '—';
+            return `${fixed(mean(metered.map(x => x.run.usage.prompt ?? 0)), 0)} (${cached})`;
+        }],
         // Thinking is billed as output, so it is counted in the total too
         ['Mean output tokens (of which thinking)', a => {
             const metered = a.filter(x => x.run.usage.output !== undefined);

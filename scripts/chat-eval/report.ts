@@ -55,6 +55,11 @@ function median(xs: number[]): number {
 // short" in one column and fine in another.
 const endedEarly = (run: ChatRun) => finishedNormally({ text: run.text, context: null, finishReason: run.finishReason }) !== null;
 
+// What Gemini's implicit cache served is known only when every run recorded
+// it. Runs saved before 17 Nov 2026 didn't.
+const meanCached = (runs: ChatRun[]) =>
+    runs.length && runs.every(r => r.usage.cached !== undefined) ? `${Math.round(mean(runs.map(r => r.usage.cached ?? 0)))}` : '—';
+
 function citationCounts(citations: Citation[]): string {
     if (!citations.length) return 'none quoted';
     const parts = CITATION_STATUSES.flatMap(status => {
@@ -84,8 +89,8 @@ function summary(answers: Answer[], expected: number): [string, string][] {
         ['Median time to first text', seconds(median(runs.flatMap(r => (r.ttftMs === null ? [] : [r.ttftMs]))))],
         ['Median total time', seconds(median(runs.map(r => r.latencyMs)))],
         ['Mean words', Number.isNaN(mean(runs.map(r => words(r.text)))) ? '—' : Math.round(mean(runs.map(r => words(r.text)))).toString()],
-        ['Mean tokens in / out (thinking)', runs.length
-            ? `${Math.round(mean(runs.map(r => r.usage.prompt ?? 0)))} / ${Math.round(mean(runs.map(r => r.usage.output ?? 0)))} (${Math.round(mean(runs.map(r => r.usage.thoughts ?? 0)))})`
+        ['Mean tokens in (cached) / out (thinking)', runs.length
+            ? `${Math.round(mean(runs.map(r => r.usage.prompt ?? 0)))} (${meanCached(runs)}) / ${Math.round(mean(runs.map(r => r.usage.output ?? 0)))} (${Math.round(mean(runs.map(r => r.usage.thoughts ?? 0)))})`
             : '—'],
         ['Est. cost per answer', costs.length ? `$${mean(costs).toFixed(4)}` : '—'],
         ['Checks failed', `${checks}`],
