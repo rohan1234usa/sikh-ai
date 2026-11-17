@@ -12,7 +12,7 @@ import { isAbortError } from '@/lib/gemini/fallback';
 import { openTextStream, readWholeText, settleNoText, textStreamResponse, type Opened } from '@/lib/gemini/stream';
 import { parseTranslationResult } from '@/lib/translate/parse';
 import { buildTranslateRequest } from '@/lib/translate/prompts';
-import { captured, logged, readStream, startRouteMock } from '../helpers/routes';
+import { captured, logged, readStream, startRouteMock, type LogLine } from '../helpers/routes';
 
 let mock: MockGemini;
 let ai: GoogleGenAI;
@@ -31,6 +31,27 @@ function open(message: string, firstTextMs = 5000, signal = new AbortController(
         deadline: Date.now() + 20_000,
         firstTextMs,
     });
+}
+
+// The translator's request, as its route builds it: it asks for JSON.
+const translateRequest = (text: string) =>
+    buildTranslateRequest('gemini-3.8-flash', text, { sourceHint: 'auto', detectedScript: 'latin' });
+const TRANSLATE_CALL = { feature: 'translate', model: 'gemini-3.8-flash', depth: 0 } as const;
+// The translator's settings: Google is sent 30 s, and the route's own
+// deadline, `deadlineMs` from now, ends the call.
+const translateOpts = (signal: AbortSignal, deadlineMs: number, firstTextMs: number) =>
+    ({ signal, deadline: Date.now() + deadlineMs, firstTextMs, serverTimeoutMs: 30_000 });
+const geminiCalls = (lines: LogLine[]) => lines.filter((l) => l.evt === 'gemini_call');
+
+// Runs `run` against a mock of its own, which sends its pieces
+// `chunkDelayMs` apart, so a reply is still streaming while a test acts.
+async function withSlowGemini(chunkDelayMs: number, run: (slowAi: GoogleGenAI, slow: MockGemini) => Promise<void>) {
+    const slow = await startMockGemini({ chunkDelayMs });
+    try {
+        await run(new GoogleGenAI({ apiKey: 'test-key', httpOptions: { baseUrl: slow.url } }), slow);
+    } finally {
+        await slow.close();
+    }
 }
 
 test('opening a stream reads past the signature chunk to the first text', async () => {
@@ -89,11 +110,9 @@ test('a reply stopped by the output cap errors the body too', async () => {
 });
 
 test('a reader who leaves (Stop) stops Gemini generating, instead of paying for the rest', async () => {
-    // Its own mock, with a gap between chunks, so the reply is still
-    // streaming when the reader cancels.
-    const slow = await startMockGemini({ chunkDelayMs: 50 });
-    try {
-        const slowAi = new GoogleGenAI({ apiKey: 'test-key', httpOptions: { baseUrl: slow.url } });
+    // A gap between chunks, so the reply is still streaming when the reader
+    // cancels.
+    await withSlowGemini(50, async (slowAi) => {
         const opened = await openTextStream(slowAi, { model: 'gemini-3.8-flash', contents: 'MOCK_LONG' }, {
             signal: new AbortController().signal,
             deadline: Date.now() + 20_000,
@@ -105,22 +124,11 @@ test('a reader who leaves (Stop) stops Gemini generating, instead of paying for 
         assert.equal(opened.upstream.signal.aborted, false);
         await reader.cancel();
         assert.equal(opened.upstream.signal.aborted, true, 'cancelling the body aborts the Gemini request');
-    } finally {
-        await slow.close();
-    }
+    });
 });
 
-// The translator's request, as its route builds it: it asks for JSON.
-const translateRequest = (text: string) =>
-    buildTranslateRequest('gemini-3.8-flash', text, { sourceHint: 'auto', detectedScript: 'latin' });
-const TRANSLATE_CALL = { feature: 'translate', model: 'gemini-3.8-flash', depth: 0 } as const;
-
 test("the translator's JSON streams in slices that make up the whole result", async () => {
-    const opened = await openTextStream(ai, translateRequest('Ki haal hai?'), {
-        signal: new AbortController().signal,
-        deadline: Date.now() + 20_000,
-        firstTextMs: 5000,
-    });
+    const opened = await openTextStream(ai, translateRequest('Ki haal hai?'), translateOpts(new AbortController().signal, 20_000, 5000));
     assert.ok(opened.kind === 'text', opened.kind);
     const { text, error } = await readStream(textStreamResponse(opened, TRANSLATE_CALL, new AbortController().signal));
     assert.equal(error, undefined);
@@ -138,12 +146,10 @@ test("by default Google is sent the route's own deadline", async () => {
 test('given a later deadline for Google, a stuck call still ends at the first-text wait', async () => {
     const start = mock.requests.length;
     const started = Date.now();
-    await assert.rejects(openTextStream(ai, { model: 'gemini-3.8-flash', contents: 'MOCK_HANG' }, {
-        signal: new AbortController().signal,
-        deadline: Date.now() + 20_000,
-        firstTextMs: 200,
-        serverTimeoutMs: 30_000,
-    }), (err) => isAbortError(err));
+    await assert.rejects(
+        openTextStream(ai, translateRequest('MOCK_HANG'), translateOpts(new AbortController().signal, 20_000, 200)),
+        (err) => isAbortError(err),
+    );
     assert.ok(Date.now() - started < 5000, 'it gives up at the first-text wait');
     const [sent] = mock.requests.slice(start);
     assert.equal(sent.headers['x-server-timeout'], '30', 'Google is sent 30 s, once, not the 20 s budget');
@@ -152,41 +158,16 @@ test('given a later deadline for Google, a stuck call still ends at the first-te
 test("given a later deadline for Google, the route's own timer ends a reply still writing at its deadline", async () => {
     // Slices 300 ms apart: the first text comes after 300 ms, and the whole
     // reply would take 1,200 ms, past the 800 ms deadline.
-    const slow = await startMockGemini({ chunkDelayMs: 300 });
-    try {
-        const slowAi = new GoogleGenAI({ apiKey: 'test-key', httpOptions: { baseUrl: slow.url } });
+    await withSlowGemini(300, async (slowAi, slow) => {
         const started = Date.now();
-        const opened = await openTextStream(slowAi, translateRequest('Ki haal hai?'), {
-            signal: new AbortController().signal,
-            deadline: Date.now() + 800,
-            firstTextMs: 1000,
-            serverTimeoutMs: 30_000,
-        });
+        const opened = await openTextStream(slowAi, translateRequest('Ki haal hai?'), translateOpts(new AbortController().signal, 800, 1000));
         assert.ok(opened.kind === 'text', opened.kind);
         const { error } = await readStream(textStreamResponse(opened, TRANSLATE_CALL, new AbortController().signal));
         assert.ok(isAbortError(error), String(error));
         assert.ok(Date.now() - started < 1200, 'ended at the deadline, before the reply did');
         assert.equal(slow.requests[0].headers['x-server-timeout'], '30');
-    } finally {
-        await slow.close();
-    }
+    });
 });
-
-// The translator's settings: 30 s for Google, the route's own deadline after.
-const translateOpts = (signal: AbortSignal, deadlineMs: number, firstTextMs: number) =>
-    ({ signal, deadline: Date.now() + deadlineMs, firstTextMs, serverTimeoutMs: 30_000 });
-const geminiCalls = (lines: { evt: string }[]) =>
-    lines.filter((l) => l.evt === 'gemini_call') as unknown as Record<string, unknown>[];
-
-// Runs `run` against a mock that sends its pieces `chunkDelayMs` apart.
-async function withSlowGemini(chunkDelayMs: number, run: (ai: GoogleGenAI) => Promise<void>) {
-    const slow = await startMockGemini({ chunkDelayMs });
-    try {
-        await run(new GoogleGenAI({ apiKey: 'test-key', httpOptions: { baseUrl: slow.url } }));
-    } finally {
-        await slow.close();
-    }
-}
 
 test('a slow reply that keeps writing past the first-text wait is read to its end, and logged once', async () => {
     // Slices 200 ms apart: the first text comes well inside the 500 ms wait,

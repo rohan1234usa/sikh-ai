@@ -26,9 +26,10 @@ export const CHAT_FIRST_TEXT_MS = 10_000;
 // 300 to 1,000 characters took 11.7 to 20.8 s. So no text after 8 s means the
 // call is stuck: Cloud Translation answers, or a fallback model, if one is
 // named, gets the 14 s left. A reply that is writing gets until 22 s, the
-// most that leaves Cloud's 8 s inside maxDuration. (At one 12 s attempt,
-// which Google cut at about 10.4 s, every text over about 300 characters
-// failed: the route tells Google a later deadline now, app/api/translate.)
+// most that leaves Cloud's 8 s inside maxDuration. (The old single 12 s
+// attempt, which Google cut at about 10.4 s, failed every text over about
+// 300 characters. The route now tells Google a later deadline than its own:
+// app/api/translate/route.ts.)
 export const TRANSLATE_BUDGET_MS = 22_000;
 export const TRANSLATE_FIRST_TEXT_MS = 8_000;
 // What a full answer needs: the slowest measured (20.8 s, for 978 characters

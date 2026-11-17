@@ -26,10 +26,10 @@ export const maxDuration = 30;
 // TRANSLATE_FIRST_TEXT_MS is stuck, and one that is writing gets until
 // TRANSLATE_BUDGET_MS, which leaves the Cloud Translation fallback (8 s
 // timeout) its turn inside maxDuration. The numbers, as measured, live in
-// lib/gemini/budgets. Google is told the function's own limit: it ends a call
-// 1.5 to 1.9 s before the deadline it's sent, so sending the budget would cut
-// the slowest answers short, and log them as Google's 504s (#83).
-const GOOGLE_DEADLINE_MS = maxDuration * 1000;
+// lib/gemini/budgets. Google is told the function's own limit instead of the
+// budget: it ends a call 1.5 to 1.9 s before the deadline it's sent, so the
+// budget would cut the slowest answers short, logged as Google's 504s (#83).
+const GOOGLE_TIMEOUT_MS = maxDuration * 1000;
 
 const FRIENDLY_ERROR = "Sorry, the translation failed. Please try again.";
 const TOO_LONG_ERROR = "That text is too long. Please try up to 1,000 characters.";
@@ -171,7 +171,7 @@ async function handlePost(req: Request) {
         signal: req.signal,
         deadline,
         firstTextMs: TRANSLATE_FIRST_TEXT_MS,
-        serverTimeoutMs: GOOGLE_DEADLINE_MS,
+        serverTimeoutMs: GOOGLE_TIMEOUT_MS,
       }),
       { signal: req.signal, deadline },
     )
