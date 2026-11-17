@@ -2,11 +2,11 @@
 // around the lessons and vocabulary, which are English in every UI language
 // (lib/learn/content/). Like Talk's (../talk) and the Seva pages' (../seva),
 // they live apart from the dictionaries, which every page sends to the
-// browser. Learn's layout (app/[lang]/learn/layout.tsx) reads them with
-// getLearnCopy() (./index.ts) and hands them to LearnCopyProvider
-// (app/components/learn/LearnCopy.tsx), so each Learn page carries its own
-// language's words and no other page carries any. Client components read them
-// with useLearnCopy(); server components take them as a prop. The i18n audit
+// browser. Learn's layout (app/[lang]/learn/layout.tsx) provides them through
+// LearnCopyProvider (app/components/learn/LearnCopy.tsx), in a script that
+// only Learn's pages load, and its client components read them with
+// useLearnCopy(); its server components and pages read them with
+// getLearnCopy() (./index.ts) and take them as a prop. The i18n audit
 // checks them with the rest of the site's strings, under `learn.` The link to
 // Learn, its title and description, and the tutor route's error messages stay
 // in the dictionaries, which the navbar, the home page and the server read.

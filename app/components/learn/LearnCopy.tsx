@@ -1,16 +1,22 @@
 'use client';
 
 import { createContext, useContext, type ReactNode } from 'react';
-import type { LearnCopy } from '@/lib/i18n/learn';
+import { useLanguage } from '@/app/context/LanguageContext';
+import { getLearnCopy, type LearnCopy } from '@/lib/i18n/learn';
 
-// Learn's words (lib/i18n/learn), in the page's language. Learn's layout
-// (app/[lang]/learn/layout.tsx) reads them on the server and provides them
-// here, so they reach only Learn's pages. A client component that imported
-// lib/i18n/learn itself would ship all three languages in its script.
+// Learn's words (lib/i18n/learn), in the page's language. This module is the
+// only client code that imports them, and Learn's layout
+// (app/[lang]/learn/layout.tsx) is what loads it, so they ship in a script
+// that only Learn's pages load, once, cached for every Learn page after.
+// All three languages are in that script: the bundler puts what a layout's
+// client code imports in one chunk. Passing the page's language's words from
+// the server instead would send them again with every prefetch and move
+// between Learn pages (measured in #79's PR).
 const LearnCopyContext = createContext<LearnCopy | null>(null);
 
-export function LearnCopyProvider({ copy, children }: { copy: LearnCopy; children: ReactNode }) {
-    return <LearnCopyContext.Provider value={copy}>{children}</LearnCopyContext.Provider>;
+export function LearnCopyProvider({ children }: { children: ReactNode }) {
+    const { lang } = useLanguage();
+    return <LearnCopyContext.Provider value={getLearnCopy(lang)}>{children}</LearnCopyContext.Provider>;
 }
 
 export const useLearnCopy = (): LearnCopy => {

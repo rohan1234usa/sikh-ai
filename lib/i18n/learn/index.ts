@@ -1,9 +1,9 @@
-// The words of the Learn Punjabi pages, for server components only: imported
-// from a client component, they would ship to every page that component is
-// on, all three languages at once (./en.ts says why they live apart). Learn's
-// layout hands one language's to LearnCopyProvider, which Learn's client
-// components read with useLearnCopy(), typed with `import type { LearnCopy }`,
-// which ships nothing.
+// The words of the Learn Punjabi pages (./en.ts says why they live apart).
+// Server components and pages read them with getLearnCopy(). On the client,
+// only app/components/learn/LearnCopy.tsx may import this module: it is
+// loaded by Learn's layout alone, so the words ship only with Learn's pages.
+// Any other client import would ship all three languages with that page
+// (tests/learn/copy-imports.test.ts holds the line).
 
 import type { Lang } from '../config';
 import en, { type LearnCopy } from './en';
