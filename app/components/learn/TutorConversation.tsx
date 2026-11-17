@@ -7,8 +7,10 @@ import { GreetingBubble, QuestionBubble } from '@/app/components/chat/Bubbles';
 import StarterPrompts from '@/app/components/chat/StarterPrompts';
 import { useLocalePath, useT } from '@/app/context/LanguageContext';
 import type { Dictionary } from '@/lib/i18n';
+import type { LearnCopy } from '@/lib/i18n/learn';
 import { isLessonSlug, lessonMeta } from '@/lib/learn/config';
 import type { TutorReply } from '@/lib/learn/tutor';
+import { useLearnCopy } from './LearnCopy';
 import LessonChip from './LessonChip';
 import TutorInput from './TutorInput';
 import TutorMessage from './TutorMessage';
@@ -26,11 +28,11 @@ function plainText(markdown: string): string {
 }
 
 // What a screen reader hears when a reply ends.
-function spoken(t: Dictionary, reply: TutorReply): string {
+function spoken(t: Dictionary, learn: LearnCopy, reply: TutorReply): string {
     switch (reply.status) {
         case 'done': return plainText(reply.text);
-        case 'interrupted': return `${plainText(reply.text)} ${t.learn.tutor.interrupted}`;
-        case 'stopped': return t.learn.tutor.stopped;
+        case 'interrupted': return `${plainText(reply.text)} ${learn.tutor.interrupted}`;
+        case 'stopped': return learn.tutor.stopped;
         case 'error': return t.errors[reply.errorCode ?? 'generic'];
         default: return '';
     }
@@ -40,6 +42,7 @@ function spoken(t: Dictionary, reply: TutorReply): string {
 // navbar, like the chat's, with the composer pinned to the bottom.
 export default function TutorConversation() {
     const t = useT();
+    const learn = useLearnCopy();
     const to = useLocalePath();
     const tutor = useTutor();
     const { session, hydrated } = tutor;
@@ -90,17 +93,17 @@ export default function TutorConversation() {
     const [announcement, setAnnouncement] = useState('');
     if (liveId !== watching) {
         setWatching(liveId);
-        if (liveId) setAnnouncement(t.learn.tutor.thinking);
+        if (liveId) setAnnouncement(learn.tutor.thinking);
         else if (watching) {
             const ended = session.exchanges.find((e) => e.id === watching);
-            setAnnouncement(ended ? spoken(t, ended.reply) : '');
+            setAnnouncement(ended ? spoken(t, learn, ended.reply) : '');
         }
     }
     // The lesson-not-found notice appears after load, so it is announced here.
     const [notFound, setNotFound] = useState(tutor.lessonNotFound);
     if (tutor.lessonNotFound !== notFound) {
         setNotFound(tutor.lessonNotFound);
-        if (tutor.lessonNotFound) setAnnouncement(t.learn.tutor.lessonNotFound);
+        if (tutor.lessonNotFound) setAnnouncement(learn.tutor.lessonNotFound);
     }
 
     const ask = (text: string, fromInput: boolean) => {
@@ -114,7 +117,7 @@ export default function TutorConversation() {
                 <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
                     <h1 className="flex min-w-0 items-center gap-2 font-bold text-ink">
                         <AcademicCapIcon className="h-5 w-5 shrink-0 text-accent-text" aria-hidden="true" />
-                        <span className="truncate">{t.learn.tracks.tutor.title}</span>
+                        <span className="truncate">{learn.tracks.tutor.title}</span>
                     </h1>
                     <div className="flex shrink-0 items-center gap-3 text-sm">
                         {/* On a phone the navbar's menu leads back; the row keeps to one line. */}
@@ -135,7 +138,7 @@ export default function TutorConversation() {
                             className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 font-semibold text-link transition-colors hover:bg-link/10 aria-disabled:cursor-default aria-disabled:opacity-40 aria-disabled:hover:bg-transparent"
                         >
                             <PlusIcon className="h-4 w-4" aria-hidden="true" />
-                            {t.learn.tutor.newConversation}
+                            {learn.tutor.newConversation}
                         </button>
                     </div>
                 </div>
@@ -145,9 +148,9 @@ export default function TutorConversation() {
                 <div ref={scrollRef} onScroll={onScroll} className="relative h-full overflow-y-auto p-4 md:p-8">
                     <div className="mx-auto w-full max-w-3xl space-y-8">
                         {tutor.lessonNotFound && (
-                            <p className="text-center text-sm text-ink-muted">{t.learn.tutor.lessonNotFound}</p>
+                            <p className="text-center text-sm text-ink-muted">{learn.tutor.lessonNotFound}</p>
                         )}
-                        <GreetingBubble text={t.learn.tutor.greeting} label={t.learn.tracks.tutor.title} />
+                        <GreetingBubble text={learn.tutor.greeting} label={learn.tracks.tutor.title} />
                         {session.exchanges.map((exchange) => (
                             <Fragment key={exchange.id}>
                                 <QuestionBubble text={exchange.question} label={t.chat.you} />
@@ -159,7 +162,7 @@ export default function TutorConversation() {
                         ))}
                         {hydrated && session.exchanges.length === 0 && (
                             <StarterPrompts
-                                prompts={lessonTitle ? t.learn.tutor.lessonStarters : t.learn.tutor.starters}
+                                prompts={lessonTitle ? learn.tutor.lessonStarters : learn.tutor.starters}
                                 onSelect={(prompt) => { ask(prompt, false); refocus(); }}
                             />
                         )}
@@ -173,7 +176,7 @@ export default function TutorConversation() {
                         className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded bg-ink px-3 py-2 text-xs font-semibold text-surface transition-opacity hover:opacity-90"
                     >
                         <ArrowDownIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                        {t.learn.tutor.latest}
+                        {learn.tutor.latest}
                     </button>
                 )}
             </div>

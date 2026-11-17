@@ -7,6 +7,7 @@ import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { VocabWord } from '@/lib/learn/config';
 import { TukkLines } from '../gurbani/Tukk';
+import { useLearnCopy } from './LearnCopy';
 import ExampleRow from './ExampleRow';
 import Mixed from './Mixed';
 
@@ -31,9 +32,10 @@ export default function WordList({ words }: { words: VocabWord[] }) {
 
 function WordRow({ word, expanded, onToggle }: { word: VocabWord; expanded: boolean; onToggle: () => void }) {
     const t = useT();
+    const learn = useLearnCopy();
     const detailsId = `word-${word.id}`;
     const copyLabel = fmt(t.translate.copyAria, { label: t.translate.gurmukhiLabel });
-    const grammar = [t.learn.partsOfSpeech[word.pos], word.gender ? t.learn.genders[word.gender] : null].filter(Boolean).join(' · ');
+    const grammar = [learn.partsOfSpeech[word.pos], word.gender ? learn.genders[word.gender] : null].filter(Boolean).join(' · ');
 
     return (
         <li className="rounded-xl border border-edge bg-surface-raised">
@@ -69,7 +71,7 @@ function WordRow({ word, expanded, onToggle }: { word: VocabWord; expanded: bool
                     {word.note && <p lang="en" className="rounded-lg bg-edge/30 p-3 text-sm text-ink-muted"><Mixed text={word.note} /></p>}
                     {word.example && (
                         <div className="space-y-1">
-                            <p className="text-xs font-bold uppercase tracking-widest text-accent-text">{t.learn.vocab.example}</p>
+                            <p className="text-xs font-bold uppercase tracking-widest text-accent-text">{learn.vocab.example}</p>
                             <ExampleRow example={word.example} copyLabel={copyLabel} />
                         </div>
                     )}

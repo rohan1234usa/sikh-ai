@@ -5,9 +5,10 @@ import { ArrowPathIcon, CheckIcon, ClipboardIcon, StopCircleIcon } from '@heroic
 import { ERROR_TURN, Markdown, StreamingMarkdown, TURN_LABEL, TURN_TEXT, Waiting } from '@/app/components/chat/Bubbles';
 import { useT } from '@/app/context/LanguageContext';
 import type { TutorReply } from '@/lib/learn/tutor';
+import { useLearnCopy } from './LearnCopy';
 
 function RetryButton({ onRetry }: { onRetry: () => void }) {
-    const t = useT();
+    const learn = useLearnCopy();
     return (
         <button
             type="button"
@@ -15,7 +16,7 @@ function RetryButton({ onRetry }: { onRetry: () => void }) {
             className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-link transition-colors hover:bg-link/10"
         >
             <ArrowPathIcon className="h-3.5 w-3.5" aria-hidden="true" />
-            {t.learn.tutor.retry}
+            {learn.tutor.retry}
         </button>
     );
 }
@@ -26,6 +27,7 @@ function RetryButton({ onRetry }: { onRetry: () => void }) {
 // while one reply streams the replies above it don't redraw.
 export default memo(function TutorMessage({ reply, onRetry }: { reply: TutorReply; onRetry?: () => void }) {
     const t = useT();
+    const learn = useLearnCopy();
     const [copied, setCopied] = useState(false);
 
     const copy = async () => {
@@ -40,7 +42,7 @@ export default memo(function TutorMessage({ reply, onRetry }: { reply: TutorRepl
         return (
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-muted">
                 <StopCircleIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                <span className="italic">{t.learn.tutor.stopped}</span>
+                <span className="italic">{learn.tutor.stopped}</span>
                 {onRetry && <RetryButton onRetry={onRetry} />}
             </div>
         );
@@ -62,23 +64,23 @@ export default memo(function TutorMessage({ reply, onRetry }: { reply: TutorRepl
 
     return (
         <div className="group">
-            <p className={TURN_LABEL}>{t.learn.tracks.tutor.title}</p>
+            <p className={TURN_LABEL}>{learn.tracks.tutor.title}</p>
             <div className={`mt-1 text-ink ${TURN_TEXT}`}>
                 {waiting ? (
-                    <Waiting label={t.learn.tutor.thinking} />
+                    <Waiting label={learn.tutor.thinking} />
                 ) : reply.status === 'streaming' ? (
                     <StreamingMarkdown text={reply.text} />
                 ) : (
                     <Markdown text={reply.text} />
                 )}
             </div>
-            {reply.status === 'interrupted' && <p className="mt-1 text-xs italic text-ink-muted">{t.learn.tutor.interrupted}</p>}
+            {reply.status === 'interrupted' && <p className="mt-1 text-xs italic text-ink-muted">{learn.tutor.interrupted}</p>}
             {finished && (
                 <div className="mt-1 flex gap-1 opacity-100 transition-opacity md:opacity-0 md:focus-within:opacity-100 md:group-hover:opacity-100">
                     <button
                         type="button"
                         onClick={copy}
-                        aria-label={copied ? t.learn.tutor.copiedAria : t.learn.tutor.copyAria}
+                        aria-label={copied ? learn.tutor.copiedAria : learn.tutor.copyAria}
                         className="rounded-lg p-1.5 text-ink-faint transition-colors hover:bg-edge/60 hover:text-ink"
                     >
                         {copied ? <CheckIcon className="h-4 w-4" /> : <ClipboardIcon className="h-4 w-4" />}

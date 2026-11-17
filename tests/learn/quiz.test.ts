@@ -11,9 +11,9 @@ import {
     typedMatches,
 } from '@/lib/learn/quiz';
 import { VOCAB, getLesson } from '@/lib/learn/curriculum';
-import en from '@/lib/i18n/dictionaries/en';
-import pa from '@/lib/i18n/dictionaries/pa';
-import paLatn from '@/lib/i18n/dictionaries/pa-latn';
+import en from '@/lib/i18n/learn/en';
+import pa from '@/lib/i18n/learn/pa';
+import paLatn from '@/lib/i18n/learn/pa-latn';
 
 test('grading ignores case, spaces, punctuation and accents', () => {
     assert.equal(foldRoman('  Ki haal HAI? '), foldRoman('kihaalhai'));
@@ -69,9 +69,9 @@ test('the spelling hint only promises what the grader forgives, in every languag
     // "ghar or gar" would be a promise broken: gh and g are different letters.
     assert.notEqual(foldRoman('ghar'), foldRoman('gar'));
     const cases: [string, RegExp][] = [
-        [en.learn.quiz.typedHint, /([a-z]+) or ([a-z]+)/g],
-        [pa.learn.quiz.typedHint, /([a-z]+) ਜਾਂ ([a-z]+)/g],
-        [paLatn.learn.quiz.typedHint, /([a-z]+) jaan ([a-z]+)/g],
+        [en.quiz.typedHint, /([a-z]+) or ([a-z]+)/g],
+        [pa.quiz.typedHint, /([a-z]+) ਜਾਂ ([a-z]+)/g],
+        [paLatn.quiz.typedHint, /([a-z]+) jaan ([a-z]+)/g],
     ];
     for (const [hint, pair] of cases) {
         const pairs = [...hint.matchAll(pair)];

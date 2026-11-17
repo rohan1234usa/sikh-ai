@@ -1,12 +1,12 @@
 // What the /learn hub says about the next step and each track: pure, so the
-// tests read it against the English dictionary.
+// tests read it against Learn's English words (lib/i18n/learn/en.ts).
 
-import type { Dictionary } from '@/lib/i18n';
+import type { LearnCopy } from '@/lib/i18n/learn';
 import { fmt } from '@/lib/i18n/fmt';
 import { isLessonTrack, type TrackId } from './config';
 import { isLessonDone, type LearnProgress, type LessonPlace } from './progress';
 
-// What the Today panel calls the next lesson (t.learn.hub[kind]).
+// What the Today panel calls the next lesson (learn.hub[kind]).
 export type StepKind = 'continue' | 'upNext' | 'start';
 
 // A lesson read partway, or the one opened last, is continued, even when
@@ -35,18 +35,18 @@ export type TrackLine =
 // Null for the tutor, which has nothing to count, and before progress is
 // read (the cell keeps the line's place). A word is learned while it is in
 // the week-long box or above, as on the topic pages.
-export function trackLine(t: Dictionary, id: TrackId, facts: TrackFacts | null): TrackLine | null {
+export function trackLine(learn: LearnCopy, id: TrackId, facts: TrackFacts | null): TrackLine | null {
     if (id === 'tutor' || facts === null) return null;
     const { done, total } = facts;
     const fill = total > 0 ? Math.min(1, done / total) : 0;
     if (id === 'vocab') {
         return done < FIRST_WORDS
-            ? { kind: 'milestone', text: fmt(t.learn.hub.milestones.vocab, { n: FIRST_WORDS }) }
-            : { kind: 'count', text: fmt(t.learn.hub.wordsLearned, { n: done, total }), fill };
+            ? { kind: 'milestone', text: fmt(learn.hub.milestones.vocab, { n: FIRST_WORDS }) }
+            : { kind: 'count', text: fmt(learn.hub.wordsLearned, { n: done, total }), fill };
     }
     return done === 0
-        ? { kind: 'milestone', text: t.learn.hub.milestones[id] }
-        : { kind: 'count', text: fmt(t.learn.hub.lessonsDone, { done, total }), fill };
+        ? { kind: 'milestone', text: learn.hub.milestones[id] }
+        : { kind: 'count', text: fmt(learn.hub.lessonsDone, { done, total }), fill };
 }
 
 // Where a track fits, in a line beside its icon, until a lesson track is
@@ -56,7 +56,7 @@ export function trackLine(t: Dictionary, id: TrackId, facts: TrackFacts | null):
 // Every learner gets the default order (for those who grew up hearing
 // Punjabi) until the starting-point chooser (#66, step 3) adds a set per
 // starting point beside it, and the starting point here.
-export function orderLine(t: Dictionary, id: TrackId, facts: TrackFacts | null): string | null {
+export function orderLine(learn: LearnCopy, id: TrackId, facts: TrackFacts | null): string | null {
     if (isLessonTrack(id) && facts !== null && facts.total > 0 && facts.done >= facts.total) return null;
-    return t.learn.hub.order.default[id];
+    return learn.hub.order.default[id];
 }

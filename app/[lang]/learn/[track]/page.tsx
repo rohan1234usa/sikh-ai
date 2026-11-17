@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import LearnPageHeader from '@/app/components/learn/LearnPageHeader';
 import LessonList from '@/app/components/learn/LessonList';
+import { getLearnCopy } from '@/lib/i18n/learn';
 import { localePath } from '@/lib/i18n/paths';
 import { getServerT } from '@/lib/i18n/server';
 import { LESSON_TRACK_IDS, isLessonTrack, lessonPath, lessonsFor } from '@/lib/learn/config';
@@ -21,11 +22,13 @@ export async function generateMetadata({ params }: PageProps<'/[lang]/learn/[tra
   const { track } = await params;
   if (!isLessonTrack(track)) return {};
   const { lang, t } = await getServerT();
-  return pageMetadata(lang, t, `/learn/${track}`, t.learn.tracks[track].title, t.learn.tracks[track].desc);
+  const learn = getLearnCopy(lang);
+  return pageMetadata(lang, t, `/learn/${track}`, learn.tracks[track].title, learn.tracks[track].desc);
 }
 
 export default async function TrackPage({ params }: PageProps<'/[lang]/learn/[track]'>) {
   const { lang, t } = await getServerT();
+  const learn = getLearnCopy(lang);
   const { track } = await params;
   if (!isLessonTrack(track)) redirect(localePath(lang, '/learn'));
   const to = (path: string) => localePath(lang, path);
@@ -34,10 +37,10 @@ export default async function TrackPage({ params }: PageProps<'/[lang]/learn/[tr
     <main className="flex-1 flex flex-col">
       <div className="max-w-3xl mx-auto w-full p-6 flex-1 space-y-8">
         <LearnPageHeader
-          t={t}
+          learn={learn}
           crumbs={[{ href: to('/learn'), label: t.meta.learnTitle }]}
-          title={t.learn.tracks[track].title}
-          lead={t.learn.tracks[track].desc}
+          title={learn.tracks[track].title}
+          lead={learn.tracks[track].desc}
         />
         <LessonList
           lessons={lessonsFor(track).map((meta) => ({

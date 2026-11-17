@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import TutorConversation from '@/app/components/learn/TutorConversation';
+import { getLearnCopy } from '@/lib/i18n/learn';
 import { getServerT } from '@/lib/i18n/server';
 import { pageMetadata } from '@/lib/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { lang, t } = await getServerT();
-  return pageMetadata(lang, t, '/learn/tutor', t.learn.tracks.tutor.title, t.learn.tracks.tutor.desc);
+  const learn = getLearnCopy(lang);
+  return pageMetadata(lang, t, '/learn/tutor', learn.tracks.tutor.title, learn.tracks.tutor.desc);
 }
 
 // The Punjabi tutor. The page is static; the conversation is the tab's own

@@ -9,7 +9,7 @@ import { createElement, type ComponentProps } from 'react';
 import Flashcards from '@/app/components/learn/Flashcards';
 import type { FlashcardWord } from '@/lib/learn/config';
 import { DAY_MS, type CardState } from '@/lib/learn/srs';
-import { renderIn } from '../helpers/markup';
+import { renderLearnIn } from '../helpers/markup';
 
 const NOW = Date.UTC(2026, 9, 24, 20, 0);
 
@@ -26,7 +26,7 @@ const card = (box: number, due: number): CardState => ({ box, due, reviews: 1, l
 const DUE: Record<string, CardState> = { 'family-chacha': card(2, NOW - 10), 'verbs-khana': card(0, NOW - 5) };
 const LATER: Record<string, CardState> = Object.fromEntries(WORDS.map((word) => [word.id, card(3, NOW + DAY_MS)]));
 
-const render = (props: ComponentProps<typeof Flashcards>) => renderIn('en', createElement(Flashcards, props));
+const render = (props: ComponentProps<typeof Flashcards>) => renderLearnIn('en', createElement(Flashcards, props));
 
 const base = { words: WORDS, now: NOW, onReview: () => {} };
 

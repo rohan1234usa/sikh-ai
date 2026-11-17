@@ -2,10 +2,10 @@
 
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
 import IntentLink from '@/app/components/IntentLink';
-import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { VocabTopicId } from '@/lib/learn/config';
 import { cardCounts } from '@/lib/learn/srs';
+import { useLearnCopy } from './LearnCopy';
 import ReviewSlot from './ReviewSlot';
 import { useLearnProgress, useLiveNow } from './useLearnProgress';
 
@@ -16,7 +16,7 @@ export type TopicLink = { id: VocabTopicId; href: string; wordIds: string[] };
 // review of every topic's cards once one is due. The cells draw the rules, so
 // an odd last one spans the row and the outline still closes.
 export default function TopicList({ topics, reviewHref }: { topics: TopicLink[]; reviewHref: string }) {
-    const t = useT();
+    const learn = useLearnCopy();
     const { progress, now } = useLearnProgress();
     const liveNow = useLiveNow(now);
     const all = topics.map(({ wordIds }) => (liveNow !== null ? cardCounts(wordIds, progress.cards, liveNow) : null));
@@ -35,16 +35,16 @@ export default function TopicList({ topics, reviewHref }: { topics: TopicLink[];
                                 className="flex h-full flex-col gap-1 p-4 transition-colors hover:bg-surface-raised"
                             >
                                 <span className="flex items-center justify-between gap-2">
-                                    <span className="font-semibold text-ink">{t.learn.topics[id]}</span>
+                                    <span className="font-semibold text-ink">{learn.topics[id]}</span>
                                     <ArrowRightIcon className="h-4 w-4 shrink-0 text-link" aria-hidden="true" />
                                 </span>
-                                <span className="text-sm text-ink-muted">{fmt(t.learn.vocab.wordCount, { n: wordIds.length })}</span>
+                                <span className="text-sm text-ink-muted">{fmt(learn.vocab.wordCount, { n: wordIds.length })}</span>
                                 <span className="text-xs font-semibold text-accent-text">
                                     {counts
                                         ? [
-                                            counts.due > 0 ? fmt(t.learn.vocab.due, { n: counts.due }) : null,
-                                            fmt(t.learn.vocab.fresh, { n: counts.fresh }),
-                                            fmt(t.learn.vocab.learned, { n: counts.learned }),
+                                            counts.due > 0 ? fmt(learn.vocab.due, { n: counts.due }) : null,
+                                            fmt(learn.vocab.fresh, { n: counts.fresh }),
+                                            fmt(learn.vocab.learned, { n: counts.learned }),
                                         ].filter(Boolean).join(' · ')
                                         : ' '}
                                 </span>

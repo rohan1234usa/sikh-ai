@@ -6,7 +6,7 @@
 // Every Punjabi example is parallel text: Gurmukhi, the house romanization
 // (lib/translate/romanization.ts) and English together.
 // Explanations are English in every UI language, since the audience reads
-// English; the section's own chrome is translated in the dictionaries, keyed
+// English; the section's own chrome is translated in lib/i18n/learn/, keyed
 // by the ids below.
 
 export const TRACK_IDS = ['script', 'grammar', 'vocab', 'tutor'] as const;

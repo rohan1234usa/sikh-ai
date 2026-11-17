@@ -18,16 +18,20 @@ import paLatnSeva from '../../lib/i18n/seva/pa-latn';
 import enTalk from '../../lib/i18n/talk/en';
 import paTalk from '../../lib/i18n/talk/pa';
 import paLatnTalk from '../../lib/i18n/talk/pa-latn';
+import enLearn from '../../lib/i18n/learn/en';
+import paLearn from '../../lib/i18n/learn/pa';
+import paLatnLearn from '../../lib/i18n/learn/pa-latn';
 import { PHRASES } from '../../lib/translate/phrasebook';
 
 // The words of /privacy and /terms, of the Seva pages, of removing what the
-// site keeps, and of the Talk page live apart from the dictionaries, so only
-// the pages that need them ship them (lib/i18n/policy, lib/i18n/seva,
-// lib/i18n/account, lib/i18n/talk); they're audited as one with the rest,
-// under `policy.`, `seva.`, `account.` and `talk.`
-export const en = { ...enDictionary, policy: enPolicy, seva: enSeva, account: enAccount, talk: enTalk };
-export const pa = { ...paDictionary, policy: paPolicy, seva: paSeva, account: paAccount, talk: paTalk };
-export const paLatn = { ...paLatnDictionary, policy: paLatnPolicy, seva: paLatnSeva, account: paLatnAccount, talk: paLatnTalk };
+// site keeps, of the Talk page and of the Learn pages live apart from the
+// dictionaries, so only the pages that need them ship them (lib/i18n/policy,
+// lib/i18n/seva, lib/i18n/account, lib/i18n/talk, lib/i18n/learn); they're
+// audited as one with the rest, under `policy.`, `seva.`, `account.`,
+// `talk.` and `learn.`
+export const en = { ...enDictionary, policy: enPolicy, seva: enSeva, account: enAccount, talk: enTalk, learn: enLearn };
+export const pa = { ...paDictionary, policy: paPolicy, seva: paSeva, account: paAccount, talk: paTalk, learn: paLearn };
+export const paLatn = { ...paLatnDictionary, policy: paLatnPolicy, seva: paLatnSeva, account: paLatnAccount, talk: paLatnTalk, learn: paLatnLearn };
 export { PHRASES };
 
 export type Leaf = { path: string; value: string };

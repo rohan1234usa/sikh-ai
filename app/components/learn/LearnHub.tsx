@@ -17,6 +17,7 @@ import { orderLine, stepKind, trackLine, type TrackFacts } from '@/lib/learn/hub
 import { lessonPlace, nextLesson, placeHash, trackProgress, type LessonPlace } from '@/lib/learn/progress';
 import { cardCounts } from '@/lib/learn/srs';
 import { placeWords, timeWords } from '@/lib/learn/status';
+import { useLearnCopy } from './LearnCopy';
 import { useLearnProgress, useLiveNow } from './useLearnProgress';
 import Mixed from './Mixed';
 import ReviewSlot from './ReviewSlot';
@@ -52,6 +53,7 @@ const ICONS: Record<TrackId, typeof PencilSquareIcon> = {
 // of every flashcard due, once one is.
 export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props) {
     const t = useT();
+    const learn = useLearnCopy();
     const to = useLocalePath();
     const { progress, hydrated, now, reset } = useLearnProgress();
     const liveNow = useLiveNow(now);
@@ -74,7 +76,7 @@ export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props
     const place: LessonPlace = nextLink ? lessonPlace(progress, nextLink.slug, nextLink.pace.sections.length) : { kind: 'new' };
     const kind = nextLink ? stepKind(progress, nextLink.slug, place, slugs) : null;
     // How far into it the learner is, and how long it (or the rest of it) takes.
-    const meta = nextLink ? [placeWords(t, place, nextLink.pace), timeWords(t, place, nextLink.pace)].filter(Boolean).join(' · ') : '';
+    const meta = nextLink ? [placeWords(learn, place, nextLink.pace), timeWords(learn, place, nextLink.pace)].filter(Boolean).join(' · ') : '';
     const cards = liveNow !== null ? cardCounts(wordIds, progress.cards, liveNow) : null;
 
     // How far each track has come, once progress is read: lessons done, or
@@ -102,12 +104,12 @@ export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props
                     className="flex min-h-70.5 flex-col gap-4 rounded-2xl border border-edge-strong bg-surface-raised p-6 text-ink sm:min-h-36.5 sm:flex-row sm:items-center"
                 >
                     <div className={`min-w-0 flex-1 space-y-1 ${nextLink ? '' : 'flex flex-col justify-center'}`}>
-                        <h2 id={todayId} className="text-xs font-bold uppercase tracking-widest text-accent-text">{t.learn.hub.today}</h2>
+                        <h2 id={todayId} className="text-xs font-bold uppercase tracking-widest text-accent-text">{learn.hub.today}</h2>
                         {nextLink && kind ? (
                             <>
                                 <p lang="en" className="text-xl font-bold"><Mixed text={nextLink.title} /></p>
                                 <p className="text-sm text-ink-muted">
-                                    {t.learn.hub[kind]} · {t.learn.tracks[nextLink.track].title}
+                                    {learn.hub[kind]} · {learn.tracks[nextLink.track].title}
                                     <span className="hidden sm:inline"> · </span>
                                     {/* A line of its own on a phone. */}
                                     <span className="block sm:inline">{meta}</span>
@@ -115,15 +117,15 @@ export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props
                             </>
                         ) : (
                             <>
-                                <p className="text-xl font-bold">{t.learn.hub.allDone}</p>
-                                <p className="text-sm text-ink-muted">{t.learn.hub.allDoneBody}</p>
+                                <p className="text-xl font-bold">{learn.hub.allDone}</p>
+                                <p className="text-sm text-ink-muted">{learn.hub.allDoneBody}</p>
                             </>
                         )}
                     </div>
                     <div className="flex flex-col gap-2 sm:shrink-0">
                         {nextLink && (
                             <IntentLink href={nextLink.href + placeHash(place)} className={`${PRIMARY_BUTTON} ${BUTTON_LG}`}>
-                                {t.learn.hub.openLesson}
+                                {learn.hub.openLesson}
                                 <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
                             </IntentLink>
                         )}
@@ -139,7 +141,7 @@ export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props
                 {tracks.map(({ id, href }) => {
                     const Icon = ICONS[id];
                     const known = facts(id);
-                    const line = trackLine(t, id, known);
+                    const line = trackLine(learn, id, known);
                     return (
                         <li key={id} className="border-b border-r border-edge sm:last:odd:col-span-2">
                             <IntentLink
@@ -151,16 +153,16 @@ export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props
                                     finished. */}
                                 <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
                                     <Icon className="h-6 w-6 text-accent-text" aria-hidden="true" />
-                                    <span className="text-xs font-semibold text-ink-muted">{orderLine(t, id, known) ?? ' '}</span>
+                                    <span className="text-xs font-semibold text-ink-muted">{orderLine(learn, id, known) ?? ' '}</span>
                                 </span>
-                                <span className="text-lg font-semibold text-ink">{t.learn.tracks[id].title}</span>
-                                <span className="text-sm leading-relaxed text-ink-muted">{t.learn.tracks[id].desc}</span>
+                                <span className="text-lg font-semibold text-ink">{learn.tracks[id].title}</span>
+                                <span className="text-sm leading-relaxed text-ink-muted">{learn.tracks[id].desc}</span>
                                 <span className="mt-auto flex flex-col gap-2 pt-2 text-sm">
                                     <span className="flex items-center justify-between gap-2">
                                         {/* Reserves its line before progress is read. */}
                                         <span className="font-semibold text-accent-text">{line?.text ?? ' '}</span>
                                         <span className="inline-flex items-center gap-1 font-semibold text-link">
-                                            {t.learn.hub.open}
+                                            {learn.hub.open}
                                             <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
                                         </span>
                                     </span>
@@ -183,38 +185,38 @@ export default function LearnHub({ lessons, wordIds, tracks, reviewHref }: Props
 
             {/* The housekeeping, kept below what a learner can do. */}
             <footer className="space-y-2 border-t border-edge pt-6 text-sm">
-                <h2 className="text-xs font-bold uppercase tracking-widest text-accent-text">{t.learn.hub.aboutProgress}</h2>
+                <h2 className="text-xs font-bold uppercase tracking-widest text-accent-text">{learn.hub.aboutProgress}</h2>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <p className="text-ink-muted">
-                        {t.learn.hub.savedHere}{' '}
+                        {learn.hub.savedHere}{' '}
                         <IntentLink href={to('/privacy#browser')} className="underline hover:text-link">{t.footer.privacy}</IntentLink>
                     </p>
                     {hydrated && (
                         <div className="flex items-center gap-2">
                             {confirming ? (
                                 <div role="group" aria-labelledby={promptId} className="flex items-center gap-2">
-                                    <span id={promptId} className="text-ink-muted">{t.learn.hub.resetPrompt}</span>
+                                    <span id={promptId} className="text-ink-muted">{learn.hub.resetPrompt}</span>
                                     <button
                                         type="button"
                                         onClick={() => { reset(); setConfirming(false); }}
                                         className="font-semibold text-red-700 hover:underline dark:text-red-400"
                                     >
-                                        {t.learn.hub.resetConfirm}
+                                        {learn.hub.resetConfirm}
                                     </button>
                                     {/* autoFocus: it takes the place of the button just pressed. */}
                                     <button type="button" autoFocus onClick={() => setConfirming(false)} className="text-ink-muted hover:text-ink hover:underline">
-                                        {t.learn.hub.cancel}
+                                        {learn.hub.cancel}
                                     </button>
                                 </div>
                             ) : (
                                 <button ref={resetRef} type="button" onClick={() => setConfirming(true)} className="text-ink-muted hover:text-ink hover:underline">
-                                    {t.learn.hub.reset}
+                                    {learn.hub.reset}
                                 </button>
                             )}
                         </div>
                     )}
                 </div>
-                <p className="text-xs italic text-ink-muted">{t.learn.caveat}</p>
+                <p className="text-xs italic text-ink-muted">{learn.caveat}</p>
             </footer>
         </div>
     );

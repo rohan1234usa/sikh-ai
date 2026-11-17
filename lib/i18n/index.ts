@@ -1,5 +1,7 @@
-// All dictionaries are statically imported (a few KB each) so a language
-// switch is instant on the client — no dynamic-import waterfall.
+// All three dictionaries are statically imported, so every page's script
+// carries all three. Words that only one part of the site reads live apart
+// (lib/i18n/policy, seva, account, talk and learn), so they reach only the
+// pages that need them.
 
 import type { Lang } from './config';
 import en, { type Dictionary } from './dictionaries/en';
