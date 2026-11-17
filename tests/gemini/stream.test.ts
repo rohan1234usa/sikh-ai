@@ -1,7 +1,8 @@
-// The streaming mechanics the chat and the Punjabi tutor share
-// (lib/gemini/stream.ts), against the local Gemini mock. The chat's route
+// The streaming mechanics the chat, the Punjabi tutor and the translators
+// share (lib/gemini/stream.ts), against the local Gemini mock. The route
 // tests cover them end to end too; these reach the paths a route test can't
-// afford, like a model that never answers.
+// afford, like a model that never answers, or a reply still writing at the
+// route's deadline.
 
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';

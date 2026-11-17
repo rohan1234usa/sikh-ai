@@ -7,8 +7,9 @@ import {
     LEARN_FIRST_TEXT_MS,
     LIVE_TRANSLATE_BUDGET_MS,
     LIVE_TRANSLATE_FIRST_TEXT_MS,
-    TRANSLATE_ATTEMPT_MS,
     TRANSLATE_BUDGET_MS,
+    TRANSLATE_FIRST_TEXT_MS,
+    TRANSLATE_REPLY_NEEDS_MS,
     VOICE_FALLBACK_NEEDS_MS,
     VOICE_TRANSLATE_BUDGET_MS,
     VOICE_TRANSLATE_FIRST_TEXT_MS,
@@ -27,6 +28,9 @@ const CLOUD_FALLBACK_MS = 8_000;
 // The attempt's wait starts after the budget does, and a failed attempt takes
 // a moment to unwind, so a gap of exactly MIN_FALLBACK_MS still falls short.
 const UNWIND_MS = 1_000;
+// Google ends a call 1.5 to 1.9 s before the deadline it's sent
+// (X-Server-Timeout), with its own 504 (#83).
+const GOOGLE_CUTS_EARLY_MS = 2_000;
 
 test('a hung primary still leaves the fallback model room to answer', () => {
     // The bug this guards: translate ran 20 s with a 15 s attempt cap, a 5 s
@@ -34,7 +38,7 @@ test('a hung primary still leaves the fallback model room to answer', () => {
     // The live translator's 10 s and 4 s missed it the same way, by the few
     // milliseconds its first attempt took to set up.
     for (const [name, budget, attempt] of [
-        ['translate', TRANSLATE_BUDGET_MS, TRANSLATE_ATTEMPT_MS],
+        ['translate', TRANSLATE_BUDGET_MS, TRANSLATE_FIRST_TEXT_MS],
         ['chat', CHAT_BUDGET_MS, CHAT_FIRST_TEXT_MS],
         ['learn', LEARN_BUDGET_MS, LEARN_FIRST_TEXT_MS],
         ['translate live', LIVE_TRANSLATE_BUDGET_MS, LIVE_TRANSLATE_FIRST_TEXT_MS],
@@ -54,6 +58,20 @@ test("the voice fallback has time to think and still write its lines", () => {
     const left = VOICE_TRANSLATE_BUDGET_MS - VOICE_TRANSLATE_FIRST_TEXT_MS;
     assert.ok(left >= VOICE_FALLBACK_NEEDS_MS + UNWIND_MS, `the voice fallback gets ${left} ms, under the ${VOICE_FALLBACK_NEEDS_MS} ms it needs plus ${UNWIND_MS} ms to unwind`);
     assert.ok(VOICE_FALLBACK_NEEDS_MS + UNWIND_MS > 20_000 - 10_000, 'the old 20 s and 10 s would fail');
+});
+
+test("a full translation fits: the slowest measured, inside a deadline Google doesn't cut short", () => {
+    // At one 12 s attempt, which Google cut at about 10.4 s, every text over
+    // about 300 characters failed (#83).
+    assert.ok(
+        TRANSLATE_BUDGET_MS >= TRANSLATE_REPLY_NEEDS_MS + UNWIND_MS,
+        `a ${TRANSLATE_BUDGET_MS} ms budget is under the ${TRANSLATE_REPLY_NEEDS_MS} ms a full answer needs, plus ${UNWIND_MS} ms`,
+    );
+    // The route tells Google the function's own limit, not its budget.
+    assert.ok(
+        translateMaxDuration * 1000 - GOOGLE_CUTS_EARLY_MS >= TRANSLATE_BUDGET_MS,
+        "Google would end a slow reply before the route's own deadline",
+    );
 });
 
 test('the budgets fit inside the function limit', () => {

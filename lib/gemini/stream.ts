@@ -1,13 +1,16 @@
-// SERVER-ONLY: a Gemini reply streamed to the browser as plain text, shared
-// by the chat (app/api/chat) and the Punjabi tutor (app/api/learn). Do not
-// import from client components.
+// SERVER-ONLY: a Gemini reply read as a stream. The chat (app/api/chat), the
+// Punjabi tutor (app/api/learn), the live lines (app/api/translate/live) and
+// Talk (app/api/translate/voice) stream it on to the browser as plain text;
+// the translator (app/api/translate) reads it whole, and answers with JSON.
+// Do not import from client components.
 //
 // A route opens the stream with openTextStream, which reads up to the first
 // text before any Response exists. Gemini 3.x opens with a chunk that carries
 // only a thought signature, and a blocked prompt produces no text at all, so
 // deciding before answering means those get a proper JSON error instead of a
-// broken stream. With text in hand, textStreamResponse streams the rest and
-// writes the call's one log line.
+// broken stream. With text in hand, textStreamResponse streams the rest, or
+// readWholeText reads it to the end, and either writes the call's one log
+// line.
 
 import {
     FinishReason,

@@ -2,7 +2,7 @@ import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { MockGemini } from '../../scripts/mock-gemini';
 import { MAX_TRANSLATE_CHARS } from '@/lib/translate/config';
-import { captured, postJson, spendDay, startRouteMock, TEST_FALLBACK_MODEL, withFallbackModel } from '../helpers/routes';
+import { captured, logged, postJson, spendDay, startRouteMock, TEST_FALLBACK_MODEL, withFallbackModel } from '../helpers/routes';
 
 let mock: MockGemini;
 let POST: (req: Request) => Promise<Response>;
@@ -41,12 +41,37 @@ test('translates through the pinned model with the shared request', async () => 
     const data = await res.json();
     assert.equal(data.roman, 'Ki haal hai?');
     assert.equal(data.gurmukhi, 'ਕੀ ਹਾਲ ਹੈ?');
-    assert.deepEqual(requests.map(r => r.model), ['gemini-3.8-flash']);
+    // Read as a stream, so a slow reply is told apart from a stuck one (#83).
+    assert.deepEqual(requests.map(r => [r.model, r.op]), [['gemini-3.8-flash', 'streamGenerateContent']]);
+    assert.equal(requests[0].headers['x-server-timeout'], '30', "Google is told the function's 30 s, not the route's budget");
     const config = (requests[0].body as WireBody).generationConfig;
     assert.equal(config.responseMimeType, 'application/json');
     assert.equal(config.maxOutputTokens, 8192);
     assert.equal(config.thinkingConfig.thinkingLevel, 'LOW');
     assert.equal('temperature' in config, false);
+});
+
+test('a translation is one gemini_call line, with its time to first text', async () => {
+    const lines = await logged(() => translate('Ki haal hai?'));
+    const calls = lines.filter((l) => l.evt === 'gemini_call');
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].feature, 'translate');
+    assert.equal(calls[0].outcome, 'ok');
+    assert.equal(typeof calls[0].ttftMs, 'number');
+    assert.equal(calls[0].outputTokens, 340, 'the usage from the last chunk');
+});
+
+test("replies with no text keep today's answers: Cloud where it can, else translate_failed", async () => {
+    const lines = await logged(async () => {
+        const empty = await translate('MOCK_EMPTY good evening', 'english');
+        assert.equal(empty.status, 200);
+        assert.equal((await empty.json()).fallback, 'cloud');
+        const blocked = await translate('MOCK_BLOCKED main theek haan', 'punjabi-latin');
+        assert.equal(blocked.status, 502);
+        assert.equal((await blocked.json()).code, 'translate_failed');
+    });
+    assert.equal(cloudCalls, 1, 'Cloud for the English, never for romanized Punjabi');
+    assert.deepEqual(lines.filter((l) => l.evt === 'gemini_call').map((l) => l.outcome), ['unusable', 'blocked']);
 });
 
 test('a rate-limited pinned model is answered by a fallback named for the translator', async () => {

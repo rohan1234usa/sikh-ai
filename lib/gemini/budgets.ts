@@ -19,8 +19,21 @@ export const CHAT_BUDGET_MS = 27_000;
 // fallback model can still answer inside the budget.
 export const CHAT_FIRST_TEXT_MS = 10_000;
 
-export const TRANSLATE_BUDGET_MS = 20_000;
-export const TRANSLATE_ATTEMPT_MS = 12_000;
+// The translator answers with one JSON result, but reads Gemini's reply as a
+// stream (lib/gemini/stream.ts), so a stuck call is told apart from a slow
+// one by its first text. Measured on 3.8 Flash (17 November 2026, #83): the
+// first text came in 1.2 to 2.0 s, without thinking, and a full answer to
+// 300 to 1,000 characters took 11.7 to 20.8 s. So no text after 8 s means the
+// call is stuck: Cloud Translation answers, or a fallback model, if one is
+// named, gets the 14 s left. A reply that is writing gets until 22 s, the
+// most that leaves Cloud's 8 s inside maxDuration. (At one 12 s attempt,
+// which Google cut at about 10.4 s, every text over about 300 characters
+// failed: the route tells Google a later deadline now, app/api/translate.)
+export const TRANSLATE_BUDGET_MS = 22_000;
+export const TRANSLATE_FIRST_TEXT_MS = 8_000;
+// What a full answer needs: the slowest measured (20.8 s, for 978 characters
+// of Gurmukhi), rounded up. tests/api/budgets.test.ts holds the budget to it.
+export const TRANSLATE_REPLY_NEEDS_MS = 21_000;
 
 // The live translator streams three short lines while the user types, so an
 // answer that is slow is already stale: the page asks again at the next
