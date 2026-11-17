@@ -9,6 +9,7 @@ import {
     LIVE_TRANSLATE_FIRST_TEXT_MS,
     TRANSLATE_BUDGET_MS,
     TRANSLATE_FIRST_TEXT_MS,
+    TRANSLATE_GOOGLE_TIMEOUT_MS,
     TRANSLATE_REPLY_NEEDS_MS,
     VOICE_FALLBACK_NEEDS_MS,
     VOICE_TRANSLATE_BUDGET_MS,
@@ -68,8 +69,9 @@ test("a full translation fits: the slowest measured, inside a deadline Google do
         `a ${TRANSLATE_BUDGET_MS} ms budget is under the ${TRANSLATE_REPLY_NEEDS_MS} ms a full answer needs, plus ${UNWIND_MS} ms`,
     );
     // The route tells Google the function's own limit, not its budget.
+    assert.equal(TRANSLATE_GOOGLE_TIMEOUT_MS, translateMaxDuration * 1000, "Google is told the function's own limit");
     assert.ok(
-        translateMaxDuration * 1000 - GOOGLE_CUTS_EARLY_MS >= TRANSLATE_BUDGET_MS,
+        TRANSLATE_GOOGLE_TIMEOUT_MS - GOOGLE_CUTS_EARLY_MS >= TRANSLATE_BUDGET_MS,
         "Google would end a slow reply before the route's own deadline",
     );
 });

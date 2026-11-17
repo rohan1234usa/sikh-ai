@@ -2,7 +2,7 @@ import { FinishReason, GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 import { limitVisitor } from "@/lib/api/allowance";
 import { refuseCrossSite } from "@/lib/api/guard";
-import { TRANSLATE_BUDGET_MS, TRANSLATE_FIRST_TEXT_MS } from "@/lib/gemini/budgets";
+import { TRANSLATE_BUDGET_MS, TRANSLATE_FIRST_TEXT_MS, TRANSLATE_GOOGLE_TIMEOUT_MS } from "@/lib/gemini/budgets";
 import { isCapacityError, statusOf, withModelFallback } from "@/lib/gemini/fallback";
 import { openTextStream, readWholeText } from "@/lib/gemini/stream";
 import { logEvent, logRouteError, withRequestLog } from "@/lib/log";
@@ -26,10 +26,8 @@ export const maxDuration = 30;
 // TRANSLATE_FIRST_TEXT_MS is stuck, and one that is writing gets until
 // TRANSLATE_BUDGET_MS, which leaves the Cloud Translation fallback (8 s
 // timeout) its turn inside maxDuration. The numbers, as measured, live in
-// lib/gemini/budgets. Google is told the function's own limit instead of the
-// budget: it ends a call 1.5 to 1.9 s before the deadline it's sent, so the
-// budget would cut the slowest answers short, logged as Google's 504s (#83).
-const GOOGLE_TIMEOUT_MS = maxDuration * 1000;
+// lib/gemini/budgets, with TRANSLATE_GOOGLE_TIMEOUT_MS: Google is told the
+// function's own limit, not the budget, which it would cut short (#83).
 
 const FRIENDLY_ERROR = "Sorry, the translation failed. Please try again.";
 const TOO_LONG_ERROR = "That text is too long. Please try up to 1,000 characters.";
@@ -171,7 +169,7 @@ async function handlePost(req: Request) {
         signal: req.signal,
         deadline,
         firstTextMs: TRANSLATE_FIRST_TEXT_MS,
-        serverTimeoutMs: GOOGLE_TIMEOUT_MS,
+        serverTimeoutMs: TRANSLATE_GOOGLE_TIMEOUT_MS,
       }),
       { signal: req.signal, deadline },
     )

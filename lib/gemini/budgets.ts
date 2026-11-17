@@ -28,13 +28,18 @@ export const CHAT_FIRST_TEXT_MS = 10_000;
 // named, gets the 14 s left. A reply that is writing gets until 22 s, the
 // most that leaves Cloud's 8 s inside maxDuration. (The old single 12 s
 // attempt, which Google cut at about 10.4 s, failed every text over about
-// 300 characters. The route now tells Google a later deadline than its own:
-// app/api/translate/route.ts.)
+// 300 characters. The route now tells Google a later deadline than its own,
+// below.)
 export const TRANSLATE_BUDGET_MS = 22_000;
 export const TRANSLATE_FIRST_TEXT_MS = 8_000;
 // What a full answer needs: the slowest measured (20.8 s, for 978 characters
 // of Gurmukhi), rounded up. tests/api/budgets.test.ts holds the budget to it.
 export const TRANSLATE_REPLY_NEEDS_MS = 21_000;
+// What Google is told (X-Server-Timeout): the function's own 30 s, not the
+// budget. Google ends a call 1.5 to 1.9 s before the deadline it's sent, with
+// its own 504, so the budget would cut the slowest answers short. The route's
+// own timer ends the call at the budget instead.
+export const TRANSLATE_GOOGLE_TIMEOUT_MS = 30_000;
 
 // The live translator streams three short lines while the user types, so an
 // answer that is slow is already stale: the page asks again at the next
