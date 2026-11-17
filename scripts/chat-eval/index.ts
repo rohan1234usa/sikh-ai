@@ -324,9 +324,9 @@ async function main(): Promise<void> {
         if (reason) console.log(`  stopped early: ${reason}`);
         // Google serves a deprecated model with its successor (3.7 Flash with
         // 3.8 Flash since 8 Oct 2026), so a lineup can compare a model with
-        // itself without a word.
-        const others = [...new Set(answers.flatMap(a => a.run.modelVersion ?? []))]
-            .filter(version => version !== variant.model && !version.startsWith(`${variant.model}-`));
+        // itself without a word. Every answer so far has named its model
+        // exactly, so anything else is flagged.
+        const others = [...new Set(answers.flatMap(a => a.run.modelVersion ?? []))].filter(version => version !== variant.model);
         if (others.length) console.log(`  answered by ${others.join(', ')}, not the model named`);
     }
     console.log(`Report: ${path}`);
