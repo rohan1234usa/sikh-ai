@@ -72,12 +72,15 @@ function readStart(): TutorState {
 function createTutorStore() {
     let state = NOT_READ;
     const listeners = new Set<() => void>();
+    const set = (next: TutorState) => {
+        state = next;
+        for (const listener of [...listeners]) listener();
+    };
     return {
         get: () => state,
-        set(next: TutorState) {
-            state = next;
-            for (const listener of [...listeners]) listener();
-        },
+        set,
+        // Every change goes through here, from the state as it is now.
+        update: (change: (now: TutorState) => TutorState) => set(change(state)),
         subscribe(listener: () => void) {
             listeners.add(listener);
             return () => { listeners.delete(listener); };
@@ -93,10 +96,10 @@ export function useTutor() {
     // A reply is on its way exactly when the last one is streaming.
     const busy = session.exchanges.at(-1)?.reply.status === 'streaming';
 
-    const setSession = useCallback((change: (session: TutorSession) => TutorSession) => {
-        const now = store.get();
-        store.set({ ...now, session: change(now.session) });
-    }, [store]);
+    const setSession = useCallback(
+        (change: (session: TutorSession) => TutorSession) => store.update((now) => ({ ...now, session: change(now.session) })),
+        [store],
+    );
 
     useEffect(() => {
         store.set(readStart());
@@ -205,8 +208,7 @@ export function useTutor() {
     const reset = useCallback(() => {
         controllerRef.current?.abort();
         controllerRef.current = null;
-        const now = store.get();
-        store.set({ ...now, lessonNotFound: false, session: { lesson: now.session.lesson, exchanges: [] } });
+        store.update((now) => ({ ...now, lessonNotFound: false, session: { lesson: now.session.lesson, exchanges: [] } }));
     }, [store]);
 
     const dismissLesson = useCallback(() => setSession((s) => ({ ...s, lesson: null })), [setSession]);
