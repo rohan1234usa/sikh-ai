@@ -118,6 +118,39 @@ export function settleNoText(opened: OpenedNoText, call: StreamCall): 'blocked' 
     return blocked ? 'blocked' : 'empty';
 }
 
+// What a reply's chunks have said so far, and the call's one log line from
+// it: shared by the two ways a reply is read to its end, so their lines carry
+// the same fields.
+class Tally {
+    last: GenerateContentResponse | undefined;
+    // Kept from whichever chunk last carried it, in case the last one didn't.
+    usage: GenerateContentResponseUsageMetadata | undefined;
+    finishReason: FinishReason | undefined;
+    blockReason: string | undefined;
+    private logged = false;
+
+    constructor(private readonly call: StreamCall, private readonly started: number, private readonly ttftMs?: number) {}
+
+    add(chunk: GenerateContentResponse): void {
+        this.last = chunk;
+        this.usage = chunk.usageMetadata ?? this.usage;
+        this.finishReason = chunk.candidates?.[0]?.finishReason ?? this.finishReason;
+        this.blockReason = chunk.promptFeedback?.blockReason ?? this.blockReason;
+    }
+
+    // The call's one line. Any later call writes nothing.
+    log(outcome: GeminiOutcome, failure?: unknown): void {
+        if (this.logged) return;
+        this.logged = true;
+        logGeminiCall({
+            ...this.call, outcome, ms: Date.now() - this.started, ttftMs: this.ttftMs,
+            modelVersion: this.last?.modelVersion, ...usageFields(this.usage),
+            finishReason: this.finishReason, blockReason: this.blockReason,
+            ...(outcome === 'error' ? errorFields(failure) : {}),
+        });
+    }
+}
+
 // The reply as a text/plain stream: the first text, then every piece as it
 // comes. `signal` is the request's, read to tell a user who left from a
 // timeout in the log.
@@ -128,25 +161,23 @@ export function textStreamResponse(opened: OpenedText, call: StreamCall, signal:
 
     const stream = new ReadableStream<Uint8Array>({
         async start(controller) {
-            let last = first;
-            let finishReason = first.candidates?.[0]?.finishReason;
-            let blockReason: string | undefined;
+            const tally = new Tally(call, started, ttftMs);
+            tally.add(first);
             let outcome: GeminiOutcome = 'ok';
             let failure: unknown;
             try {
                 controller.enqueue(encoder.encode(text));
                 for await (const chunk of chunks) {
-                    last = chunk;
+                    tally.add(chunk);
                     // Undefined on chunks that carry only metadata
                     const piece = chunk.text;
                     if (piece) controller.enqueue(encoder.encode(piece));
-                    finishReason = chunk.candidates?.[0]?.finishReason ?? finishReason;
-                    blockReason = chunk.promptFeedback?.blockReason ?? blockReason;
                 }
                 // The SDK doesn't throw when a reply is filtered or capped — the
                 // stream just ends. Erroring the body keeps the client's contract:
                 // partial text is kept and marked interrupted, never passed off as
                 // complete.
+                const { finishReason, blockReason } = tally;
                 if (blockReason || !ENDED_NORMALLY.has(finishReason)) {
                     outcome = finishReason === FinishReason.MAX_TOKENS ? 'truncated' : 'cut';
                     throw new Error(`Reply cut short: ${blockReason ?? finishReason}`);
@@ -160,12 +191,7 @@ export function textStreamResponse(opened: OpenedText, call: StreamCall, signal:
                 // Aborts the HTTP body; the client's reader throws and keeps partial text
                 controller.error(err);
             } finally {
-                logGeminiCall({
-                    ...call, outcome, ms: Date.now() - started, ttftMs,
-                    modelVersion: last.modelVersion, ...usageFields(last.usageMetadata),
-                    finishReason, blockReason,
-                    ...(outcome === 'error' ? errorFields(failure) : {}),
-                });
+                tally.log(outcome, failure);
             }
         },
         cancel() {
@@ -201,45 +227,28 @@ export type WholeText = {
 // written here with what came before it, and thrown. A reply with no text
 // comes back empty, with its reasons, so the route judges it as any other.
 export async function readWholeText(opened: Opened, call: StreamCall, signal: AbortSignal): Promise<WholeText> {
+    const tally = new Tally(call, opened.started, opened.kind === 'text' ? opened.ttftMs : undefined);
     let text = '';
-    let ttftMs: number | undefined;
-    let last = opened.kind === 'text' ? opened.first : opened.last;
-    // Kept from whichever chunk last carried it, in case the last one didn't.
-    let usage: GenerateContentResponseUsageMetadata | undefined = last?.usageMetadata;
-    let finishReason = opened.kind === 'empty' ? opened.finishReason : last?.candidates?.[0]?.finishReason;
-    let blockReason = opened.kind === 'blocked' ? opened.reason : undefined;
-
-    let logged = false;
-    const line = (outcome: GeminiOutcome, failure?: unknown) => {
-        if (logged) return;
-        logged = true;
-        logGeminiCall({
-            ...call, outcome, ms: Date.now() - opened.started, ttftMs,
-            modelVersion: last?.modelVersion, ...usageFields(usage),
-            finishReason, blockReason,
-            ...(outcome === 'error' ? errorFields(failure) : {}),
-        });
-    };
-
-    if (opened.kind === 'text') {
+    if (opened.kind !== 'text') {
+        if (opened.last) tally.add(opened.last);
+        if (opened.kind === 'blocked') tally.blockReason ??= opened.reason;
+    } else {
+        tally.add(opened.first);
         text = opened.text;
-        ttftMs = opened.ttftMs;
         try {
             for await (const chunk of opened.stream) {
-                last = chunk;
+                tally.add(chunk);
                 // Undefined on chunks that carry only metadata
                 text += chunk.text ?? '';
-                usage = chunk.usageMetadata ?? usage;
-                finishReason = chunk.candidates?.[0]?.finishReason ?? finishReason;
-                blockReason = chunk.promptFeedback?.blockReason ?? blockReason;
             }
         } catch (err) {
             // Leaving the loop by a throw lets go of the reader, not the
             // request: stop it, or Gemini writes (and bills) the rest.
             opened.upstream.abort();
-            line(signal.aborted ? 'aborted' : isAbortError(err) ? 'timeout' : 'error', err);
+            tally.log(signal.aborted ? 'aborted' : isAbortError(err) ? 'timeout' : 'error', err);
             throw err;
         }
     }
-    return { text, finishReason, blockReason, settle: outcome => line(outcome) };
+    const { finishReason, blockReason } = tally;
+    return { text, finishReason, blockReason, settle: outcome => tally.log(outcome) };
 }
