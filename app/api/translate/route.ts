@@ -35,6 +35,9 @@ const TOO_LONG_ERROR = "That text is too long. Please try up to 1,000 characters
 // wrapper. Anything larger is refused before it is parsed.
 const MAX_BODY_CHARS = 2 * MAX_TRANSLATE_CHARS + 1000;
 const BUSY_ERROR = "The translator is busy right now. Please wait a moment and try again.";
+// Kept back from maxDuration for the answer itself, so Cloud Translation's
+// wait never runs the function past its limit.
+const ANSWER_MARGIN_MS = 1000;
 
 // Gemini is the only source of the learning aids, so when it fails we fall
 // back to a plain Cloud Translation rendering rather than nothing at all.
@@ -43,12 +46,19 @@ const BUSY_ERROR = "The translator is busy right now. Please wait a moment and t
 //
 // Kept here rather than in lib/translate/cloud.ts: shaping a TranslationResult
 // is this route's policy, while cloud.ts stays a generic transport.
+//
+// `until` is when Cloud must have answered by. Gemini can use up to
+// TRANSLATE_BUDGET_MS, so after a reply cut at that deadline Cloud gets what
+// is left of the function's limit rather than its usual 8 s: a platform 504
+// would leave the visitor no answer at all (#84 review).
 async function attemptCloudFallback(
   text: string,
   hint: SourceHint,
   detectedScript: 'gurmukhi' | 'latin',
+  until: number,
 ): Promise<TranslationResult | null> {
   const trimmed = text.trim();
+  const timeoutMs = until - Date.now();
 
   const synthesize = (
     detectedInput: DetectedInput,
@@ -67,7 +77,7 @@ async function attemptCloudFallback(
 
   // Gurmukhi input is unambiguous regardless of what the chip claims.
   if (detectedScript === 'gurmukhi') {
-    const res = await cloudTranslate({ text: trimmed, source: 'pa', target: 'en', purpose: 'fallback' });
+    const res = await cloudTranslate({ text: trimmed, source: 'pa', target: 'en', purpose: 'fallback', timeoutMs });
     return res ? synthesize('punjabi-gurmukhi', trimmed, res.translatedText) : null;
   }
 
@@ -84,18 +94,20 @@ async function attemptCloudFallback(
   if (hint === 'auto' && looksRomanizedPunjabi(trimmed)) return null;
 
   if (hint === 'english') {
-    const res = await cloudTranslate({ text: trimmed, source: 'en', target: 'pa', purpose: 'fallback' });
+    const res = await cloudTranslate({ text: trimmed, source: 'en', target: 'pa', purpose: 'fallback', timeoutMs });
     return res ? synthesize('english', res.translatedText, trimmed) : null;
   }
 
   // 'auto' + Latin that reads as English: let Cloud confirm. Its own verdict is
   // a second line of defence, not the only one — see the screen above.
-  const res = await cloudTranslate({ text: trimmed, target: 'pa', purpose: 'fallback' });
+  const res = await cloudTranslate({ text: trimmed, target: 'pa', purpose: 'fallback', timeoutMs });
   if (!res || res.detectedSourceLanguage !== 'en') return null;
   return synthesize('english', res.translatedText, trimmed);
 }
 
 async function handlePost(req: Request) {
+  // When the answer must be out by, whatever happens below.
+  const until = Date.now() + maxDuration * 1000 - ANSWER_MARGIN_MS;
   // Hoisted so the catch block can tell whether Gemini was actually attempted:
   // a body that can't be read, or a validation throw, lands in the same catch,
   // and those must not spend Cloud Translation credit.
@@ -196,7 +208,7 @@ async function handlePost(req: Request) {
       // model's own thinking trace draws from the same budget, so a short input
       // can truncate while a near-cap one does not. "Shorten it" is therefore
       // often wrong advice — try a basic rendering before falling back to it.
-      const viaCloud = await attemptCloudFallback(text, hint, detectedScript);
+      const viaCloud = await attemptCloudFallback(text, hint, detectedScript, until);
       logEvent("cloud_fallback", { feature: "translate", reason: "truncated", served: !!viaCloud });
       if (viaCloud) return NextResponse.json(viaCloud, { headers: { "Cache-Control": "no-store" } });
       return NextResponse.json({ error: TOO_LONG_ERROR, code: "translate_too_long" }, { status: 400 });
@@ -214,7 +226,7 @@ async function handlePost(req: Request) {
       const brokeOff = finishReason === undefined && !filtered && reply.text !== "";
       reply.settle(filtered ? "blocked" : brokeOff ? "cut" : "unusable");
       // Gemini answered, just not usably — a plain rendering still beats an error.
-      const viaCloud = await attemptCloudFallback(text, hint, detectedScript);
+      const viaCloud = await attemptCloudFallback(text, hint, detectedScript, until);
       logEvent("cloud_fallback", { feature: "translate", reason: brokeOff ? "gemini_failed" : "unusable", served: !!viaCloud });
       if (viaCloud) return NextResponse.json(viaCloud, { headers: { "Cache-Control": "no-store" } });
       if (brokeOff) return NextResponse.json({ error: BUSY_ERROR, code: "translate_busy" }, { status: 503 });
@@ -241,7 +253,7 @@ async function handlePost(req: Request) {
     // itself was rejected. Either way a basic translation beats an error —
     // that is the whole point of this path.
     if (text) {
-      const viaCloud = await attemptCloudFallback(text, hint, detectedScript);
+      const viaCloud = await attemptCloudFallback(text, hint, detectedScript, until);
       logEvent("cloud_fallback", { feature: "translate", reason: "gemini_failed", served: !!viaCloud });
       if (viaCloud) return NextResponse.json(viaCloud, { headers: { "Cache-Control": "no-store" } });
     }
