@@ -4,8 +4,8 @@
 // cheap checks and the same Gurbani verifier the chat page uses.
 //
 //   npm run eval:chat -- --dry-run      the plan and its cost; no API calls
-//   npm run eval:chat                   every fixture on the production model and its fallback
-//   npm run eval:chat -- --models gemini-3.8-flash,gemini-3.7-flash
+//   npm run eval:chat                   every fixture on the models a user can be answered by
+//   npm run eval:chat -- --models gemini-3.8-flash,gemini-3.6-flash
 //   npm run eval:chat -- --set gurbani-first --models gemini-3.8-flash,gemini-3.8-flash@medium --samples 3
 //   npm run eval:chat -- --capture      refresh passages.json from the app's own APIs
 //
@@ -49,7 +49,8 @@ const HELP = `Chat model eval — fixed questions through the production chat re
 
 Usage: npm run eval:chat -- [flags]
 
-  (no flags)        Every fixture on the production model and its fallback
+  (no flags)        Every fixture on the production model, and on its
+                    fallback if one is named
   --dry-run         Show the plan and its estimated cost; no API calls
   --models a,b      Variants to compare, baseline first; model@level sets the
                     thinking level (minimal, low, medium, high; default low)
@@ -207,7 +208,8 @@ async function main(): Promise<void> {
     }
 
     const passages = loadPassages();
-    // By default, the two models a user can be answered by.
+    // By default, the models a user can be answered by: the production model,
+    // and its fallback if one is named (none is by default).
     const variants = opts.variants.length
         ? opts.variants
         : [geminiModel('chat'), geminiFallbackModel('chat')].filter((m): m is string => m !== null).map(parseVariant);
@@ -320,6 +322,12 @@ async function main(): Promise<void> {
         console.log(`${variant.label}: ${answers.length}/${fixtures.length * samples.length} answered · ${failed} checks failed · ${verified}/${citations.length} quotes verified`);
         const reason = stopped.get(variant.model);
         if (reason) console.log(`  stopped early: ${reason}`);
+        // Google serves a deprecated model with its successor (3.7 Flash with
+        // 3.8 Flash since 8 Oct 2026), so a lineup can compare a model with
+        // itself without a word.
+        const others = [...new Set(answers.flatMap(a => a.run.modelVersion ?? []))]
+            .filter(version => version !== variant.model && !version.startsWith(`${variant.model}-`));
+        if (others.length) console.log(`  answered by ${others.join(', ')}, not the model named`);
     }
     console.log(`Report: ${path}`);
 
