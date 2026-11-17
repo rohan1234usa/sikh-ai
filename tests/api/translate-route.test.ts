@@ -2,7 +2,7 @@ import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { MockGemini } from '../../scripts/mock-gemini';
 import { MAX_TRANSLATE_CHARS } from '@/lib/translate/config';
-import { captured, postJson, spendDay, startRouteMock } from '../helpers/routes';
+import { captured, postJson, spendDay, startRouteMock, TEST_FALLBACK_MODEL, withFallbackModel } from '../helpers/routes';
 
 let mock: MockGemini;
 let POST: (req: Request) => Promise<Response>;
@@ -49,15 +49,17 @@ test('translates through the pinned model with the shared request', async () => 
     assert.equal('temperature' in config, false);
 });
 
-test('a rate-limited pinned model is answered by the fallback', async () => {
-    const { result: res, requests } = await captured(mock, () => translate('MOCK_429_FIRST main theek haan', 'punjabi-latin'));
+test('a rate-limited pinned model is answered by a fallback named for the translator', async () => {
+    const { result: res, requests } = await withFallbackModel('GEMINI_TRANSLATE_FALLBACK_MODEL', () =>
+        captured(mock, () => translate('MOCK_429_FIRST main theek haan', 'punjabi-latin')));
     assert.equal(res.status, 200);
     assert.equal((await res.json()).fallback, undefined);
-    assert.deepEqual(requests.map(r => r.model), ['gemini-3.8-flash', 'gemini-3.7-flash']);
+    assert.deepEqual(requests.map(r => r.model), ['gemini-3.8-flash', TEST_FALLBACK_MODEL]);
 });
 
 test('both models rate-limited: romanized input gets the busy message, no Cloud call', async () => {
-    const { result: res, requests } = await captured(mock, () => translate('MOCK_429 main theek haan', 'punjabi-latin'));
+    const { result: res, requests } = await withFallbackModel('GEMINI_TRANSLATE_FALLBACK_MODEL', () =>
+        captured(mock, () => translate('MOCK_429 main theek haan', 'punjabi-latin')));
     assert.equal(res.status, 429);
     assert.equal((await res.json()).code, 'translate_busy');
     assert.equal(requests.length, 2);
@@ -65,6 +67,23 @@ test('both models rate-limited: romanized input gets the busy message, no Cloud 
 });
 
 test('both models rate-limited: English input still gets a basic Cloud translation', async () => {
+    const { result: res, requests } = await withFallbackModel('GEMINI_TRANSLATE_FALLBACK_MODEL', () =>
+        captured(mock, () => translate('MOCK_429 good evening', 'english')));
+    assert.equal(res.status, 200);
+    assert.equal((await res.json()).fallback, 'cloud');
+    assert.equal(requests.length, 2);
+    assert.equal(cloudCalls, 1);
+});
+
+test('with no fallback named, the default, a rate-limited model goes straight to Cloud Translation', async () => {
+    const { result: res, requests } = await captured(mock, () => translate('MOCK_429_FIRST good morning', 'english'));
+    assert.equal(res.status, 200);
+    assert.equal((await res.json()).fallback, 'cloud');
+    assert.equal(requests.length, 1);
+    assert.equal(cloudCalls, 1);
+});
+
+test('a rate-limited model: English input still gets a basic Cloud translation', async () => {
     const res = await translate('MOCK_429 hello', 'english');
     assert.equal(res.status, 200);
     assert.equal((await res.json()).fallback, 'cloud');
