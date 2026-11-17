@@ -120,6 +120,17 @@ test('a rate-limited pinned model is answered by a fallback named for Talk', asy
     assert.deepEqual(requests.map((r) => r.model), ['gemini-3.8-flash', TEST_FALLBACK_MODEL]);
 });
 
+test('both models busy: 429 or 503 translate_voice_busy', async () => {
+    for (const [trigger, status] of [['MOCK_429', 429], ['MOCK_503', 503]] as const) {
+        const { result: res, requests } = await withFallbackModel('GEMINI_TRANSLATE_VOICE_FALLBACK_MODEL', () =>
+            captured(mock, () => voice(clip(trigger))));
+        assert.equal(res.status, status, trigger);
+        assert.equal(requests.length, 2, trigger);
+        assert.equal(res.headers.get('cache-control'), 'no-store');
+        assert.equal((await res.json()).code, 'translate_voice_busy');
+    }
+});
+
 test('with no fallback named, the default, a busy model is 429 or 503 translate_voice_busy after one call', async () => {
     for (const [trigger, status] of [['MOCK_429', 429], ['MOCK_503', 503]] as const) {
         const { result: res, requests } = await captured(mock, () => voice(clip(trigger)));

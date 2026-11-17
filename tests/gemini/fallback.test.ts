@@ -23,7 +23,7 @@ function scripted(errors: Record<string, Error>) {
 }
 
 // No feature has a fallback model by default, so these tests name one, as
-// an env var would; the last ones take it away again.
+// an env var would; the tests of a disabled or missing one take it away.
 const FALLBACK = 'gemini-3.6-flash';
 beforeEach(() => { process.env.GEMINI_CHAT_FALLBACK_MODEL = FALLBACK; });
 afterEach(() => { delete process.env.GEMINI_CHAT_FALLBACK_MODEL; });

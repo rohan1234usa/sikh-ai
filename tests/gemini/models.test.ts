@@ -1,4 +1,4 @@
-import { afterEach, test } from 'node:test';
+import { afterEach, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { geminiFallbackModel, geminiModel } from '@/lib/gemini/models';
 
@@ -7,7 +7,10 @@ const VARS = [
     'GEMINI_CHAT_FALLBACK_MODEL', 'GEMINI_TRANSLATE_FALLBACK_MODEL', 'GEMINI_LEARN_FALLBACK_MODEL',
     'GEMINI_TRANSLATE_LIVE_FALLBACK_MODEL', 'GEMINI_TRANSLATE_VOICE_MODEL', 'GEMINI_TRANSLATE_VOICE_FALLBACK_MODEL',
 ];
-afterEach(() => { for (const name of VARS) delete process.env[name]; });
+// The defaults are what's tested, whatever the shell has set.
+const clear = () => { for (const name of VARS) delete process.env[name]; };
+beforeEach(clear);
+afterEach(clear);
 
 test('every feature uses the pinned model by default', () => {
     assert.equal(geminiModel('chat'), 'gemini-3.8-flash');

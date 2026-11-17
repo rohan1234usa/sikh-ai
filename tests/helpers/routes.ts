@@ -17,6 +17,9 @@ export async function startRouteMock(): Promise<MockGemini> {
     // sets up (mockServiceAccount), never one from the shell.
     process.env.GOOGLE_TTS_BASE_URL = mock.url;
     delete process.env.GOOGLE_TTS_SERVICE_ACCOUNT;
+    // The models and fallbacks lib/gemini/models.ts sets, whatever the shell
+    // has set: the tests check those defaults.
+    for (const name of Object.keys(process.env)) if (/^GEMINI_\w+_MODEL$/.test(name)) delete process.env[name];
     return mock;
 }
 
@@ -86,11 +89,13 @@ export async function captured<T>(mock: MockGemini, run: () => Promise<T>) {
 // executes. The routes read it per call.
 export const TEST_FALLBACK_MODEL = 'gemini-3.6-flash';
 export async function withFallbackModel<T>(variable: string, run: () => Promise<T>): Promise<T> {
+    const before = process.env[variable];
     process.env[variable] = TEST_FALLBACK_MODEL;
     try {
         return await run();
     } finally {
-        delete process.env[variable];
+        if (before === undefined) delete process.env[variable];
+        else process.env[variable] = before;
     }
 }
 
