@@ -95,7 +95,7 @@ Setting `font-synthesis-weight: none` on the `font-gurmukhi` utility stops any b
 - **Three voices.** Source (Gurbani from GurbaniNow), SikhAI, and you each get their own register. Gurbani quoted inside a reply is set like Source, never like the AI's prose.
 - **The tukk.** The Gurmukhi, transliteration and translation are one unit wherever they appear. It is built once.
 - **Chat is a transcript.** Your line hangs on a kesri rule under "You". An answer is always labelled SikhAI, whatever lens it was asked through: the lens, which may be a Guru's name, is a setting said after the name, never the speaker. Quoted Gurbani is indented on a gold rule. The Gurbani check becomes numbered notes.
-- **Almost no motion.** Nothing fades in, floats, bounces or glows. A control eases its colour when its state changes, a placeholder pulses while something loads, and the reduced-motion rule still zeroes every duration.
+- **Motion is slight.** Nothing makes an entrance, and nothing floats, bounces or glows. Controls ease between states (a colour, a switch's knob, a disclosure's arrow, the actions that appear on hover), and placeholders pulse while something loads. The reduced-motion rule still zeroes every duration.
 
 ## As built
 
