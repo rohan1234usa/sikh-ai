@@ -35,8 +35,8 @@ export default function TranslationCard({ result, onRetryAs, onRetry }: Props) {
     const retryHint: DetectedInput =
         result.detectedInput === 'english' ? 'punjabi-latin' : 'english';
 
-    // The page keys this card by the result it shows, so a new result gets a
-    // new card and a comparison never outlives its result. Living in component
+    // The page keys this card per result shown (shownCount), so a new result
+    // gets a new card and a comparison never outlives its result. Living in component
     // state (never in `result`) is what keeps the cross-check out of history.
     const [cross, setCross] = useState<CrossState>({ status: 'idle' });
     const crossAbortRef = useRef<AbortController | null>(null);
