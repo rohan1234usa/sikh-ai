@@ -3,9 +3,10 @@
 //
 // NOTE: AI-drafted translation, pending review by a fluent speaker, following
 // the conventions of lib/i18n/dictionaries/pa.ts: formal-respectful register
-// (ਤੁਸੀਂ), Western digits, Latin punctuation in UI strings. Keep {placeholders}
-// verbatim; word order around them is free. The lessons and vocabulary
-// themselves are English in every UI language (lib/learn/content/).
+// (ਤੁਸੀਂ), Western digits, Latin punctuation in UI strings with । ending a
+// sentence. Keep {placeholders} verbatim; word order around them is free.
+// The lessons and vocabulary themselves are English in every UI language
+// (lib/learn/content/).
 
 import type { LearnCopy } from './en';
 

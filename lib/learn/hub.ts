@@ -1,5 +1,5 @@
 // What the /learn hub says about the next step and each track: pure, so the
-// tests read it against the English dictionary.
+// tests read it against Learn's English words (lib/i18n/learn/en.ts).
 
 import type { LearnCopy } from '@/lib/i18n/learn';
 import { fmt } from '@/lib/i18n/fmt';

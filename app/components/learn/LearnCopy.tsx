@@ -11,7 +11,7 @@ import { getLearnCopy, type LearnCopy } from '@/lib/i18n/learn';
 // All three languages are in that script: the bundler puts what a layout's
 // client code imports in one chunk. Passing the page's language's words from
 // the server instead would send them again with every prefetch and move
-// between Learn pages (measured in #79's PR).
+// between Learn pages (measured in #85).
 const LearnCopyContext = createContext<LearnCopy | null>(null);
 
 export function LearnCopyProvider({ children }: { children: ReactNode }) {
