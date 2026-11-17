@@ -321,7 +321,7 @@ const input: ChatInput = {
   context: sanitizeContext(context),                            // optional deep-linked passage
 };
 
-// Pinned model first; one fallback model only for capacity failures.
+// Pinned model first; a fallback model, if one is named, only for capacity failures.
 const { model, depth, value: opened } = await withModelFallback(
   'chat',
   model => openTextStream(ai, buildChatRequest(model, input), {  // reads up to the first text
