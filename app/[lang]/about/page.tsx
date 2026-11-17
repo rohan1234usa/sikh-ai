@@ -35,7 +35,7 @@ export default async function AboutPage() {
                 <div className="space-y-5 text-center md:text-left">
                     <div className="space-y-2">
                         <p className="text-xs font-bold uppercase tracking-widest text-accent-text">{t.about.builtBy}</p>
-                        <h1 className="text-4xl font-bold text-ink md:text-5xl">Rohan Singh</h1>
+                        <h1 className="text-4xl font-semibold text-ink md:text-5xl">Rohan Singh</h1>
                     </div>
 
                     {/* Split into segments so the styled spans can sit wherever

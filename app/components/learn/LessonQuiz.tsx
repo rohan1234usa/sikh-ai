@@ -17,7 +17,7 @@ export default function LessonQuiz({ slug, questions }: { slug: string; question
     const record = hydrated ? lessonRecord(progress, slug) : undefined;
 
     return (
-        <section aria-labelledby={QUIZ_ANCHOR} className="bg-surface-raised border border-edge rounded-xl shadow-sm p-4 sm:p-6 space-y-4">
+        <section aria-labelledby={QUIZ_ANCHOR} className="bg-surface-raised border border-edge rounded-xl p-4 sm:p-6 space-y-4">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h2 id={QUIZ_ANCHOR} className="text-xl font-bold text-ink">{t.learn.quiz.heading}</h2>
                 {record && (

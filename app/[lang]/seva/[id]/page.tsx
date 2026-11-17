@@ -120,7 +120,7 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
               <span className={CHIP}>{copy.common.categories[event.category]}</span>
               {isFull(event) && <span className={STATE_CHIP}>{copy.common.full}</span>}
             </p>
-            <h1 id="event-title" tabIndex={-1} className="mt-3 text-3xl font-bold text-ink md:text-4xl [overflow-wrap:anywhere]"><Mixed text={event.title} /></h1>
+            <h1 id="event-title" tabIndex={-1} className="mt-3 text-3xl font-semibold text-ink md:text-4xl [overflow-wrap:anywhere]"><Mixed text={event.title} /></h1>
             <p className="mt-2 text-ink-muted [overflow-wrap:anywhere]"><Mixed text={fmt(copy.common.hostedBy, { name: event.organizer })} /></p>
           </header>
 
@@ -129,7 +129,7 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
 
           <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:grid-rows-[auto_1fr] lg:items-start">
             <div className="space-y-6 lg:col-start-1 lg:row-start-1">
-              <dl className="space-y-4 rounded-xl border border-edge bg-surface-raised p-5 shadow-sm">
+              <dl className="space-y-4 rounded-xl border border-edge bg-surface-raised p-5">
                 <div>
                   <dt className="text-sm font-semibold text-ink-muted">{copy.common.whenLabel}</dt>
                   <dd className="mt-1 text-ink">

@@ -49,7 +49,7 @@ export default function PolicyPage<Id extends string>({ copy, vars, links, after
         <main className="flex-1 px-4 py-12">
             <article className="mx-auto max-w-2xl space-y-8">
                 <header className="space-y-3">
-                    <h1 className="text-3xl font-bold text-ink">{copy.title}</h1>
+                    <h1 className="text-3xl font-semibold text-ink">{copy.title}</h1>
                     <p className="text-sm text-ink-muted"><Item text={copy.updated} vars={vars} links={links} /></p>
                     <p className="text-ink leading-relaxed">{copy.intro}</p>
                 </header>

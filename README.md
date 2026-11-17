@@ -92,7 +92,7 @@ The chat client sends only whitelisted IDs (`lensId` / `modeId` / `languageId`, 
     *   Each page builds its own description, link preview, canonical URL and language alternates (`lib/metadata.ts`), because Next replaces a parent's `openGraph` rather than merging it.
     *   Crawlers get `robots.txt` and `sitemap.xml`.
     *   A failure in the root layout itself gets a translated, themed page (`app/global-error.tsx`) rather than Next's bare default, and is reported like any other error.
-    *   The site installs as an app on a phone: `app/manifest.ts`, and icons that are the navbar's ੴ in the site's own Gurmukhi font (`public/icon-*.png`, `app/apple-icon.png`).
+    *   The site installs as an app on a phone: `app/manifest.ts`, and icons that are the navbar's ੴ in the site's own Gurmukhi font, kesri on ink (`public/icon-*.png`, `app/apple-icon.png`, and `app/favicon.ico` for the browser tab).
     *   `/privacy` and `/terms` say, in all three languages, what the site keeps, where, for how long, what it sends to which service and how to remove it, and the few rules for using it (the AI features are for people 18 and over, as Gemini's terms require). Both render through `app/components/PolicyPage.tsx`, a server component, from sections kept in `lib/i18n/policy/` and keyed by id, so each is an anchor (`/privacy#analytics`) and the words ship only with those two pages. The limits they state are placeholders filled from the constants the code enforces (`lib/policy.ts`), and a test fails on any a page doesn't fill; the contact address is one constant (`lib/site.ts`). Visits are counted by Vercel Web Analytics, on the production deployment only, and page speed by Speed Insights: both are Vercel's own, set no cookies and load from this site. Neither counts a visitor who switches counting off on `/privacy` or whose browser sends Global Privacy Control, and every address they record has a share link's or chat's ID, query and fragment taken out (`lib/analytics.ts`). Error reports go to Sentry through the site's own server, with nothing a visitor wrote, and the same switch and Global Privacy Control stop a browser's.
     *   Anyone signed in deletes their own account, from the account menu in the navbar or from `/privacy#removing`: Google confirms it's them, then their browser takes apart everything the account keeps, under the Firestore rules and with the app's own write plans (`lib/account/deletion.ts`, run on the emulator by `tests/rules/account.rules.ts`), and deletes the account last; reports it sent stay for the admins. Share links name no account: who made one is a note only its owner can read (`users/{uid}/shares`). Anyone can clear everything the site keeps in their browser from `/privacy`, which keeps only a choice not to be counted (`lib/browserData.ts`).
 
@@ -473,6 +473,8 @@ Contributions are welcome. Any contributions you make are **greatly appreciated*
 ## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
+The Gurbani text, transliterations and translations come from [GurbaniNow](https://gurbaninow.com), the site's source for them, and aren't covered by this license, wherever they appear in the repo: the copies recorded for the tests (`tests/gurbani/fixtures/`) and for the chat eval (`scripts/chat-eval/passages.json` and its `cache.json`).
 
 ## 👤 Contact
 

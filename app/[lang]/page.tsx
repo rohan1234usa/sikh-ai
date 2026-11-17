@@ -64,7 +64,7 @@ export default async function Home() {
     <main className="flex-1 flex flex-col">
       {/* What the site is, briefly; then the day's Hukam, the page's real subject. */}
       <section className="px-6 pt-14 pb-10 text-center md:pt-20">
-        <div className="mx-auto max-w-3xl space-y-5 animate-fade-up">
+        <div className="mx-auto max-w-3xl space-y-5">
           <h1 className="text-4xl font-semibold leading-tight text-ink text-balance md:text-6xl">
             {t.home.heroLine1} <span className="text-accent-text">{t.home.heroLine2}</span>
           </h1>

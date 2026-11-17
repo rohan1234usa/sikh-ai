@@ -90,7 +90,7 @@ export default function VerseResults() {
                                     type="button"
                                     onClick={() => showSearch(to('/shabad'), { q: example })}
                                     lang={latin ? 'pa-Latn' : 'pa'}
-                                    className={`rounded border border-edge bg-surface-raised px-4 py-1.5 text-ink shadow-sm transition-colors hover:border-link/60 ${latin ? 'text-sm' : 'font-gurmukhi text-lg'}`}
+                                    className={`rounded border border-edge bg-surface-raised px-4 py-1.5 text-ink transition-colors hover:border-link/60 ${latin ? 'text-sm' : 'font-gurmukhi text-lg'}`}
                                 >
                                     {example}
                                 </button>
@@ -128,7 +128,7 @@ export default function VerseResults() {
             {!answer && (
                 <ol aria-hidden="true" className="space-y-3">
                     {[0, 1, 2].map((i) => (
-                        <li key={i} className="rounded-xl border border-edge bg-surface-raised p-4 sm:p-6 shadow-sm animate-pulse space-y-3">
+                        <li key={i} className="rounded-xl border border-edge bg-surface-raised p-4 sm:p-6 animate-pulse space-y-3">
                             <div className="h-7 w-3/4 rounded bg-edge/60" />
                             <div className="h-4 w-1/2 rounded bg-edge/60" />
                             <div className="h-4 w-2/3 rounded bg-edge/60" />

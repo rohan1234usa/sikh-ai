@@ -27,7 +27,7 @@ export default function LearnPageHeader({ t, crumbs, eyebrow, action, title, lea
                     {action}
                 </div>
             )}
-            <h1 lang={lang} className="text-3xl font-bold text-ink"><Mixed text={title} /></h1>
+            <h1 lang={lang} className="text-3xl font-semibold text-ink"><Mixed text={title} /></h1>
             {lead && <p lang={lang} className="max-w-2xl text-ink-muted"><Mixed text={lead} /></p>}
             {children && <div className="pt-3">{children}</div>}
         </header>

@@ -62,7 +62,7 @@ export default function AccountDialogHost() {
         <>
             {Dialog && <Dialog open={open} onClose={closeDeleteAccount} />}
             <p role="status" className={failed
-                ? 'fixed bottom-4 left-1/2 z-50 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-edge bg-surface-raised px-4 py-3 text-sm text-ink shadow-lg'
+                ? 'fixed bottom-4 left-1/2 z-50 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-edge bg-surface-raised px-4 py-3 text-sm text-ink'
                 : 'sr-only'}>
                 {failed ? t.nav.deleteAccountUnavailable : ''}
             </p>
