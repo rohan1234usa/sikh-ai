@@ -1200,6 +1200,246 @@
       },
       "latencyMs": 2227,
       "at": "2026-09-21T20:23:41.370Z"
+    },
+    "5b765e4c995400a767dbcdc5b5551ea1689b852fba9020c91095b4144cd5033c": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"punjabi-gurmukhi\",\n  \"gurmukhi\": \"ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ\",\n  \"roman\": \"Sat Sri Akal\",\n  \"english\": \"Sat Sri Akal\",\n  \"words\": [\n    {\n      \"source\": \"ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ\",\n      \"gurmukhi\": \"ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ\",\n      \"roman\": \"Sat Sri Akal\",\n      \"meaning\": \"Sikh greeting of respect\"\n    }\n  ],\n  \"notes\": [\n    {\n      \"kind\": \"culture\",\n      \"title\": \"Traditional Greeting\",\n      \"body\": \"Sat Sri Akal is the standard Sikh greeting, meaning Truth is the timeless Lord.\"\n    }\n  ],\n  \"pronunciation\": []\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1926,
+        "output": 191
+      },
+      "latencyMs": 1386,
+      "at": "2026-11-17T03:17:22.937Z"
+    },
+    "47cf3f07e3cf0c2f4f46822f99073d29b4c3877e6e3d2c62fc2a28a04707f902": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"punjabi-latin\",\n  \"gurmukhi\": \"ਚਾਚਾ ਜੀ\",\n  \"roman\": \"Chacha ji\",\n  \"english\": \"Uncle\",\n  \"words\": [\n    {\n      \"source\": \"Chacha ji\",\n      \"gurmukhi\": \"ਚਾਚਾ ਜੀ\",\n      \"roman\": \"Chacha ji\",\n      \"meaning\": \"paternal uncle\"\n    }\n  ],\n  \"notes\": [\n    {\n      \"kind\": \"honorific\",\n      \"title\": \"Use of Ji\",\n      \"body\": \"Ji is added to names and titles to show respect.\"\n    }\n  ],\n  \"pronunciation\": []\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1961,
+        "output": 166
+      },
+      "latencyMs": 927,
+      "at": "2026-11-17T03:17:24.476Z"
+    },
+    "4016dbb26b348615621aa36dc747cc04f1557b704869ec001fe05ee07d4995ea": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"punjabi-gurmukhi\",\n  \"gurmukhi\": \"ਲੰਗਰ ਛਕ ਲਵੋ ਜੀ\",\n  \"roman\": \"langar chhak lavo ji\",\n  \"english\": \"Please partake in langar.\",\n  \"words\": [\n    {\n      \"source\": \"ਲੰਗਰ\",\n      \"gurmukhi\": \"ਲੰਗਰ\",\n      \"roman\": \"langar\",\n      \"meaning\": \"community kitchen meal\"\n    },\n    {\n      \"source\": \"ਛਕ ਲਵੋ\",\n      \"gurmukhi\": \"ਛਕ ਲਵੋ\",\n      \"roman\": \"chhak lavo\",\n      \"meaning\": \"please partake\"\n    },\n    {\n      \"source\": \"ਜੀ\",\n      \"gurmukhi\": \"ਜੀ\",\n      \"roman\": \"ji\",\n      \"meaning\": \"respectful particle\"\n    }\n  ],\n  \"notes\": [\n    {\n      \"kind\": \"culture\",\n      \"title\": \"Langar\",\n      \"body\": \"Langar is the community-run free kitchen in a Gurdwara, where all visitors are served a vegetarian meal regardless of background.\"\n    },\n    {\n      \"kind\": \"honorific\",\n      \"title\": \"Partaking food\",\n      \"body\": \"The verb chhakna is used respectfully for eating or drinking, especially in Sikh contexts.\"\n    }\n  ],\n  \"pronunciation\": [\n    {\n      \"gurmukhi\": \"ਛਕ\",\n      \"roman\": \"chhak\",\n      \"tip\": \"Unaspirated ch followed by a light breath sound for h.\"\n    }\n  ]\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1933,
+        "output": 385
+      },
+      "latencyMs": 1563,
+      "at": "2026-11-17T03:17:27.113Z"
+    },
+    "074ab97dc6f4df0c5d83c2f9c0c747f622259d332181a68d7e488a4fc06d3fd1": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"punjabi-latin\",\n  \"gurmukhi\": \"ਹਾਂਜੀ\",\n  \"roman\": \"Haanji\",\n  \"english\": \"Yes / Affirmative (respectful)\",\n  \"words\": [\n    {\n      \"source\": \"Haanji\",\n      \"gurmukhi\": \"ਹਾਂਜੀ\",\n      \"roman\": \"haanji\",\n      \"meaning\": \"yes\"\n    }\n  ],\n  \"notes\": [\n    {\n      \"kind\": \"honorific\",\n      \"title\": \"Use of Ji\",\n      \"body\": \"Adding ji to haan (yes) creates a polite and warm affirmative commonly used in daily conversation.\"\n    }\n  ],\n  \"pronunciation\": [\n    {\n      \"gurmukhi\": \"ਹਾਂਜੀ\",\n      \"roman\": \"haanji\",\n      \"tip\": \"The first part haan has a nasalized long vowel. Let air flow slightly through your nose while saying haan.\"\n    }\n  ]\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1964,
+        "output": 230
+      },
+      "latencyMs": 1149,
+      "at": "2026-11-17T03:17:28.701Z"
+    },
+    "00eaaaac11c303aaf5b73c0888595f4662e6c66f2435ddc069ce26c509b5e71e": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"punjabi-gurmukhi\",\n  \"gurmukhi\": \"ਰੋਟੀ ਖਾ ਲਈ?\",\n  \"roman\": \"roti kha layi?\",\n  \"english\": \"Have you eaten?\",\n  \"words\": [\n    {\n      \"source\": \"ਰੋਟੀ\",\n      \"gurmukhi\": \"ਰੋਟੀ\",\n      \"roman\": \"roti\",\n      \"meaning\": \"food or bread\"\n    },\n    {\n      \"source\": \"ਖਾ ਲਈ\",\n      \"gurmukhi\": \"ਖਾ ਲਈ\",\n      \"roman\": \"kha layi\",\n      \"meaning\": \"eaten\"\n    }\n  ],\n  \"notes\": [\n    {\n      \"kind\": \"culture\",\n      \"title\": \"Hospitality and greeting\",\n      \"body\": \"Asking 'roti kha layi?' is a very common, caring way to greet family or guests in Punjabi culture, akin to asking how someone is doing.\"\n    }\n  ],\n  \"pronunciation\": [\n    {\n      \"gurmukhi\": \"ਰੋਟੀ\",\n      \"roman\": \"roti\",\n      \"tip\": \"The 't' in roti is dental, made by touching the tip of your tongue against your upper teeth, unlike the English alveolar 't'.\"\n    }\n  ]\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1926,
+        "output": 298
+      },
+      "latencyMs": 1291,
+      "at": "2026-11-17T03:17:30.845Z"
+    },
+    "dfe19242f0aee3790232ea70c85bf35c62b1c4f1a524e29ab157af06c96680bf": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"english\",\n  \"gurmukhi\": \"ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫਤਹਿ\",\n  \"roman\": \"Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh\",\n  \"english\": \"Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh\",\n  \"words\": [\n    {\n      \"source\": \"Waheguru\",\n      \"gurmukhi\": \"ਵਾਹਿਗੁਰੂ\",\n      \"roman\": \"Waheguru\",\n      \"meaning\": \"Wondrous Enlightener\"\n    },\n    {\n      \"source\": \"Ji Ka Khalsa\",\n      \"gurmukhi\": \"ਜੀ ਕਾ ਖਾਲਸਾ\",\n      \"roman\": \"Ji Ka Khalsa\",\n      \"meaning\": \"the Khalsa belongs to the Guru\"\n    },\n    {\n      \"source\": \"Waheguru Ji Ki Fateh\",\n      \"gurmukhi\": \"ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫਤਹਿ\",\n      \"roman\": \"Waheguru Ji Ki Fateh\",\n      \"meaning\": \"victory belongs to the Guru\"\n    }\n  ],\n  \"notes\": [\n    {\n      \"kind\": \"culture\",\n      \"title\": \"Sikh Greeting\",\n      \"body\": \"This is the formal greeting of the Khalsa, established by Guru Gobind Singh Ji.\"\n    }\n  ],\n  \"pronunciation\": []\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1978,
+        "output": 336
+      },
+      "latencyMs": 1464,
+      "at": "2026-11-17T03:17:33.020Z"
+    },
+    "6130125e57e30c3e3110191151bad85d18d0a70aff39dc52558dada4c178e8e2": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"punjabi-gurmukhi\",\n  \"gurmukhi\": \"ਤਾਇਆ ਜੀ\",\n  \"roman\": \"taya ji\",\n  \"english\": \"Respected uncle (father's older brother)\",\n  \"words\": [\n    {\n      \"source\": \"ਤਾਇਆ\",\n      \"gurmukhi\": \"ਤਾਇਆ\",\n      \"roman\": \"taya\",\n      \"meaning\": \"paternal uncle\"\n    },\n    {\n      \"source\": \"ਜੀ\",\n      \"gurmukhi\": \"ਜੀ\",\n      \"roman\": \"ji\",\n      \"meaning\": \"honorific suffix\"\n    }\n  ],\n  \"notes\": [\n    {\n      \"kind\": \"honorific\",\n      \"title\": \"Taya ji\",\n      \"body\": \"Taya refers specifically to the father's older brother. Ji is added as a respectful honorific.\"\n    }\n  ],\n  \"pronunciation\": [\n    {\n      \"gurmukhi\": \"ਤਾਇਆ\",\n      \"roman\": \"taya\",\n      \"tip\": \"Pronounce the t as a soft dental sound, touching the tongue to the back of the upper teeth.\"\n    }\n  ]\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1922,
+        "output": 280
+      },
+      "latencyMs": 1150,
+      "at": "2026-11-17T03:17:34.709Z"
+    },
+    "13dd5be770d203ee08096daabd45ae0fdaf73da6b111004a5d7ad397519a67b7": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"punjabi-latin\",\n  \"gurmukhi\": \"ਕੀ ਮੈਂ ਸੇਵਾ ਕਰ ਸਕਦਾ ਹਾਂ?\",\n  \"roman\": \"Ki main seva kar sakda haan?\",\n  \"english\": \"Can I do seva?\",\n  \"words\": [\n    {\n      \"source\": \"Ki\",\n      \"gurmukhi\": \"ਕੀ\",\n      \"roman\": \"ki\",\n      \"meaning\": \"what / question marker\"\n    },\n    {\n      \"source\": \"main\",\n      \"gurmukhi\": \"ਮੈਂ\",\n      \"roman\": \"main\",\n      \"meaning\": \"I\"\n    },\n    {\n      \"source\": \"seva\",\n      \"gurmukhi\": \"ਸੇਵਾ\",\n      \"roman\": \"seva\",\n      \"meaning\": \"selfless service\"\n    },\n    {\n      \"source\": \"kar sakda haan\",\n      \"gurmukhi\": \"ਕਰ ਸਕਦਾ ਹਾਂ\",\n      \"roman\": \"kar sakda haan\",\n      \"meaning\": \"can do\"\n    }\n  ],\n  \"notes\": [\n    {\n      \"kind\": \"culture\",\n      \"title\": \"Seva\",\n      \"body\": \"Seva refers to selfless service performed without any expectation of reward, typically in a Gurdwara.\"\n    }\n  ],\n  \"pronunciation\": [\n    {\n      \"gurmukhi\": \"ਸੇਵਾ\",\n      \"roman\": \"seva\",\n      \"tip\": \"Pronounce 'v' as a soft 'v' or 'w' sound, lightly touching the upper teeth to the lower lip.\"\n    }\n  ]\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1971,
+        "output": 380
+      },
+      "latencyMs": 1298,
+      "at": "2026-11-17T03:17:36.859Z"
+    },
+    "0bf5d82b9a8e98a655f4c876f136b98b174e438ea828084900872e5f3a5f7f97": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"punjabi-gurmukhi\",\n  \"gurmukhi\": \"ਅੱਛਾ\",\n  \"roman\": \"achha\",\n  \"english\": \"Achha\",\n  \"words\": [\n    {\n      \"source\": \"ਅੱਛਾ\",\n      \"gurmukhi\": \"ਅੱਛਾ\",\n      \"roman\": \"achha\",\n      \"meaning\": \"good or okay\"\n    }\n  ],\n  \"notes\": [],\n  \"pronunciation\": []\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1925,
+        "output": 119
+      },
+      "latencyMs": 877,
+      "at": "2026-11-17T03:17:38.440Z"
+    },
+    "6f093e43ebc3688166db5f94f946ad12fbf07480cd53153ca7dc81bda1dc58af": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"punjabi-latin\",\n  \"gurmukhi\": \"ਹੋਰ ਲਵੋ ਜੀ\",\n  \"roman\": \"hor lavo ji\",\n  \"english\": \"Please have some more.\",\n  \"words\": [\n    {\n      \"source\": \"Hor\",\n      \"gurmukhi\": \"ਹੋਰ\",\n      \"roman\": \"hor\",\n      \"meaning\": \"more\"\n    },\n    {\n      \"source\": \"lavo\",\n      \"gurmukhi\": \"ਲਵੋ\",\n      \"roman\": \"lavo\",\n      \"meaning\": \"take / have\"\n    },\n    {\n      \"source\": \"ji\",\n      \"gurmukhi\": \"ਜੀ\",\n      \"roman\": \"ji\",\n      \"meaning\": \"respectful particle\"\n    }\n  ],\n  \"notes\": [\n    {\n      \"kind\": \"honorific\",\n      \"title\": \"Use of Ji\",\n      \"body\": \"Ji is added at the end of sentences or names to show respect, very common in hospitality when offering food or tea.\"\n    }\n  ],\n  \"pronunciation\": [\n    {\n      \"gurmukhi\": \"ਹੋਰ\",\n      \"roman\": \"hor\",\n      \"tip\": \"The o is long and open, similar to the o in door.\"\n    }\n  ]\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1964,
+        "output": 310
+      },
+      "latencyMs": 1284,
+      "at": "2026-11-17T03:17:40.848Z"
+    },
+    "c335d68a1c10c12d836c15c70ef6dd79ba54d7e30215d4eb4356927b6a4ee59e": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"punjabi-gurmukhi\",\n  \"gurmukhi\": \"ਕੀ ਹਾਲ ਹੈ?\",\n  \"roman\": \"Ki haal hai?\",\n  \"english\": \"How are you?\",\n  \"words\": [\n    {\n      \"source\": \"ਕੀ\",\n      \"gurmukhi\": \"ਕੀ\",\n      \"roman\": \"ki\",\n      \"meaning\": \"what\"\n    },\n    {\n      \"source\": \"ਹਾਲ\",\n      \"gurmukhi\": \"ਹਾਲ\",\n      \"roman\": \"haal\",\n      \"meaning\": \"condition or state\"\n    },\n    {\n      \"source\": \"ਹੈ?\",\n      \"gurmukhi\": \"ਹੈ\",\n      \"roman\": \"hai\",\n      \"meaning\": \"is\"\n    }\n  ],\n  \"notes\": [],\n  \"pronunciation\": [\n    {\n      \"gurmukhi\": \"ਹਾਲ\",\n      \"roman\": \"haal\",\n      \"tip\": \"The aa vowel is a long open back vowel, held slightly longer than a short a.\"\n    }\n  ]\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1921,
+        "output": 254
+      },
+      "latencyMs": 1064,
+      "at": "2026-11-17T03:17:42.629Z"
+    },
+    "cd61f6d6b51f5272fcc1fdcb60f43da2f38f632c2e1f6f5ee5d3c281e0f40b16": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"english\",\n  \"gurmukhi\": \"ਮਾਮਾ ਜੀ\",\n  \"roman\": \"Mama ji\",\n  \"english\": \"Mama ji\",\n  \"words\": [\n    {\n      \"source\": \"Mama ji\",\n      \"gurmukhi\": \"ਮਾਮਾ ਜੀ\",\n      \"roman\": \"Mama ji\",\n      \"meaning\": \"maternal uncle\"\n    }\n  ],\n  \"notes\": [\n    {\n      \"kind\": \"honorific\",\n      \"title\": \"Use of Ji\",\n      \"body\": \"Ji is attached to kinship terms and names to show respect.\"\n    }\n  ],\n  \"pronunciation\": []\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1966,
+        "output": 160
+      },
+      "latencyMs": 963,
+      "at": "2026-11-17T03:17:44.527Z"
+    },
+    "d0a64da356b51907fe3a781ba9a2312b5934fba3cb55a20bca8a950277c8f42c": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"punjabi-gurmukhi\",\n  \"gurmukhi\": \"ਮੱਥਾ ਟੇਕਣਾ\",\n  \"roman\": \"matha tekna\",\n  \"english\": \"To bow down in reverence\",\n  \"words\": [\n    {\n      \"source\": \"ਮੱਥਾ ਟੇਕਣਾ\",\n      \"gurmukhi\": \"ਮੱਥਾ ਟੇਕਣਾ\",\n      \"roman\": \"matha tekna\",\n      \"meaning\": \"to bow down in reverence\"\n    }\n  ],\n  \"notes\": [\n    {\n      \"kind\": \"culture\",\n      \"title\": \"Matha Tekna\",\n      \"body\": \"This phrase refers to bowing down with one's forehead touching the ground as a sign of deep respect, typically performed in a Gurdwara before the Guru Granth Sahib.\"\n    }\n  ],\n  \"pronunciation\": [\n    {\n      \"gurmukhi\": \"ਟੇਕਣਾ\",\n      \"roman\": \"tekna\",\n      \"tip\": \"The letter ਟ is a retroflex sound; curl the tip of your tongue back slightly against the roof of your mouth.\"\n    }\n  ]\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1927,
+        "output": 270
+      },
+      "latencyMs": 1383,
+      "at": "2026-11-17T03:17:46.947Z"
+    },
+    "52be4a05d024cfb4ca4112ba9f25eed567690423d0e0f7af15eb99ada103379c": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"punjabi-latin\",\n  \"gurmukhi\": \"ਮੈਨੂੰ ਥੋੜ੍ਹੀ ਪੰਜਾਬੀ ਆਉਂਦੀ ਹੈ\",\n  \"roman\": \"Mainu thorhi Punjabi aundi hai\",\n  \"english\": \"I know a little Punjabi\",\n  \"words\": [\n    {\n      \"source\": \"Mainu\",\n      \"gurmukhi\": \"ਮੈਨੂੰ\",\n      \"roman\": \"mainu\",\n      \"meaning\": \"to me / I\"\n    },\n    {\n      \"source\": \"thorhi\",\n      \"gurmukhi\": \"ਥੋੜ੍ਹੀ\",\n      \"roman\": \"thorhi\",\n      \"meaning\": \"a little\"\n    },\n    {\n      \"source\": \"Punjabi\",\n      \"gurmukhi\": \"ਪੰਜਾਬੀ\",\n      \"roman\": \"Punjabi\",\n      \"meaning\": \"Punjabi\"\n    },\n    {\n      \"source\": \"aundi hai\",\n      \"gurmukhi\": \"ਆਉਂਦੀ ਹੈ\",\n      \"roman\": \"aundi hai\",\n      \"meaning\": \"comes / is known\"\n    }\n  ],\n  \"notes\": [\n    {\n      \"kind\": \"idiom\",\n      \"title\": \"Expressing language skills\",\n      \"body\": \"Literally translating to 'a little Punjabi comes to me', this is the standard native way to say 'I know a little Punjabi'.\"\n    }\n  ],\n  \"pronunciation\": [\n    {\n      \"gurmukhi\": \"ਥੋੜ੍ਹੀ\",\n      \"roman\": \"thorhi\",\n      \"tip\": \"The rh sound is retroflex rh, produced by curling the tip of your tongue back against the roof of the mouth.\"\n    }\n  ]\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1968,
+        "output": 406
+      },
+      "latencyMs": 1486,
+      "at": "2026-11-17T03:17:49.054Z"
+    },
+    "922d45cba9e1ba50ef6a4e2887fc34005dd246aa8b0ac3807e1c8c066ff065e5": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"punjabi-gurmukhi\",\n  \"gurmukhi\": \"ਬੱਸ ਜੀ, ਮੈਂ ਰੱਜ ਗਿਆ\",\n  \"roman\": \"Bass ji, main rajj gaya\",\n  \"english\": \"That is enough, ji, I am full.\",\n  \"words\": [\n    {\n      \"source\": \"ਬੱਸ\",\n      \"gurmukhi\": \"ਬੱਸ\",\n      \"roman\": \"bass\",\n      \"meaning\": \"enough\"\n    },\n    {\n      \"source\": \"ਜੀ\",\n      \"gurmukhi\": \"ਜੀ\",\n      \"roman\": \"ji\",\n      \"meaning\": \"respectful particle\"\n    },\n    {\n      \"source\": \"ਮੈਂ\",\n      \"gurmukhi\": \"ਮੈਂ\",\n      \"roman\": \"main\",\n      \"meaning\": \"I\"\n    },\n    {\n      \"source\": \"ਰੱਜ ਗਿਆ\",\n      \"gurmukhi\": \"ਰੱਜ ਗਿਆ\",\n      \"roman\": \"rajj gaya\",\n      \"meaning\": \"am full\"\n    }\n  ],\n  \"notes\": [\n    {\n      \"kind\": \"idiom\",\n      \"title\": \"Rajj gaya\",\n      \"body\": \"Literally meaning 'I have become satiated', this is the standard and polite way to decline more food when you are full.\"\n    },\n    {\n      \"kind\": \"honorific\",\n      \"title\": \"Ji usage\",\n      \"body\": \"Adding 'ji' at the end of 'bass' adds politeness, softening what could otherwise sound blunt.\"\n    }\n  ],\n  \"pronunciation\": [\n    {\n      \"gurmukhi\": \"ਰੱਜ\",\n      \"roman\": \"rajj\",\n      \"tip\": \"The double j (ੱ) means you hold the consonant sound slightly longer before releasing.\"\n    }\n  ]\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1932,
+        "output": 429
+      },
+      "latencyMs": 1494,
+      "at": "2026-11-17T03:17:51.061Z"
+    },
+    "d2f18302712ca149cad737b1f49dce26645cce2de209784a7364a462a85f2e1b": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"punjabi-latin\",\n  \"gurmukhi\": \"ਮੈਂ ਠੀਕ ਹਾਂ, ਤੁਸੀਂ ਦੱਸੋ\",\n  \"roman\": \"Main theek haan, tusi dasso\",\n  \"english\": \"I am fine, you tell me\",\n  \"words\": [\n    {\n      \"source\": \"Main\",\n      \"gurmukhi\": \"ਮੈਂ\",\n      \"roman\": \"main\",\n      \"meaning\": \"I\"\n    },\n    {\n      \"source\": \"theek\",\n      \"gurmukhi\": \"ਠੀਕ\",\n      \"roman\": \"theek\",\n      \"meaning\": \"fine\"\n    },\n    {\n      \"source\": \"haan\",\n      \"gurmukhi\": \"ਹਾਂ\",\n      \"roman\": \"haan\",\n      \"meaning\": \"am\"\n    },\n    {\n      \"source\": \"tusi\",\n      \"gurmukhi\": \"ਤੁਸੀਂ\",\n      \"roman\": \"tusi\",\n      \"meaning\": \"you\"\n    },\n    {\n      \"source\": \"dasso\",\n      \"gurmukhi\": \"ਦੱਸੋ\",\n      \"roman\": \"dasso\",\n      \"meaning\": \"tell\"\n    }\n  ],\n  \"notes\": [\n    {\n      \"kind\": \"honorific\",\n      \"title\": \"Polite pronoun\",\n      \"body\": \"Tusi is the respectful second-person pronoun used here even in a casual greeting.\"\n    }\n  ],\n  \"pronunciation\": [\n    {\n      \"gurmukhi\": \"ਠੀਕ\",\n      \"roman\": \"theek\",\n      \"tip\": \"Retroflex th sound is pronounced with the tongue curled back slightly against the roof of the mouth.\"\n    }\n  ]\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1970,
+        "output": 411
+      },
+      "latencyMs": 1371,
+      "at": "2026-11-17T03:17:52.940Z"
+    },
+    "ceb15845f8f8de4355de796b5b450868b0d5ee189bdfde6bafe1dbee3775d8ed": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"punjabi-gurmukhi\",\n  \"gurmukhi\": \"ਮਾਸੀ ਜੀ\",\n  \"roman\": \"masi ji\",\n  \"english\": \"Aunty ji\",\n  \"words\": [\n    {\n      \"source\": \"ਮਾਸੀ ਜੀ\",\n      \"gurmukhi\": \"ਮਾਸੀ ਜੀ\",\n      \"roman\": \"masi ji\",\n      \"meaning\": \"maternal aunt\"\n    }\n  ],\n  \"notes\": [\n    {\n      \"kind\": \"honorific\",\n      \"title\": \"Honorific Ji\",\n      \"body\": \"Ji is added to names and kinship terms to show respect.\"\n    }\n  ],\n  \"pronunciation\": []\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1922,
+        "output": 172
+      },
+      "latencyMs": 980,
+      "at": "2026-11-17T03:17:54.551Z"
+    },
+    "160f8eab4aecf588d89b3f34ac7e0d6a5e423d3b7b8fd2c0d1ddaeba2ba36e32": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"punjabi-latin\",\n  \"gurmukhi\": \"ਪਰਸ਼ਾਦ ਲਈ ਲਵੋ ਜੀ\",\n  \"roman\": \"Parshad lai lavo ji\",\n  \"english\": \"Please take the parshad.\",\n  \"words\": [\n    {\n      \"source\": \"Parshad\",\n      \"gurmukhi\": \"ਪਰਸ਼ਾਦ\",\n      \"roman\": \"parshad\",\n      \"meaning\": \"blessed food\"\n    },\n    {\n      \"source\": \"lai lavo\",\n      \"gurmukhi\": \"ਲਈ ਲਵੋ\",\n      \"roman\": \"lai lavo\",\n      \"meaning\": \"please take\"\n    },\n    {\n      \"source\": \"ji\",\n      \"gurmukhi\": \"ਜੀ\",\n      \"roman\": \"ji\",\n      \"meaning\": \"respectful particle\"\n    }\n  ],\n  \"notes\": [\n    {\n      \"kind\": \"culture\",\n      \"title\": \"Parshad\",\n      \"body\": \"Karah parshad is the blessed wheat flour sweet distributed at the end of services in a Gurdwara.\"\n    },\n    {\n      \"kind\": \"honorific\",\n      \"title\": \"Ji\",\n      \"body\": \"Ji is added at the end of sentences to show respect and warmth to guests or elders.\"\n    }\n  ],\n  \"pronunciation\": [\n    {\n      \"gurmukhi\": \"ਲਵੋ\",\n      \"roman\": \"lavo\",\n      \"tip\": \"Pronounce v with a soft English v sound.\"\n    }\n  ]\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1968,
+        "output": 368
+      },
+      "latencyMs": 1479,
+      "at": "2026-11-17T03:17:57.051Z"
+    },
+    "a9c251fc269b774316b91fedfb173f9d200f241606f5535564d17d1d0ea32e09": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"punjabi-gurmukhi\",\n  \"gurmukhi\": \"ਹੌਲੀ ਹੌਲੀ ਬੋਲੋ ਜੀ\",\n  \"roman\": \"hauli hauli bolo ji\",\n  \"english\": \"Please speak slowly.\",\n  \"words\": [\n    {\n      \"source\": \"ਹੌਲੀ ਹੌਲੀ\",\n      \"gurmukhi\": \"ਹੌਲੀ ਹੌਲੀ\",\n      \"roman\": \"hauli hauli\",\n      \"meaning\": \"slowly\"\n    },\n    {\n      \"source\": \"ਬੋਲੋ\",\n      \"gurmukhi\": \"ਬੋਲੋ\",\n      \"roman\": \"bolo\",\n      \"meaning\": \"speak\"\n    },\n    {\n      \"source\": \"ਜੀ\",\n      \"gurmukhi\": \"ਜੀ\",\n      \"roman\": \"ji\",\n      \"meaning\": \"respectful particle\"\n    }\n  ],\n  \"notes\": [\n    {\n      \"kind\": \"honorific\",\n      \"title\": \"Use of Ji\",\n      \"body\": \"Adding ji at the end of a sentence adds politeness and respect, similar to saying please.\"\n    }\n  ],\n  \"pronunciation\": [\n    {\n      \"gurmukhi\": \"ਹੌਲੀ\",\n      \"roman\": \"hauli\",\n      \"tip\": \"The au sound in hauli is pronounced like the ou in thought.\"\n    }\n  ]\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1931,
+        "output": 328
+      },
+      "latencyMs": 1178,
+      "at": "2026-11-17T03:17:58.751Z"
+    },
+    "69f59ed283f6dc5f267eeb1e88f40787bbb03ce5b4c847e7d6a81d481b97938d": {
+      "model": "gemini-3.5-flash-lite",
+      "modelVersion": "gemini-3.5-flash-lite",
+      "text": "{\n  \"detectedInput\": \"punjabi-latin\",\n  \"gurmukhi\": \"ਬਹੁਤ ਸੁਆਦ ਹੈ\",\n  \"roman\": \"bahut suaad hai\",\n  \"english\": \"It is very delicious\",\n  \"words\": [\n    {\n      \"source\": \"Bahut\",\n      \"gurmukhi\": \"ਬਹੁਤ\",\n      \"roman\": \"bahut\",\n      \"meaning\": \"very\"\n    },\n    {\n      \"source\": \"suaad\",\n      \"gurmukhi\": \"ਸੁਆਦ\",\n      \"roman\": \"suaad\",\n      \"meaning\": \"delicious\"\n    },\n    {\n      \"source\": \"hai\",\n      \"gurmukhi\": \"ਹੈ\",\n      \"roman\": \"hai\",\n      \"meaning\": \"is\"\n    }\n  ],\n  \"notes\": [],\n  \"pronunciation\": [\n    {\n      \"gurmukhi\": \"ਸੁਆਦ\",\n      \"roman\": \"suaad\",\n      \"tip\": \"Blend the u and a sounds quickly together at the start for suaad.\"\n    }\n  ]\n}",
+      "finishReason": "STOP",
+      "usage": {
+        "prompt": 1967,
+        "output": 258
+      },
+      "latencyMs": 1093,
+      "at": "2026-11-17T03:18:00.668Z"
     }
   }
 }
