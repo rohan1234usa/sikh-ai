@@ -80,6 +80,7 @@ test('a variant is a model, optionally at a thinking level; an answer is priced 
     assert.throws(() => parseVariant('a@low@high'), /expected model or model@level/);
     // 1M prompt tokens at $0.75, plus 200K output and thinking tokens at $3.75/M.
     assert.equal(costOf({ model: 'gemini-3.8-flash', usage: { prompt: 1_000_000, output: 100_000, thoughts: 100_000 } }), 1.5);
+    assert.equal(costOf({ model: 'gemini-3.8-flash', usage: { prompt: 1_000_000, output: 100_000, thoughts: 100_000 } }, '2027'), 3);
     assert.equal(costOf({ model: 'gemini-unpriced', usage: { prompt: 1 } }), null);
 });
 

@@ -116,8 +116,9 @@ async function main(): Promise<void> {
     }
     if (calls > 0) {
         console.log(
-            `\n${calls} requests, billed on a paid key (roughly 0.3 cents each on Flash). On the free\n` +
-            `tier each one instead counts against that model's daily quota — the live app's bucket.`,
+            `\n${calls} requests, billed on a paid key (roughly 0.3 cents each on 3.8 Flash, and 0.6\n` +
+            `from 1 Jan 2027). On the free tier each one instead counts against that model's daily\n` +
+            `quota — the live app's bucket.`,
         );
     }
     if (opts.dryRun) return;

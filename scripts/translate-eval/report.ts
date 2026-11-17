@@ -6,6 +6,7 @@ import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { CachedRun } from './cache';
 import type { Fixture } from './fixtures';
+import { costOf, type PriceYear } from './prices';
 import type { Score } from './score';
 
 const REPORT_PATH = resolve(import.meta.dirname, 'report.md');
@@ -68,6 +69,14 @@ function summary(models: string[], rows: Row[]): string {
             const thoughts = metered.map(x => x.run.usage.thoughts ?? 0);
             const total = metered.map((x, i) => (x.run.usage.output ?? 0) + thoughts[i]);
             return `${fixed(mean(total), 0)} (${fixed(mean(thoughts), 0)})`;
+        }],
+        // From each answer's own token counts (./prices.ts)
+        ['Est. cost per answer, 2026 · from 1 Jan 2027', a => {
+            const costs = (year: PriceYear) => a.flatMap(x => {
+                const cost = costOf(x.run.model, x.run.usage, year);
+                return cost === null ? [] : [cost];
+            });
+            return costs('2026').length ? `$${fixed(mean(costs('2026')), 4)} · $${fixed(mean(costs('2027')), 4)}` : '—';
         }],
         ['Served by', a => [...new Set(a.map(x => x.run.modelVersion ?? '?'))].join(', ') || '—'],
     ];
