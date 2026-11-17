@@ -9,6 +9,8 @@ import { GoogleGenAI } from '@google/genai';
 import { startMockGemini, type MockGemini } from '../../scripts/mock-gemini';
 import { isAbortError } from '@/lib/gemini/fallback';
 import { openTextStream, settleNoText, textStreamResponse, type Opened } from '@/lib/gemini/stream';
+import { parseTranslationResult } from '@/lib/translate/parse';
+import { buildTranslateRequest } from '@/lib/translate/prompts';
 import { readStream, startRouteMock } from '../helpers/routes';
 
 let mock: MockGemini;
@@ -105,4 +107,22 @@ test('a reader who leaves (Stop) stops Gemini generating, instead of paying for 
     } finally {
         await slow.close();
     }
+});
+
+// The translator's request, as its route builds it: it asks for JSON.
+const translateRequest = (text: string) =>
+    buildTranslateRequest('gemini-3.8-flash', text, { sourceHint: 'auto', detectedScript: 'latin' });
+const TRANSLATE_CALL = { feature: 'translate', model: 'gemini-3.8-flash', depth: 0 } as const;
+
+test("the translator's JSON streams in slices that make up the whole result", async () => {
+    const opened = await openTextStream(ai, translateRequest('Ki haal hai?'), {
+        signal: new AbortController().signal,
+        deadline: Date.now() + 20_000,
+        firstTextMs: 5000,
+    });
+    assert.ok(opened.kind === 'text', opened.kind);
+    const { text, error } = await readStream(textStreamResponse(opened, TRANSLATE_CALL, new AbortController().signal));
+    assert.equal(error, undefined);
+    assert.ok(opened.text.length < text.length, 'the first slice is not the whole reply');
+    assert.equal(parseTranslationResult(text, 'english')?.roman, 'Ki haal hai?');
 });
