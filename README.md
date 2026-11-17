@@ -474,6 +474,8 @@ Contributions are welcome. Any contributions you make are **greatly appreciated*
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
+The Gurbani text, transliterations and translations come from [GurbaniNow](https://gurbaninow.com), the site's source for them, and aren't covered by this license. That includes the copies recorded for the tests (`tests/gurbani/fixtures/`).
+
 ## 👤 Contact
 
 **Rohan Singh** — [Portfolio](https://built-by-rohan.vercel.app/) · [LinkedIn](https://www.linkedin.com/in/rohan123/)
