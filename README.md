@@ -369,7 +369,7 @@ const stream = new ReadableStream<Uint8Array>({
 
 ### 3. The Translator Route (Structured JSON)
 
-The translator needs three renditions, a word gloss, notes, and pronunciation tips as *data*, so it constrains decoding with a schema — then re-validates the result server-side. The page gets one JSON result, but the server reads Gemini's reply as a stream: a full answer to 1,000 characters takes up to about 21 s, while its first text comes in about 2 s. So a call with no text after 8 s is stuck, and Cloud Translation answers, while one that is writing gets until 22 s.
+The translator needs three renditions, a word gloss, notes, and pronunciation tips as *data*, so it constrains decoding with a schema — then re-validates the result server-side. The page gets one JSON result, but the server reads Gemini's reply as a stream: a full answer to 1,000 characters takes up to about 21 s, while its first text comes in about 2 s. So a call with no text after 8 s is stuck, and Cloud Translation answers where it can, while one that is writing gets until 22 s.
 
 ```typescript
 // lib/translate/prompts.ts — shared by the route and the eval script
