@@ -654,6 +654,11 @@ const en = {
         talkLink: 'Talk: speak, and hear the translation',
     },
 
+    // Learn's own words (/learn) live apart, in lib/i18n/learn/, so only
+    // Learn's pages carry them. Its link, title and description stay here
+    // (nav.learn, home.features.learn, meta), as do the tutor route's error
+    // messages (errors.learn_*).
+
     notFound: {
         heading: 'Page not found',
         body: "The page you're looking for doesn't exist or may have moved.",
