@@ -353,7 +353,7 @@ export default function JoinCard({ copy, words, contactFallback }: {
     }
 
     return (
-        <section aria-labelledby={`${ids}-heading`} className="rounded-xl border border-edge bg-surface-raised p-5 shadow-sm">
+        <section aria-labelledby={`${ids}-heading`} className="rounded-xl border border-edge bg-surface-raised p-5">
             <h2 ref={headingRef} id={`${ids}-heading`} tabIndex={-1} className="text-lg font-bold text-ink">{copy.joinHeading}</h2>
             <div className="mt-3">{body}</div>
             <p role="status" className={note ? 'mt-3 text-sm font-semibold text-ink' : undefined}>{note}</p>

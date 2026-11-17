@@ -16,7 +16,7 @@ export function StatusPage({ code, heading, body, children }: {
         <main className="flex-1 flex items-center justify-center px-4 py-20">
             <div className="max-w-md text-center space-y-4">
                 {code && <p className="text-sm font-semibold tracking-widest text-accent-text">{code}</p>}
-                <h1 className="text-3xl font-bold text-ink">{heading}</h1>
+                <h1 className="text-3xl font-semibold text-ink">{heading}</h1>
                 <p className="text-ink-muted">{body}</p>
                 <div className="flex flex-wrap items-center justify-center gap-3 pt-2">{children}</div>
             </div>

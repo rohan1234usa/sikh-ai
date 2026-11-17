@@ -62,7 +62,7 @@ export default function GlobalNotFound() {
             return (
               <div key={lang} lang={LANG_META[lang].htmlLang} className={`max-w-md text-center space-y-4 ${SHOWN[lang]}`}>
                 <p className="text-sm font-semibold tracking-widest text-accent-text">404</p>
-                <h1 className="text-3xl font-bold text-ink">{t.notFound.heading}</h1>
+                <h1 className="text-3xl font-semibold text-ink">{t.notFound.heading}</h1>
                 <p className="text-ink-muted">{t.notFound.body}</p>
                 <div className="pt-2">
                   <a href={localePath(lang, '/')} className={PRIMARY_BUTTON}>

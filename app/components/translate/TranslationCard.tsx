@@ -35,16 +35,14 @@ export default function TranslationCard({ result, onRetryAs, onRetry }: Props) {
     const retryHint: DetectedInput =
         result.detectedInput === 'english' ? 'punjabi-latin' : 'english';
 
+    // The page keys this card per result shown (shownCount), so a new result
+    // gets a new card and a comparison never outlives its result. Living in component
+    // state (never in `result`) is what keeps the cross-check out of history.
     const [cross, setCross] = useState<CrossState>({ status: 'idle' });
     const crossAbortRef = useRef<AbortController | null>(null);
 
-    // A new result invalidates any comparison on screen. Living in component
-    // state (never in `result`) is what keeps the cross-check out of history.
-    useEffect(() => {
-        crossAbortRef.current?.abort();
-        setCross({ status: 'idle' });
-        return () => crossAbortRef.current?.abort();
-    }, [result]);
+    // A request still on its way is stopped when the card goes, with its result.
+    useEffect(() => () => crossAbortRef.current?.abort(), []);
 
     // Always send Cloud Translation a rendition it can actually read. For
     // romanized input that means Gemini's Gurmukhi — which is also the more
@@ -102,7 +100,7 @@ export default function TranslationCard({ result, onRetryAs, onRetry }: Props) {
     ].filter(r => r.text !== '');
 
     return (
-        <div className="bg-surface-raised rounded-xl border border-edge shadow-sm p-4 sm:p-6">
+        <div className="bg-surface-raised rounded-xl border border-edge p-4 sm:p-6">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-4">
                 <span className="text-xs uppercase tracking-widest text-accent-text font-bold">
                     {fmt(t.translate.translatedAs, { label: t.translate.inputKinds[result.detectedInput] })}

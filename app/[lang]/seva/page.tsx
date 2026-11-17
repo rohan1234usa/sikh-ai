@@ -85,13 +85,13 @@ export default async function SevaBoardPage() {
           adminHref={to(ADMIN_HREF)}
         />
         {events === null ? (
-          <div className="rounded-xl border border-edge bg-surface-raised p-6 text-center shadow-sm">
+          <div className="rounded-xl border border-edge bg-surface-raised p-6 text-center">
             <h2 className="text-lg font-bold text-ink">{copy.board.unavailableTitle}</h2>
             <p className="mt-1 text-ink-muted">{copy.board.unavailableBody}</p>
             <a href={to('/seva')} className="mt-4 inline-block font-semibold text-link underline">{copy.common.retry}</a>
           </div>
         ) : events.length === 0 ? (
-          <div className="rounded-xl border border-edge bg-surface-raised p-6 text-center shadow-sm">
+          <div className="rounded-xl border border-edge bg-surface-raised p-6 text-center">
             <h2 className="text-lg font-bold text-ink">{copy.board.emptyTitle}</h2>
             <p className="mt-1 text-ink-muted">{copy.board.emptyBody}</p>
             <IntentLink href={to(CREATE_HREF)} className={`mt-4 ${PRIMARY_BUTTON}`}>{copy.board.hostCta}</IntentLink>

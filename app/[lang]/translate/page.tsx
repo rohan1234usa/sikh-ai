@@ -34,6 +34,12 @@ export default function TranslatePage() {
   const [hint, setHint] = useState<SourceHint>('auto');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TranslationResult | null>(null);
+  // Counts the different results put on screen. It keys the card, so each
+  // result gets a card of its own: a comparison asked about one result never
+  // shows under the next, even one picked from history while the card is on
+  // screen. Showing the same result again (the same text translated again,
+  // the same history entry or phrase) keeps its card, and so its comparison.
+  const [shownCount, setShownCount] = useState(0);
   // True when the shown result came from auto-detected Latin input — the only
   // case where the corrective "translate as X" link is offered.
   const [wasAutoLatin, setWasAutoLatin] = useState(false);
@@ -93,6 +99,7 @@ export default function TranslatePage() {
   const show = (input: string, sourceHint: SourceHint, shownResult: TranslationResult) => {
     setShown({ input, sourceHint });
     setResult(shownResult);
+    setShownCount((n) => (shownResult === result ? n : n + 1));
     setError('');
     setWasAutoLatin(sourceHint === 'auto' && detectScript(input) === 'latin');
   };
@@ -226,7 +233,7 @@ export default function TranslatePage() {
 
       {/* Input Header */}
       <div className="border-b border-edge bg-surface text-ink py-12 px-6 flex flex-col items-center">
-        <h1 className="text-3xl font-bold mb-2 text-center">
+        <h1 className="text-3xl font-semibold mb-2 text-center">
           {titleBefore}<span className="text-accent-text">{t.translate.titleWord}</span>{titleAfter}
         </h1>
         <p className="mb-3 text-sm text-ink-muted text-center max-w-xl">
@@ -277,6 +284,7 @@ export default function TranslatePage() {
           {result && !loading && !error && (
             <>
               <TranslationCard
+                key={shownCount}
                 result={result}
                 onRetryAs={wasAutoLatin ? handleRetryAs : undefined}
                 onRetry={() => translate(shown?.input ?? text, shown?.sourceHint ?? hint)}

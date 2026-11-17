@@ -100,7 +100,7 @@ export default function SharedChatView({ shareId }: { shareId: string }) {
         return (
             <main className="flex-1">
                 <div className="mx-auto w-full max-w-3xl px-4 py-16 text-center space-y-3">
-                    <h1 className="text-2xl font-bold text-ink">{t.share.unavailableHeading}</h1>
+                    <h1 className="text-2xl font-semibold text-ink">{t.share.unavailableHeading}</h1>
                     <p className="text-sm text-ink-muted">{t.share.unavailableBody}</p>
                     <Link href={href('/chat')} className={`inline-block ${PRIMARY}`}>{t.share.newChat}</Link>
                 </div>
@@ -130,7 +130,7 @@ export default function SharedChatView({ shareId }: { shareId: string }) {
                         <LinkIcon className="h-3.5 w-3.5" aria-hidden="true" />
                         {t.share.badge}
                     </p>
-                    <h1 className="text-2xl font-bold text-ink md:text-3xl">{chat.title || t.chat.history.untitled}</h1>
+                    <h1 className="text-2xl font-semibold text-ink md:text-3xl">{chat.title || t.chat.history.untitled}</h1>
                     {chat.updatedAt > 0 && (
                         <p className="text-sm text-ink-muted">{fmt(t.share.sharedOn, { date: formatDate(chat.updatedAt, lang) })}</p>
                     )}

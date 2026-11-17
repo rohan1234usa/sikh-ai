@@ -22,7 +22,7 @@ export default async function SevaAdminPage() {
     <main className="flex-1">
       <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6">
         <Breadcrumbs label={copy.common.breadcrumbAria} crumbs={[{ href: to('/seva'), label: copy.board.title }]} />
-        <h1 className="mt-3 text-3xl font-bold text-ink">{copy.admin.title}</h1>
+        <h1 className="mt-3 text-3xl font-semibold text-ink">{copy.admin.title}</h1>
         <AdminReview
           lang={lang}
           copy={copy.admin}

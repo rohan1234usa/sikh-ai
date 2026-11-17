@@ -21,7 +21,7 @@ export default async function CreateEventPage() {
     <main className="flex-1">
       <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
         <Breadcrumbs label={copy.common.breadcrumbAria} crumbs={[{ href: localePath(lang, '/seva'), label: copy.board.title }]} />
-        <h1 className="mt-3 text-3xl font-bold text-ink">{copy.form.createTitle}</h1>
+        <h1 className="mt-3 text-3xl font-semibold text-ink">{copy.form.createTitle}</h1>
         <p className="mt-2 text-ink-muted">{copy.form.intro}</p>
         <EventForm mode="create" {...formProps(lang, copy)} />
       </div>

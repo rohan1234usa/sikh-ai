@@ -17,7 +17,7 @@ export default function SevaHero({ lang, copy, hostHref, angHref }: {
             <div className="mx-auto max-w-4xl">
                 <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold md:text-4xl">{copy.title}</h1>
+                        <h1 className="text-3xl font-semibold md:text-4xl">{copy.title}</h1>
                         <p className="mt-2 max-w-xl text-ink-muted">{copy.lead}</p>
                     </div>
                     <IntentLink href={hostHref} className={`${PRIMARY_BUTTON} ${BUTTON_LG} shrink-0`}>

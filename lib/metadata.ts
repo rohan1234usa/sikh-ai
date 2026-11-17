@@ -12,7 +12,8 @@ import { localePath } from '@/lib/i18n/paths';
 
 export const SITE_URL = 'https://sikhai.vercel.app';
 
-// public/og.jpg: the logo at 1200×630, about 57 KB.
+// public/og.jpg: the logo at 1200×630, kesri ੴ and eggshell "SikhAI" on
+// ink, about 53 KB.
 const OG_IMAGE = { url: '/og.jpg', width: 1200, height: 630 } as const;
 
 export function openGraph(lang: Lang, t: Dictionary, title: string, url?: string, description = t.meta.description): NonNullable<Metadata['openGraph']> {

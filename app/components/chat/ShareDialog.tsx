@@ -44,7 +44,7 @@ export default function ShareDialog({ chat, onClose }: Props) {
             onCancel={onCancel}
             onClick={onClick}
             aria-labelledby="share-dialog-title"
-            className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-2xl border border-edge bg-surface-raised p-0 text-ink shadow-2xl backdrop:bg-black/40"
+            className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-2xl border border-edge bg-surface-raised p-0 text-ink backdrop:bg-black/40"
         >
             {/* Keyed by chat and gone when closed, however it was closed:
                 nothing about one chat's sharing carries into the next. */}
