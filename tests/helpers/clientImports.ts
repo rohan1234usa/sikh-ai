@@ -51,8 +51,9 @@ export const reaches = (target: string, path: string) =>
     target === path || target.startsWith(`${path}/`) || target.replace(/\.tsx?$/, '') === path;
 
 // What loads at the start, following static imports of the app's own code
-// (a package is as far as it goes). Dynamic imports are where it stops.
-export function staticReach(entries: string[]): Map<string, string> {
+// (a package is as far as it goes). Dynamic imports are where it stops,
+// unless `followDynamic` asks for everything that can load at all.
+export function staticReach(entries: string[], { followDynamic = false } = {}): Map<string, string> {
     const seen = new Map<string, string>(); // module → who imported it
     const resolve = (target: string) =>
         [`${target}.ts`, `${target}.tsx`, target, join(target, 'index.ts'), join(target, 'index.tsx')]
@@ -61,7 +62,7 @@ export function staticReach(entries: string[]): Map<string, string> {
     while (queue.length > 0) {
         const file = queue.shift()!;
         for (const i of importsOf(file, readFileSync(file, 'utf8'))) {
-            if (i.dynamic || seen.has(i.target)) continue;
+            if ((i.dynamic && !followDynamic) || seen.has(i.target)) continue;
             seen.set(i.target, file);
             const next = resolve(i.target);
             if (next) queue.push(next);

@@ -14,15 +14,17 @@ import { importsOf, isClientFile, reaches, sourceFiles, staticReach } from '../h
 
 const LEARN_COPY = join('lib', 'i18n', 'learn');
 const LEARN_COMPONENTS = join('app', 'components', 'learn');
+const LEARN_PAGES = join('app', '[lang]', 'learn');
 const PROVIDER = join(LEARN_COMPONENTS, 'LearnCopy');
 
 const moduleOf = (file: string) => file.replace(/\.tsx?$/, '').replace(/[/\\]index$/, '');
 
 test("one client module imports Learn's words: the provider Learn's layout loads", () => {
-    // Every module client code loads, however far down: lib/learn/hub.ts and
-    // lib/learn/status.ts take the words as an argument, typed only.
+    // Everything client code can load, however far down and through import()
+    // too: lib/learn/hub.ts and lib/learn/status.ts take the words as an
+    // argument, typed only.
     const client = sourceFiles().filter((file) => isClientFile(file));
-    const loaded = new Set([...staticReach(client).keys(), ...client.map(moduleOf)]);
+    const loaded = new Set([...staticReach(client, { followDynamic: true }).keys(), ...client.map(moduleOf)]);
     assert.ok(loaded.has(join('lib', 'learn', 'status')), 'followed the imports');
     const importers = sourceFiles()
         .filter((file) => loaded.has(moduleOf(file)) && !reaches(file, LEARN_COPY))
@@ -30,15 +32,30 @@ test("one client module imports Learn's words: the provider Learn's layout loads
     assert.deepEqual(importers, [`${PROVIDER}.tsx`]);
 });
 
+test("Learn's layout is what loads the provider, so the words share its one chunk", () => {
+    const layout = join(LEARN_PAGES, 'layout.tsx');
+    assert.ok(importsOf(layout).some((i) => i.target === PROVIDER && !i.dynamic), `${layout} imports ${PROVIDER}`);
+});
+
 test('no client code outside Learn loads them, however far down', () => {
     // The root layout's providers, the navbar, the dictionaries' index, and
     // every other section's components.
     const outside = sourceFiles().filter((file) => isClientFile(file) && !reaches(file, LEARN_COMPONENTS));
-    const reached = staticReach(outside);
+    const reached = staticReach(outside, { followDynamic: true });
     assert.ok(reached.has(join('lib', 'i18n', 'dictionaries', 'en')), 'followed the imports');
     for (const [target, from] of reached) {
         for (const path of [LEARN_COPY, PROVIDER]) assert.ok(!reaches(target, path), `${from} reaches ${target}`);
     }
+});
+
+test('no page outside Learn renders a component that reads them', () => {
+    // A server page may read the words (getLearnCopy), but a Learn client
+    // component under it would ship the provider's chunk with that page, and
+    // its useLearnCopy() would throw there.
+    const outside = sourceFiles(['app']).filter((file) => !reaches(file, LEARN_PAGES) && !reaches(file, LEARN_COMPONENTS));
+    const reached = staticReach(outside, { followDynamic: true });
+    assert.ok(reached.has(join(LEARN_COMPONENTS, 'Mixed')), 'followed the imports into Learn\'s shared pieces');
+    for (const [target, from] of reached) assert.ok(!reaches(target, PROVIDER), `${from} reaches ${target}`);
 });
 
 test('the dictionaries every page loads hold none of them', () => {
