@@ -18,8 +18,6 @@ type CrossState =
     | { status: 'error' }
     | { status: 'done'; text: string };
 
-const IDLE: CrossState = { status: 'idle' };
-
 type Props = {
     result: TranslationResult;
     // Provided only when the request was auto-detected Latin input — the one
@@ -37,17 +35,14 @@ export default function TranslationCard({ result, onRetryAs, onRetry }: Props) {
     const retryHint: DetectedInput =
         result.detectedInput === 'english' ? 'punjabi-latin' : 'english';
 
-    // The comparison is kept with the result it was asked about, so a new
-    // result starts without one, in the render that shows it, and an answer
-    // that arrives late for an earlier result is dropped. Living in component
+    // The page keys this card by the result it shows, so a new result gets a
+    // new card and a comparison never outlives its result. Living in component
     // state (never in `result`) is what keeps the cross-check out of history.
-    const [crossFor, setCrossFor] = useState<{ result: TranslationResult; state: CrossState }>({ result, state: IDLE });
-    if (crossFor.result !== result) setCrossFor({ result, state: IDLE });
-    const cross = crossFor.result === result ? crossFor.state : IDLE;
+    const [cross, setCross] = useState<CrossState>({ status: 'idle' });
     const crossAbortRef = useRef<AbortController | null>(null);
 
-    // A request still on its way is stopped when its result leaves the screen.
-    useEffect(() => () => crossAbortRef.current?.abort(), [result]);
+    // A request still on its way is stopped when the card goes, with its result.
+    useEffect(() => () => crossAbortRef.current?.abort(), []);
 
     // Always send Cloud Translation a rendition it can actually read. For
     // romanized input that means Gemini's Gurmukhi — which is also the more
@@ -60,8 +55,6 @@ export default function TranslationCard({ result, onRetryAs, onRetry }: Props) {
         crossAbortRef.current?.abort();
         const controller = new AbortController();
         crossAbortRef.current = controller;
-        const setCross = (state: CrossState) =>
-            setCrossFor((now) => (now.result === result ? { result, state } : now));
         setCross({ status: 'loading' });
         try {
             const res = await fetch('/api/translate/crosscheck', {

@@ -34,6 +34,10 @@ export default function TranslatePage() {
   const [hint, setHint] = useState<SourceHint>('auto');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TranslationResult | null>(null);
+  // Counts the results put on screen. It keys the card, so each result gets a
+  // card of its own: a comparison asked about one result never shows under
+  // the next, even one picked from history while the card is on screen.
+  const [shownCount, setShownCount] = useState(0);
   // True when the shown result came from auto-detected Latin input — the only
   // case where the corrective "translate as X" link is offered.
   const [wasAutoLatin, setWasAutoLatin] = useState(false);
@@ -93,6 +97,7 @@ export default function TranslatePage() {
   const show = (input: string, sourceHint: SourceHint, shownResult: TranslationResult) => {
     setShown({ input, sourceHint });
     setResult(shownResult);
+    setShownCount((n) => n + 1);
     setError('');
     setWasAutoLatin(sourceHint === 'auto' && detectScript(input) === 'latin');
   };
@@ -277,6 +282,7 @@ export default function TranslatePage() {
           {result && !loading && !error && (
             <>
               <TranslationCard
+                key={shownCount}
                 result={result}
                 onRetryAs={wasAutoLatin ? handleRetryAs : undefined}
                 onRetry={() => translate(shown?.input ?? text, shown?.sourceHint ?? hint)}
