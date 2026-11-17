@@ -78,6 +78,14 @@ function inputSection(sourceHint: SourceHint, detectedScript: 'gurmukhi' | 'lati
     return `Decide whether the input is English or romanized Punjabi and report your conclusion in ${field}. Judge by vocabulary and grammar, not by loanwords — "I love langar" is English; "main theek haan" is romanized Punjabi. For genuinely mixed input, classify by the dominant language and translate the whole text.`;
 }
 
+// Why `## Input` sits third rather than last (issue #12, measured 17 Nov
+// 2026). Moving it last would let calls with different inputs share all but
+// the last ~300 characters of the instruction, but that saves nothing:
+// Gemini's implicit cache never served any part of these requests (1,600 to
+// 2,300 tokens), even when the whole instruction repeated. Hits came only
+// from about 3,300 tokens, and Google documents 4,096 for 3.8 Flash. The
+// eval showed no difference from the move either way. The live and voice
+// instructions below are in the same position.
 export function composeTranslateInstruction(opts: {
     sourceHint: SourceHint;
     detectedScript: 'gurmukhi' | 'latin';

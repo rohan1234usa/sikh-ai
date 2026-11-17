@@ -3,6 +3,8 @@
 
 import { ThinkingLevel } from '@google/genai';
 import type { Citation } from '../../lib/gurbani/citations';
+import type { Usage } from '../translate-eval/cache';
+import { costOf as priceRun, type PriceYear } from '../translate-eval/prices';
 
 export type ChatRun = {
     fixture: string;
@@ -13,7 +15,7 @@ export type ChatRun = {
     text: string;
     finishReason?: string;
     blockReason?: string;
-    usage: { prompt?: number; output?: number; thoughts?: number };
+    usage: Usage;
     ttftMs: number | null;
     latencyMs: number;
     at: string;
@@ -40,20 +42,8 @@ export function parseVariant(label: string): Variant {
     return { label, model, thinkingLevel };
 }
 
-// Paid tier, US$ per 1M tokens (input; output including thinking), from
-// Google's pricing page as of 16 Sep 2026. The 3.6-3.8 Flash rates are
-// introductory until 31 Dec 2026 and double on 1 Jan 2027.
-export const PRICES: Record<string, [number, number]> = {
-    'gemini-3.8-flash': [0.75, 3.75],
-    'gemini-3.7-flash': [0.75, 3.75],
-    'gemini-3.6-flash': [0.75, 3.75],
-    'gemini-3.5-flash': [1.5, 9],
-    'gemini-3.5-flash-lite': [0.3, 2.5],
-};
-
-export function costOf(run: Pick<ChatRun, 'model' | 'usage'>): number | null {
-    const price = PRICES[run.model];
-    if (!price || run.usage.prompt === undefined) return null;
-    const output = (run.usage.output ?? 0) + (run.usage.thoughts ?? 0);
-    return (run.usage.prompt * price[0] + output * price[1]) / 1e6;
+// At the 2026 rates unless told otherwise; the prices are shared with the
+// translator eval (../translate-eval/prices.ts).
+export function costOf(run: Pick<ChatRun, 'model' | 'usage'>, year: PriceYear = '2026'): number | null {
+    return priceRun(run.model, run.usage, year);
 }

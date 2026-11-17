@@ -8,6 +8,7 @@ import type { ChatContext } from '../../lib/chat/config';
 import { CITATION_STATUSES, type Citation, type CitationStatus } from '../../lib/gurbani/citations';
 import { finishedNormally } from './checks';
 import type { ChatFixture } from './fixtures';
+import type { PriceYear } from '../translate-eval/prices';
 import type { ChatRun } from './run';
 
 const REPORT_PATH = resolve(import.meta.dirname, 'report.md');
@@ -17,7 +18,7 @@ export type Answer = {
     sample: number;
     run: ChatRun;
     failures: { check: string; reason: string }[];
-    cost: number | null;
+    cost: Record<PriceYear, number | null>;
 };
 
 type Row = { fixture: ChatFixture; answers: Answer[] };
@@ -55,6 +56,11 @@ function median(xs: number[]): number {
 // short" in one column and fine in another.
 const endedEarly = (run: ChatRun) => finishedNormally({ text: run.text, context: null, finishReason: run.finishReason }) !== null;
 
+// What Gemini's implicit cache served is known only when every run recorded
+// it. Runs saved before 17 Nov 2026 didn't.
+const meanCached = (runs: ChatRun[]) =>
+    runs.length && runs.every(r => r.usage.cached !== undefined) ? `${Math.round(mean(runs.map(r => r.usage.cached ?? 0)))}` : '—';
+
 function citationCounts(citations: Citation[]): string {
     if (!citations.length) return 'none quoted';
     const parts = CITATION_STATUSES.flatMap(status => {
@@ -76,7 +82,7 @@ function summary(answers: Answer[], expected: number): [string, string][] {
     const checked = runs.filter(r => r.citations !== undefined);
     const citations = checked.flatMap(r => r.citations!);
     const exact = citations.filter(c => c.status === 'verified' && c.exact).length;
-    const costs = answers.map(a => a.cost).filter((c): c is number => c !== null);
+    const costs = (year: PriceYear) => answers.map(a => a.cost[year]).filter((c): c is number => c !== null);
     const checks = answers.reduce((n, a) => n + a.failures.length, 0);
     const versions = [...new Set(runs.map(r => r.modelVersion).filter(Boolean))].join(', ') || '—';
     return [
@@ -84,10 +90,12 @@ function summary(answers: Answer[], expected: number): [string, string][] {
         ['Median time to first text', seconds(median(runs.flatMap(r => (r.ttftMs === null ? [] : [r.ttftMs]))))],
         ['Median total time', seconds(median(runs.map(r => r.latencyMs)))],
         ['Mean words', Number.isNaN(mean(runs.map(r => words(r.text)))) ? '—' : Math.round(mean(runs.map(r => words(r.text)))).toString()],
-        ['Mean tokens in / out (thinking)', runs.length
-            ? `${Math.round(mean(runs.map(r => r.usage.prompt ?? 0)))} / ${Math.round(mean(runs.map(r => r.usage.output ?? 0)))} (${Math.round(mean(runs.map(r => r.usage.thoughts ?? 0)))})`
+        ['Mean tokens in (cached) / out (thinking)', runs.length
+            ? `${Math.round(mean(runs.map(r => r.usage.prompt ?? 0)))} (${meanCached(runs)}) / ${Math.round(mean(runs.map(r => r.usage.output ?? 0)))} (${Math.round(mean(runs.map(r => r.usage.thoughts ?? 0)))})`
             : '—'],
-        ['Est. cost per answer', costs.length ? `$${mean(costs).toFixed(4)}` : '—'],
+        ['Est. cost per answer, 2026 · from 1 Jan 2027', costs('2026').length
+            ? `$${mean(costs('2026')).toFixed(4)} · $${mean(costs('2027')).toFixed(4)}`
+            : '—'],
         ['Checks failed', `${checks}`],
         ['Cut short (not a normal finish)', `${runs.filter(endedEarly).length}`],
         ['Gurbani quotes', `${citationCounts(citations)}${exact ? ` (${exact} spelled exactly)` : ''}`],
@@ -120,8 +128,9 @@ export function writeReport(input: ReportInput): string {
         'Every answer went through the production request (`buildChatRequest`), streamed as the route streams it. ' +
             'Every Gurbani quote is checked by the chat page\'s own verifier against GurbaniNow (the chat itself ' +
             'shows cards for the first six): *altered* means the ' +
-            'closest real line differs from the quote, *not found* means no line matched at all. Costs use the ' +
-            'introductory Sept 2026 prices, which double on 1 Jan 2027.',
+            'closest real line differs from the quote, *not found* means no line matched at all. Costs come from ' +
+            'each answer\'s own token counts at Gemini\'s paid-tier prices, through 31 Dec 2026 and from 1 Jan 2027, ' +
+            'when 3.6 and 3.8 Flash cost twice as much (`scripts/translate-eval/prices.ts`).',
         '',
         '## Summary',
         '',

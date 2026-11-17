@@ -29,7 +29,8 @@ import { verifyReply } from '../../lib/gurbani/verify';
 import { getDictionary } from '../../lib/i18n';
 import { loadEnvLocal } from '../i18n-audit/env';
 import { loadCache, pruneCache, runKey, saveCache } from '../translate-eval/cache';
-import { pacer, withRetries } from '../translate-eval/call';
+import { pacer, usageOf, withRetries } from '../translate-eval/call';
+import { priceYear } from '../translate-eval/prices';
 import { FIXTURES, SETS, type ChatFixture, type Passage, type SetName } from './fixtures';
 import type { Reply } from './checks';
 import { writeReport, type Answer } from './report';
@@ -63,7 +64,8 @@ Usage: npm run eval:chat -- [flags]
   --capture         Refresh passages.json (today's Hukamnama, Ang ${SHABAD_ANG}) and exit
   --help            This message
 
-Every request is billed on a paid key: about half a cent per answer on Flash.
+Every request is billed on a paid key: about a third of a cent per answer on
+3.8 Flash, and twice that from 1 Jan 2027.
 `;
 
 type Options = {
@@ -154,11 +156,7 @@ async function streamOnce(ai: GoogleGenAI, request: GenerateContentParameters): 
         text,
         finishReason: last?.candidates?.[0]?.finishReason,
         blockReason: last?.promptFeedback?.blockReason,
-        usage: {
-            prompt: last?.usageMetadata?.promptTokenCount,
-            output: last?.usageMetadata?.candidatesTokenCount,
-            thoughts: last?.usageMetadata?.thoughtsTokenCount,
-        },
+        usage: usageOf(last?.usageMetadata),
         ttftMs: ttft === null ? null : Math.round(ttft),
         latencyMs: Math.round(performance.now() - started),
         at: new Date().toISOString(),
@@ -228,11 +226,13 @@ async function main(): Promise<void> {
     }))));
     const pending = jobs.filter(job => !(job.key in cache.entries));
 
-    // Priced from cached answers to the same question where there are any.
+    // Priced from cached answers to the same question where there are any,
+    // at the rates in force today.
+    const year = priceYear(new Date());
     const estimate = pending.reduce((sum, job) => {
         const seen = Object.values(cache.entries).filter(run => run.fixture === job.fixture.id && run.model === job.variant.model);
-        const cost = seen.length ? seen.map(costOf).filter((c): c is number => c !== null)[0] : null;
-        return sum + (cost ?? costOf({ model: job.variant.model, usage: { prompt: 2000, output: 1000 } }) ?? 0.005);
+        const cost = seen.length ? seen.map(run => costOf(run, year)).filter((c): c is number => c !== null)[0] : null;
+        return sum + (cost ?? costOf({ model: job.variant.model, usage: { prompt: 2000, output: 1000 } }, year) ?? 0.005);
     }, 0);
 
     console.log(`Plan: ${fixtures.length} fixtures (${opts.set}) × ${variants.length} variants × ${samples.length} samples; baseline ${variants[0].label}`);
@@ -306,7 +306,7 @@ async function main(): Promise<void> {
                 const reason = check.run(reply);
                 return reason ? [{ check: check.name, reason }] : [];
             });
-            return [{ variant: job.variant.label, sample: job.sample, run, failures, cost: costOf(run) }];
+            return [{ variant: job.variant.label, sample: job.sample, run, failures, cost: { '2026': costOf(run, '2026'), '2027': costOf(run, '2027') } }];
         }),
     }));
     // Every question's settings on the baseline: any prompt or passage edit changes it.

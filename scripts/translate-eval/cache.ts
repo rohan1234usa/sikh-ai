@@ -10,13 +10,18 @@ import { resolve } from 'node:path';
 
 const CACHE_PATH = resolve(import.meta.dirname, 'cache.json');
 
+// Token counts as the API reported them. `cached` is the part of `prompt`
+// that Gemini's implicit cache served at a tenth of the price. Runs saved
+// before 17 Nov 2026 didn't record it.
+export type Usage = { prompt?: number; cached?: number; output?: number; thoughts?: number };
+
 export type CachedRun = {
     model: string;         // what was requested
     modelVersion?: string; // what the API says actually served it
     text: string;          // raw model output; '' when there was none
     finishReason?: string;
     blockReason?: string;
-    usage: { prompt?: number; output?: number; thoughts?: number };
+    usage: Usage;
     latencyMs: number;
     at: string;
 };

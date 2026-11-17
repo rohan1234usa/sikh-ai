@@ -4,8 +4,14 @@
 // quota, empty prepaid balance, bad model name, rejected key) stops the run,
 // and whatever was answered before it stays cached.
 
-import { ApiError, type GenerateContentParameters, type GenerateContentResponse, type GoogleGenAI } from '@google/genai';
-import type { CachedRun } from './cache';
+import {
+    ApiError,
+    type GenerateContentParameters,
+    type GenerateContentResponse,
+    type GenerateContentResponseUsageMetadata,
+    type GoogleGenAI,
+} from '@google/genai';
+import type { CachedRun, Usage } from './cache';
 
 export type Outcome<T = CachedRun> = { run: T } | { stop: string } | { skip: string };
 
@@ -25,6 +31,19 @@ function retryDelayMs(message: string): number {
     return (match ? Number(match[1]) : 60) * 1000 + 1000;
 }
 
+// What a call used, as the API reported it. The API leaves out the cached
+// count when its cache served nothing, so a call it reported on records 0,
+// which tells it apart from a run saved before the count was kept.
+export function usageOf(metadata?: GenerateContentResponseUsageMetadata): Usage {
+    if (!metadata) return {};
+    return {
+        prompt: metadata.promptTokenCount,
+        cached: metadata.cachedContentTokenCount ?? 0,
+        output: metadata.candidatesTokenCount,
+        thoughts: metadata.thoughtsTokenCount,
+    };
+}
+
 function toRun(model: string, res: GenerateContentResponse, latencyMs: number): CachedRun {
     return {
         model,
@@ -32,11 +51,7 @@ function toRun(model: string, res: GenerateContentResponse, latencyMs: number): 
         text: res.text ?? '',
         finishReason: res.candidates?.[0]?.finishReason,
         blockReason: res.promptFeedback?.blockReason,
-        usage: {
-            prompt: res.usageMetadata?.promptTokenCount,
-            output: res.usageMetadata?.candidatesTokenCount,
-            thoughts: res.usageMetadata?.thoughtsTokenCount,
-        },
+        usage: usageOf(res.usageMetadata),
         latencyMs: Math.round(latencyMs),
         at: new Date().toISOString(),
     };

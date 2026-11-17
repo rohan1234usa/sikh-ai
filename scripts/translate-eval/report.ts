@@ -6,6 +6,7 @@ import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { CachedRun } from './cache';
 import type { Fixture } from './fixtures';
+import { costOf, type PriceYear } from './prices';
 import type { Score } from './score';
 
 const REPORT_PATH = resolve(import.meta.dirname, 'report.md');
@@ -53,12 +54,29 @@ function summary(models: string[], rows: Row[]): string {
             return `${fixed(mean(ok.map(r => r.words.length)), 1)} · ${fixed(mean(ok.map(r => r.notes.length)), 1)} · ${fixed(mean(ok.map(r => r.pronunciation.length)), 1)}`;
         }],
         ['Median latency', a => `${fixed(median(a.map(x => x.run.latencyMs)) / 1000, 1)} s`],
+        // What Gemini's implicit cache served is known only when every run
+        // recorded it. Runs saved before 17 Nov 2026 didn't.
+        ['Mean input tokens (cached)', a => {
+            const metered = a.filter(x => x.run.usage.prompt !== undefined);
+            const cached = metered.length && metered.every(x => x.run.usage.cached !== undefined)
+                ? fixed(mean(metered.map(x => x.run.usage.cached ?? 0)), 0)
+                : '—';
+            return `${fixed(mean(metered.map(x => x.run.usage.prompt ?? 0)), 0)} (${cached})`;
+        }],
         // Thinking is billed as output, so it is counted in the total too
         ['Mean output tokens (of which thinking)', a => {
             const metered = a.filter(x => x.run.usage.output !== undefined);
             const thoughts = metered.map(x => x.run.usage.thoughts ?? 0);
             const total = metered.map((x, i) => (x.run.usage.output ?? 0) + thoughts[i]);
             return `${fixed(mean(total), 0)} (${fixed(mean(thoughts), 0)})`;
+        }],
+        // From each answer's own token counts (./prices.ts)
+        ['Est. cost per answer, 2026 · from 1 Jan 2027', a => {
+            const costs = (year: PriceYear) => a.flatMap(x => {
+                const cost = costOf(x.run.model, x.run.usage, year);
+                return cost === null ? [] : [cost];
+            });
+            return costs('2026').length ? `$${fixed(mean(costs('2026')), 4)} · $${fixed(mean(costs('2027')), 4)}` : '—';
         }],
         ['Served by', a => [...new Set(a.map(x => x.run.modelVersion ?? '?'))].join(', ') || '—'],
     ];
