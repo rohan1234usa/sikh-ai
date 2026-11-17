@@ -83,7 +83,7 @@ export function geminiModel(feature: GeminiFeature): string {
 export function geminiFallbackModel(feature: GeminiFeature): string | null {
     const { fallbackEnv, fallback } = MODELS[feature];
     const raw = process.env[fallbackEnv];
-    const model: string | null = raw === undefined ? fallback : raw.trim();
+    const model = raw === undefined ? fallback : raw.trim();
     if (model === null || OFF.has(model.toLowerCase())) return null;
     return model === geminiModel(feature) ? null : model;
 }

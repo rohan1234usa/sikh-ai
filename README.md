@@ -135,7 +135,7 @@ Follow these steps to set up the project locally.
     # for the translator) before naming it. A deprecated name is no second
     # model: Google serves gemini-3.7-flash with 3.8 Flash.
     # GEMINI_CHAT_FALLBACK_MODEL=off
-    # GEMINI_TRANSLATE_FALLBACK_MODEL=gemini-3.6-flash
+    # GEMINI_TRANSLATE_FALLBACK_MODEL=off
     # The Punjabi tutor (/api/learn) has its own pair.
     # GEMINI_LEARN_MODEL=gemini-3.8-flash
     # GEMINI_LEARN_FALLBACK_MODEL=off

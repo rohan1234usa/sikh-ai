@@ -66,6 +66,15 @@ test('both models rate-limited: romanized input gets the busy message, no Cloud 
     assert.equal(cloudCalls, 0, 'Cloud Translation cannot read romanized Punjabi');
 });
 
+test('both models rate-limited: English input still gets a basic Cloud translation', async () => {
+    const { result: res, requests } = await withFallbackModel('GEMINI_TRANSLATE_FALLBACK_MODEL', () =>
+        captured(mock, () => translate('MOCK_429 good evening', 'english')));
+    assert.equal(res.status, 200);
+    assert.equal((await res.json()).fallback, 'cloud');
+    assert.equal(requests.length, 2);
+    assert.equal(cloudCalls, 1);
+});
+
 test('with no fallback named, the default, a rate-limited model goes straight to Cloud Translation', async () => {
     const { result: res, requests } = await captured(mock, () => translate('MOCK_429_FIRST good morning', 'english'));
     assert.equal(res.status, 200);

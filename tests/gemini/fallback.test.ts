@@ -24,8 +24,12 @@ function scripted(errors: Record<string, Error>) {
 
 // No feature has a fallback model by default, so these tests name one, as
 // an env var would; the tests of a disabled or missing one take it away.
+// The primary is the pinned model, whatever the shell has set.
 const FALLBACK = 'gemini-3.6-flash';
-beforeEach(() => { process.env.GEMINI_CHAT_FALLBACK_MODEL = FALLBACK; });
+beforeEach(() => {
+    delete process.env.GEMINI_CHAT_MODEL;
+    process.env.GEMINI_CHAT_FALLBACK_MODEL = FALLBACK;
+});
 afterEach(() => { delete process.env.GEMINI_CHAT_FALLBACK_MODEL; });
 
 test('the pinned model answers without the fallback being touched', async () => {
