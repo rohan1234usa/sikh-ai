@@ -3,9 +3,9 @@ import { getDictionary } from '@/lib/i18n';
 
 // What a phone needs to install the site as an app (#17): its name, where it
 // opens, how it shows, and its icons. The icons (public/icon-*.png and
-// app/apple-icon.png) are the navbar's ੴ, kesri on navy, drawn before the
-// site took its Pothi colours; the maskable one leaves the edge room a phone
-// crops. A manifest has one colour, so it's the day ground, eggshell, for the
+// app/apple-icon.png) are the navbar's ੴ, kesri on ink, Pothi's night ground
+// (#74); the maskable one leaves the edge room a phone crops. A manifest
+// has one colour, so it's the day ground, eggshell, for the
 // splash screen and title bar; once a page loads, its theme-color
 // (lib/theme.ts) takes over, following light and dark.
 // A Punjabi reader who installs it still opens in Punjabi: the cookie sends

@@ -133,6 +133,10 @@ One commit per step, in this order, so no commit put the new palette on the old 
   - No `shadow-*` class is left in `app/`. The theme clears the shadow scale, so the 23 that remained drew nothing.
   - Page titles are semibold, the masthead's weight, in all three languages. The small headings in a bar (the tutor's, Talk's, an Ang's) stay bold, since they are body-sized.
   - The home masthead appears at once. Its fade was the last entrance animation, and `--animate-fade-up` went with it.
+- **The icons** ([#74](https://github.com/rohan1234usa/sikh-ai/issues/74)):
+  - The app icons and the link preview are the kesri ੴ on ink `#171512`, Pothi's night ground, recoloured from the old navy. Kesri on ink is 8.55:1. The preview's "SikhAI" is the night text, `#EAE6DF`.
+  - The browser tab had create-next-app's icon until then. `app/favicon.ico` is now the same ੴ on ink, cropped close so it still reads at 16px.
+  - The manifest's colour stays eggshell, so the splash screen matches the day pages.
 
 ## Checks for the build
 
@@ -153,5 +157,4 @@ The owner decided these on 11 October 2026:
 
 Still with the owner:
 
-- The app icons and the link-preview image are kesri on navy, drawn for the old look.
 - The new "You" label (ਤੁਸੀਂ, Tusi) wants a fluent read.
