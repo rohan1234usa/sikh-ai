@@ -14,6 +14,9 @@
 //   MOCK_HANG         never answers                 MOCK_EMPTY       no text at all
 //   MOCK_BLOCKED      prompt refused                MOCK_SAFETY      text, then cut by a filter
 //   MOCK_MAX_TOKENS   hits the output cap           MOCK_GARBAGE     translator gets non-JSON
+//   MOCK_ENDS_EARLY   a stream that stops before its last chunk, as when the
+//                     SDK drops an error Google sends mid-reply (translator)
+// The translator's MOCK_SAFETY is its whole JSON, then a filter's stop.
 //   MOCK_REPLY:<name> a canned chat reply (CANNED below, or a citation fixture id)
 //   MOCK_LONG         a reply as long as a whole Ang explained line by line,
 //                     in small pieces (for profiling the chat's rendering)
@@ -374,28 +377,28 @@ export async function startMockGemini(opts: MockOptions = {}): Promise<MockGemin
                 send({ ...candidate([{ text: '' }], { finishReason: 'STOP' }), usageMetadata: usage });
                 return res.end();
             }
-            if (probe.includes('MOCK_SAFETY')) {
-                send(candidate([{ text: 'Partial answer before the filter' }]));
-                await sleep(delay);
-                send(candidate([], { finishReason: 'SAFETY' }));
-                return res.end();
-            }
             // The translator (/api/translate) asks for JSON, and reads it as a
             // stream: its result, or a cut or spoiled one, as the unstreamed
             // reply below gives it.
             if ((body.generationConfig as Json | undefined)?.responseMimeType === 'application/json') {
                 const capped = probe.includes('MOCK_MAX_TOKENS');
-                const reply = capped ? '{"detectedInput":"engl'
+                const early = probe.includes('MOCK_ENDS_EARLY');
+                const reply = capped || early ? '{"detectedInput":"engl'
                     : probe.includes('MOCK_GARBAGE') ? 'not json'
                         : JSON.stringify(translation(text));
                 for (const slice of slices(reply)) {
                     await sleep(delay);
                     send(candidate([{ text: slice }]));
                 }
-                send({
-                    ...candidate([{ text: '' }], { finishReason: capped ? 'MAX_TOKENS' : 'STOP' }),
-                    usageMetadata: { ...usage, candidatesTokenCount: 340 },
-                });
+                if (early) return res.end();
+                const finishReason = capped ? 'MAX_TOKENS' : probe.includes('MOCK_SAFETY') ? 'SAFETY' : 'STOP';
+                send({ ...candidate([{ text: '' }], { finishReason }), usageMetadata: { ...usage, candidatesTokenCount: 340 } });
+                return res.end();
+            }
+            if (probe.includes('MOCK_SAFETY')) {
+                send(candidate([{ text: 'Partial answer before the filter' }]));
+                await sleep(delay);
+                send(candidate([], { finishReason: 'SAFETY' }));
                 return res.end();
             }
             const canned = /MOCK_REPLY:([\w:-]+)/.exec(probe)?.[1];

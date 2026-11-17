@@ -74,6 +74,32 @@ test("replies with no text keep today's answers: Cloud where it can, else transl
     assert.deepEqual(lines.filter((l) => l.evt === 'gemini_call').map((l) => l.outcome), ['unusable', 'blocked']);
 });
 
+test('a reply a filter stopped is not served, though its JSON came whole: Cloud where it can, else translate_failed', async () => {
+    const lines = await logged(async () => {
+        const english = await translate('MOCK_SAFETY good evening', 'english');
+        assert.equal(english.status, 200);
+        assert.equal((await english.json()).fallback, 'cloud');
+        const roman = await translate('MOCK_SAFETY main theek haan', 'punjabi-latin');
+        assert.equal(roman.status, 502);
+        assert.equal((await roman.json()).code, 'translate_failed');
+    });
+    assert.deepEqual(lines.filter((l) => l.evt === 'gemini_call').map((l) => l.outcome), ['blocked', 'blocked']);
+});
+
+test('a reply that broke off mid-stream is the service failing: Cloud where it can, else busy', async () => {
+    const lines = await logged(async () => {
+        const english = await translate('MOCK_ENDS_EARLY good evening', 'english');
+        assert.equal(english.status, 200);
+        assert.equal((await english.json()).fallback, 'cloud');
+        const roman = await translate('MOCK_ENDS_EARLY main theek haan', 'punjabi-latin');
+        assert.equal(roman.status, 503);
+        assert.equal((await roman.json()).code, 'translate_busy', 'wait and try again, not "the translation failed"');
+    });
+    assert.equal(cloudCalls, 1);
+    assert.deepEqual(lines.filter((l) => l.evt === 'gemini_call').map((l) => l.outcome), ['cut', 'cut']);
+    assert.deepEqual(lines.filter((l) => l.evt === 'cloud_fallback').map((l) => l.reason), ['gemini_failed', 'gemini_failed']);
+});
+
 test('a rate-limited pinned model is answered by a fallback named for the translator', async () => {
     const { result: res, requests } = await withFallbackModel('GEMINI_TRANSLATE_FALLBACK_MODEL', () =>
         captured(mock, () => translate('MOCK_429_FIRST main theek haan', 'punjabi-latin')));

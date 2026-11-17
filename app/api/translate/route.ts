@@ -185,7 +185,7 @@ async function handlePost(req: Request) {
         geminiFailed = true;
         throw error;
       });
-    const { finishReason, blockReason } = reply;
+    const { finishReason, filtered } = reply;
 
     // The SDK returns a truncated response as ordinary text, so it would only
     // fail later at JSON.parse. Catch it here to give advice the user can
@@ -202,16 +202,22 @@ async function handlePost(req: Request) {
       return NextResponse.json({ error: TOO_LONG_ERROR, code: "translate_too_long" }, { status: 400 });
     }
 
-    const parsed = parseTranslationResult(reply.text, fallbackDetected);
+    // A reply a filter stopped is never served, even if what came parses.
+    const parsed = filtered ? null : parseTranslationResult(reply.text, fallbackDetected);
 
     if (!parsed) {
       // Blocked or filtered replies land here too: the SDK returns them with
-      // no text rather than throwing.
-      reply.settle(blockReason ? "blocked" : "unusable");
+      // no text, or cut short, rather than throwing. A reply with text and no
+      // finish reason broke off before its last chunk (the SDK drops an error
+      // Google sends mid-reply): the service failed, not the reply, so it
+      // gets the busy answer a timeout gets.
+      const brokeOff = finishReason === undefined && !filtered && reply.text !== "";
+      reply.settle(filtered ? "blocked" : brokeOff ? "cut" : "unusable");
       // Gemini answered, just not usably — a plain rendering still beats an error.
       const viaCloud = await attemptCloudFallback(text, hint, detectedScript);
-      logEvent("cloud_fallback", { feature: "translate", reason: "unusable", served: !!viaCloud });
+      logEvent("cloud_fallback", { feature: "translate", reason: brokeOff ? "gemini_failed" : "unusable", served: !!viaCloud });
       if (viaCloud) return NextResponse.json(viaCloud, { headers: { "Cache-Control": "no-store" } });
+      if (brokeOff) return NextResponse.json({ error: BUSY_ERROR, code: "translate_busy" }, { status: 503 });
       return NextResponse.json({ error: FRIENDLY_ERROR, code: "translate_failed" }, { status: 502 });
     }
 

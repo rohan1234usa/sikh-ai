@@ -241,13 +241,22 @@ test('a refused prompt or an empty reply comes back with no text, and its reason
     const lines = await logged(async () => {
         const opts = () => translateOpts(new AbortController().signal, 20_000, 5000);
         const blocked = await readWholeText(await openTextStream(ai, translateRequest('MOCK_BLOCKED'), opts()), TRANSLATE_CALL, new AbortController().signal);
-        assert.deepEqual([blocked.text, blocked.blockReason], ['', 'SAFETY']);
+        assert.deepEqual([blocked.text, blocked.blockReason, blocked.filtered], ['', 'SAFETY', true]);
         blocked.settle('blocked');
         const empty = await readWholeText(await openTextStream(ai, translateRequest('MOCK_EMPTY'), opts()), TRANSLATE_CALL, new AbortController().signal);
-        assert.deepEqual([empty.text, empty.finishReason], ['', FinishReason.STOP]);
+        assert.deepEqual([empty.text, empty.finishReason, empty.filtered], ['', FinishReason.STOP, false]);
         empty.settle('unusable');
     });
     const calls = geminiCalls(lines);
     assert.deepEqual(calls.map((l) => l.outcome), ['blocked', 'unusable']);
     assert.deepEqual(calls.map((l) => l.ttftMs), [undefined, undefined], 'no text, so no time to it');
+});
+
+test("a filter's stop marks even a whole reply not to be served; a stream that broke off has no finish reason", async () => {
+    const opts = () => translateOpts(new AbortController().signal, 20_000, 5000);
+    const stopped = await readWholeText(await openTextStream(ai, translateRequest('MOCK_SAFETY'), opts()), TRANSLATE_CALL, new AbortController().signal);
+    assert.ok(parseTranslationResult(stopped.text, 'english'), 'its JSON came whole');
+    assert.deepEqual([stopped.finishReason, stopped.filtered], [FinishReason.SAFETY, true]);
+    const early = await readWholeText(await openTextStream(ai, translateRequest('MOCK_ENDS_EARLY'), opts()), TRANSLATE_CALL, new AbortController().signal);
+    assert.deepEqual([early.text, early.finishReason, early.filtered], ['{"detectedInput":"engl', undefined, false]);
 });

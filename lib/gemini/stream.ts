@@ -217,9 +217,12 @@ export function textStreamResponse(opened: OpenedText, call: StreamCall, signal:
 // then `settle` writes the call's one line, saying what it made of it.
 export type WholeText = {
     text: string; // '' when no text came: a refused prompt, or an empty reply
-    finishReason?: FinishReason;
+    finishReason?: FinishReason; // undefined when the stream broke off before its last chunk
     blockReason?: string;
-    settle(outcome: Extract<GeminiOutcome, 'ok' | 'truncated' | 'unusable' | 'blocked'>): void;
+    // A filter or a block stopped the reply (not the output cap). What came
+    // is not to be served, even if it reads as complete.
+    filtered: boolean;
+    settle(outcome: Extract<GeminiOutcome, 'ok' | 'truncated' | 'unusable' | 'blocked' | 'cut'>): void;
 };
 
 // Reads an opened reply to its end. A failure on the way (the route's own
@@ -250,5 +253,6 @@ export async function readWholeText(opened: Opened, call: StreamCall, signal: Ab
         }
     }
     const { finishReason, blockReason } = tally;
-    return { text, finishReason, blockReason, settle: outcome => tally.log(outcome) };
+    const filtered = blockReason !== undefined || (!ENDED_NORMALLY.has(finishReason) && finishReason !== FinishReason.MAX_TOKENS);
+    return { text, finishReason, blockReason, filtered, settle: outcome => tally.log(outcome) };
 }
