@@ -9,7 +9,13 @@
 // broken stream. With text in hand, textStreamResponse streams the rest and
 // writes the call's one log line.
 
-import { FinishReason, type GenerateContentParameters, type GenerateContentResponse, type GoogleGenAI } from '@google/genai';
+import {
+    FinishReason,
+    type GenerateContentParameters,
+    type GenerateContentResponse,
+    type GenerateContentResponseUsageMetadata,
+    type GoogleGenAI,
+} from '@google/genai';
 import { isAbortError, withTransport } from './fallback';
 import { errorFields, logGeminiCall, usageFields, type GeminiOutcome } from './log';
 import type { GeminiFeature } from './models';
@@ -174,4 +180,63 @@ export function textStreamResponse(opened: OpenedText, call: StreamCall, signal:
             'X-Accel-Buffering': 'no',
         },
     });
+}
+
+// The reply read to its end, for a route that answers with all of it at once
+// (the translator's JSON) but reads it as a stream, so that a stuck call is
+// told apart from a slow one by its first text. The route judges the reply,
+// then `settle` writes the call's one line, saying what it made of it.
+export type WholeText = {
+    text: string; // '' when no text came: a refused prompt, or an empty reply
+    finishReason?: FinishReason;
+    blockReason?: string;
+    settle(outcome: Extract<GeminiOutcome, 'ok' | 'truncated' | 'unusable' | 'blocked'>): void;
+};
+
+// Reads an opened reply to its end. A failure on the way (the route's own
+// deadline, the visitor leaving, an error mid-reply) is the call's line,
+// written here with what came before it, and thrown. A reply with no text
+// comes back empty, with its reasons, so the route judges it as any other.
+export async function readWholeText(opened: Opened, call: StreamCall, signal: AbortSignal): Promise<WholeText> {
+    let text = '';
+    let ttftMs: number | undefined;
+    let last = opened.kind === 'text' ? opened.first : opened.last;
+    // Kept from whichever chunk last carried it, in case the last one didn't.
+    let usage: GenerateContentResponseUsageMetadata | undefined = last?.usageMetadata;
+    let finishReason = opened.kind === 'empty' ? opened.finishReason : last?.candidates?.[0]?.finishReason;
+    let blockReason = opened.kind === 'blocked' ? opened.reason : undefined;
+
+    let logged = false;
+    const line = (outcome: GeminiOutcome, failure?: unknown) => {
+        if (logged) return;
+        logged = true;
+        logGeminiCall({
+            ...call, outcome, ms: Date.now() - opened.started, ttftMs,
+            modelVersion: last?.modelVersion, ...usageFields(usage),
+            finishReason, blockReason,
+            ...(outcome === 'error' ? errorFields(failure) : {}),
+        });
+    };
+
+    if (opened.kind === 'text') {
+        text = opened.text;
+        ttftMs = opened.ttftMs;
+        try {
+            for await (const chunk of opened.stream) {
+                last = chunk;
+                // Undefined on chunks that carry only metadata
+                text += chunk.text ?? '';
+                usage = chunk.usageMetadata ?? usage;
+                finishReason = chunk.candidates?.[0]?.finishReason ?? finishReason;
+                blockReason = chunk.promptFeedback?.blockReason ?? blockReason;
+            }
+        } catch (err) {
+            // Leaving the loop by a throw lets go of the reader, not the
+            // request: stop it, or Gemini writes (and bills) the rest.
+            opened.upstream.abort();
+            line(signal.aborted ? 'aborted' : isAbortError(err) ? 'timeout' : 'error', err);
+            throw err;
+        }
+    }
+    return { text, finishReason, blockReason, settle: outcome => line(outcome) };
 }

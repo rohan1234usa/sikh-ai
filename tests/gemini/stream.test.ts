@@ -5,13 +5,13 @@
 
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { GoogleGenAI } from '@google/genai';
+import { FinishReason, GoogleGenAI } from '@google/genai';
 import { startMockGemini, type MockGemini } from '../../scripts/mock-gemini';
 import { isAbortError } from '@/lib/gemini/fallback';
-import { openTextStream, settleNoText, textStreamResponse, type Opened } from '@/lib/gemini/stream';
+import { openTextStream, readWholeText, settleNoText, textStreamResponse, type Opened } from '@/lib/gemini/stream';
 import { parseTranslationResult } from '@/lib/translate/parse';
 import { buildTranslateRequest } from '@/lib/translate/prompts';
-import { captured, readStream, startRouteMock } from '../helpers/routes';
+import { captured, logged, readStream, startRouteMock } from '../helpers/routes';
 
 let mock: MockGemini;
 let ai: GoogleGenAI;
@@ -169,4 +169,103 @@ test("given a later deadline for Google, the route's own timer ends a reply stil
     } finally {
         await slow.close();
     }
+});
+
+// The translator's settings: 30 s for Google, the route's own deadline after.
+const translateOpts = (signal: AbortSignal, deadlineMs: number, firstTextMs: number) =>
+    ({ signal, deadline: Date.now() + deadlineMs, firstTextMs, serverTimeoutMs: 30_000 });
+const geminiCalls = (lines: { evt: string }[]) =>
+    lines.filter((l) => l.evt === 'gemini_call') as unknown as Record<string, unknown>[];
+
+// Runs `run` against a mock that sends its pieces `chunkDelayMs` apart.
+async function withSlowGemini(chunkDelayMs: number, run: (ai: GoogleGenAI) => Promise<void>) {
+    const slow = await startMockGemini({ chunkDelayMs });
+    try {
+        await run(new GoogleGenAI({ apiKey: 'test-key', httpOptions: { baseUrl: slow.url } }));
+    } finally {
+        await slow.close();
+    }
+}
+
+test('a slow reply that keeps writing past the first-text wait is read to its end, and logged once', async () => {
+    // Slices 200 ms apart: the first text comes well inside the 500 ms wait,
+    // and the reply ends well past it, after 800 ms.
+    await withSlowGemini(200, async (slowAi) => {
+        const lines = await logged(async () => {
+            const opened = await openTextStream(slowAi, translateRequest('Ki haal hai?'), translateOpts(new AbortController().signal, 20_000, 500));
+            const reply = await readWholeText(opened, TRANSLATE_CALL, new AbortController().signal);
+            assert.equal(parseTranslationResult(reply.text, 'english')?.roman, 'Ki haal hai?');
+            assert.equal(reply.finishReason, FinishReason.STOP);
+            reply.settle('ok');
+            reply.settle('ok');
+        });
+        const calls = geminiCalls(lines);
+        assert.equal(calls.length, 1, 'one line for the call, however often it is settled');
+        assert.equal(calls[0].outcome, 'ok');
+        assert.ok(Number(calls[0].ttftMs) >= 150, `ttftMs ${calls[0].ttftMs}`);
+        assert.ok(Number(calls[0].ms) > 500, `ms ${calls[0].ms}: it ran past the first-text wait`);
+        assert.equal(calls[0].outputTokens, 340, "the usage from the reply's last chunk");
+    });
+});
+
+test("the route's own deadline ends a reply still writing: a timeout, logged with its time to first text", async () => {
+    // Slices 300 ms apart: the first text after 300 ms, the whole reply after
+    // 1,200 ms, and the deadline in between.
+    await withSlowGemini(300, async (slowAi) => {
+        let opened: Opened | undefined;
+        const lines = await logged(async () => {
+            opened = await openTextStream(slowAi, translateRequest('Ki haal hai?'), translateOpts(new AbortController().signal, 800, 1000));
+            await assert.rejects(readWholeText(opened, TRANSLATE_CALL, new AbortController().signal), (err) => isAbortError(err));
+        });
+        const calls = geminiCalls(lines);
+        assert.equal(calls.length, 1);
+        assert.equal(calls[0].outcome, 'timeout', 'the route timed it out: not an error, and not a visitor leaving');
+        assert.equal(typeof calls[0].ttftMs, 'number', 'it had started writing: slow, not stuck');
+        assert.ok(Number(calls[0].ms) < 1200, `ms ${calls[0].ms}`);
+        assert.ok(opened?.kind === 'text' && opened.upstream.signal.aborted, 'the request to Gemini is stopped');
+    });
+});
+
+test('a visitor who leaves mid-reply is logged as aborted, and the request stopped', async () => {
+    await withSlowGemini(300, async (slowAi) => {
+        const visitor = new AbortController();
+        let opened: Opened | undefined;
+        const lines = await logged(async () => {
+            opened = await openTextStream(slowAi, translateRequest('Ki haal hai?'), translateOpts(visitor.signal, 20_000, 1000));
+            const reading = readWholeText(opened, TRANSLATE_CALL, visitor.signal);
+            visitor.abort();
+            await assert.rejects(reading, (err) => isAbortError(err));
+        });
+        assert.deepEqual(geminiCalls(lines).map((l) => l.outcome), ['aborted']);
+        assert.ok(opened?.kind === 'text' && opened.upstream.signal.aborted);
+    });
+});
+
+test('a reply stopped by the output cap comes back cut, with MAX_TOKENS', async () => {
+    const lines = await logged(async () => {
+        const opened = await openTextStream(ai, translateRequest('MOCK_MAX_TOKENS hello'), translateOpts(new AbortController().signal, 20_000, 5000));
+        const reply = await readWholeText(opened, TRANSLATE_CALL, new AbortController().signal);
+        assert.equal(reply.text, '{"detectedInput":"engl');
+        assert.equal(reply.finishReason, FinishReason.MAX_TOKENS);
+        reply.settle('truncated');
+    });
+    const [call] = geminiCalls(lines);
+    assert.equal(call.outcome, 'truncated');
+    assert.equal(call.finishReason, 'MAX_TOKENS');
+    assert.equal(typeof call.ttftMs, 'number');
+});
+
+test('a refused prompt or an empty reply comes back with no text, and its reason', async () => {
+    const lines = await logged(async () => {
+        const opts = () => translateOpts(new AbortController().signal, 20_000, 5000);
+        const blocked = await readWholeText(await openTextStream(ai, translateRequest('MOCK_BLOCKED'), opts()), TRANSLATE_CALL, new AbortController().signal);
+        assert.deepEqual([blocked.text, blocked.blockReason], ['', 'SAFETY']);
+        blocked.settle('blocked');
+        const empty = await readWholeText(await openTextStream(ai, translateRequest('MOCK_EMPTY'), opts()), TRANSLATE_CALL, new AbortController().signal);
+        assert.deepEqual([empty.text, empty.finishReason], ['', FinishReason.STOP]);
+        empty.settle('unusable');
+    });
+    const calls = geminiCalls(lines);
+    assert.deepEqual(calls.map((l) => l.outcome), ['blocked', 'unusable']);
+    assert.deepEqual(calls.map((l) => l.ttftMs), [undefined, undefined], 'no text, so no time to it');
 });
