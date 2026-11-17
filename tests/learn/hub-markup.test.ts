@@ -9,6 +9,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import LearnHero from '@/app/components/learn/LearnHero';
 import LearnHub from '@/app/components/learn/LearnHub';
 import ReviewSlot from '@/app/components/learn/ReviewSlot';
+import { LANGS } from '@/lib/i18n/config';
 import { getLearnCopy } from '@/lib/i18n/learn';
 import { LESSON_META, TRACK_IDS, lessonPath } from '@/lib/learn/config';
 import { VOCAB, getLessonPace } from '@/lib/learn/curriculum';
@@ -50,4 +51,13 @@ test('the review slot holds its room before progress is read, says when nothing 
     assert.ok(slot(0).includes(learn.review.noneDue));
     assert.match(slot(1), /<a [^>]*href="\/learn\/review"[^>]*>Review 1 card due/);
     assert.ok(slot(12).includes('Review 12 cards due'));
+});
+
+test("each language's Learn words reach its pages through the provider", () => {
+    // The provider picks them from the page's language (LearnCopy.tsx).
+    for (const lang of LANGS) {
+        const html = renderLearnIn(lang, createElement(ReviewSlot, { href: '/learn/review', due: 0 }));
+        assert.ok(html.includes(getLearnCopy(lang).review.noneDue), lang);
+        for (const other of LANGS.filter((l) => l !== lang)) assert.ok(!html.includes(getLearnCopy(other).review.noneDue), `${lang} shows ${other}`);
+    }
 });
