@@ -44,10 +44,17 @@ export type StreamCall = { feature: GeminiFeature; model: string; depth: 0 | 1 }
 // Opens the stream and reads up to its first text. `firstTextMs` is how long
 // to wait for it: past that the call is stuck, and the timeout (a capacity
 // failure to withModelFallback) leaves time to ask the fallback model.
+//
+// `serverTimeoutMs` is for a route that needs all of its budget (#83). The
+// SDK sends its timeout to Google as X-Server-Timeout, and Google ends the
+// call with its own 504 1.5 to 1.9 s before that, so by default a deadline
+// comes about 1.7 s early, logged as an error. Given `serverTimeoutMs`, Google
+// is sent that later deadline instead, and a timer of the route's own ends
+// the call at `deadline`, still writing or not: logged as a timeout.
 export async function openTextStream(
     ai: GoogleGenAI,
     request: GenerateContentParameters,
-    opts: { signal: AbortSignal; deadline: number; firstTextMs: number },
+    opts: { signal: AbortSignal; deadline: number; firstTextMs: number; serverTimeoutMs?: number },
 ): Promise<Opened> {
     const started = Date.now();
     // Aborted by the first-text timer below, or by the client going away once
@@ -57,10 +64,15 @@ export async function openTextStream(
         () => upstream.abort(new DOMException('No text before the first-text timeout', 'TimeoutError')),
         opts.firstTextMs,
     );
+    // The route's own deadline, when Google is sent a later one. Whole and
+    // never negative: AbortSignal.timeout throws for anything else.
+    const ownDeadline = opts.serverTimeoutMs === undefined
+        ? []
+        : [AbortSignal.timeout(Math.max(0, Math.floor(opts.deadline - Date.now())))];
     try {
         const stream = await ai.models.generateContentStream(withTransport(request, {
-            signal: AbortSignal.any([opts.signal, upstream.signal]),
-            timeoutMs: opts.deadline - Date.now(),
+            signal: AbortSignal.any([opts.signal, upstream.signal, ...ownDeadline]),
+            timeoutMs: opts.serverTimeoutMs ?? opts.deadline - Date.now(),
         }));
         let last: GenerateContentResponse | undefined;
         for (;;) {

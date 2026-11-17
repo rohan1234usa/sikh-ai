@@ -11,7 +11,7 @@ import { isAbortError } from '@/lib/gemini/fallback';
 import { openTextStream, settleNoText, textStreamResponse, type Opened } from '@/lib/gemini/stream';
 import { parseTranslationResult } from '@/lib/translate/parse';
 import { buildTranslateRequest } from '@/lib/translate/prompts';
-import { readStream, startRouteMock } from '../helpers/routes';
+import { captured, readStream, startRouteMock } from '../helpers/routes';
 
 let mock: MockGemini;
 let ai: GoogleGenAI;
@@ -125,4 +125,48 @@ test("the translator's JSON streams in slices that make up the whole result", as
     assert.equal(error, undefined);
     assert.ok(opened.text.length < text.length, 'the first slice is not the whole reply');
     assert.equal(parseTranslationResult(text, 'english')?.roman, 'Ki haal hai?');
+});
+
+test("by default Google is sent the route's own deadline", async () => {
+    const { result: opened, requests } = await captured(mock, () => open('What is kirpa?'));
+    assert.ok(opened.kind === 'text', opened.kind);
+    await readStream(textStreamResponse(opened, CALL, new AbortController().signal));
+    assert.equal(requests[0].headers['x-server-timeout'], '20', 'the 20 s deadline open() gives');
+});
+
+test('given a later deadline for Google, a stuck call still ends at the first-text wait', async () => {
+    const start = mock.requests.length;
+    const started = Date.now();
+    await assert.rejects(openTextStream(ai, { model: 'gemini-3.8-flash', contents: 'MOCK_HANG' }, {
+        signal: new AbortController().signal,
+        deadline: Date.now() + 20_000,
+        firstTextMs: 200,
+        serverTimeoutMs: 30_000,
+    }), (err) => isAbortError(err));
+    assert.ok(Date.now() - started < 5000, 'it gives up at the first-text wait');
+    const [sent] = mock.requests.slice(start);
+    assert.equal(sent.headers['x-server-timeout'], '30', 'Google is sent 30 s, once, not the 20 s budget');
+});
+
+test("given a later deadline for Google, the route's own timer ends a reply still writing at its deadline", async () => {
+    // Slices 300 ms apart: the first text comes after 300 ms, and the whole
+    // reply would take 1,200 ms, past the 800 ms deadline.
+    const slow = await startMockGemini({ chunkDelayMs: 300 });
+    try {
+        const slowAi = new GoogleGenAI({ apiKey: 'test-key', httpOptions: { baseUrl: slow.url } });
+        const started = Date.now();
+        const opened = await openTextStream(slowAi, translateRequest('Ki haal hai?'), {
+            signal: new AbortController().signal,
+            deadline: Date.now() + 800,
+            firstTextMs: 1000,
+            serverTimeoutMs: 30_000,
+        });
+        assert.ok(opened.kind === 'text', opened.kind);
+        const { error } = await readStream(textStreamResponse(opened, TRANSLATE_CALL, new AbortController().signal));
+        assert.ok(isAbortError(error), String(error));
+        assert.ok(Date.now() - started < 1200, 'ended at the deadline, before the reply did');
+        assert.equal(slow.requests[0].headers['x-server-timeout'], '30');
+    } finally {
+        await slow.close();
+    }
 });
