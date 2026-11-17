@@ -5,7 +5,6 @@
 // represented.
 
 import { cap } from '../text';
-import { isLessonSlug } from './config';
 
 export const MAX_TUTOR_MESSAGE_CHARS = 1000;
 // Four exchanges ride along with each question: each question at the
@@ -46,10 +45,16 @@ export const EMPTY_SESSION: TutorSession = Object.freeze({ lesson: null, exchang
 // What a visit to the tutor starts from: the conversation the tab kept,
 // unless the address asks for a lesson (?lesson=<slug>). A different lesson
 // starts a new conversation about it. One that doesn't exist starts an empty
-// conversation, and the page says so.
-export function startSession(kept: TutorSession, requested: string | null): { session: TutorSession; lessonNotFound: boolean } {
+// conversation, and the page says so. Which lessons exist is passed in
+// (isLessonSlug), so these rules don't carry the lessons' metadata to every
+// importer of a tutor constant (the policy pages among them).
+export function startSession(
+    kept: TutorSession,
+    requested: string | null,
+    isLesson: (slug: string) => boolean,
+): { session: TutorSession; lessonNotFound: boolean } {
     if (requested === null) return { session: kept, lessonNotFound: false };
-    if (!isLessonSlug(requested)) return { session: EMPTY_SESSION, lessonNotFound: true };
+    if (!isLesson(requested)) return { session: EMPTY_SESSION, lessonNotFound: true };
     return { session: requested === kept.lesson ? kept : { lesson: requested, exchanges: [] }, lessonNotFound: false };
 }
 

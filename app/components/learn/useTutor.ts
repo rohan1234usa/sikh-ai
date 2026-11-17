@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { isLessonSlug } from '@/lib/learn/config';
 import {
     EMPTY_SESSION,
     MAX_TUTOR_REPLY_CHARS,
@@ -62,7 +63,7 @@ function readStart(): TutorState {
     // saved (useTutor's saving effect), so reading it twice, as development
     // does, gives the same thing both times.
     const requested = new URL(window.location.href).searchParams.get('lesson');
-    return { ...startSession(kept, requested), hydrated: true };
+    return { ...startSession(kept, requested, isLessonSlug), hydrated: true };
 }
 
 // One mounted tutor's conversation. It lives outside React's state so the
