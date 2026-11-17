@@ -24,18 +24,18 @@ const HOUR = 3600e3;
 const DAY = 24 * HOUR;
 const sid = (name: string) => name.padEnd(20, '0');
 
-const fields = (): EventFields => {
+const fields = (over: Partial<EventFields> = {}): EventFields => {
     const startsAt = Math.floor((Date.now() + 2 * DAY) / 60000) * 60000;
     return {
         title: 'Langar seva', category: 'langar', description: 'Help make and serve langar.',
         startsAt, endsAt: startsAt + 4 * HOUR, timeZone: 'America/Los_Angeles',
         venue: 'Gurdwara Sahib', address: '300 Gurdwara Rd', city: 'Fremont', region: 'CA', country: 'US',
-        organizer: 'Youth committee', contact: '', spots: 20,
+        organizer: 'Youth committee', contact: '', spots: 20, ...over,
     };
 };
 const volunteer = (name: string): VolunteerFields => ({ name, email: '', phone: '' });
 
-const post = (uid: string, eventId: string) => commit(as(uid), planCreateEvent(uid, eventId, fields(), S));
+const post = (uid: string, eventId: string, over: Partial<EventFields> = {}) => commit(as(uid), planCreateEvent(uid, eventId, fields(over), S));
 const join = (uid: string, eventId: string, key: string) => commit(as(uid), planJoin(uid, eventId, key, volunteer(uid), S));
 
 const HANA = sid('HanaEvent');
@@ -74,12 +74,13 @@ async function aliceAccount() {
     await join('alice', WIPED, sid('KeyAliceWiped'));
     await wipe(`seva_events/${WIPED}`);
 
-    // Alice's events: one open with volunteers (alice among them); one
-    // hidden by an admin, which she cancelled; one over; and one deleted in
-    // the console, its sign-ups and her note left behind.
-    await post('alice', OPEN);
+    // Alice's events: one open with volunteers (alice among them) and no
+    // limit; one that takes no sign-ups, hidden by an admin, which she
+    // cancelled; one over; and one deleted in the console, its sign-ups and
+    // her note left behind.
+    await post('alice', OPEN, { spots: null });
     for (const uid of ['bob', 'carol', 'alice']) await join(uid, OPEN, sid(`Key${uid}Open`));
-    await post('alice', HIDDEN);
+    await post('alice', HIDDEN, { spots: 0 });
     await seed('admins/olive', { role: 'owner' });
     await commit(as('olive'), planSetHidden(HIDDEN, true));
     await commit(db, planSetStatus(HIDDEN, 'cancelled', 'Called off', S));

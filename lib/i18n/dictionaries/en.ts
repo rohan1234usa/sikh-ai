@@ -279,16 +279,12 @@ const en = {
     },
 
     home: {
-        badge: 'Powered by Google Gemini',
         heroLine1: 'Wisdom of the Gurus,',
         heroLine2: 'Illuminated by AI.',
         heroSubtitle:
             'Explore Gurbani, find local Sangat, and discover daily Hukamnamas in a space designed for peace, learning, and Seva.',
         ctaChat: 'Start Chatting',
         ctaHukamnama: "Today's Hukamnama",
-        previewWindowTitle: 'SikhAI Chat',
-        previewAiLine: 'Waheguru Ji Ka Khalsa... How can I help you understand Gurbani today?',
-        previewUserLine: 'What does the Guru Granth Sahib say about humility?',
         exploreTitle: 'Explore SikhAI',
         // No count in the copy — the Explore grid grows as features are added.
         exploreSubtitle: 'Ways to connect with Gurbani, Sangat, and the Punjabi language — all in one place.',
@@ -327,7 +323,6 @@ const en = {
     },
 
     about: {
-        badge: '</> The Architect',
         builtBy: 'Built By',
         bio1Before: 'Computer Science undergraduate at ',
         bio1School: 'UC Irvine',
@@ -342,6 +337,8 @@ const en = {
 
     chat: {
         title: 'Ask SikhAI',
+        // The label on the reader's own turns in the transcript (chat and tutor)
+        you: 'You',
         newChat: 'New chat',
         share: 'Share',
         cancel: 'Cancel',
@@ -643,6 +640,19 @@ const en = {
         historyClearPrompt: 'Clear translation history?',
         historyClearConfirm: 'Clear',
         cancel: 'Cancel',
+        // The live translation under the text box (#37), and its switch.
+        liveSwitch: 'Live',
+        liveSwitchHint: 'Live translation as you type',
+        liveLabel: 'Live translation',
+        liveMissing: 'didn’t come through',
+        liveCut: 'Cut off. Press Translate for the whole translation.',
+        liveTooLong: 'Too long to translate as you type. Press Translate.',
+        livePaused: 'Live translation is paused for a minute. Translate still works.',
+        livePausedToday: 'Live translation has reached today’s limit. Translate still works.',
+        liveFailed: 'Live translation isn’t available right now. Translate still works.',
+        // The link to Talk (/translate/talk, #37), whose own words are
+        // lib/i18n/talk.
+        talkLink: 'Talk: speak, and hear the translation',
     },
 
     // /learn (app/[lang]/learn): the Learn Punjabi section's own words. The
@@ -697,16 +707,37 @@ const en = {
             f: 'feminine',
         } satisfies Record<Gender, string>,
         hub: {
-            continue: 'Continue where you left off',
+            // The Today panel's rubric, then what kind of step it holds.
+            today: 'Today',
+            continue: 'Continue',
             start: 'Start here',
             upNext: 'Up next',
             allDone: 'You’ve finished every lesson',
             allDoneBody: 'Keep your words fresh with flashcards.',
             openLesson: 'Open lesson',
             open: 'Open',
+            // Where each track fits, by starting point. Only the default
+            // learner's order (grew up hearing it) exists until the
+            // starting-point chooser (#66, step 3).
+            order: {
+                default: {
+                    script: 'Start here',
+                    grammar: 'Alongside the script lessons',
+                    vocab: 'Once you can read a few words',
+                    tutor: 'Any time',
+                },
+            } satisfies Record<'default', Record<TrackId, string>>,
+            // A track's first milestone, shown in place of its count until
+            // it is reached: a lesson track's first lesson, ten words.
+            milestones: {
+                script: 'Read your first word',
+                grammar: 'Make your first sentence',
+                vocab: 'Learn your first {n} words',
+            } satisfies Record<Exclude<TrackId, 'tutor'>, string>,
             lessonsDone: 'Lessons done: {done} of {total}',
             wordsLearned: 'Words learned: {n} of {total}',
-            cardsDue: 'Flashcards due: {n}',
+            // The hub's foot: where progress is kept, and resetting it.
+            aboutProgress: 'About your progress',
             savedHere: 'Your progress is saved in this browser only.',
             reset: 'Reset progress',
             resetPrompt: 'Clear every lesson, score and flashcard?',
@@ -725,13 +756,38 @@ const en = {
             lettersAria: 'Letters',
             examplesAria: 'Examples',
             askTutor: 'Ask the tutor about this lesson',
+            // How far into a lesson the learner has read: its checkpoints.
+            sectionOf: 'Section {n} of {total}',
+            atQuiz: 'Ready for the quiz',
+            // The outline under a lesson's title. Plural only: every lesson
+            // has two sections or more (tests/learn/content.test.ts).
+            outline: 'In this lesson',
+            outlineSummary: '{n} sections · about {min} min',
+            // How long a lesson takes: 200 words a minute, 20 seconds a question.
+            minutes: 'About {n} min',
+            minutesLeft: 'About {n} min left',
+            sectionMinutes: '{n} min',
+            underAMinute: 'under 1 min',
+            skipToQuiz: 'Skip to the quiz',
         },
         quiz: {
             heading: 'Check yourself',
             questionN: 'Question {n}',
             typedLabel: 'Your answer',
             typedPlaceholder: 'Type it in English letters',
-            check: 'Check answers',
+            // Above a quiz's first typed question; the examples are pairs
+            // lib/learn/quiz.ts (foldRoman) really grades the same.
+            typedHint: 'Type it the way you’d text it. Spelling is forgiving: roti or rotee, achha or acha.',
+            // Under a question graded strictly (TypedQuestion.strict).
+            strictNote: 'Vowel length and doubled letters count on this one.',
+            // After a miss: the other spellings a typed question takes.
+            alsoAccepted: 'Also accepted: {spellings}',
+            // Each question is checked on its own; its button is named with
+            // its number, since a quiz has six to ten alike.
+            check: 'Check',
+            checkAria: 'Check question {n}',
+            progress: '{n} of {total} checked',
+            checkRest: 'Check the rest',
             tryAgain: 'Try again',
             newQuestions: 'New questions',
             correct: 'Correct',
@@ -769,8 +825,26 @@ const en = {
             doneBody: 'Known: {right}. To see again: {wrong}.',
             again: 'Review again',
             nothingDue: 'Nothing is due. Every card here is scheduled for later.',
+            // In its place once cards come due on a page left open.
+            dueNow: 'Due now: {n}. Check again to start.',
             practice: 'Practice anyway',
             checkAgain: 'Check again',
+        },
+        // /learn/review: every topic's due flashcards, twenty a session.
+        review: {
+            title: 'Flashcard review',
+            description: 'Every flashcard that is due, from every topic, the ones you know least first.',
+            eyebrow: 'Every topic',
+            lead: 'The cards due from every topic, the ones you know least first. Each card says which topic it is from.',
+            // True for a learner who has met no card, some, or every one.
+            nothingDue: 'Nothing is due from any topic. Each card comes back here on its day.',
+            practiceTopic: 'Practice a topic instead',
+            // The way in, on the hub and the vocabulary page. Two strings,
+            // since fmt has no plurals.
+            dueOne: 'Review 1 card due',
+            dueMany: 'Review {n} cards due',
+            // In the button's place while nothing is due, so nothing moves.
+            noneDue: 'No flashcards are due right now.',
         },
         // /learn/tutor: the Punjabi tutor, a conversation kept in the tab.
         tutor: {
@@ -831,8 +905,8 @@ const en = {
     // lib/i18n/policy, which only the server reads.
     analyticsSwitch: {
         label: 'Count my visits',
-        on: 'On. Visits from this browser are counted, without cookies.',
-        off: 'Off. This browser sends no visit counts or page-speed measurements.',
+        on: 'On. Visits from this browser are counted, without cookies, and its error reports are sent.',
+        off: 'Off. This browser sends no visit counts, page-speed measurements or error reports.',
         gpc: 'Off. Your browser sends Global Privacy Control, and this site follows it.',
         noScript: 'With JavaScript off, nothing is counted.',
     },
@@ -848,6 +922,7 @@ const en = {
         shabadTitle: 'Shabad Search',
         hukamnamaTitle: "Today's Hukamnama",
         translateTitle: 'Punjabi Translator',
+        talkTitle: 'Talk: Voice Translator',
         learnTitle: 'Learn Punjabi',
         notFoundTitle: 'Page not found',
         // What each page is for, in search results and link previews.
@@ -856,6 +931,7 @@ const en = {
             hukamnama: 'Today\'s Hukamnama from Sri Darbar Sahib, in Gurmukhi with an English translation, and a way to ask about it.',
             chat: 'Ask SikhAI about Sikhi, Gurbani and Sikh history. Answers quote Gurbani, and every quote is checked against the source.',
             translate: 'Translate between English, Gurmukhi and romanized Punjabi, with a word-by-word breakdown, tricky parts explained, and pronunciation tips.',
+            talk: 'Hold a button, speak Punjabi or English, and hear the translation read aloud: a voice translator for talking with family.',
             learn: 'Learn Punjabi as a Punjabi American: read Gurmukhi, understand the grammar, build everyday vocabulary with flashcards, and practice with a tutor.',
             shabad: 'Find any shabad of Sri Guru Granth Sahib Ji from one of its lines, in Gurmukhi or English letters, or its first letters, and read it whole with transliteration and translation. Or open any Ang, 1 to 1430.',
         },

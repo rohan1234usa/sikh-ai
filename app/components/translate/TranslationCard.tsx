@@ -10,6 +10,7 @@ import type {
     TranslationResult,
 } from '@/lib/translate/config';
 import CopyButton from './CopyButton';
+import { tukkClasses } from '../gurbani/Tukk';
 
 type CrossState =
     | { status: 'idle' }
@@ -80,21 +81,21 @@ export default function TranslationCard({ result, onRetryAs, onRetry }: Props) {
             label: t.translate.gurmukhiLabel,
             text: result.gurmukhi,
             lang: 'pa',
-            className: 'font-gurmukhi text-2xl md:text-3xl text-ink leading-relaxed',
+            className: tukkClasses('page', 'learn').gurmukhi,
         },
         {
             key: 'roman',
             label: t.translate.romanLabel,
             text: result.roman,
             lang: 'pa-Latn',
-            className: 'text-lg text-ink',
+            className: 'font-sans text-lg text-ink',
         },
         {
             key: 'english',
             label: t.translate.englishLabel,
             text: result.english,
             lang: 'en',
-            className: 'text-ink-muted',
+            className: 'font-sans text-ink-muted',
         },
         // A Cloud Translation fallback has no roman rendition — dropping empty
         // entries here also keeps copy-all from emitting a blank line.
@@ -135,7 +136,7 @@ export default function TranslationCard({ result, onRetryAs, onRetry }: Props) {
                             <button
                                 type="button"
                                 onClick={onRetry}
-                                className="font-semibold text-accent-text underline underline-offset-2 hover:text-ink transition-colors"
+                                className="font-semibold text-link underline underline-offset-2 hover:text-ink transition-colors"
                             >
                                 {t.translate.retryFull}
                             </button>
@@ -192,7 +193,7 @@ export default function TranslationCard({ result, onRetryAs, onRetry }: Props) {
                             {/* Inline, never the page-level alert: a failed comparison
                                 must not look like a failed translation. */}
                             {cross.status === 'error' && (
-                                <span className="text-xs text-red-600 dark:text-red-400">
+                                <span className="text-xs text-red-700 dark:text-red-400">
                                     {t.translate.crosscheckError}
                                 </span>
                             )}

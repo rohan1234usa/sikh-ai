@@ -4,7 +4,7 @@
 // or relative path); a package's stays as it is. Type-only imports ship
 // nothing and are left out.
 
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, normalize } from 'node:path';
 
 export type ClientImport = { file: string; spec: string; target: string; dynamic: boolean };
@@ -49,3 +49,23 @@ export function clientImports(dirs?: string[]): ClientImport[] {
 // Whether an import's target is a module or folder, or anything under it.
 export const reaches = (target: string, path: string) =>
     target === path || target.startsWith(`${path}/`) || target.replace(/\.tsx?$/, '') === path;
+
+// What loads at the start, following static imports of the app's own code
+// (a package is as far as it goes). Dynamic imports are where it stops.
+export function staticReach(entries: string[]): Map<string, string> {
+    const seen = new Map<string, string>(); // module → who imported it
+    const resolve = (target: string) =>
+        [`${target}.ts`, `${target}.tsx`, target, join(target, 'index.ts'), join(target, 'index.tsx')]
+            .find((f) => /\.tsx?$/.test(f) && existsSync(f));
+    const queue = [...entries];
+    while (queue.length > 0) {
+        const file = queue.shift()!;
+        for (const i of importsOf(file, readFileSync(file, 'utf8'))) {
+            if (i.dynamic || seen.has(i.target)) continue;
+            seen.set(i.target, file);
+            const next = resolve(i.target);
+            if (next) queue.push(next);
+        }
+    }
+    return seen;
+}

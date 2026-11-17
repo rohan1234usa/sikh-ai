@@ -26,6 +26,23 @@ test('Reporting API batches are read too, keywords kept, and floods cut short', 
     assert.equal(summarizeCspReports(Array.from({ length: 50 }, () => report('eval'))).length, MAX_REPORTS_PER_REQUEST);
 });
 
+test("a page's path loses a share link's ID and an event's, as error reports do", () => {
+    const report = (documentURL: string) => ({
+        type: 'csp-violation',
+        body: { documentURL, effectiveDirective: 'img-src', blockedURL: 'https://evil.example/x.png' },
+    });
+    assert.deepEqual(summarizeCspReports([
+        report('https://sikhai.vercel.app/pa/share/AbCdEfGhIjKlMnOpQrSt'),
+        report('https://sikhai.vercel.app/seva/AbCdEfGhIjKlMnOpQrSt/edit?from=x'),
+    ]).map((v) => v.page), ['/pa/share/:id', '/seva/:id/edit']);
+});
+
+test('a document with no address of its own is named by its kind', () => {
+    const report = (documentURL: string) => ({ type: 'csp-violation', body: { documentURL, effectiveDirective: 'img-src', blockedURL: 'inline' } });
+    assert.deepEqual(summarizeCspReports([report('about:blank'), report('about:srcdoc'), report('blob:https://sikhai.vercel.app/3f2a9c1e-1111-4222-8333-944455556666')])
+        .map((v) => v.page), ['about:blank', 'about:srcdoc', 'blob:']);
+});
+
 test('anything else yields nothing, or unknown fields', () => {
     assert.deepEqual(summarizeCspReports(null), []);
     assert.deepEqual(summarizeCspReports('nope'), []);

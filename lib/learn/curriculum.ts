@@ -4,8 +4,11 @@
 // or topic it shows, so no page ships the rest of the course.
 
 import {
+    FLASHCARD_FIELDS,
+    VOCAB_TOPIC_IDS,
     lessonMeta,
     lessonsFor,
+    type FlashcardWord,
     type Lesson,
     type LessonBody,
     type LessonEntry,
@@ -13,6 +16,7 @@ import {
     type VocabTopicId,
     type VocabWord,
 } from './config';
+import { lessonPace, type LessonPace } from './pace';
 import howGurmukhiWorks from './content/script/01-how-gurmukhi-works';
 import rows34 from './content/script/02-rows-3-4-palatal-retroflex';
 import rows57 from './content/script/03-rows-5-7-dental-labial-last';
@@ -75,6 +79,12 @@ export function getLesson(slug: LessonSlug): Lesson {
     return { ...lessonMeta(slug), ...BODIES[slug] };
 }
 
+// How long a lesson takes, as the numbers a page may hand the browser in
+// place of its text (lib/learn/pace.ts).
+export function getLessonPace(slug: LessonSlug): LessonPace {
+    return lessonPace(BODIES[slug]);
+}
+
 // A lesson's place in its track, for "Lesson 3 of 9" and the links either side.
 export function neighbors(slug: LessonSlug): { prev?: LessonEntry; next?: LessonEntry; index: number; total: number } {
     const track = lessonsFor(lessonMeta(slug).track);
@@ -95,4 +105,12 @@ export const VOCAB: Record<VocabTopicId, VocabWord[]> = {
     'describing': describing,
     'verbs': verbs,
 };
+
+// Every word as a flashcard shows it (FLASHCARD_FIELDS), topic by topic: what
+// the review page hands its island, so it carries the cards and not the rest
+// of each word. A field a word lacks is left out rather than sent empty.
+export function flashcardWords(): FlashcardWord[] {
+    return VOCAB_TOPIC_IDS.flatMap((topic) => VOCAB[topic].map((word) =>
+        Object.fromEntries(FLASHCARD_FIELDS.flatMap((key) => (word[key] === undefined ? [] : [[key, word[key]]]))) as FlashcardWord));
+}
 

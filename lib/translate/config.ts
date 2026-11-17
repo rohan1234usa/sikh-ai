@@ -62,6 +62,11 @@ export const isCrosscheckDirection = (v: unknown): v is CrosscheckDirection =>
 // phrase/paragraph tool, and the cap also bounds the structured output the
 // word-by-word gloss implies.
 export const MAX_TRANSLATE_CHARS = 1000;
+// Compare with Google Translate is sent a *rendition*, not the typed input,
+// and a 1,000-character English input can render longer than that in
+// Gurmukhi, so its cap is its own, larger number. One comparison has to fit
+// in a visitor's day of comparisons (VISITOR_LIMITS.crosscheck, a test says).
+export const MAX_CROSSCHECK_CHARS = MAX_TRANSLATE_CHARS * 2;
 
 // Stamped on every result saved to history. A saved result is served again
 // (instead of a new request) only while its stamp matches, so bump this when

@@ -27,6 +27,9 @@ test('in production, the only other hosts are Firebase: nothing else sees a visi
     const hosts = [...new Set([...p.values()].flat().filter((s) => s.includes('://')))].sort();
     assert.deepEqual(hosts, ['https://*.googleapis.com', 'https://apis.google.com', 'https://sikhai.firebaseapp.com']);
     assert.deepEqual(p.get('img-src'), ["'self'", 'data:', 'blob:'], 'no tracking pixels');
+    // The Talk page plays what /api/translate/speak sends it, from a blob: URL;
+    // no audio comes from another host, nor from a data: URL.
+    assert.deepEqual(p.get('media-src'), ["'self'", 'blob:']);
 });
 
 test('next dev and previews get only what they need on top', () => {

@@ -1,6 +1,6 @@
 // SERVER-ONLY: refuses a request that another website's page sent, before it
-// costs anything. The AI routes, quote checking and Shabad Search call it
-// first thing.
+// costs anything. The AI routes, quote checking, Shabad Search and error
+// reports call it first thing.
 //
 // Any site's page can make its visitors' browsers send requests here. The
 // browser hides the answer from that page, but the request still runs, so a
@@ -37,18 +37,21 @@ function typeKind(type: string): string {
     return 'other';
 }
 
+// The route a refusal's log line is counted under. Only a refusal needs it,
+// so a request that goes on never parses its URL here.
+const pathOf = (req: Request) => new URL(req.url).pathname;
+
 // The refusal to send back, or null to go on.
 export function refuseCrossSite(req: Request): Response | null {
-    const path = new URL(req.url).pathname;
     const site = req.headers.get('sec-fetch-site');
     if (site !== null && !THIS_SITE.has(site)) {
-        logRefusal('request_refused', `${path} cross_site`, { reason: 'cross_site', site: siteKind(site) });
+        logRefusal('request_refused', `${pathOf(req)} cross_site`, { reason: 'cross_site', site: siteKind(site) });
         return new Response(null, { status: 403, headers: NO_STORE });
     }
     if (req.method === 'POST') {
         const type = mediaType(req.headers.get('content-type'));
         if (type !== 'application/json') {
-            logRefusal('request_refused', `${path} not_json`, { reason: 'not_json', type: typeKind(type) });
+            logRefusal('request_refused', `${pathOf(req)} not_json`, { reason: 'not_json', type: typeKind(type) });
             return new Response(null, { status: 415, headers: NO_STORE });
         }
     }

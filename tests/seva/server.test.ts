@@ -35,7 +35,7 @@ function restDoc(over: Record<string, unknown> = {}, updateTime = '2026-09-01T00
             v: { integerValue: '1' }, title: s(e.title), category: s(e.category), description: s(e.description),
             startsAt: t(e.startsAt), endsAt: t(e.endsAt), timeZone: s(e.timeZone), venue: s(e.venue), address: s(e.address),
             city: s(e.city), region: s(e.region), country: s(e.country), organizer: s(e.organizer), contact: s(e.contact),
-            spots: { integerValue: String(e.spots) }, volunteerCount: { integerValue: String(e.volunteerCount) },
+            spots: e.spots === null ? { nullValue: null } : { integerValue: String(e.spots) }, volunteerCount: { integerValue: String(e.volunteerCount) },
             status: s(e.status), cancelNote: s(e.cancelNote), hidden: { booleanValue: e.hidden },
             createdAt: t(e.createdAt), updatedAt: t(e.updatedAt),
         },
@@ -68,6 +68,15 @@ test('the upcoming list is one cached POST for the whole day, with no key, share
     assert.ok(!a.url.includes('key='));
     assert.equal(new Headers(a.init.headers).get('authorization'), null);
     assert.deepEqual(evening, morning);
+});
+
+test('events with no limit, or no sign-up, come through the list as they are', async () => {
+    const open = restDoc({ id: 'N0LimitEventId000000', spots: null, volunteerCount: 64 });
+    const none = restDoc({ id: 'N0SignupEventId00000', spots: 0, volunteerCount: 0 });
+    answer = () => Response.json([{ document: open }, { document: none }]);
+    const read = await fetchUpcomingEvents(Date.UTC(2026, 9, 2, 8));
+    assert.equal(read.kind, 'ok');
+    assert.deepEqual(read.kind === 'ok' && read.value.map((e) => [e.spots, e.volunteerCount]), [[null, 64], [0, 0]]);
 });
 
 test('an event is ok, missing (404, 403, hidden or unreadable) or failed (anything else)', async () => {

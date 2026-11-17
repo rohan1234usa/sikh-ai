@@ -14,7 +14,8 @@ import HostTools from '@/app/components/seva/HostTools';
 import JoinCard from '@/app/components/seva/JoinCard';
 import { AdminTools, ReportControl } from '@/app/components/seva/ReportControl';
 import { CalendarCard, ShareCard } from '@/app/components/seva/ShareCard';
-import { CHIP } from '@/app/components/seva/EventCard';
+import { CHIP, STATE_CHIP } from '@/app/components/seva/styles';
+import { SourceUnavailable } from '@/lib/errors/unavailable';
 import { LANG_META } from '@/lib/i18n/config';
 import { fmt } from '@/lib/i18n/fmt';
 import { localePath } from '@/lib/i18n/paths';
@@ -23,7 +24,7 @@ import { getServerT } from '@/lib/i18n/server';
 import { SITE_URL, pageMetadata } from '@/lib/metadata';
 import { ADMIN_HREF, editHref, eventHref, isEventId, postAgainHref } from '@/lib/seva/config';
 import { describeEvent } from '@/lib/seva/display';
-import { hasEnded, isFull } from '@/lib/seva/event';
+import { hasEnded, isFull, type SignupWords } from '@/lib/seva/event';
 import { eventJsonLd, serializeJsonLd } from '@/lib/seva/jsonld';
 import { CALENDAR_LINK_CHARS, calendarText, contactHref, googleCalendarUrl, mapsUrl, whatsappUrl } from '@/lib/seva/links';
 import { clip, indexable } from '@/lib/seva/meta';
@@ -74,7 +75,7 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
   if (read.kind === 'failed' && !isBuilding() && sevaProject()) {
     // Thrown rather than shown, so a passing outage isn't cached as this
     // event's page: the error page offers Try again.
-    throw new Error('Firestore gave no usable answer for a Seva event');
+    throw new SourceUnavailable('Firestore gave no usable answer for a Seva event');
   }
   if (read.kind !== 'ok') {
     return (
@@ -91,6 +92,12 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
   const contactLink = event.contact ? contactHref(event.contact) : null;
   const shareMessage = fmt(copy.event.shareMessage, { title: event.title, when: display.when, place: display.placeShort, url });
   const calendarDetails = fmt(copy.calendar.details, { name: event.organizer, url });
+  // Who may sign up and how many have: for the Join card, or the host's tools
+  // in its place. Only these words go to the browser, not all of `common`.
+  const signupWords: SignupWords = {
+    capacity: copy.common.capacity, spotsLeft: copy.common.spotsLeft, full: copy.common.full,
+    capacityNoLimit: copy.common.capacityNoLimit, noSignup: copy.common.noSignup,
+  };
   const jsonLd = indexable(event, now)
     ? serializeJsonLd(eventJsonLd(event, { url, image: `${SITE_URL}/og.jpg`, description: clip(event.description || display.when, 300), inLanguage: LANG_META[lang].htmlLang }))
     : null;
@@ -111,7 +118,7 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
           <header className="mt-3">
             <p className="flex flex-wrap items-center gap-2">
               <span className={CHIP}>{copy.common.categories[event.category]}</span>
-              {isFull(event) && <span className={`${CHIP} font-semibold`}>{copy.common.full}</span>}
+              {isFull(event) && <span className={STATE_CHIP}>{copy.common.full}</span>}
             </p>
             <h1 id="event-title" tabIndex={-1} className="mt-3 text-3xl font-bold text-ink md:text-4xl [overflow-wrap:anywhere]"><Mixed text={event.title} /></h1>
             <p className="mt-2 text-ink-muted [overflow-wrap:anywhere]"><Mixed text={fmt(copy.common.hostedBy, { name: event.organizer })} /></p>
@@ -147,7 +154,7 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
                   <div>
                     <dt className="text-sm font-semibold text-ink-muted">{copy.common.contactLabel}</dt>
                     <dd className="mt-1 text-ink [overflow-wrap:anywhere]">
-                      {contactLink ? <a href={contactLink} className="text-accent-text underline">{event.contact}</a> : <Mixed text={event.contact} />}
+                      {contactLink ? <a href={contactLink} className="text-link underline">{event.contact}</a> : <Mixed text={event.contact} />}
                     </dd>
                   </div>
                 )}
@@ -155,11 +162,21 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
             </div>
 
             <div className="space-y-6 lg:col-start-2 lg:row-span-2 lg:row-start-1">
+              <HostTools
+                lang={lang}
+                heading={copy.event.youAreHosting}
+                copy={copy.host}
+                words={signupWords}
+                cancelCopy={copy.cancelDialog}
+                volunteersCopy={copy.volunteers}
+                retry={copy.common.retry}
+                cancelledMessage={copy.actions.cancelledFlash}
+                editHref={to(editHref(id))}
+                postAgainHref={to(postAgainHref(id))}
+              />
               <JoinCard
                 copy={copy.actions}
-                capacity={{ count: copy.common.capacity, left: copy.common.spotsLeft }}
-                fullLabel={copy.common.full}
-                hostingLabel={copy.event.youAreHosting}
+                words={signupWords}
                 contactFallback={event.contact ? fmt(copy.event.noAccountContact, { contact: event.contact }) : null}
               />
               <CalendarCard
@@ -183,23 +200,13 @@ export default async function EventPage({ params }: PageProps<'/[lang]/seva/[id]
                   <p className="mt-2 whitespace-pre-line text-ink [overflow-wrap:anywhere]"><Mixed text={event.description} /></p>
                 </section>
               )}
-              <HostTools
-                lang={lang}
-                copy={copy.host}
-                cancelCopy={copy.cancelDialog}
-                volunteersCopy={copy.volunteers}
-                retry={copy.common.retry}
-                cancelledMessage={copy.actions.cancelledFlash}
-                editHref={to(editHref(id))}
-                postAgainHref={to(postAgainHref(id))}
-              />
               <AdminTools copy={copy.admin} adminHref={to(ADMIN_HREF)} />
               <ReportControl copy={copy.report} />
             </div>
           </div>
 
           <p className="mt-10">
-            <IntentLink href={to('/seva')} className="font-semibold text-accent-text underline">← {copy.event.backToList}</IntentLink>
+            <IntentLink href={to('/seva')} className="font-semibold text-link underline">← {copy.event.backToList}</IntentLink>
           </p>
         </div>
       </EventProvider>

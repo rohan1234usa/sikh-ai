@@ -25,12 +25,13 @@ async function call(url: string, init: RequestInit = {}): Promise<unknown> {
     return text ? JSON.parse(text) : null;
 }
 
-type Value = string | number | boolean | Date;
+type Value = string | number | boolean | Date | null;
 const encode = (v: Value) =>
-    v instanceof Date ? { timestampValue: v.toISOString() }
-        : typeof v === 'boolean' ? { booleanValue: v }
-            : typeof v === 'number' ? { integerValue: String(v) }
-                : { stringValue: v };
+    v === null ? { nullValue: null }
+        : v instanceof Date ? { timestampValue: v.toISOString() }
+            : typeof v === 'boolean' ? { booleanValue: v }
+                : typeof v === 'number' ? { integerValue: String(v) }
+                    : { stringValue: v };
 
 const write = (path: string, data: Record<string, Value>) =>
     call(`${DOCS}/${path}`, {
@@ -59,7 +60,8 @@ function at(days: number, hour: number, offsetHours: number): Date {
 
 type Sample = {
     title: string; category: string; description?: string; venue: string; address?: string; city: string; region?: string;
-    country: string; timeZone: string; startsAt: Date; endsAt: Date; spots: number; organizer: string; contact?: string;
+    // null: anyone can sign up; 0: no sign-up.
+    country: string; timeZone: string; startsAt: Date; endsAt: Date; spots: number | null; organizer: string; contact?: string;
     status?: 'open' | 'cancelled'; cancelNote?: string; hidden?: boolean;
 };
 
@@ -86,6 +88,8 @@ async function main() {
         { title: 'Gurpurab decorations', category: 'gurpurab', venue: 'Gurdwara Sahib Fremont', city: 'Fremont', region: 'CA', country: 'US', timeZone: 'America/Los_Angeles', startsAt: at(4, 10, -7), endsAt: at(4, 14, -7), spots: 8, organizer: 'Gurpurab committee', status: 'cancelled', cancelNote: 'Moved to next Sunday' },
         { title: 'Buy cheap watches here', category: 'other', venue: 'Online', city: 'Nowhere', country: 'US', timeZone: 'UTC', startsAt: at(6, 10, 0), endsAt: at(6, 11, 0), spots: 100, organizer: 'Spammer', hidden: true },
         { title: 'Last week’s langar', category: 'langar', venue: 'Gurdwara Sahib Fremont', city: 'Fremont', region: 'CA', country: 'US', timeZone: 'America/Los_Angeles', startsAt: new Date(now - 6 * DAY), endsAt: new Date(now - 6 * DAY + 3 * HOUR), spots: 10, organizer: 'Fremont youth committee' },
+        { title: 'Gurpurab langar: all hands welcome', category: 'langar', description: 'Cooking and serving for the gurpurab. Come for as long as you can.', venue: 'Gurdwara Sahib Fremont', address: '300 Gurdwara Rd', city: 'Fremont', region: 'CA', country: 'US', timeZone: 'America/Los_Angeles', startsAt: at(9, 8, -7), endsAt: at(9, 16, -7), spots: null, organizer: 'Gurpurab committee' },
+        { title: 'Sukhmani Sahib path at the Gurdwara', category: 'kirtan', description: 'I’ll be doing the path that morning. Join in if you can.', venue: 'Gurdwara Sahib Fremont', city: 'Fremont', region: 'CA', country: 'US', timeZone: 'America/Los_Angeles', startsAt: at(6, 7, -7), endsAt: at(6, 9, -7), spots: 0, organizer: 'Hana Kaur' },
     ];
 
     const ids: string[] = [];
@@ -114,7 +118,9 @@ async function main() {
     await signUp(amar, 1, 'Amar Singh');
     await signUp(bina, 1, 'Bina Kaur', 'bina@example.com');
     await signUp(amar, 8, 'Amar Singh');
-    const counts: Record<number, number> = { 0: 2, 1: 2, 8: 1 };
+    await signUp(amar, 11, 'Amar Singh', 'amar@example.com');
+    await signUp(bina, 11, 'Bina Kaur');
+    const counts: Record<number, number> = { 0: 2, 1: 2, 8: 1, 11: 2 };
     for (const [i, n] of Object.entries(counts)) {
         await call(`${DOCS}/seva_events/${ids[Number(i)]}?updateMask.fieldPaths=volunteerCount`, {
             method: 'PATCH', body: JSON.stringify({ fields: { volunteerCount: { integerValue: String(n) } } }),
@@ -129,7 +135,8 @@ async function main() {
 
     console.log('Seeded the emulators:');
     console.log(`  accounts: hana (hosts every event) ${hana}, amar ${amar}, bina ${bina}, olive (admin) ${olive}`);
-    samples.forEach((s, i) => console.log(`  /seva/${ids[i]}  ${s.title}${s.hidden ? ' (hidden)' : ''}${s.status === 'cancelled' ? ' (cancelled)' : ''}`));
+    const signups = (s: Sample) => (s.spots === null ? ' (no limit)' : s.spots === 0 ? ' (no sign-up)' : '');
+    samples.forEach((s, i) => console.log(`  /seva/${ids[i]}  ${s.title}${signups(s)}${s.hidden ? ' (hidden)' : ''}${s.status === 'cancelled' ? ' (cancelled)' : ''}`));
 }
 
 main().catch((error) => {

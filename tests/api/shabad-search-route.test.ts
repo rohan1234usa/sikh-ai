@@ -231,6 +231,15 @@ test("past the day's limit a visitor's search is refused, never cached, and noth
     assert.equal(other.status, 200, 'someone else');
 });
 
+test("a search refused for what it is doesn't count toward a visitor's day", async () => {
+    const from = { 'x-forwarded-for': '203.0.113.92' };
+    const search = (q: string) => GET(new Request(`http://local/api/shabad/search?q=${encodeURIComponent(q)}`, { headers: from }));
+    spendDay('search', '203.0.113.92', 1);
+    assert.equal((await search('10')).status, 400, 'an Ang number');
+    assert.equal((await search('so purakh niranjan')).status, 200, 'that spent nothing');
+    assert.equal((await search('so purakh niranjan')).status, 429);
+});
+
 // Last: it spends this process's search allowance.
 test('with the day\'s allowance spent, a search is busy, and nothing is asked', async () => {
     const { meters } = await import('@/lib/gurbani/gurbaninow');

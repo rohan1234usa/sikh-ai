@@ -1,15 +1,19 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import type { QuizQuestion, TypedQuestion, VocabWord } from '@/lib/learn/config';
+import { LESSON_META, type QuizQuestion, type TypedQuestion, type VocabWord } from '@/lib/learn/config';
 import {
     buildVocabQuiz,
     choiceMatches,
     foldRoman,
+    otherSpellings,
     scoreQuiz,
     seededShuffle,
     typedMatches,
 } from '@/lib/learn/quiz';
 import { VOCAB, getLesson } from '@/lib/learn/curriculum';
+import en from '@/lib/i18n/dictionaries/en';
+import pa from '@/lib/i18n/dictionaries/pa';
+import paLatn from '@/lib/i18n/dictionaries/pa-latn';
 
 test('grading ignores case, spaces, punctuation and accents', () => {
     assert.equal(foldRoman('  Ki haal HAI? '), foldRoman('kihaalhai'));
@@ -59,6 +63,43 @@ test('a typed answer matches the house spelling or an accepted one, and never an
     assert.ok(!typedMatches('na', question));
     assert.ok(!typedMatches('   ', question));
     assert.ok(!typedMatches('?!', { answer: '...' }));
+});
+
+test('the spelling hint only promises what the grader forgives, in every language', () => {
+    // "ghar or gar" would be a promise broken: gh and g are different letters.
+    assert.notEqual(foldRoman('ghar'), foldRoman('gar'));
+    const cases: [string, RegExp][] = [
+        [en.learn.quiz.typedHint, /([a-z]+) or ([a-z]+)/g],
+        [pa.learn.quiz.typedHint, /([a-z]+) ਜਾਂ ([a-z]+)/g],
+        [paLatn.learn.quiz.typedHint, /([a-z]+) jaan ([a-z]+)/g],
+    ];
+    for (const [hint, pair] of cases) {
+        const pairs = [...hint.matchAll(pair)];
+        assert.equal(pairs.length, 2, hint);
+        for (const [, a, b] of pairs) {
+            assert.notEqual(a, b);
+            assert.equal(foldRoman(a), foldRoman(b), `${a} or ${b}`);
+        }
+    }
+});
+
+test('after a miss, the other accepted spellings show once each, and never the house one again', () => {
+    assert.deepEqual(otherSpellings({ answer: 'ghar' }), []);
+    assert.deepEqual(otherSpellings({ answer: 'nahi', accept: ['nahin'] }), ['nahin']);
+    assert.deepEqual(
+        otherSpellings({ answer: 'Main theek haan', accept: ['Main thik haan', 'main theek haan!', 'Main  thik haan', 'Mai thik haan'] }),
+        ['Main thik haan', 'Mai thik haan'],
+        'case, spacing and punctuation are not another spelling',
+    );
+    // Every lesson's accepted spellings differ from its house spelling and
+    // from each other, so after a miss each one is worth showing.
+    for (const meta of LESSON_META) {
+        for (const question of getLesson(meta.slug).quiz) {
+            if (question.kind === 'typed' && question.accept) {
+                assert.equal(otherSpellings(question).length, question.accept.length, `${meta.slug}: ${question.answer}`);
+            }
+        }
+    }
 });
 
 test('a strict question keeps the vowel length and the addak it tests', () => {

@@ -4,6 +4,7 @@ import { CloudArrowUpIcon } from '@heroicons/react/24/outline';
 import { useT } from '../../context/LanguageContext';
 import { MAX_ACCOUNT_CHATS } from '@/lib/chat/config';
 import { fmt } from '@/lib/i18n/fmt';
+import { PRIMARY_FILL } from '../buttons';
 import type { MoveProgress } from './useMoveOffer';
 
 type Props = { progress: MoveProgress; onMove: () => void; onDismiss: () => void };
@@ -15,7 +16,7 @@ export default function MoveChatsBanner({ progress, onMove, onDismiss }: Props) 
     const { phase, done, total } = progress;
     const finished = phase === 'done' || phase === 'full';
     return (
-        <div className="mb-2 rounded-xl border border-kesri/40 bg-kesri/10 p-3 text-xs">
+        <div className="mb-2 rounded-xl border border-accent-text/40 bg-accent-text/10 p-3 text-xs">
             <p className="flex items-center gap-1.5 font-semibold text-ink">
                 <CloudArrowUpIcon className="h-4 w-4 text-accent-text" aria-hidden="true" />
                 {h.moveTitle}
@@ -28,7 +29,7 @@ export default function MoveChatsBanner({ progress, onMove, onDismiss }: Props) 
                 <>
                     <p className="mt-1 text-ink-muted">{h.moveBody}</p>
                     {phase === 'moving' && <p role="status" className="mt-1 text-ink-muted">{fmt(h.moving, { done, total })}</p>}
-                    {phase === 'error' && <p role="alert" className="mt-1 text-red-600 dark:text-red-400">{h.moveError}</p>}
+                    {phase === 'error' && <p role="alert" className="mt-1 text-red-700 dark:text-red-400">{h.moveError}</p>}
                 </>
             )}
             <div className="mt-2 flex flex-wrap gap-2">
@@ -37,7 +38,7 @@ export default function MoveChatsBanner({ progress, onMove, onDismiss }: Props) 
                         type="button"
                         onClick={onMove}
                         disabled={phase === 'moving'}
-                        className="rounded-lg bg-kesri px-3 py-1.5 font-bold text-navy transition-colors hover:bg-kesri-hover disabled:opacity-60"
+                        className={`rounded-lg px-3 py-1.5 transition-colors disabled:opacity-60 ${PRIMARY_FILL}`}
                     >
                         {h.moveAction}
                     </button>

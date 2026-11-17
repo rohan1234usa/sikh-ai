@@ -13,7 +13,7 @@
 // Only the Hukamnama, which changes daily, is kept for less.
 
 import { MAX_ANG, SGGS_SOURCE_ID } from './citations';
-import { assignAngs, isGurbaniId, lineKind, type Shabad, type ShabadLine } from './shabad';
+import { assignAngs, isGurbaniId, lineKind, type Hukamnama, type Shabad, type ShabadLine } from './shabad';
 import { describeError, logEvent } from '../log';
 
 const BASE = 'https://api.gurbaninow.com/v2';
@@ -122,7 +122,7 @@ export function parseAngPayload(data: unknown): GurbaniLine[] | null {
 
 // Search results carry their own source each. Only a shape we recognise may
 // answer "nothing matched" ([]); anything else is no answer at all (null), or
-// a correct quote would earn a card saying it could not be found. The live
+// a correct quote would earn a note saying it could not be found. The live
 // endpoint says it as { count: 0, shabads: [], error: false }; of the worded
 // errors, only its "Nothing Found!" means that — any other is a failure.
 export function parseSearchPayload(data: unknown): GurbaniLine[] | null {
@@ -138,14 +138,14 @@ export function parseSearchPayload(data: unknown): GurbaniLine[] | null {
 // once, in shabadinfo; each line brings only its text, its kind and its place
 // on the page, from which its Ang follows (assignAngs). null for anything
 // that is not a usable shabad.
-export function parseShabadPayload(data: unknown): Shabad | null {
-    const d = obj(data);
-    const info = obj(d.shabadinfo);
-    const id = idText(info.shabadid);
-    if (d.error || !isGurbaniId(id) || !Array.isArray(d.shabad)) return null;
-    const raw = d.shabad.map(item => obj(obj(item).line));
+// A shabad's lines as GurbaniNow sends them, `[{ line: {…} }]`, in order: each
+// with its kind and its Ang worked out from the line numbers. Lines with no
+// Gurmukhi or no id are left out, though every line keeps its place in the
+// Angs (a shabad's last Ang is its last line's, kept or not). Shared by whole
+// shabads and the Hukamnama.
+function shabadLines(items: unknown[], start: number | null): { lines: ShabadLine[]; angs: (number | null)[] } {
+    const raw = items.map(item => obj(obj(item).line));
     const lineNos = raw.map(v => num(v.linenum) ?? num(v.lineno));
-    const start = num(info.pageno);
     const angs = assignAngs(start, lineNos);
     const lines: ShabadLine[] = [];
     raw.forEach((v, i) => {
@@ -154,6 +154,16 @@ export function parseShabadPayload(data: unknown): Shabad | null {
         if (!gurmukhi || !lineId) return;
         lines.push({ id: lineId, kind: lineKind(v.type), gurmukhi, transliteration, translation, ang: angs[i], lineNo: lineNos[i] });
     });
+    return { lines, angs };
+}
+
+export function parseShabadPayload(data: unknown): Shabad | null {
+    const d = obj(data);
+    const info = obj(d.shabadinfo);
+    const id = idText(info.shabadid);
+    if (d.error || !isGurbaniId(id) || !Array.isArray(d.shabad)) return null;
+    const start = num(info.pageno);
+    const { lines, angs } = shabadLines(d.shabad, start);
     if (lines.length === 0) return null;
     const writer = obj(info.writer);
     const raag = obj(info.raag);
@@ -294,8 +304,52 @@ export async function fetchShabad(id: string): Promise<Shabad | null> {
     return shabad?.id === id ? shabad : null;
 }
 
+// Today's Hukamnama as GurbaniNow sends it, for /api/hukamnama and for
+// fetchHukamnama below. An answer it flags as an error is no answer, even
+// with lines in it, so neither reader shows one.
 export async function fetchHukamnamaPayload(): Promise<unknown | null> {
     const data = await request(`${BASE}/hukamnama/today`, HUKAMNAMA_REVALIDATE_SECONDS);
-    const lines = obj(data).hukamnama;
-    return Array.isArray(lines) && lines.length > 0 ? data : null;
+    const d = obj(data);
+    return !d.error && Array.isArray(d.hukamnama) && d.hukamnama.length > 0 ? data : null;
+}
+
+// Today's Hukamnama, read: null when the source is slow or down, or sends
+// nothing a page could show. Never throws, so a page built on it can't fail.
+export async function fetchHukamnama(): Promise<Hukamnama | null> {
+    const data = await fetchHukamnamaPayload();
+    return data === null ? null : parseHukamnamaPayload(data);
+}
+
+// The Hukamnama's payload: the date, the writer and raag, the Ang it starts
+// on, its shabad's id, and every line with its kind. GurbaniNow can answer 200
+// with a drifted shape, so every field is read defensively; null when there's
+// no line to show.
+export function parseHukamnamaPayload(data: unknown): Hukamnama | null {
+    const d = obj(data);
+    if (d.error || !Array.isArray(d.hukamnama)) return null;
+    const info = obj(d.hukamnamainfo);
+    const start = num(info.pageno);
+    const { lines } = shabadLines(d.hukamnama, start);
+    if (lines.length === 0) return null;
+    const nanakshahi = obj(obj(d.date).nanakshahi);
+    const english = obj(nanakshahi.english);
+    const month = text(english.month);
+    const day = num(english.date);
+    const year = num(english.year);
+    const writer = obj(info.writer);
+    const raag = obj(info.raag);
+    // One id, but sent as a list.
+    const shabadId = idText(Array.isArray(info.shabadid) ? info.shabadid[0] : info.shabadid);
+    return {
+        date: month && day !== null && year !== null
+            ? { month, monthGurmukhi: text(obj(nanakshahi.punjabi).month), day, year }
+            : null,
+        writer: text(writer.english),
+        writerGurmukhi: text(writer.unicode),
+        raag: text(raag.english),
+        raagGurmukhi: text(raag.unicode),
+        ang: start,
+        shabadId: isGurbaniId(shabadId) ? shabadId : null,
+        lines,
+    };
 }

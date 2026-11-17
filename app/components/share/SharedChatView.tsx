@@ -12,6 +12,7 @@ import { db } from '@/lib/firebase/firestore';
 import { formatDate } from '@/lib/i18n/date';
 import { fmt } from '@/lib/i18n/fmt';
 import { useLanguage } from '../../context/LanguageContext';
+import { PRIMARY_FILL } from '../buttons';
 import ContextChip from '../chat/ContextChip';
 import { QuestionBubble } from '../chat/Bubbles';
 import ReplyMessage from '../chat/ChatMessage';
@@ -24,7 +25,7 @@ type State = { status: 'loading' } | { status: 'missing' } | { status: 'error' }
 // try again, rather than loading for ever.
 const LOAD_TIMEOUT_MS = 15_000;
 
-const PRIMARY = 'rounded-lg bg-kesri px-4 py-2 text-sm font-bold text-navy transition-colors hover:bg-kesri-hover disabled:opacity-60';
+const PRIMARY = `rounded-lg px-4 py-2 text-sm transition-colors disabled:opacity-60 ${PRIMARY_FILL}`;
 
 // A shared chat, read-only, for anyone holding the link — signed in or not.
 // Read with the ordinary client (public reads are allowed on shared_chats),
@@ -111,9 +112,9 @@ export default function SharedChatView({ shareId }: { shareId: string }) {
         return (
             <main className="flex-1">
                 <div className="mx-auto w-full max-w-3xl px-4 py-12 space-y-6" aria-hidden="true">
-                    <div className="h-8 w-2/3 rounded-lg bg-edge/60 animate-pulse" />
-                    <div className="ml-auto h-12 w-1/2 rounded-2xl bg-edge/60 animate-pulse" />
-                    <div className="h-24 w-3/4 rounded-2xl bg-edge/60 animate-pulse" />
+                    <div className="h-8 w-2/3 bg-edge/60 animate-pulse" />
+                    <div className="h-6 w-1/2 border-l-2 border-edge bg-edge/60 animate-pulse" />
+                    <div className="h-24 w-full bg-edge/60 animate-pulse" />
                 </div>
                 <p className="sr-only" role="status">{t.share.loading}</p>
             </main>
@@ -139,7 +140,7 @@ export default function SharedChatView({ shareId }: { shareId: string }) {
 
                 {chat.truncated && <p className="mb-6 text-center text-xs text-ink-muted">{t.share.truncated}</p>}
 
-                <div className="space-y-6">
+                <div className="space-y-8">
                     {toDisplayItems(chat.transcript).map((item) =>
                         item.kind === 'notice' ? (
                             <NoticeDivider key={item.notice.id} notice={item.notice} />
@@ -157,10 +158,10 @@ export default function SharedChatView({ shareId }: { shareId: string }) {
                     <button type="button" onClick={() => void continueChat(chat)} disabled={opening} className={PRIMARY}>
                         {opening ? t.share.continuing : t.share.continue}
                     </button>
-                    <Link href={href('/chat')} className="text-sm font-semibold text-accent-text hover:underline">
+                    <Link href={href('/chat')} className="text-sm font-semibold text-link hover:underline">
                         {t.share.newChat}
                     </Link>
-                    {failed && <p role="alert" className="w-full text-center text-xs text-red-600 dark:text-red-400">{t.share.continueError}</p>}
+                    {failed && <p role="alert" className="w-full text-center text-xs text-red-700 dark:text-red-400">{t.share.continueError}</p>}
                 </div>
             </div>
         </main>

@@ -132,7 +132,7 @@ export default function TutorConversation() {
                             // aria-disabled, not disabled: pressing it empties the
                             // conversation, and a disabled button would drop focus.
                             aria-disabled={session.exchanges.length === 0 || undefined}
-                            className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 font-semibold text-accent-text transition-colors hover:bg-kesri/10 aria-disabled:cursor-default aria-disabled:opacity-40 aria-disabled:hover:bg-transparent"
+                            className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 font-semibold text-link transition-colors hover:bg-link/10 aria-disabled:cursor-default aria-disabled:opacity-40 aria-disabled:hover:bg-transparent"
                         >
                             <PlusIcon className="h-4 w-4" aria-hidden="true" />
                             {t.learn.tutor.newConversation}
@@ -143,14 +143,14 @@ export default function TutorConversation() {
 
             <div className="relative min-h-0 flex-1">
                 <div ref={scrollRef} onScroll={onScroll} className="relative h-full overflow-y-auto p-4 md:p-8">
-                    <div className="mx-auto w-full max-w-3xl space-y-6">
+                    <div className="mx-auto w-full max-w-3xl space-y-8">
                         {tutor.lessonNotFound && (
                             <p className="text-center text-sm text-ink-muted">{t.learn.tutor.lessonNotFound}</p>
                         )}
-                        <GreetingBubble text={t.learn.tutor.greeting} />
+                        <GreetingBubble text={t.learn.tutor.greeting} label={t.learn.tracks.tutor.title} />
                         {session.exchanges.map((exchange) => (
                             <Fragment key={exchange.id}>
-                                <QuestionBubble text={exchange.question} />
+                                <QuestionBubble text={exchange.question} label={t.chat.you} />
                                 <TutorMessage
                                     reply={exchange.reply}
                                     onRetry={exchange === last && canRetry ? retry : undefined}
@@ -170,7 +170,7 @@ export default function TutorConversation() {
                     <button
                         type="button"
                         onClick={jumpToBottom}
-                        className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-navy px-3 py-2 text-xs font-semibold text-white shadow-lg transition-opacity hover:opacity-90 dark:bg-kesri dark:text-navy"
+                        className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded bg-ink px-3 py-2 text-xs font-semibold text-surface shadow-lg transition-opacity hover:opacity-90"
                     >
                         <ArrowDownIcon className="h-3.5 w-3.5" aria-hidden="true" />
                         {t.learn.tutor.latest}

@@ -231,24 +231,24 @@ export default function ChatConversation({
                 {/* relative: the screen-reader-only text inside is absolutely positioned,
                     and must scroll (and be clipped) with the list, not stretch the page. */}
                 <div ref={scrollRef} onScroll={onScroll} className="relative h-full overflow-y-auto p-4 md:p-8">
-                    <div className="mx-auto w-full max-w-3xl space-y-6">
+                    <div className="mx-auto w-full max-w-3xl space-y-8">
                         {leaving ? null : missing ? (
                             <ChatUnavailable onNewChat={onNewChat} />
                         ) : !prefsHydrated ? null : session.status === 'loading' ? (
-                            <div className="space-y-6" aria-hidden="true">
-                                <div className="h-16 w-2/3 rounded-2xl bg-edge/60 animate-pulse" />
-                                <div className="ml-auto h-12 w-1/2 rounded-2xl bg-edge/60 animate-pulse" />
-                                <div className="h-24 w-3/4 rounded-2xl bg-edge/60 animate-pulse" />
+                            <div className="space-y-8" aria-hidden="true">
+                                <div className="space-y-2"><div className="h-3 w-16 bg-edge/60 animate-pulse" /><div className="h-12 w-full bg-edge/60 animate-pulse" /></div>
+                                <div className="space-y-2 border-l-2 border-edge pl-4"><div className="h-3 w-10 bg-edge/60 animate-pulse" /><div className="h-6 w-2/3 bg-edge/60 animate-pulse" /></div>
+                                <div className="space-y-2"><div className="h-3 w-16 bg-edge/60 animate-pulse" /><div className="h-20 w-full bg-edge/60 animate-pulse" /></div>
                                 <span className="sr-only">{t.chat.loadingChat}</span>
                             </div>
                         ) : (
                             <>
-                                <GreetingBubble text={t.chat.config.lenses[greetingLens].greeting} />
+                                <GreetingBubble text={t.chat.config.lenses[greetingLens].greeting} label={t.chat.config.lenses.sikhai.name} />
                                 {session.items.map((item) =>
                                     item.kind === 'notice' ? (
                                         <NoticeDivider key={item.notice.id} notice={item.notice} />
                                     ) : item.kind === 'question' ? (
-                                        <QuestionBubble key={`${item.exchange.id}:question`} text={item.exchange.question.text} />
+                                        <QuestionBubble key={`${item.exchange.id}:question`} text={item.exchange.question.text} label={t.chat.you} />
                                     ) : (
                                         <ReplyMessage
                                             key={item.exchange.reply.id}
@@ -274,7 +274,7 @@ export default function ChatConversation({
                     <button
                         type="button"
                         onClick={jumpToBottom}
-                        className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-navy text-white dark:bg-kesri dark:text-navy text-xs font-semibold px-3 py-2 rounded-full shadow-lg hover:opacity-90 transition-opacity"
+                        className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-ink text-surface text-xs font-semibold px-3 py-2 rounded shadow-lg hover:opacity-90 transition-opacity"
                     >
                         <ArrowDownIcon className="w-3.5 h-3.5" aria-hidden="true" />
                         {t.chat.latest}
@@ -289,7 +289,7 @@ export default function ChatConversation({
                     {(blocked || session.full) && (
                         <p
                             role={blocked ? 'alert' : 'status'}
-                            className="mx-auto w-full max-w-3xl px-4 pb-2 text-xs text-red-600 dark:text-red-400"
+                            className="mx-auto w-full max-w-3xl px-4 pb-2 text-xs text-red-700 dark:text-red-400"
                         >
                             {blocked ?? t.chat.chatFull}
                         </p>

@@ -33,7 +33,10 @@ export const SEVA_VOLUNTEER_TEXT = {
 
 export const SEVA_REPORT_NOTE = [0, 500] as const;
 
-// Volunteers an event asks for.
+// Volunteers an event asks for, when it sets a limit. Without one its spots
+// are null, and sign-ups still stop at the most a limit can be, so whatever
+// reads or clears an event's sign-ups stays bounded; an event that takes no
+// sign-ups has 0 (./model.ts).
 export const SEVA_SPOTS = [1, 500] as const;
 
 // An event lasts at most a week, and is posted at most a year ahead.

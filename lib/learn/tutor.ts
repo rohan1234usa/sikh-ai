@@ -4,6 +4,8 @@
 // question with exactly one reply, so an unanswered question can't be
 // represented.
 
+import { cap } from '../text';
+
 export const MAX_TUTOR_MESSAGE_CHARS = 1000;
 // Four exchanges ride along with each question: each question at the
 // message cap, each reply cut to this.
@@ -31,14 +33,11 @@ export type TutorExchange = { id: string; question: string; reply: TutorReply };
 export type TutorSession = { lesson: string | null; exchanges: TutorExchange[] };
 export type HistoryTurn = { role: 'user' | 'ai'; text: string };
 
-// Cuts text to at most `max` UTF-16 units without splitting a character: an
-// emoji cut in half would reach Gemini as a lone surrogate, which it may
-// refuse, on every later question of the conversation.
-export function cap(text: string, max: number): string {
-    if (text.length <= max) return text;
-    const last = text.charCodeAt(max - 1);
-    return text.slice(0, last >= 0xd800 && last <= 0xdbff ? max - 1 : max);
-}
+// Every text the tutor keeps or sends is capped without splitting a
+// character (lib/text.ts): an emoji cut in half would reach Gemini as a lone
+// surrogate, which it may refuse, on every later question of the
+// conversation.
+export { cap };
 
 // Shared, so frozen: nothing changes it in place.
 export const EMPTY_SESSION: TutorSession = Object.freeze({ lesson: null, exchanges: Object.freeze([] as TutorExchange[]) as TutorExchange[] });

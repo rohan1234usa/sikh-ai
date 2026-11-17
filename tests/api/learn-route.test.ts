@@ -5,7 +5,7 @@ import { getLesson } from '@/lib/learn/curriculum';
 import { LEARN_MAX_OUTPUT_TOKENS, MAX_LEARN_BODY_CHARS } from '@/lib/learn/request';
 import { MAX_TUTOR_HISTORY_TURNS, MAX_TUTOR_HISTORY_TURN_CHARS, MAX_TUTOR_MESSAGE_CHARS } from '@/lib/learn/tutor';
 import { ROMANIZATION_RULES } from '@/lib/translate/romanization';
-import { captured, postJson, readStream, spendDay, startRouteMock } from '../helpers/routes';
+import { captured, instructionOf, postJson, readStream, spendDay, startRouteMock } from '../helpers/routes';
 
 let mock: MockGemini;
 let POST: (req: Request) => Promise<Response>;
@@ -24,8 +24,6 @@ type WireBody = {
     systemInstruction: { parts: { text: string }[] };
     generationConfig: Record<string, unknown> & { maxOutputTokens: number; thinkingConfig: { thinkingLevel: string } };
 };
-
-const instructionOf = (body: unknown) => (body as WireBody).systemInstruction.parts[0].text;
 
 test('streams the tutor’s reply, skipping the signature-only first chunk', async () => {
     const { result: res, requests } = await captured(mock, () => ask('MOCK_REPLY:tutor Why kita and not kiti?'));
@@ -173,7 +171,19 @@ test("another site's request, or a post that isn't JSON, is refused before any m
         assert.equal(res.status, status, JSON.stringify(headers));
         assert.equal(res.headers.get('cache-control'), 'no-store');
         assert.equal(requests.length, 0);
+        assert.equal(req.bodyUsed, false, 'refused before the body was read');
     }
+});
+
+test("a request refused for what it is doesn't count toward a visitor's day", async () => {
+    const visitor = { 'x-forwarded-for': '203.0.113.61' };
+    const ask = (message: string) => POST(postJson('http://local/api/learn', { message, history: [] }, visitor));
+    spendDay('learn', '203.0.113.61', 1);
+    assert.equal((await ask('   ')).status, 400);
+    const last = await ask('Sat Sri Akal');
+    assert.equal(last.status, 200, 'the empty message spent nothing');
+    await readStream(last);
+    assert.equal((await ask('Sat Sri Akal')).status, 429);
 });
 
 test("past the day's limit a visitor gets learn_limit, before any model call", async () => {

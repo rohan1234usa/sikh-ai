@@ -4,13 +4,16 @@ import { useRef, type ReactNode } from 'react';
 import IntentLink from '@/app/components/IntentLink';
 import { INPUT } from '@/app/components/form/Field';
 import { useAnnouncer } from '@/app/components/useAnnouncer';
+import { useMinute } from '@/app/components/useMinute';
 import { fmt } from '@/lib/i18n/fmt';
 import type { Lang } from '@/lib/i18n/config';
 import type { SevaCopy } from '@/lib/i18n/seva';
 import type { SevaCategory } from '@/lib/seva/config';
 import { SEVA_CATEGORIES } from '@/lib/seva/limits';
 import { NO_FILTERS, filterOptions, filtersToSearch, matches, parseFilters, type Facets, type Filters } from '@/lib/seva/listing';
-import { replaceSearch, saveCountry, useMinute, useSavedCountry, useSearch } from './hooks';
+import { replaceSearch, saveCountry, useMyEvents, useSavedCountry, useSearch } from './hooks';
+import { MyPart } from './MyPartChip';
+import { PANEL } from './styles';
 
 export type BoardItem = { id: string; facets: Facets; card: ReactNode };
 export type BoardGroup = { key: string; heading: string; dateTime?: string; items: BoardItem[] };
@@ -19,8 +22,10 @@ export type BoardGroup = { key: string; heading: string; dateTime?: string; item
 // carries what it's filtered by, so the browser only shows or hides them.
 // The filters live in the address, so a filtered list can be shared, and
 // Back from an event comes back to it; with none there, the country chosen
-// last time. Until the page is interactive, every card shows.
-export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, copy, countryNames, categoryNames, createHref }: {
+// last time. Until the page is interactive, every card shows. The cards of
+// events the one signed in hosts or has joined say so (MyPart), from the
+// lists "Your seva" shows.
+export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, copy, countryNames, categoryNames, createHref, mineLabels }: {
     lang: Lang;
     groups: BoardGroup[];
     // "Upcoming events: {n}"
@@ -30,12 +35,14 @@ export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, cop
     countryNames: Record<string, string>;
     categoryNames: Record<SevaCategory, string>;
     createHref: string;
+    mineLabels: { hosting: string; joined: string };
 }) {
     const search = useSearch();
     const saved = useSavedCountry();
     // A cached page can be a few minutes old: events that have ended since
     // drop out once the browser knows the time.
     const now = useMinute();
+    const mine = useMyEvents();
     const { announce, announcer } = useAnnouncer();
     const countryRef = useRef<HTMLSelectElement>(null);
     const announceTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -48,6 +55,7 @@ export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, cop
         : { ...NO_FILTERS, country: all.some((f) => f.country === saved) ? saved : '' };
 
     const isShown = (f: Facets) => live(f) && matches(f, filters);
+    const markOf = (id: string) => (mine?.hosting.has(id) ? mineLabels.hosting : mine?.joined.has(id) ? mineLabels.joined : null);
     const liveFacets = all.filter(live);
     const shown = all.filter(isShown).length;
     const active = !!(filters.country || filters.city || filters.category);
@@ -84,7 +92,7 @@ export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, cop
 
     return (
         <div className="space-y-6">
-            <div role="search" aria-label={copy.aria} className="rounded-xl border border-edge bg-surface-raised p-4 shadow-sm">
+            <div role="search" aria-label={copy.aria} className={PANEL}>
                 <div className="grid gap-4 sm:grid-cols-3">
                     <div>
                         <label htmlFor="filter-country" className="block text-sm font-semibold text-ink">{copy.country}</label>
@@ -127,7 +135,7 @@ export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, cop
                         {timesLocal}
                     </p>
                     {active && (
-                        <button type="button" onClick={clear} className="min-h-6 font-semibold text-accent-text underline">
+                        <button type="button" onClick={clear} className="min-h-6 font-semibold text-link underline">
                             {copy.clear}
                         </button>
                     )}
@@ -141,10 +149,10 @@ export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, cop
                     <p className="mt-1 text-ink-muted">{copy.noMatchesHint}</p>
                     <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
                         {active && (
-                            <button type="button" onClick={clear} className="font-semibold text-accent-text underline">{copy.clear}</button>
+                            <button type="button" onClick={clear} className="font-semibold text-link underline">{copy.clear}</button>
                         )}
                         {place && (
-                            <IntentLink href={hostHere} className="font-semibold text-accent-text underline">{fmt(copy.hostHere, { place })}</IntentLink>
+                            <IntentLink href={hostHere} className="font-semibold text-link underline">{fmt(copy.hostHere, { place })}</IntentLink>
                         )}
                     </div>
                 </div>
@@ -155,11 +163,13 @@ export default function SevaBoard({ lang, groups, totalTemplate, timesLocal, cop
                     const headingId = `day-${group.key}`;
                     return (
                         <section key={group.key} aria-labelledby={headingId}>
-                            <h2 id={headingId} className="text-lg font-bold text-ink">
+                            <h2 id={headingId} className="text-base font-semibold text-ink-muted">
                                 {group.dateTime ? <time dateTime={group.dateTime}>{group.heading}</time> : group.heading}
                             </h2>
                             <ul className="mt-3 space-y-3">
-                                {items.map((item) => <li key={item.id}>{item.card}</li>)}
+                                {items.map((item) => (
+                                    <li key={item.id}><MyPart.Provider value={markOf(item.id)}>{item.card}</MyPart.Provider></li>
+                                ))}
                             </ul>
                         </section>
                     );

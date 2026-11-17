@@ -1,0 +1,328 @@
+// Client-safe rules for the Talk page (/translate/talk, #37): what a press
+// of the button may record, what the conversation holds, and what the page
+// shows. The hooks in app/components/translate (useRecorder,
+// useVoiceTranslate, useSpeaker) and TalkScreen do the browser's part; the
+// contract with the routes is ./voice.ts.
+
+import { hasAnyLine, type LiveLines } from './live';
+import { MAX_AUDIO_BYTES, MIN_AUDIO_BYTES, MIN_CLIP_MS, RECORDING_MIMES, type Speaker } from './voice';
+
+// ── Recording ───────────────────────────────────────────────────────────────
+
+// Why the microphone can't be used: the visitor said no, there is none, an
+// app holds it, the browser can't record (or the page isn't https), or
+// something else went wrong. The page shows these as errors.
+export const MIC_TROUBLES = ['denied', 'unavailable', 'busy', 'unsupported', 'insecure', 'failed'] as const;
+export type MicTrouble = (typeof MIC_TROUBLES)[number];
+export const isMicTrouble = (v: unknown): v is MicTrouble => MIC_TROUBLES.includes(v as MicTrouble);
+
+// The first type MediaRecorder takes, from RECORDING_MIMES; '' lets the
+// browser choose, as when it can't say (an old Safari has no isTypeSupported).
+export function pickRecordingMime(isTypeSupported: ((type: string) => boolean) | undefined): string {
+    for (const type of RECORDING_MIMES) {
+        if (type === '') return '';
+        try {
+            if (isTypeSupported?.(type)) return type;
+        } catch {
+            return '';
+        }
+    }
+    return '';
+}
+
+// What getUserMedia's or MediaRecorder's error means for the visitor.
+export function micTrouble(error: unknown): MicTrouble {
+    const name = typeof (error as { name?: unknown } | null)?.name === 'string' ? (error as { name: string }).name : '';
+    switch (name) {
+        case 'NotAllowedError':
+        case 'PermissionDeniedError':
+        case 'SecurityError':
+            return 'denied';
+        case 'NotFoundError':
+        case 'DevicesNotFoundError':
+        case 'OverconstrainedError':
+            return 'unavailable';
+        case 'NotReadableError':
+        case 'TrackStartError':
+        case 'AbortError':
+            return 'busy';
+        case 'NotSupportedError':
+            return 'unsupported';
+        default:
+            return 'failed';
+    }
+}
+
+// A press that took longer than this to start recording had the browser's
+// "allow the microphone?" question in it, which takes the press away.
+export const PROMPT_DELAY_MS = 1_500;
+
+// What letting go of the button means (TalkButton). A press on a button that
+// was already recording ends the recording. A press and release closer
+// together than any hand can make came from a screen reader: Chrome and
+// Edge send its activation as a pointerdown and pointerup at once, then a
+// click, and like Space it starts a recording that the next activation
+// ends. Anything else is the end of a hold, except a release with no press
+// of its own (lostpointercapture after pointerup), which leaves a recording
+// started from a keyboard or a screen reader alone.
+export const SYNTHETIC_PRESS_MS = 10;
+
+export function pointerRelease(
+    press: { at: number; wasActive: boolean } | null,
+    release: { type: string; timeStamp: number },
+    toggled: boolean,
+): 'stop' | 'keep' | 'toggleOn' {
+    if (!press) return toggled ? 'keep' : 'stop';
+    if (press.wasActive) return 'stop';
+    if (release.type === 'pointerup' && release.timeStamp - press.at < SYNTHETIC_PRESS_MS) return 'toggleOn';
+    return 'stop';
+}
+
+// Gemini writes words down even from silence (tried on 2026-10-13: three
+// silent seconds came back as "Wait for it.", and as Punjabi sentences, with
+// the prompt saying not to), so a clip with no speech in it is never sent.
+// The page measures how loud each tenth of a second of a finished clip is,
+// and a clip needs this much time at speech's loudness: an RMS of 0.01,
+// about -40 dBFS, which a quiet room under the browser's noise suppression
+// stays well below.
+export const VOICE_RMS = 0.01;
+export const MIN_VOICED_MS = 300;
+
+// The rate a finished clip is decoded at to be measured: speech needs no
+// more, and fifteen seconds of it is then a quarter of a million samples.
+export const MEASURE_RATE = 16_000;
+const WINDOW_MS = 100;
+
+// How loud a slice of samples (-1 to 1) is: its root mean square.
+export function rms(samples: ArrayLike<number>): number {
+    if (samples.length === 0) return 0;
+    let sum = 0;
+    for (let i = 0; i < samples.length; i++) sum += samples[i] * samples[i];
+    return Math.sqrt(sum / samples.length);
+}
+
+// How much of a clip is at speech's loudness: its whole tenths of a second
+// whose RMS reaches VOICE_RMS. `samples` run from -1 to 1, at `sampleRate`.
+export function voicedMs(samples: Float32Array, sampleRate: number): number {
+    const size = Math.max(1, Math.round((sampleRate * WINDOW_MS) / 1000));
+    let voiced = 0;
+    for (let start = 0; start + size <= samples.length; start += size) {
+        if (rms(samples.subarray(start, start + size)) >= VOICE_RMS) voiced += WINDOW_MS;
+    }
+    return voiced;
+}
+
+// Whether a finished clip is worth sending: null when it is, or the note that
+// says why not. Too short (a tap), or cut off by the browser's permission
+// question ('micReady'), too big, or silent. `voicedMs` is how much of it was
+// at speech's loudness, unknown when the browser couldn't tell.
+export function clipCheck(clip: { durationMs: number; bytes: number; voicedMs?: number }, startDelayMs: number): 'tooShort' | 'micReady' | 'tooLong' | 'nothingHeard' | null {
+    if (clip.bytes > MAX_AUDIO_BYTES) return 'tooLong';
+    if (clip.durationMs < MIN_CLIP_MS) return startDelayMs > PROMPT_DELAY_MS ? 'micReady' : 'tooShort';
+    // Held long enough, but next to nothing recorded (a muted microphone's
+    // silence compresses to a few hundred bytes), or nothing at speech's
+    // loudness.
+    if (clip.bytes < MIN_AUDIO_BYTES) return 'nothingHeard';
+    if (clip.voicedMs !== undefined && clip.voicedMs < MIN_VOICED_MS) return 'nothingHeard';
+    return null;
+}
+
+
+// A moment of silence as a WAV file: played inside the press, it lets the
+// page play the translation once it comes (iOS plays an <audio> element
+// only after one play() in a gesture). 8 kHz, 8-bit, mono, where silence is
+// the midpoint, 128.
+export function silentWav(ms = 50, sampleRate = 8_000): Uint8Array<ArrayBuffer> {
+    const samples = Math.round((sampleRate * ms) / 1000);
+    const bytes = new Uint8Array(44 + samples);
+    const view = new DataView(bytes.buffer);
+    const ascii = (at: number, text: string) => { for (let i = 0; i < text.length; i++) view.setUint8(at + i, text.charCodeAt(i)); };
+    ascii(0, 'RIFF');
+    view.setUint32(4, 36 + samples, true);
+    ascii(8, 'WAVE');
+    ascii(12, 'fmt ');
+    view.setUint32(16, 16, true);       // the fmt chunk's size
+    view.setUint16(20, 1, true);        // PCM
+    view.setUint16(22, 1, true);        // mono
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate, true); // bytes a second: one a sample
+    view.setUint16(32, 1, true);        // bytes a frame
+    view.setUint16(34, 8, true);        // bits a sample
+    ascii(36, 'data');
+    view.setUint32(40, samples, true);
+    bytes.fill(128, 44);
+    return bytes;
+}
+
+// The device's English voice for speechSynthesis: only one on the device
+// itself, its default first. A voice that is a browser maker's online service
+// would send the line to them, which /privacy doesn't say; without one on the
+// device, the speak route reads English too. Apple lists novelty and robotic
+// voices among its English ones (Albert, Bad News, Zarvox and the rest),
+// first in the alphabet, which would make a joke of a translation: never
+// those.
+const ODD_VOICES = /^(?:Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Deranged|Fred|Good News|Hysterical|Jester|Junior|Kathy|Organ|Pipe Organ|Princess|Ralph|Superstar|Trinoids|Whisper|Wobble|Zarvox)(?:$|\s\()/i;
+
+export function pickEnglishVoice<V extends { name: string; lang: string; localService: boolean; default: boolean }>(voices: readonly V[]): V | null {
+    const english = voices.filter(v => v.localService && /^en(?:[-_]|$)/i.test(v.lang) && !ODD_VOICES.test(v.name));
+    return english.find(v => v.default) ?? english[0] ?? null;
+}
+
+// ── The conversation ────────────────────────────────────────────────────────
+
+// The voice route's error codes (app/api/translate/voice), each worded in
+// the page's own errors (lib/i18n/talk).
+const VOICE_ERROR_CODES = [
+    'translate_voice_empty', 'translate_voice_too_long', 'translate_voice_bad_audio', 'translate_voice_failed',
+    'translate_voice_busy', 'translate_voice_limit', 'translate_voice_blocked',
+] as const;
+export type VoiceErrorCode = (typeof VOICE_ERROR_CODES)[number];
+
+// The code a failed call answered with, or what its status means: the
+// firewall's 429 and a 503 have no code of the route's.
+export function voiceErrorCode(status: number, body: unknown): VoiceErrorCode {
+    const code = (body as { code?: unknown } | null)?.code;
+    if (VOICE_ERROR_CODES.includes(code as VoiceErrorCode)) return code as VoiceErrorCode;
+    if (status === 429 || status === 503) return 'translate_voice_busy';
+    if (status === 413) return 'translate_voice_too_long';
+    return 'translate_voice_failed';
+}
+
+// The read-aloud route's codes the page shows (app/api/translate/speak),
+// each worded in the page's own errors (lib/i18n/talk).
+const SPEAK_ERROR_CODES = ['speak_unavailable', 'speak_failed', 'speak_busy', 'speak_limit'] as const;
+export type SpeakErrorCode = (typeof SPEAK_ERROR_CODES)[number];
+
+export function speakErrorCode(status: number, body: unknown): SpeakErrorCode {
+    const code = (body as { code?: unknown } | null)?.code;
+    if (SPEAK_ERROR_CODES.includes(code as SpeakErrorCode)) return code as SpeakErrorCode;
+    if (status === 429) return 'speak_busy';
+    if (status === 503) return 'speak_unavailable';
+    return 'speak_failed';
+}
+
+// What the page says beside the button until the next press.
+export type TalkNote = MicTrouble | 'tooShort' | 'tooLong' | 'micReady' | 'interrupted' | 'nothingHeard';
+
+// One clip and its reply. Nothing here outlives the page.
+export type Exchange = {
+    id: string;
+    speaker: Speaker;            // the chip when it was recorded
+    lines: LiveLines;            // the reply so far
+    status: 'streaming' | 'done' | 'cut' | 'failed';
+    error?: VoiceErrorCode;      // why it failed
+};
+
+export type TalkState = {
+    exchanges: readonly Exchange[]; // oldest first
+    // After a 429, no clips until `until` (epoch ms), and `code` says why;
+    // null once it's over.
+    pause: { until: number; code: VoiceErrorCode } | null;
+    note: TalkNote | null;
+};
+
+export const EMPTY_TALK: TalkState = Object.freeze({ exchanges: Object.freeze([]), pause: null, note: null });
+
+// A long conversation keeps its last 50 exchanges.
+export const MAX_EXCHANGES = 50;
+
+export type TalkEvent =
+    | { type: 'pressed' }
+    | { type: 'note'; note: TalkNote }
+    | { type: 'sent'; id: string; speaker: Speaker }
+    | { type: 'lines'; id: string; lines: LiveLines }
+    // The reply ended: whole, or cut short (an error mid-stream, or a
+    // runaway reply stopped). One abandoned (the page left, or a new
+    // conversation begun) has no card left to settle.
+    | { type: 'settled'; id: string; lines: LiveLines; how: 'whole' | 'cut' }
+    | { type: 'failed'; id: string; code: VoiceErrorCode }
+    | { type: 'refused'; id: string; until: number; code: VoiceErrorCode }
+    | { type: 'pauseOver' }
+    // A new conversation: the thread empties, and a pause still holds.
+    | { type: 'cleared' };
+
+
+function replace(state: TalkState, id: string, change: (e: Exchange) => Exchange | null): TalkState {
+    const exchanges: Exchange[] = [];
+    for (const e of state.exchanges) {
+        if (e.id !== id) exchanges.push(e);
+        else {
+            const next = change(e);
+            if (next) exchanges.push(next);
+        }
+    }
+    return { ...state, exchanges };
+}
+
+export function talkReducer(state: TalkState, event: TalkEvent): TalkState {
+    switch (event.type) {
+        case 'pressed':
+            return state.note === null ? state : { ...state, note: null };
+        case 'note':
+            return { ...state, note: event.note };
+        case 'sent': {
+            const exchanges = [...state.exchanges, { id: event.id, speaker: event.speaker, lines: {}, status: 'streaming' as const }];
+            return { ...state, exchanges: exchanges.slice(-MAX_EXCHANGES), note: null };
+        }
+        case 'lines': {
+            // A late piece for a reply already settled or gone changes nothing.
+            const current = state.exchanges.find(e => e.id === event.id);
+            if (current?.status !== 'streaming') return state;
+            return { ...state, exchanges: state.exchanges.map(e => (e === current ? { ...e, lines: event.lines } : e)) };
+        }
+        case 'settled': {
+            const current = state.exchanges.find(e => e.id === event.id);
+            if (current?.status !== 'streaming') return state;
+            const { lines, how } = event;
+            if (how === 'whole' && lines.input === 'none') {
+                return { ...replace(state, event.id, () => null), note: 'nothingHeard' };
+            }
+            return replace(state, event.id, e => (hasAnyLine(lines)
+                ? { ...e, lines, status: how === 'whole' ? 'done' : 'cut' }
+                : { ...e, lines, status: 'failed', error: 'translate_voice_failed' }));
+        }
+        case 'failed': {
+            const current = state.exchanges.find(e => e.id === event.id);
+            if (current?.status !== 'streaming') return state;
+            return replace(state, event.id, e => ({ ...e, status: 'failed', error: event.code }));
+        }
+        case 'refused':
+            // Not heard at all: the card goes, and the pause says why.
+            return { ...replace(state, event.id, () => null), pause: { until: event.until, code: event.code } };
+        case 'pauseOver':
+            return state.pause === null ? state : { ...state, pause: null };
+        case 'cleared':
+            return { ...EMPTY_TALK, pause: state.pause };
+    }
+}
+
+// ── What the page shows ─────────────────────────────────────────────────────
+
+export type RecorderStatus = 'unknown' | 'unsupported' | 'insecure' | 'idle' | 'starting' | 'recording';
+
+export type TalkView = {
+    // The button: ready to hold, getting the microphone, listening, waiting
+    // out a refusal, or unable to record at all.
+    button: 'hold' | 'starting' | 'listening' | 'paused' | 'unavailable';
+    // The line beside it. While it listens the button says so, and the line
+    // is empty.
+    status:
+        | { kind: 'note'; note: TalkNote }
+        | { kind: 'paused'; code: VoiceErrorCode }
+        | { kind: 'translating' }
+        | null;
+};
+
+// A pause holds until pauseOver clears it (TalkScreen sets a timer for its
+// end), so drawing the page never reads the clock. "Translating" is any
+// reply still coming: replies overlap when someone speaks before the last
+// one is done.
+export function talkView({ state, recorder }: { state: TalkState; recorder: RecorderStatus }): TalkView {
+    if (recorder === 'unsupported' || recorder === 'insecure') return { button: 'unavailable', status: { kind: 'note', note: recorder } };
+    if (recorder === 'recording') return { button: 'listening', status: null };
+    if (recorder === 'starting') return { button: 'starting', status: null };
+    if (state.pause) return { button: 'paused', status: { kind: 'paused', code: state.pause.code } };
+    if (state.note) return { button: 'hold', status: { kind: 'note', note: state.note } };
+    if (state.exchanges.some(e => e.status === 'streaming')) return { button: 'hold', status: { kind: 'translating' } };
+    return { button: 'hold', status: null };
+}

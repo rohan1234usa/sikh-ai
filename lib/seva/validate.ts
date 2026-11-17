@@ -4,7 +4,7 @@
 // the form asks a little more where a slip is likely, such as a start time
 // that has already passed.
 
-import { isCategory, isReportReason } from './config';
+import { isCategory, isReportReason, isSignupMode, type SignupMode } from './config';
 import { COUNTRY_CODES } from './countries';
 import {
     SEVA_MAX_DAYS_AHEAD,
@@ -56,6 +56,9 @@ export type EventDraft = {
     city: string;
     region: string;
     country: string;
+    // Who may sign up; the number counts only with a limit, and is kept
+    // while another choice is tried.
+    signup: SignupMode;
     spots: string;
     organizer: string;
     contact: string;
@@ -69,14 +72,16 @@ export type DraftError =
     | 'endBeforeStart'
     | 'tooLongEvent'
     | 'tooFarAhead'
-    | 'belowJoined';
+    | 'belowJoined'
+    | 'hasVolunteers';
 
 export type DraftErrors = Partial<Record<keyof EventDraft, DraftError>>;
 
 export type DraftResult = { ok: true; fields: EventFields } | { ok: false; errors: DraftErrors };
 
 // When editing: the event as it stands, so times left alone aren't held to
-// "not yet over", and spots can't drop below those who joined.
+// "not yet over", and the spots can't drop below those who joined, nor
+// sign-up stop while anyone has.
 export type Editing = { startsAt: number; endsAt: number; volunteerCount: number };
 
 export function validateEventDraft(draft: EventDraft, { now, editing }: { now: number; editing?: Editing }): DraftResult {
@@ -91,11 +96,19 @@ export function validateEventDraft(draft: EventDraft, { now, editing }: { now: n
     if (!isCategory(draft.category)) errors.category = 'required';
     if (!COUNTRY_CODES.includes(draft.country)) errors.country = 'required';
 
-    const spotsText = westernDigits(draft.spots).trim();
-    const spots = /^\d+$/.test(spotsText) ? Number(spotsText) : NaN;
-    if (!spotsText) errors.spots = 'required';
-    else if (!Number.isSafeInteger(spots) || spots < SEVA_SPOTS[0] || spots > SEVA_SPOTS[1]) errors.spots = 'invalid';
-    else if (editing && spots < editing.volunteerCount) errors.spots = 'belowJoined';
+    // No sign-up is 0 spots, and no limit null (./model.ts).
+    let spots: number | null = null;
+    if (!isSignupMode(draft.signup)) errors.signup = 'required';
+    else if (draft.signup === 'none') {
+        spots = 0;
+        if (editing && editing.volunteerCount > 0) errors.signup = 'hasVolunteers';
+    } else if (draft.signup === 'limited') {
+        const spotsText = westernDigits(draft.spots).trim();
+        spots = /^\d+$/.test(spotsText) ? Number(spotsText) : NaN;
+        if (!spotsText) errors.spots = 'required';
+        else if (!Number.isSafeInteger(spots) || spots < SEVA_SPOTS[0] || spots > SEVA_SPOTS[1]) errors.spots = 'invalid';
+        else if (editing && spots < editing.volunteerCount) errors.spots = 'belowJoined';
+    }
 
     const timeZone = draft.timeZone;
     if (!timeZone) errors.timeZone = 'required';

@@ -2,7 +2,7 @@
 
 import { memo, useState } from 'react';
 import { ArrowPathIcon, CheckIcon, ClipboardIcon, StopCircleIcon } from '@heroicons/react/24/outline';
-import { BUBBLE, Markdown, SHAPE, StreamingMarkdown } from '@/app/components/chat/Bubbles';
+import { ERROR_TURN, Markdown, StreamingMarkdown, TURN_LABEL, TURN_TEXT, Waiting } from '@/app/components/chat/Bubbles';
 import { useT } from '@/app/context/LanguageContext';
 import type { TutorReply } from '@/lib/learn/tutor';
 
@@ -12,7 +12,7 @@ function RetryButton({ onRetry }: { onRetry: () => void }) {
         <button
             type="button"
             onClick={onRetry}
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-accent-text transition-colors hover:bg-kesri/10"
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-link transition-colors hover:bg-link/10"
         >
             <ArrowPathIcon className="h-3.5 w-3.5" aria-hidden="true" />
             {t.learn.tutor.retry}
@@ -20,8 +20,9 @@ function RetryButton({ onRetry }: { onRetry: () => void }) {
     );
 }
 
-// One tutor reply, drawn like the chat's: thinking dots, then Markdown as it
-// streams, then a copy button; or why it failed, with Retry. Memoized, so
+// One tutor reply, a turn in the transcript like the chat's: under the tutor's
+// name, fading dots, then Markdown as it streams, then a copy button; or why
+// it failed, with Retry. Memoized, so
 // while one reply streams the replies above it don't redraw.
 export default memo(function TutorMessage({ reply, onRetry }: { reply: TutorReply; onRetry?: () => void }) {
     const t = useT();
@@ -48,7 +49,7 @@ export default memo(function TutorMessage({ reply, onRetry }: { reply: TutorRepl
     if (reply.status === 'error') {
         return (
             <div className="flex flex-col items-start gap-1">
-                <div className={`${SHAPE} ${BUBBLE.error}`}>
+                <div className={`${ERROR_TURN} ${TURN_TEXT}`}>
                     <p>{t.errors[reply.errorCode ?? 'generic']}</p>
                 </div>
                 {onRetry && <RetryButton onRetry={onRetry} />}
@@ -60,14 +61,11 @@ export default memo(function TutorMessage({ reply, onRetry }: { reply: TutorRepl
     const finished = reply.status === 'done' || reply.status === 'interrupted';
 
     return (
-        <div className="group flex flex-col items-start">
-            <div className={`${SHAPE} ${BUBBLE.ai}`}>
+        <div className="group">
+            <p className={TURN_LABEL}>{t.learn.tracks.tutor.title}</p>
+            <div className={`mt-1 text-ink ${TURN_TEXT}`}>
                 {waiting ? (
-                    <span className="flex items-center gap-1.5 py-1" aria-label={t.learn.tutor.thinking}>
-                        <span className="h-2 w-2 animate-bounce rounded-full bg-ink-faint" />
-                        <span className="h-2 w-2 animate-bounce rounded-full bg-ink-faint [animation-delay:150ms]" />
-                        <span className="h-2 w-2 animate-bounce rounded-full bg-ink-faint [animation-delay:300ms]" />
-                    </span>
+                    <Waiting label={t.learn.tutor.thinking} />
                 ) : reply.status === 'streaming' ? (
                     <StreamingMarkdown text={reply.text} />
                 ) : (

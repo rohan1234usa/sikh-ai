@@ -4,15 +4,17 @@ import { useEffect, useRef, useState } from 'react';
 import IntentLink from '@/app/components/IntentLink';
 import { ERROR_TEXT } from '@/app/components/form/Field';
 import { useAnnouncer } from '@/app/components/useAnnouncer';
+import { useMinute } from '@/app/components/useMinute';
 import { useAuth } from '@/app/context/AuthContext';
 import type { Lang } from '@/lib/i18n/config';
 import { fmt } from '@/lib/i18n/fmt';
 import type { SevaCopy } from '@/lib/i18n/seva';
+import { isFull } from '@/lib/seva/event';
 import type { Hosting, SevaEvent, Signup } from '@/lib/seva/model';
 import { formatDate } from '@/lib/seva/time';
-import { CHIP } from './EventCard';
-import { useMinute } from './hooks';
+import { setMyEvents } from './hooks';
 import { loadSeva } from './sevaClient';
+import { PANEL, STATE_CHIP } from './styles';
 
 const SHOWN = 5;
 
@@ -61,6 +63,19 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
         (joinedRef.current ?? titleRef.current)?.focus();
     });
 
+    // The board marks the events in these lists (SevaBoard) for as long as
+    // they're shown here: the marks go with them on sign-out, for another
+    // account, or when the board is left.
+    const listsShown = user && mine?.uid === user.uid && mine.data !== 'failed' ? mine.data : null;
+    useEffect(() => {
+        if (!listsShown) return;
+        setMyEvents({
+            hosting: new Set(listsShown.hosting.map((h) => h.hosting.eventId)),
+            joined: new Set(listsShown.joined.map((j) => j.signup.eventId)),
+        });
+        return () => setMyEvents(null);
+    }, [listsShown]);
+
     if (!user) return null;
     const data = mine?.uid === user.uid ? mine.data : null;
 
@@ -83,9 +98,9 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
     const line = (e: SevaEvent) => fmt(copy.whenWhere, { when: formatDate(e.startsAt, e.timeZone, lang), city: e.city });
     const badges = (e: SevaEvent) => (
         <>
-            {e.status === 'cancelled' && <span className={CHIP}>{labels.cancelled}</span>}
-            {e.hidden && <span className={CHIP}>{labels.hidden}</span>}
-            {e.volunteerCount >= e.spots && e.status === 'open' && <span className={CHIP}>{labels.full}</span>}
+            {e.status === 'cancelled' && <span className={STATE_CHIP}>{labels.cancelled}</span>}
+            {e.hidden && <span className={STATE_CHIP}>{labels.hidden}</span>}
+            {isFull(e) && e.status === 'open' && <span className={STATE_CHIP}>{labels.full}</span>}
         </>
     );
 
@@ -101,7 +116,7 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
         body = (
             <p className="mt-3 text-ink-muted">
                 {copy.failed}{' '}
-                <button type="button" onClick={() => { setMine(null); setAttempt((n) => n + 1); }} className="font-semibold text-accent-text underline">
+                <button type="button" onClick={() => { setMine(null); setAttempt((n) => n + 1); }} className="font-semibold text-link underline">
                     {labels.retry}
                 </button>
             </p>
@@ -113,7 +128,7 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
         const joined = showAll.joined ? joinedAll : joinedAll.slice(0, SHOWN);
         const hosting = showAll.hosting ? hostingAll : hostingAll.slice(0, SHOWN);
         const more = (list: 'joined' | 'hosting', total: number) => !showAll[list] && total > SHOWN && (
-            <button type="button" onClick={() => setShowAll((s) => ({ ...s, [list]: true }))} className="mt-2 min-h-6 text-sm font-semibold text-accent-text underline">
+            <button type="button" onClick={() => setShowAll((s) => ({ ...s, [list]: true }))} className="mt-2 min-h-6 text-sm font-semibold text-link underline">
                 {copy.showAll}
             </button>
         );
@@ -132,17 +147,17 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
                                         <li key={signup.eventId} className="text-sm">
                                             {event ? (
                                                 <>
-                                                    <IntentLink href={`${eventBase}${event.id}`} className="font-semibold text-accent-text underline [overflow-wrap:anywhere]">{event.title}</IntentLink>
+                                                    <IntentLink href={`${eventBase}${event.id}`} className="font-semibold text-link underline [overflow-wrap:anywhere]">{event.title}</IntentLink>
                                                     <p className="text-ink-muted">{line(event)}</p>
                                                     <p className="mt-1 flex flex-wrap gap-2">
                                                         {badges(event)}
-                                                        {event.updatedAt > signup.joinedAt && <span className={CHIP}>{copy.changed}</span>}
+                                                        {event.updatedAt > signup.joinedAt && <span className={STATE_CHIP}>{copy.changed}</span>}
                                                     </p>
                                                 </>
                                             ) : (
                                                 <p className="text-ink-muted">
                                                     {copy.removed}{' '}
-                                                    <button type="button" onClick={() => forget(signup)} className="font-semibold text-accent-text underline">{copy.forget}</button>
+                                                    <button type="button" onClick={() => forget(signup)} className="font-semibold text-link underline">{copy.forget}</button>
                                                 </p>
                                             )}
                                         </li>
@@ -157,7 +172,7 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
                                 <ul className="mt-2 space-y-3">
                                     {hosting.map(({ event }) => event && (
                                         <li key={event.id} className="text-sm">
-                                            <IntentLink href={`${eventBase}${event.id}`} className="font-semibold text-accent-text underline [overflow-wrap:anywhere]">{event.title}</IntentLink>
+                                            <IntentLink href={`${eventBase}${event.id}`} className="font-semibold text-link underline [overflow-wrap:anywhere]">{event.title}</IntentLink>
                                             <p className="text-ink-muted">{line(event)}</p>
                                             <p className="mt-1 flex flex-wrap gap-2">{badges(event)}</p>
                                         </li>
@@ -170,7 +185,7 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
                 )}
                 {data.admin && (
                     <p className="mt-4 text-sm">
-                        <IntentLink href={adminHref} className="font-semibold text-accent-text underline">{copy.reviewReports}</IntentLink>
+                        <IntentLink href={adminHref} className="font-semibold text-link underline">{copy.reviewReports}</IntentLink>
                     </p>
                 )}
             </>
@@ -178,7 +193,7 @@ export default function YourSevaPanel({ lang, copy, labels, eventBase, adminHref
     }
 
     return (
-        <section aria-labelledby="your-seva" className="rounded-xl border border-edge bg-surface-raised p-5 shadow-sm">
+        <section aria-labelledby="your-seva" className={PANEL}>
             <h2 ref={titleRef} id="your-seva" tabIndex={-1} className="text-lg font-bold text-ink">{copy.title}</h2>
             {body}
             {announcer}

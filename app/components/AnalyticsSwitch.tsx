@@ -37,7 +37,7 @@ export default function AnalyticsSwitch() {
                         />
                         <span
                             aria-hidden="true"
-                            className="block h-6 w-11 rounded-full bg-ink-faint transition-colors peer-checked:bg-accent-text peer-disabled:opacity-50 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-kesri after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-5"
+                            className="block h-6 w-11 rounded-full bg-ink-faint transition-colors peer-checked:bg-accent-text peer-disabled:opacity-50 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus-ring after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-5"
                         />
                     </span>
                 )}

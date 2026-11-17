@@ -37,6 +37,9 @@ test("each text field's length is the same in the rules", () => {
 
 test('the numbers and the lists are the same in the rules', () => {
     assert.ok(rules.includes(`d.spots >= ${SEVA_SPOTS[0]} && d.spots <= ${SEVA_SPOTS[1]}`), 'spots');
+    // With no set limit, sign-ups stop at the most a limit can be.
+    assert.ok(rules.includes(`d.spots == null && d.volunteerCount <= ${SEVA_SPOTS[1]}`), 'no set limit');
+    assert.ok(rules.includes(`before.spots == null && after.volunteerCount <= ${SEVA_SPOTS[1]}`), 'joining with no set limit');
     assert.ok(rules.includes(`d.startsAt + duration.value(${SEVA_MAX_DAYS_LONG}, 'd')`), 'longest event');
     assert.ok(rules.includes(`request.time + duration.value(${SEVA_MAX_DAYS_AHEAD}, 'd')`), 'furthest ahead');
     assert.ok(rules.includes(`request.query.limit <= ${SEVA_PAGE_MAX}`), 'page');

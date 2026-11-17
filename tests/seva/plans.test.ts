@@ -53,6 +53,20 @@ test('an edit writes only what changed, stamped; no change writes nothing', () =
     assert.deepEqual(planUpdateEvent(ID, eventPatch(before, fields()), S), []);
 });
 
+test('who may sign up is written as it is: null for no limit and 0 for none, never left out', () => {
+    for (const spots of [null, 0]) {
+        const doc = dataOf(planCreateEvent('hana', ID, fields({ spots }), S)[0]);
+        assert.ok(Object.hasOwn(doc, 'spots'), 'the rules read every field');
+        assert.equal(doc.spots, spots);
+        noUndefined(doc);
+    }
+    const limited = event();
+    assert.deepEqual(dataOf(planUpdateEvent(ID, eventPatch(limited, { ...fields(), spots: null }), S)[0]), { spots: null, updatedAt: 'NOW' });
+    assert.deepEqual(eventPatch(event({ spots: null }), fields({ spots: null })), {});
+    assert.deepEqual(eventPatch(event({ spots: null }), fields({ spots: 0 })), { spots: 0 });
+    assert.deepEqual(eventPatch(event({ spots: 0, volunteerCount: 0 }), fields({ spots: 12 })), { spots: 12 });
+});
+
 test('cancelling carries the note; reopening clears it', () => {
     assert.deepEqual(dataOf(planSetStatus(ID, 'cancelled', 'Moved to Sunday', S)[0]), { status: 'cancelled', cancelNote: 'Moved to Sunday', updatedAt: 'NOW' });
     assert.deepEqual(dataOf(planSetStatus(ID, 'open', 'left over', S)[0]), { status: 'open', cancelNote: '', updatedAt: 'NOW' });

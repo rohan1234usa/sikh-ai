@@ -21,9 +21,9 @@ export default function Footer() {
         { href: to('/terms'), label: t.footer.terms },
     ];
 
-    // The chat screen (/chat and each saved chat) and the Punjabi tutor are
-    // fixed-height app screens with no room for a footer
-    if (path === '/chat' || path.startsWith('/chat/') || path === '/learn/tutor') return null;
+    // The chat screen (/chat and each saved chat), the Punjabi tutor and Talk
+    // are fixed-height app screens with no room for a footer
+    if (path === '/chat' || path.startsWith('/chat/') || path === '/learn/tutor' || path === '/translate/talk') return null;
 
     return (
         <footer className="border-t border-edge bg-surface-raised mt-auto">
@@ -35,7 +35,7 @@ export default function Footer() {
                     <ul className="flex flex-wrap justify-center gap-x-5 gap-y-2">
                         {links.map(({ href, label }) => (
                             <li key={href}>
-                                <IntentLink href={href} className="hover:text-accent-text transition-colors">
+                                <IntentLink href={href} className="hover:text-link transition-colors">
                                     {label}
                                 </IntentLink>
                             </li>
@@ -48,7 +48,7 @@ export default function Footer() {
                         href="https://built-by-rohan.vercel.app/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="underline hover:text-accent-text transition-colors"
+                        className="underline hover:text-link transition-colors"
                     >
                         Rohan Singh
                     </a>

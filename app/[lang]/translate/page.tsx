@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useT } from '@/app/context/LanguageContext';
+import { MicrophoneIcon } from '@heroicons/react/24/outline';
+import IntentLink from '@/app/components/IntentLink';
+import { useLocalePath, useT } from '@/app/context/LanguageContext';
 import { FriendlyError, responseErrorText } from '@/lib/i18n/apiError';
 import {
   MAX_TRANSLATE_CHARS,
@@ -22,9 +24,12 @@ import TranslateSkeleton from '@/app/components/translate/TranslateSkeleton';
 import Phrasebook from '@/app/components/translate/Phrasebook';
 import TranslateHistory from '@/app/components/translate/TranslateHistory';
 import { useTranslateHistory, type TranslateHistoryEntry } from '@/app/components/translate/useTranslateHistory';
+import { useLiveTranslate } from '@/app/components/translate/useLiveTranslate';
+import { useLiveSwitch } from '@/app/components/translate/useLiveSwitch';
 
 export default function TranslatePage() {
   const t = useT();
+  const to = useLocalePath();
   const [text, setText] = useState('');
   const [hint, setHint] = useState<SourceHint>('auto');
   const [loading, setLoading] = useState(false);
@@ -165,6 +170,11 @@ export default function TranslatePage() {
   const showingThis = result !== null && shown !== null && sameRequest(shown, { input: text, sourceHint: hint });
   const handleSubmit = () => translate(text, hint, showingThis);
 
+  // The lines under the text box while typing. Hidden, and no call made,
+  // while the full result for exactly this text is on screen below.
+  const [liveOn, setLiveOn] = useLiveSwitch();
+  const liveView = useLiveTranslate({ text, hint, enabled: liveOn && !showingThis, lookup: history.lookup });
+
   const handleRetryAs = (as: DetectedInput) => translate(shown?.input ?? text, as);
 
   // The phrasebook and history sit below the results, so a selection there
@@ -215,13 +225,21 @@ export default function TranslatePage() {
     <main className="flex-1 flex flex-col">
 
       {/* Input Header */}
-      <div className="bg-navy text-white py-12 px-6 flex flex-col items-center">
+      <div className="border-b border-edge bg-surface text-ink py-12 px-6 flex flex-col items-center">
         <h1 className="text-3xl font-bold mb-2 text-center">
-          {titleBefore}<span className="text-kesri">{t.translate.titleWord}</span>{titleAfter}
+          {titleBefore}<span className="text-accent-text">{t.translate.titleWord}</span>{titleAfter}
         </h1>
-        <p className="mb-6 text-sm text-slate-300 text-center max-w-xl">
+        <p className="mb-3 text-sm text-ink-muted text-center max-w-xl">
           {t.translate.subtitle}
         </p>
+        {/* Talk: the same translator, spoken (#37). */}
+        <IntentLink
+          href={to('/translate/talk')}
+          className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-link hover:underline"
+        >
+          <MicrophoneIcon className="h-4 w-4" aria-hidden="true" />
+          {t.translate.talkLink}
+        </IntentLink>
         <TranslateInput
           text={text}
           onText={handleText}
@@ -230,6 +248,9 @@ export default function TranslatePage() {
           loading={loading}
           again={showingThis}
           onSubmit={handleSubmit}
+          live={liveOn}
+          onLive={setLiveOn}
+          liveView={liveView}
         />
       </div>
 
@@ -248,7 +269,7 @@ export default function TranslatePage() {
           {loading && <TranslateSkeleton />}
 
           {error && !loading && (
-            <div role="alert" className="text-center py-10 text-red-600 bg-red-50 rounded-xl border border-red-100 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900">
+            <div role="alert" className="text-center py-10 text-red-700 bg-red-50 rounded-xl border border-red-100 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900">
               {error}
             </div>
           )}

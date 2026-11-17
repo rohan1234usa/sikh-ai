@@ -69,9 +69,11 @@ test('an oversized body is refused before it is parsed', async () => {
 
 test("another site's request, or a post that isn't JSON, is refused without a lookup", async () => {
     for (const [headers, status] of [[{ 'sec-fetch-site': 'cross-site' }, 403], [{ 'content-type': 'text/plain;charset=UTF-8' }, 415]] as const) {
-        const res = await verify({ text: QUOTING }, headers);
+        const req = postJson('http://local/api/chat/verify', { text: QUOTING }, headers);
+        const res = await POST(req);
         assert.equal(res.status, status, JSON.stringify(headers));
         assert.equal(res.headers.get('cache-control'), 'no-store');
+        assert.equal(req.bodyUsed, false, 'refused before the body was read');
     }
     assert.deepEqual(asked, []);
 });

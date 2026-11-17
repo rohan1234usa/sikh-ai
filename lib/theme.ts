@@ -28,10 +28,10 @@ export const DARK_QUERY = '(prefers-color-scheme: dark)';
  * `<meta name="theme-color">` values, which tint the browser's own bars where
  * it honours the tag — Chrome and Samsung Internet on Android, Safari 15–18,
  * and installed web apps; Safari 26 and desktop Chrome ignore it in ordinary
- * tabs. They equal `--surface` in globals.css (keep the two in step), though
- * what sits directly under the bars on every page is the sticky navy navbar.
+ * tabs. They equal `--surface` in globals.css (keep the two in step), which
+ * is also the ground of the sticky header right under the bars.
  */
-export const THEME_COLORS = { light: '#F8FAFC', dark: '#020617' } as const;
+export const THEME_COLORS = { light: '#F6F2EB', dark: '#171512' } as const;
 
 export const isTheme = (v: unknown): v is Theme => THEMES.includes(v as Theme);
 export const parseTheme = (v: unknown): Theme => (isTheme(v) ? v : DEFAULT_THEME);

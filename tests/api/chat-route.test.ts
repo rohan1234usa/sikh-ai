@@ -143,6 +143,7 @@ test("another site's request, or a post that isn't JSON, is refused before any m
         assert.equal(res.status, status, JSON.stringify(headers));
         assert.equal(res.headers.get('cache-control'), 'no-store');
         assert.equal(requests.length, 0);
+        assert.equal(req.bodyUsed, false, 'refused before the body was read');
     }
     const own = await POST(postJson('http://local/api/chat', { message: 'What is seva?', history: [] }, { 'sec-fetch-site': 'same-origin' }));
     assert.equal(own.status, 200, "the site's own page");

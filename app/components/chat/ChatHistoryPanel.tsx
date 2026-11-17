@@ -9,6 +9,7 @@ import { readChat } from '@/lib/chat/store/read';
 import { useAuth } from '../../context/AuthContext';
 import { useT } from '../../context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
+import { PRIMARY_FILL } from '../buttons';
 import ChatHistoryRow from './ChatHistoryRow';
 import MoveChatsBanner from './MoveChatsBanner';
 import { evictions, getReplyRuntime } from './chatStores';
@@ -246,7 +247,7 @@ export default function ChatHistoryPanel({ variant, headingId, activeId, onNavig
                                     type="button"
                                     onClick={() => void signIn()}
                                     {...signInIntent}
-                                    className="rounded-lg bg-kesri px-3 py-1.5 font-bold text-navy transition-colors hover:bg-kesri-hover"
+                                    className={`rounded-lg px-3 py-1.5 transition-colors ${PRIMARY_FILL}`}
                                 >
                                     {t.nav.signIn}
                                 </button>

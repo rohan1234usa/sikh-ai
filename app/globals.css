@@ -3,46 +3,47 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* Brand */
-  --color-navy: #0F172A;
-  --color-navy-light: #1E293B;
-  --color-kesri: #FF9933;        /* on-navy text, graphics, large text only */
-  --color-kesri-hover: #E68A00;
-  --color-kesri-deep: #B45309;   /* AA-safe kesri for text on light surfaces (5.0:1) */
-  --color-gold: #F59E0B;
-  --color-offwhite: #F8FAFC;
+  /* The brand's colours live in the semantic tokens below (kesri is
+     --accent-text), so no page names a colour of its own. */
 
-  /* Typography */
-  /* Geist has no Gurmukhi, so Gurmukhi characters (a quoted tukk in an English
-     reply) fall through to Noto Sans Gurmukhi instead of whatever the OS has.
-     The Noto face covers only U+0A01–0A76 and the dandas, so Latin is untouched. */
-  --font-sans: var(--font-geist-sans), var(--font-noto-gurmukhi), ui-sans-serif, system-ui, sans-serif;
+  /* Pothi's geometry: square corners (2px, so an edge still reads as finished)
+     and no shadows. Tailwind reads every rounded-* and shadow-* from these, so
+     the whole site follows; rounded-full (switch tracks, dots, the capacity
+     bar) is a fixed value and stays round. Menus and dialogs carry a border
+     instead of a shadow. Shadows can only be cleared with `initial`: `none` is
+     not a valid value for the namespace. */
+  --radius: 2px;
+  --radius-xs: 2px;
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --radius-2xl: 2px;
+  --radius-3xl: 2px;
+  --radius-4xl: 2px;
+  --shadow-*: initial;
+
+  /* Typography (app/fonts.ts). Newsreader sets running Latin and the
+     interface; Gurmukhi in it falls through to Noto Serif Gurmukhi, which has
+     the weights headings and buttons need. Punjabi pages put that face first
+     (html[lang='pa'] below). Tiro Gurmukhi sets Gurbani, through
+     font-gurmukhi: it has one weight, so that text is never bold. */
+  --font-sans: var(--font-newsreader), var(--font-noto-serif-gurmukhi), ui-serif, Georgia, serif;
+  --font-punjabi: var(--font-noto-serif-gurmukhi), var(--font-newsreader), ui-serif, Georgia, serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --font-gurmukhi: var(--font-noto-gurmukhi), var(--font-geist-sans), sans-serif;
+  --font-gurmukhi: var(--font-tiro-gurmukhi), var(--font-noto-serif-gurmukhi), serif;
 
-  /* Animation (durations auto-zeroed by the reduced-motion rule below) */
+  /* Animation (durations auto-zeroed by the reduced-motion rule below). Motion
+     is a fade: nothing rises, floats, bounces or glows. */
   --animate-fade-up: fade-up 0.6s ease-out both;
-  --animate-float: float 6s ease-in-out infinite;
 }
 
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(12px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
   }
 }
 
@@ -56,32 +57,50 @@
   --color-edge: var(--edge);
   --color-edge-strong: var(--edge-strong);
   --color-accent-text: var(--accent-text);
+  --color-focus-ring: var(--focus-ring);
+  --color-link: var(--link);
+  --color-rule-gold: var(--rule-gold);
+  --color-good: var(--good);
 }
 
+/* Pothi (docs/design/pothi.md): eggshell by day, ink at night. Each ratio is
+   the lowest against the ground and the raised surface of its mode. */
 :root {
   color-scheme: light;
-  --surface: #F8FAFC;         /* page background; = THEME_COLORS.light in lib/theme.ts */
-  --surface-raised: #FFFFFF;  /* cards */
-  --ink: #0F172A;             /* primary text */
-  --ink-muted: #475569;       /* secondary text */
-  --ink-faint: #64748B;       /* tertiary text */
-  --edge: #E2E8F0;            /* borders */
-  --edge-strong: #64748B;     /* a field's or button's outline: 3:1 or more (WCAG 1.4.11) */
-  --accent-text: #B45309;     /* kesri-deep on light */
-  --focus-ring: #B45309;      /* kesri-deep: 5.0:1 on white; kesri is 2.1:1 (WCAG 1.4.11 asks 3:1) */
+  --surface: #F6F2EB;         /* eggshell, the page; = THEME_COLORS.light in lib/theme.ts */
+  --surface-raised: #F9F6F2;  /* panels, fields */
+  --ink: #1D1711;             /* text, 15.9:1 */
+  --ink-muted: #61564B;       /* secondary text, 6.4:1 */
+  --ink-faint: #746C62;       /* tertiary text, 4.6:1 */
+  --edge: #DAD5CD;            /* hairline rules */
+  --edge-strong: #837C73;     /* a field's or button's outline, 3.6:1 (WCAG 1.4.11 asks 3:1) */
+  --accent-text: #AD4E08;     /* kesri for rubrics and labels, 4.8:1; kesri-deep is only 4.5 here */
+  --focus-ring: #1E3F8F;      /* the link blue, 8.7:1 */
+  --link: #1E3F8F;            /* anything you can press, 8.7:1 */
+  --rule-gold: #9A7620;       /* gold rules, the border band, progress (graphics), 3.7:1 */
+  --good: #2F5E2A;            /* a quote that matches the source, 6.8:1 */
+  /* The dawn behind the Hukamnama's head: a cool sky, the ground, a warm
+     horizon. Every text token keeps AA on every stop (faint, the lowest, 4.6:1). */
+  --dawn-sky: #EAF4FB;
+  --dawn-horizon: #FDF0E0;
 }
 
 .dark {
   color-scheme: dark;
-  --surface: #020617;         /* darker than navy so navy panels still read; = THEME_COLORS.dark */
-  --surface-raised: #0F172A;
-  --ink: #F1F5F9;
-  --ink-muted: #94A3B8;
-  --ink-faint: #64748B;
-  --edge: #1E293B;
-  --edge-strong: #64748B;
-  --accent-text: #FF9933;     /* full kesri passes on dark */
-  --focus-ring: #FF9933;
+  --surface: #171512;         /* ink, the page; = THEME_COLORS.dark */
+  --surface-raised: #1F1D1A;
+  --ink: #EAE6DF;             /* eggshell text, 13.5:1 */
+  --ink-muted: #B4AFA7;       /* 7.7:1 */
+  --ink-faint: #928D86;       /* 5.1:1 */
+  --edge: #3E3B37;
+  --edge-strong: #78746E;     /* 3.6:1 */
+  --accent-text: #FF9933;     /* full kesri, 7.8:1; kesri-deep would fail on ink (3.6:1) */
+  --focus-ring: #A0BAF2;      /* 8.6:1 */
+  --link: #A0BAF2;
+  --rule-gold: #CDA65A;       /* 7.3:1 */
+  --good: #99CE9A;            /* 9.3:1 */
+  --dawn-sky: #0C1723;        /* Amrit Vela; faint text keeps 5.4:1 on every stop */
+  --dawn-horizon: #20140B;
 }
 
 body {
@@ -96,15 +115,56 @@ html {
   scroll-padding-top: 5rem;
 }
 
-/* When the UI language is Gurmukhi, the body font stack must carry Gurmukhi
-   glyphs (Geist has none). Exact attribute match on purpose — :lang(pa) would
+/* When the UI language is Gurmukhi, the interface leads with Noto Serif
+   Gurmukhi, which has real weights for its headings and buttons (Tiro, the
+   Gurbani face, has one). Exact attribute match on purpose — :lang(pa) would
    prefix-match lang="pa-Latn" too, which must stay on the Latin stack. */
 html[lang='pa'] body {
-  font-family: var(--font-gurmukhi);
+  font-family: var(--font-punjabi);
+}
+
+/* Tiro Gurmukhi has no bold, and a browser fakes a missing one by smearing
+   the glyphs. Gurbani is never set bold on purpose; this stops a bold that
+   slips in (a parent's weight) from being faked. Only on this utility: on the
+   whole page it would turn every Punjabi heading to regular weight. */
+.font-gurmukhi {
+  font-synthesis-weight: none;
+}
+
+/* Gurmukhi is never letter-spaced: its letters hang from one headline, and
+   spacing cuts it between every letter. The label styles' tracking-* would do
+   that to every stamp under /pa. Outside any layer, so it wins over those
+   utilities; :lang(pa-Latn) is excluded, so romanized Punjabi keeps its
+   tracking like English. */
+:lang(pa):not(:lang(pa-Latn)) {
+  letter-spacing: normal;
+}
+
+@layer components {
+  /* The one ornament: a gold and kesri band, after the borders of illuminated
+     birs, along the bottom of the header. The pattern is painted over a solid
+     gold border, so where backgrounds are dropped (forced colours) a rule is
+     still drawn. The element must be positioned (the sticky header is). */
+  /* The site's one gradient, behind the Hukamnama's head (HukamnamaHeader). */
+  .dawn {
+    background-image: linear-gradient(180deg, var(--dawn-sky), var(--surface) 55%, var(--dawn-horizon));
+  }
+
+  .border-band {
+    border-bottom: 3px solid var(--rule-gold);
+  }
+  .border-band::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: -3px;
+    height: 3px;
+    pointer-events: none;
+    background: repeating-linear-gradient(90deg, var(--rule-gold) 0 10px, var(--surface) 10px 14px, var(--accent-text) 14px 17px, var(--surface) 17px 21px);
+  }
 }
 
 @layer base {
-  /* Navy panels set --focus-ring back to kesri, which is 8.4:1 on navy. */
   :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
     outline: 2px solid var(--focus-ring);
     outline-offset: 2px;

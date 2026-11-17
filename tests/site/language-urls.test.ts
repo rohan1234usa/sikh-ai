@@ -82,7 +82,8 @@ test('a Punjabi cookie redirects pages, never files, the API or Next and Vercel 
         // rules run.)
         for (const path of ['/og.jpg', '/robots.txt', '/sitemap.xml', '/favicon.ico', '/manifest.webmanifest',
             '/icon-192.png', '/icons/app.png', '/fonts/a/b.woff2', '/api/chat', '/api/shabad', '/api/shabad/search',
-            '/_next/static/chunks/a.js', '/_vercel/speed-insights/script.js', '/_vercel/speed-insights/vitals',
+            '/api/error-report', '/_next/static/chunks/a.js', '/_next/static/chunks/a.js.map',
+            '/_vercel/speed-insights/script.js', '/_vercel/speed-insights/vitals',
             '/_vercel/insights/script.js', '/_vercel/insights/view', '/_vercel/insights/event',
             '/pa/about', '/pa-latn', '/en/about'])
             assert.ok(!redirected(path), `${path} (${lang})`);
@@ -93,7 +94,7 @@ test('a Punjabi cookie redirects pages, never files, the API or Next and Vercel 
 test("a returning Punjabi reader reaches a page's own address in one redirect (#44)", () => {
     for (const lang of ['pa', 'pa-latn']) {
         assert.equal(hostRedirect('/', lang), `/${lang}`);
-        for (const path of ['/about', '/hukamnama', '/privacy', '/chat/abc-123', '/seva/create', '/shabad/s/823', '/learn/vocab/family']) {
+        for (const path of ['/about', '/hukamnama', '/privacy', '/chat/abc-123', '/seva/create', '/shabad/s/823', '/learn/vocab/family', '/learn/review']) {
             const to = hostRedirect(path, lang);
             assert.equal(to, `/${lang}${path}`, `${path} (${lang})`);
             assert.equal(hostRedirect(to!, lang), null, `${to} is where it stays`);
@@ -118,7 +119,9 @@ test('/en is never a public address', () => {
 test('the sitemap lists every page and every Ang in every language, each with its twins', async () => {
     // No Firebase project here, so no events: just the pages.
     const entries = await sitemap();
-    assert.equal(entries.length, (9 + learnPaths().length + 1430) * 3);
+    assert.equal(entries.length, (10 + learnPaths().length + 1430) * 3);
+    // The flashcard review shows only this browser's progress: noindex, and not listed.
+    assert.ok(!entries.some((e) => e.url.includes('/learn/review')));
     const hukamnama = entries.find((e) => e.url === 'https://sikhai.vercel.app/pa/hukamnama')!;
     assert.deepEqual(hukamnama.alternates?.languages, {
         en: 'https://sikhai.vercel.app/hukamnama',
@@ -133,6 +136,6 @@ test('the sitemap lists every page and every Ang in every language, each with it
     assert.ok(!entries.some((e) => e.url.endsWith('/shabad/1431')));
     for (const url of ['https://sikhai.vercel.app/learn', 'https://sikhai.vercel.app/pa/learn/script/tones', 'https://sikhai.vercel.app/pa-latn/learn/vocab/family'])
         assert.ok(entries.some((e) => e.url === url), url);
-    for (const url of ['https://sikhai.vercel.app/privacy', 'https://sikhai.vercel.app/terms', 'https://sikhai.vercel.app/pa-latn/terms'])
+    for (const url of ['https://sikhai.vercel.app/privacy', 'https://sikhai.vercel.app/terms', 'https://sikhai.vercel.app/pa-latn/terms', 'https://sikhai.vercel.app/pa/translate/talk'])
         assert.ok(entries.some((e) => e.url === url), url);
 });

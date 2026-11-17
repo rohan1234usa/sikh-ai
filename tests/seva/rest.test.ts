@@ -41,6 +41,16 @@ test('a REST document parses as the event the app wrote', () => {
     assert.equal(decoded.id, ID);
     assert.equal(decoded.updateTime, Date.parse('2026-09-01T00:00:05.5Z'));
     assert.deepEqual(parseEvent(decoded.id, decoded.data), e);
+
+    // No limit is a REST null; no sign-up, 0; and a document without the
+    // field isn't an event.
+    const withSpots = (spots: object | undefined, count = '3') => {
+        const { spots: _spots, ...rest } = doc.fields;
+        return decodeDocument({ ...doc, fields: { ...rest, ...(spots ? { spots } : {}), volunteerCount: { integerValue: count } } })!;
+    };
+    assert.deepEqual(parseEvent(ID, withSpots({ nullValue: null }).data), event({ spots: null }));
+    assert.deepEqual(parseEvent(ID, withSpots({ integerValue: '0' }, '0').data), event({ spots: 0, volunteerCount: 0 }));
+    assert.equal(parseEvent(ID, withSpots(undefined).data), null);
 });
 
 test('a query answer is its documents; an empty one is none; an error is no answer', () => {

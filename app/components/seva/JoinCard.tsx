@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { BUTTON_LG, PRIMARY_BUTTON, SECONDARY_BUTTON } from '@/app/components/buttons';
 import { ERROR_TEXT, Field, INPUT } from '@/app/components/form/Field';
 import { useAnnouncer } from '@/app/components/useAnnouncer';
@@ -9,6 +10,7 @@ import { fmt } from '@/lib/i18n/fmt';
 import type { SevaCopy } from '@/lib/i18n/seva';
 import type { ViewerOfEvent } from '@/lib/seva/client';
 import { errorKind } from '@/lib/seva/errors';
+import { isFull, signupLine, takesSignups, type SignupWords } from '@/lib/seva/event';
 import { SEVA_VOLUNTEER_TEXT } from '@/lib/seva/limits';
 import { validateJoin, type JoinErrors } from '@/lib/seva/validate';
 import { useEvent } from './EventContext';
@@ -19,17 +21,18 @@ type Form = { name: string; shareEmail: boolean; sharePhone: boolean; phone: str
 
 // Joining, and everything after: the details the host sees, changing them,
 // and leaving. Whatever replaces the control that was pressed takes the
-// focus, so no one is left on a button that vanished.
-export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, contactFallback }: {
+// focus, so no one is left on a button that vanished. An event that takes no
+// sign-ups has no Join: the card says to just come along. Its host gets their
+// tools in its place (HostTools).
+export default function JoinCard({ copy, words, contactFallback }: {
     copy: SevaCopy['actions'];
-    hostingLabel: string;
-    // "Volunteers: {count} of {spots}" and "Spots left: {n}"
-    capacity: { count: string; left: string };
-    fullLabel: string;
+    // Who may sign up and how many have, as the board's cards say it.
+    words: SignupWords;
     contactFallback: string | null;
 }) {
     const { signIn, signInIntent, user } = useAuth();
-    const { event, viewer, ended, update, setIs, whenViewer } = useEvent();
+    const router = useRouter();
+    const { event, viewer, ended, update, setIs, whenViewer, handToHost } = useEvent();
     const [mode, setMode] = useState<Mode>('idle');
     const [editing, setEditing] = useState(false);
     const [form, setForm] = useState<Form>({ name: '', shareEmail: false, sharePhone: false, phone: '' });
@@ -45,9 +48,16 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
     const focusNext = useRef<'join' | 'name' | 'joined' | 'stay' | null>(null);
     const ids = useId();
 
+    // After a join or a leave, the server builds this page and the board
+    // again; then this tab lets go of the copies it kept (router.refresh), so
+    // Back to the board shows the new count beside the new mark rather than
+    // the count from before.
+    const refreshAfterChange = () => { void refreshPages(event.id).then(() => router.refresh()); };
+
     const is = viewer.kind === 'ready' ? viewer.is : null;
     const joined = !!is?.signup;
-    const full = event.volunteerCount >= event.spots;
+    const line = signupLine(event, words);
+    const full = isFull(event);
     const open = event.status === 'open' && !ended && !event.hidden;
 
     // Focus follows what took the pressed control's place.
@@ -98,6 +108,9 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
             setMode('idle');
         } else if (!is.isHost) {
             openForm({ name: account.displayName ?? '', shareEmail: false, sharePhone: false, phone: '' });
+        } else {
+            // Their own event: the card makes way for their tools.
+            handToHost();
         }
     };
 
@@ -119,17 +132,18 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
         return e === 'required' ? copy.errors.phoneRequired : copy.errors.phoneInvalid;
     };
 
-    // Why a join was refused: the event as it is now says.
-    const refusal = async (): Promise<string> => {
+    // Why a join was refused: the event as it is now says, or null if it
+    // can't be read.
+    const refusal = async (): Promise<string | null> => {
         try {
             const fresh = await (await loadSeva()).getEvent(event.id);
             if (!fresh) return copy.errors.closed;
             update({ status: fresh.status, volunteerCount: fresh.volunteerCount, spots: fresh.spots, endsAt: fresh.endsAt, cancelNote: fresh.cancelNote });
             if (fresh.endsAt <= Date.now()) return copy.errors.ended;
-            if (fresh.status !== 'open') return copy.errors.closed;
-            if (fresh.volunteerCount >= fresh.spots) return copy.errors.full;
+            if (fresh.status !== 'open' || !takesSignups(fresh)) return copy.errors.closed;
+            if (isFull(fresh)) return copy.errors.full;
         } catch { /* no answer: say so below */ }
-        return copy.errors.failed;
+        return null;
     };
 
     const submit = async (e: React.FormEvent) => {
@@ -160,10 +174,20 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
             update({ volunteerCount: event.volunteerCount + 1 });
             setMode('idle');
             focusNext.current = 'joined';
-            void refreshPages(event.id);
+            refreshAfterChange();
         } catch (error) {
+            const why = !editing && errorKind(error) === 'denied' ? await refusal() : null;
+            if (why) {
+                // The event changed under the form, which the card may no
+                // longer show (it's full, or closed): the reason goes in the
+                // card's note, and the focus to Join, or else the heading.
+                setMode('idle');
+                setNote(why);
+                focusNext.current = 'join';
+                return;
+            }
             setMode('form');
-            setProblem(editing ? copy.errors.saveFailed : errorKind(error) === 'denied' ? await refusal() : copy.errors.failed);
+            setProblem(editing ? copy.errors.saveFailed : copy.errors.failed);
         }
     };
 
@@ -178,20 +202,17 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
             setMode('idle');
             setNote(open ? copy.left : copy.signupRemoved);
             focusNext.current = 'join';
-            void refreshPages(event.id);
+            refreshAfterChange();
         } catch {
             setMode(open ? 'confirmLeave' : 'idle');
             setProblem(copy.errors.leaveFailed);
         }
     };
 
-    const capacityLine = (
-        <p className="text-ink-muted">
-            {fmt(capacity.count, { count: event.volunteerCount, spots: event.spots })}
-            {' · '}
-            {full ? fullLabel : fmt(capacity.left, { n: Math.max(event.spots - event.volunteerCount, 0) })}
-        </p>
-    );
+    // The host's tools stand in for the card.
+    if (is?.isHost && !joined) return null;
+
+    const capacityLine = <p className="text-ink-muted">{line.mode === 'limited' ? `${line.text} · ${line.left}` : line.text}</p>;
 
     const shared = is?.volunteer;
     const form_ = (mode === 'form' || mode === 'busy') && (
@@ -257,14 +278,7 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
     );
 
     let body: React.ReactNode;
-    if (is?.isHost && !joined) {
-        body = (
-            <div className="space-y-2">
-                <p className="font-semibold text-ink">{hostingLabel}</p>
-                {capacityLine}
-            </div>
-        );
-    } else if (joined && !editing) {
+    if (joined && !editing) {
         const stillOn = open;
         body = (
             <div className="space-y-3">
@@ -279,7 +293,7 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
                 )}
                 {mode === 'confirmLeave' || (mode === 'busy' && !editing) ? (
                     <div role="group" aria-labelledby={`${ids}-leave`} className="rounded-lg border border-edge-strong p-3">
-                        <p id={`${ids}-leave`} className="text-ink">{copy.leavePrompt}</p>
+                        <p id={`${ids}-leave`} className="text-ink">{line.mode === 'limited' ? copy.leavePrompt : copy.leavePromptNoLimit}</p>
                         {problem && <p role="alert" className={`mt-2 ${ERROR_TEXT}`}>{problem}</p>}
                         <div className="mt-3 flex flex-wrap gap-3">
                             <button type="button" onClick={leave} aria-disabled={mode === 'busy' || undefined} className={`${SECONDARY_BUTTON} ${BUTTON_LG}`}>
@@ -309,6 +323,8 @@ export default function JoinCard({ copy, capacity, fullLabel, hostingLabel, cont
         );
     } else if (joined && editing) {
         body = form_;
+    } else if (line.mode === 'none') {
+        body = open ? <p className="text-ink">{copy.noSignupBody}</p> : capacityLine;
     } else if (!open) {
         body = note ? null : capacityLine;
     } else if (full) {

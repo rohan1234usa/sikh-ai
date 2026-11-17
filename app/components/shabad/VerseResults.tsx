@@ -90,7 +90,7 @@ export default function VerseResults() {
                                     type="button"
                                     onClick={() => showSearch(to('/shabad'), { q: example })}
                                     lang={latin ? 'pa-Latn' : 'pa'}
-                                    className={`rounded-full border border-edge bg-surface-raised px-4 py-1.5 text-ink shadow-sm transition-colors hover:border-kesri/60 ${latin ? 'text-sm' : 'font-gurmukhi text-lg'}`}
+                                    className={`rounded border border-edge bg-surface-raised px-4 py-1.5 text-ink shadow-sm transition-colors hover:border-link/60 ${latin ? 'text-sm' : 'font-gurmukhi text-lg'}`}
                                 >
                                     {example}
                                 </button>
@@ -153,7 +153,7 @@ export default function VerseResults() {
                             {data.alternatives.map((as) => (
                                 <span key={as}>
                                     {' · '}
-                                    <button type="button" onClick={() => searchAs(as)} className="font-semibold text-accent-text hover:underline">
+                                    <button type="button" onClick={() => searchAs(as)} className="font-semibold text-link hover:underline">
                                         {as === 'words' ? t.shabad.results.wordsInstead : t.shabad.results.lettersInstead}
                                     </button>
                                 </span>
@@ -161,15 +161,15 @@ export default function VerseResults() {
                         </p>
                     </div>
                     {!data.complete && (
-                        <p className="rounded-lg border border-kesri/40 bg-kesri/10 px-4 py-3 text-sm text-ink">
+                        <p className="rounded-lg border border-accent-text/40 bg-accent-text/10 px-4 py-3 text-sm text-ink">
                             {t.shabad.results.incomplete}{' '}
-                            <button type="button" onClick={retry} className="font-semibold text-accent-text underline">{t.shabad.results.retry}</button>
+                            <button type="button" onClick={retry} className="font-semibold text-link underline">{t.shabad.results.retry}</button>
                         </p>
                     )}
                     {data.hits.length === 0 && data.complete && <p className="text-ink-muted">{t.shabad.results.noneTips}</p>}
                     {data.truncated && data.hits.length > 0 && <p className="text-sm text-ink-muted">{t.shabad.results.truncated}</p>}
                     {data.hits.length > 0 && (
-                        <ol className="space-y-3">
+                        <ol className="border-t border-edge">
                             {data.hits.map((hit) => <VerseResultCard key={hit.lineId} hit={hit} truncated={data.truncated} />)}
                         </ol>
                     )}

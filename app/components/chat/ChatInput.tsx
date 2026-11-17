@@ -124,19 +124,19 @@ export default function ChatInput({
                 <div
                     data-pad
                     onMouseDown={focusFromPadding}
-                    className="cursor-text rounded-2xl border border-edge bg-surface-raised has-[textarea:focus]:outline-2 has-[textarea:focus]:outline-offset-2 has-[textarea:focus]:outline-kesri"
+                    className="cursor-text rounded-2xl border border-edge bg-surface-raised has-[textarea:focus]:outline-2 has-[textarea:focus]:outline-offset-2 has-[textarea:focus]:outline-focus-ring"
                 >
                     {(context || contextLoading || contextError) && (
                         <div data-pad className="flex min-w-0 px-2.5 pt-2.5">
                             {contextLoading ? (
-                                <p role="status" className="flex items-center gap-2 rounded-full border border-edge px-3 py-1.5 text-xs text-ink-muted">
+                                <p role="status" className="flex items-center gap-2 rounded border border-edge px-3 py-1.5 text-xs text-ink-muted">
                                     <BookOpenIcon className="h-4 w-4 shrink-0 animate-pulse" aria-hidden="true" />
                                     {t.chat.loadingPassage}
                                 </p>
                             ) : context ? (
                                 <ContextChip context={context} onDismiss={refocus(onDismissContext)} />
                             ) : (
-                                <p role="alert" className="flex items-center gap-2 px-1 text-xs text-red-600 dark:text-red-400">
+                                <p role="alert" className="flex items-center gap-2 px-1 text-xs text-red-700 dark:text-red-400">
                                     {t.errors.contextLoad}
                                     <button type="button" onClick={refocus(onDismissContextError)} className="underline font-semibold">
                                         {t.chat.dismiss}
@@ -181,8 +181,8 @@ export default function ChatInput({
                             onKeyDown={isStreaming ? (e) => { if (e.repeat) e.preventDefault(); } : undefined}
                             className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl transition-colors ${
                                 isStreaming
-                                    ? 'bg-navy text-white hover:opacity-90 dark:bg-kesri dark:text-navy'
-                                    : 'bg-kesri text-navy aria-disabled:cursor-not-allowed aria-disabled:opacity-50 not-aria-disabled:hover:bg-navy not-aria-disabled:hover:text-white dark:not-aria-disabled:hover:bg-offwhite dark:not-aria-disabled:hover:text-navy'
+                                    ? 'bg-ink text-surface hover:opacity-90'
+                                    : 'bg-link text-surface aria-disabled:cursor-not-allowed aria-disabled:opacity-50 not-aria-disabled:hover:bg-link/90'
                             }`}
                         >
                             {isStreaming ? <StopIcon className="w-5 h-5" /> : <PaperAirplaneIcon className="w-5 h-5" />}
@@ -197,12 +197,12 @@ export default function ChatInput({
             <div className="max-w-3xl mx-auto mt-2 flex items-start justify-between gap-3 text-[11px] text-ink-muted">
                 <p>
                     {disclaimer}{' '}
-                    <Link href={to('/privacy')} className="underline hover:text-accent-text">{t.footer.privacy}</Link>
+                    <Link href={to('/privacy')} className="underline hover:text-link">{t.footer.privacy}</Link>
                     {' · '}
-                    <Link href={to('/terms')} className="underline hover:text-accent-text">{t.footer.terms}</Link>
+                    <Link href={to('/terms')} className="underline hover:text-link">{t.footer.terms}</Link>
                 </p>
                 {nearCap && (
-                    <span id={countId} className={`shrink-0 tabular-nums ${atCap ? 'text-red-600 dark:text-red-400 font-semibold' : ''}`}>
+                    <span id={countId} className={`shrink-0 tabular-nums ${atCap ? 'text-red-700 dark:text-red-400 font-semibold' : ''}`}>
                         {fmt(t.chat.charCount, { n: value.length, max: MAX_MESSAGE_CHARS })}
                     </span>
                 )}

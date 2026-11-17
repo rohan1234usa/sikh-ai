@@ -8,6 +8,7 @@ import {
     MAX_BOX,
     cardCounts,
     cardOf,
+    dueQueue,
     review,
     reviewQueue,
     type CardState,
@@ -70,6 +71,22 @@ test('a session shows due cards by box then age, then new ones, never cards not 
 test('a word id never finds something on Object.prototype', () => {
     assert.equal(cardOf({}, 'constructor'), undefined);
     assert.deepEqual(reviewQueue(['constructor'], {}, NOW), ['constructor']);
+    assert.deepEqual(dueQueue(['constructor'], {}, NOW), []);
+});
+
+test('a review across topics takes the lowest box first, then the longest overdue, and keeps topic order on ties', () => {
+    const cards: Record<string, CardState> = {
+        'family-a': card(2, NOW - 10),
+        'family-b': card(0, NOW - 5),
+        'food-a': card(0, NOW - 5),      // the same as family-b, so it stays after it
+        'food-c': card(3, NOW + DAY_MS), // not due
+        'verbs-a': card(1, NOW),         // due this very moment counts
+    };
+    const ids = ['family-a', 'family-b', 'food-a', 'food-b', 'food-c', 'verbs-a']; // food-b never seen
+    assert.deepEqual(dueQueue(ids, cards, NOW), ['family-b', 'food-a', 'verbs-a', 'family-a']);
+    assert.deepEqual(dueQueue(ids, cards, NOW, 2), ['family-b', 'food-a']);
+    assert.deepEqual(dueQueue(ids, cards, NOW, 0), []);
+    assert.equal(dueQueue(ids, cards, NOW).length, cardCounts(ids, cards, NOW).due, 'the queue and the count agree');
 });
 
 test('a topic counts its due, new and learned cards', () => {

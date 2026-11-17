@@ -77,7 +77,7 @@ export default function TutorInput({ value, onChange, onSend, onStop, isStreamin
     return (
         <div className="shrink-0 border-t border-edge bg-surface-raised px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4">
             <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="mx-auto max-w-3xl">
-                <div data-pad onMouseDown={focusFromPadding} className="cursor-text rounded-2xl border border-edge bg-surface-raised has-[textarea:focus]:outline-2 has-[textarea:focus]:outline-offset-2 has-[textarea:focus]:outline-kesri">
+                <div data-pad onMouseDown={focusFromPadding} className="cursor-text rounded-2xl border border-edge bg-surface-raised has-[textarea:focus]:outline-2 has-[textarea:focus]:outline-offset-2 has-[textarea:focus]:outline-focus-ring">
                     {lessonChip && <div data-pad className="flex min-w-0 px-2.5 pt-2.5">{lessonChip}</div>}
                     <div data-pad className="flex items-end gap-2 pr-2 pb-2">
                         {/* text-base keeps it at 16px, below which iOS zooms in on focus. */}
@@ -110,8 +110,8 @@ export default function TutorInput({ value, onChange, onSend, onStop, isStreamin
                             onClick={isStreaming ? (e) => { if (e.detail <= 1) onStop(); } : undefined}
                             onKeyDown={isStreaming ? (e) => { if (e.repeat) e.preventDefault(); } : undefined}
                             className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl transition-colors ${isStreaming
-                                ? 'bg-navy text-white hover:opacity-90 dark:bg-kesri dark:text-navy'
-                                : 'bg-kesri text-navy aria-disabled:cursor-not-allowed aria-disabled:opacity-50 not-aria-disabled:hover:bg-navy not-aria-disabled:hover:text-white dark:not-aria-disabled:hover:bg-offwhite dark:not-aria-disabled:hover:text-navy'}`}
+                                ? 'bg-ink text-surface hover:opacity-90'
+                                : 'bg-link text-surface aria-disabled:cursor-not-allowed aria-disabled:opacity-50 not-aria-disabled:hover:bg-link/90'}`}
                         >
                             {isStreaming ? <StopIcon className="h-5 w-5" /> : <PaperAirplaneIcon className="h-5 w-5" />}
                         </button>
@@ -121,12 +121,12 @@ export default function TutorInput({ value, onChange, onSend, onStop, isStreamin
             <div className="mx-auto mt-2 flex max-w-3xl items-start justify-between gap-3 text-[11px] text-ink-muted">
                 <p>
                     {t.learn.tutor.disclaimer}{' '}
-                    <Link href={to('/privacy')} className="underline hover:text-accent-text">{t.footer.privacy}</Link>
+                    <Link href={to('/privacy')} className="underline hover:text-link">{t.footer.privacy}</Link>
                     {' · '}
-                    <Link href={to('/terms')} className="underline hover:text-accent-text">{t.footer.terms}</Link>
+                    <Link href={to('/terms')} className="underline hover:text-link">{t.footer.terms}</Link>
                 </p>
                 {nearCap && (
-                    <span id={countId} className={`shrink-0 tabular-nums ${atCap ? 'font-semibold text-red-600 dark:text-red-400' : ''}`}>
+                    <span id={countId} className={`shrink-0 tabular-nums ${atCap ? 'font-semibold text-red-700 dark:text-red-400' : ''}`}>
                         {fmt(t.learn.tutor.charCount, { n: value.length, max: MAX_TUTOR_MESSAGE_CHARS })}
                     </span>
                 )}

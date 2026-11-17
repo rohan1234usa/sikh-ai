@@ -61,7 +61,7 @@ export default function ChatHistoryRow({ chat, active, replying, initialFocus, o
         <li data-chat-row={chat.id}>
             <div
                 ref={rowRef}
-                className="group relative flex items-center rounded-lg transition-colors hover:bg-edge/60 has-[[aria-current=page]]:bg-kesri/10"
+                className="group relative flex items-center rounded-lg transition-colors hover:bg-edge/60 has-[[aria-current=page]]:bg-accent-text/10"
             >
                 {mode === 'rename' ? (
                     <input
@@ -83,7 +83,7 @@ export default function ChatHistoryRow({ chat, active, replying, initialFocus, o
                             }
                         }}
                         onBlur={(e) => commitRename(e.currentTarget.value)}
-                        className="m-1 min-w-0 flex-1 rounded-md border border-kesri bg-surface px-2 py-1.5 text-sm text-ink outline-none"
+                        className="m-1 min-w-0 flex-1 rounded-md border border-focus-ring bg-surface px-2 py-1.5 text-sm text-ink outline-none"
                     />
                 ) : mode === 'delete' ? (
                     <div
@@ -97,7 +97,7 @@ export default function ChatHistoryRow({ chat, active, replying, initialFocus, o
                         className="flex w-full flex-wrap items-center gap-x-2 gap-y-1 px-2.5 py-2 text-sm"
                     >
                         <span className="text-ink-muted">{h.deletePrompt}</span>
-                        <button type="button" onClick={onDelete} className="font-semibold text-red-600 dark:text-red-400 hover:underline">
+                        <button type="button" onClick={onDelete} className="font-semibold text-red-700 dark:text-red-400 hover:underline">
                             {h.delete}
                         </button>
                         {/* Cancel takes focus: Enter right after choosing Delete doesn't delete. */}
@@ -125,7 +125,7 @@ export default function ChatHistoryRow({ chat, active, replying, initialFocus, o
                             )}
                             {replying && (
                                 <>
-                                    <span className="ml-auto h-2 w-2 shrink-0 animate-pulse rounded-full bg-kesri" aria-hidden="true" />
+                                    <span className="ml-auto h-2 w-2 shrink-0 animate-pulse rounded-full bg-accent-text" aria-hidden="true" />
                                     <span className="sr-only">, {h.replying}</span>
                                 </>
                             )}

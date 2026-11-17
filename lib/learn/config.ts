@@ -71,7 +71,7 @@ type QuestionBase = {
     prompt: string;       // English
     promptPa?: string;    // Gurmukhi, shown large under the prompt
     promptRoman?: string; // its romanization, when the question isn't about reading it
-    explanation?: string; // shown once the quiz is checked
+    explanation?: string; // shown once the question is checked
 };
 
 export type ChoiceQuestion = QuestionBase & {
@@ -115,6 +115,13 @@ export type VocabWord = {
     example?: Example; // every verb has one
     note?: string;     // English, one line
 };
+
+// What a flashcard shows of a word, listed once: the type, the copy the
+// review page sends (flashcardWords) and its test all follow this list, so a
+// field added here reaches every card. The review page carries every topic's
+// words in this shape, without the fields only a quiz or the word list uses.
+export const FLASHCARD_FIELDS = ['id', 'topic', 'gurmukhi', 'roman', 'english', 'note'] as const satisfies readonly (keyof VocabWord)[];
+export type FlashcardWord = Pick<VocabWord, (typeof FLASHCARD_FIELDS)[number]>;
 
 export type LessonMeta = {
     slug: string;         // its URL segment, unique across tracks
@@ -273,6 +280,12 @@ export function lessonsFor(track: LessonTrackId): LessonEntry[] {
 
 export const lessonPath = (meta: Pick<LessonMeta, 'track' | 'slug'>): string => `/learn/${meta.track}/${meta.slug}`;
 export const topicPath = (topic: VocabTopicId): string => `/learn/vocab/${topic}`;
+
+// A lesson page's anchors: each section's heading, numbered from 1 as the
+// page shows them, and the quiz. Its sections and quiz are its checkpoints
+// (lib/learn/progress.ts), which count from 0.
+export const QUIZ_ANCHOR = 'lesson-quiz';
+export const sectionAnchor = (index: number): string => `section-${index + 1}`;
 
 // Every page of the section, for the sitemap.
 export function learnPaths(): string[] {

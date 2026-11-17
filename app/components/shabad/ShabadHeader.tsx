@@ -14,13 +14,13 @@ export default function ShabadHeader({ t, page, ang }: { t: Dictionary; page: 's
     // The page's heading on /shabad; elsewhere the Ang or the shabad is.
     const Title = page === 'search' ? 'h1' : 'p';
     return (
-        <div className="bg-navy text-white py-12 px-6 flex flex-col items-center">
+        <div className="border-b border-edge bg-surface text-ink py-12 px-6 flex flex-col items-center">
             <Title className="text-3xl font-bold mb-6 text-center">
-                {titleBefore}<span className="text-kesri">{t.shabad.titleWord}</span>{titleAfter}
+                {titleBefore}<span className="text-accent-text">{t.shabad.titleWord}</span>{titleAfter}
             </Title>
             <ShabadSearchBox key={ang} initial={ang ? String(ang) : undefined} inline={page === 'search'} />
-            <p className="mt-4 max-w-xl text-center text-sm text-slate-300">
-                {helpBefore}<span lang="pa" className="font-gurmukhi text-base text-white">{SEARCH_EXAMPLES.letters}</span>{helpAfter}
+            <p className="mt-4 max-w-xl text-center text-sm text-ink-muted">
+                {helpBefore}<span lang="pa" className="font-gurmukhi text-base text-ink">{SEARCH_EXAMPLES.letters}</span>{helpAfter}
             </p>
         </div>
     );

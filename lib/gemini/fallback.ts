@@ -9,7 +9,7 @@
 // stays off, because its 1-2-4 s waits would eat the whole budget.
 
 import type { GenerateContentParameters } from '@google/genai';
-import { errorFields, logGeminiCall, type GeminiCallLog } from './log';
+import { CAPACITY_STATUS, errorFields, logGeminiCall, type GeminiCallLog } from './log';
 import { geminiFallbackModel, geminiModel, type GeminiFeature } from './models';
 
 // Less than this left before the deadline and the fallback is not worth starting.
@@ -18,8 +18,6 @@ export const MIN_FALLBACK_MS = 6000;
 // 404 is here so a pinned model Google retires degrades to the fallback
 // instead of taking the feature down.
 const RETRYABLE_STATUS = new Set([404, 429, 500, 502, 503, 504]);
-// "Try again in a minute" conditions, as opposed to a broken request.
-const CAPACITY_STATUS = new Set([429, 500, 502, 503, 504]);
 
 export type Attempt<T> = { value: T; model: string; depth: 0 | 1 };
 

@@ -2,9 +2,11 @@ import type { Metadata } from 'next';
 import IntentLink from '@/app/components/IntentLink';
 import { PRIMARY_BUTTON } from '@/app/components/buttons';
 import EventCard from '@/app/components/seva/EventCard';
+import MyPartChip from '@/app/components/seva/MyPartChip';
 import SevaBoard, { type BoardGroup } from '@/app/components/seva/SevaBoard';
 import SevaHero from '@/app/components/seva/SevaHero';
 import YourSevaPanel from '@/app/components/seva/YourSevaPanel';
+import { SourceUnavailable } from '@/lib/errors/unavailable';
 import { localePath } from '@/lib/i18n/paths';
 import { getSevaCopy } from '@/lib/i18n/seva';
 import { getServerT } from '@/lib/i18n/server';
@@ -41,12 +43,21 @@ export default async function SevaBoardPage() {
   // there keeps being served; while building (CI has no network) or with no
   // project set up, it's shown as unavailable.
   if (read.kind === 'failed' && !isBuilding() && sevaProject()) {
-    throw new Error('Firestore gave no usable answer for the Seva board');
+    throw new SourceUnavailable('Firestore gave no usable answer for the Seva board');
   }
   const events = read.kind === 'ok' ? upcoming(read.value, now) : null;
 
+  // Each card has room for a word to the one signed in, that they host it or
+  // have joined it, which the board fills in the browser (SevaBoard).
   const card = (event: SevaEvent, showDate: boolean) => (
-    <EventCard event={event} display={describeEvent(event, lang, copy)} href={to(eventHref(event.id))} copy={copy.common} showDate={showDate} />
+    <EventCard
+      event={event}
+      display={describeEvent(event, lang, copy)}
+      href={to(eventHref(event.id))}
+      copy={copy.common}
+      showDate={showDate}
+      mark={(id) => <MyPartChip id={id} />}
+    />
   );
   const item = (event: SevaEvent, showDate: boolean) => ({ id: event.id, facets: facetsOf(event), card: card(event, showDate) });
 
@@ -77,7 +88,7 @@ export default async function SevaBoardPage() {
           <div className="rounded-xl border border-edge bg-surface-raised p-6 text-center shadow-sm">
             <h2 className="text-lg font-bold text-ink">{copy.board.unavailableTitle}</h2>
             <p className="mt-1 text-ink-muted">{copy.board.unavailableBody}</p>
-            <a href={to('/seva')} className="mt-4 inline-block font-semibold text-accent-text underline">{copy.common.retry}</a>
+            <a href={to('/seva')} className="mt-4 inline-block font-semibold text-link underline">{copy.common.retry}</a>
           </div>
         ) : events.length === 0 ? (
           <div className="rounded-xl border border-edge bg-surface-raised p-6 text-center shadow-sm">
@@ -95,13 +106,14 @@ export default async function SevaBoardPage() {
             countryNames={countryNames}
             categoryNames={copy.common.categories}
             createHref={to(CREATE_HREF)}
+            mineLabels={{ hosting: copy.common.youHost, joined: copy.common.youJoined }}
           />
         )}
 
         {events !== null && events.length > 0 && (
           <p className="rounded-xl border border-dashed border-edge-strong p-5 text-center text-ink-muted">
             {copy.board.hostPrompt}{' '}
-            <IntentLink href={to(CREATE_HREF)} className="font-semibold text-accent-text underline">{copy.board.hostPromptCta}</IntentLink>
+            <IntentLink href={to(CREATE_HREF)} className="font-semibold text-link underline">{copy.board.hostPromptCta}</IntentLink>
           </p>
         )}
       </div>

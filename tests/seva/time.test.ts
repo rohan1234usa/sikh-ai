@@ -2,10 +2,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
     addDays,
+    formatClock,
     formatDayKey,
     formatTimes,
     formatWhen,
     isTimeZone,
+    laterSameDay,
+    suggestEnd,
     localDateKey,
     parseDate,
     shiftLocalDays,
@@ -84,4 +87,33 @@ test('Punjabi names the day, month and zone in Gurmukhi with Western digits; rom
     assert.match(formatWhen(e, 'pa-latn', WORDS), /^Saturday, October 10, 2026/);
     assert.notEqual(zoneName(e.startsAt, 'Asia/Kolkata', 'en'), 'Asia/Kolkata');
     assert.equal(formatDayKey('2026-10-10', 'en'), 'Saturday, October 10, 2026');
+});
+
+test('the end the form suggests: later the same day, or none past midnight', () => {
+    assert.equal(laterSameDay('18:00', 120), '20:00');
+    assert.equal(laterSameDay('09:45', 120), '11:45');
+    assert.equal(laterSameDay('21:59', 120), '23:59');
+    assert.equal(laterSameDay('22:00', 120), null, 'midnight is the next day');
+    assert.equal(laterSameDay('23:30', 120), null);
+    for (const bad of ['', '6pm', '24:00', '18:60', '7:00']) assert.equal(laterSameDay(bad, 120), null, bad);
+    assert.equal(formatClock('20:00', 'en'), '8:00 PM');
+    assert.match(formatClock('20:00', 'pa'), /8:00/);
+    assert.equal(formatClock('soon', 'en'), 'soon');
+});
+
+test("the form's end follows the start only while it's the form's own", () => {
+    const at = (start: string, end: string, auto: boolean, multiDay = false) => suggestEnd({ start, end, auto, multiDay }, 120);
+    // An empty end is filled in, and said once.
+    assert.deepEqual(at('18:00', '', false), { end: '20:00', auto: true, announce: true });
+    // One the form filled in follows the start, quietly.
+    assert.deepEqual(at('19:30', '20:00', true), { end: '21:30', auto: true, announce: false });
+    // One the host gave stays.
+    assert.equal(at('19:30', '22:00', false), null);
+    // Past midnight: an empty end stays empty, and one the form filled in,
+    // now before the start, is cleared.
+    assert.equal(at('22:15', '', false), null);
+    assert.deepEqual(at('22:30', '23:00', true), { end: '', auto: false, announce: false });
+    // An event over several days, or a start cleared: nothing changes.
+    assert.equal(at('18:00', '', false, true), null);
+    assert.equal(at('', '20:00', true), null);
 });

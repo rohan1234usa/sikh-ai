@@ -12,19 +12,26 @@ import type { Lang } from '@/lib/i18n/config';
 import { formatDate } from '@/lib/i18n/date';
 import { fmt } from '@/lib/i18n/fmt';
 import type { SevaCopy } from '@/lib/i18n/seva';
+import { room, signupLine, takesSignups, type SignupWords } from '@/lib/seva/event';
 import { SEVA_TEXT } from '@/lib/seva/limits';
 import { telUrl } from '@/lib/seva/links';
 import type { Volunteer } from '@/lib/seva/model';
 import { textLength, validateCancelNote } from '@/lib/seva/validate';
+import CapacityLine from './CapacityLine';
 import { useEvent } from './EventContext';
 import { loadSeva, refreshPages } from './sevaClient';
 
 // The host's own tools, on their event's page: edit, see who's coming, post
-// it again, cancel or reopen. Only the host sees them; the rules are what
-// keep everyone else out.
-export default function HostTools({ lang, copy, cancelCopy, volunteersCopy, retry, cancelledMessage, editHref, postAgainHref }: {
+// it again, cancel or reopen. They come first beside the event's details, in
+// the Join card's place (it steps aside for a host who hasn't joined), so
+// on a phone they're just under When and Where, not below everything else.
+// Only the host sees them; the rules are what keep everyone else out.
+export default function HostTools({ lang, heading, copy, words, cancelCopy, volunteersCopy, retry, cancelledMessage, editHref, postAgainHref }: {
     lang: Lang;
+    heading: string;
     copy: SevaCopy['host'];
+    // Who may sign up and how many have, as the Join card would say it.
+    words: SignupWords;
     // Said once the event is cancelled.
     cancelledMessage: string;
     retry: string;
@@ -33,7 +40,7 @@ export default function HostTools({ lang, copy, cancelCopy, volunteersCopy, retr
     editHref: string;
     postAgainHref: string;
 }) {
-    const { event, viewer, ended, update } = useEvent();
+    const { event, viewer, ended, update, takeHandOff } = useEvent();
     // Two dialogs, which can be open together: the volunteers' list opens over
     // the cancel dialog, so a host can reach them first and come back to it.
     const [volunteersOpen, setVolunteersOpen] = useState(false);
@@ -41,9 +48,20 @@ export default function HostTools({ lang, copy, cancelCopy, volunteersCopy, retr
     const [busy, setBusy] = useState(false);
     const [problem, setProblem] = useState('');
     const { announce, announcer } = useAnnouncer();
+    const headingRef = useRef<HTMLHeadingElement>(null);
+    const shown = viewer.kind === 'ready' && viewer.is.isHost;
 
-    if (viewer.kind !== 'ready' || !viewer.is.isHost) return null;
+    // Shown in place of a Join or Report the host just pressed, which has
+    // gone: the heading takes the focus.
+    useEffect(() => {
+        if (shown && takeHandOff()) headingRef.current?.focus();
+    });
+
+    if (!shown) return null;
     const cancelled = event.status === 'cancelled';
+    // An event that takes no sign-ups has no one to list (the rules keep its
+    // count at 0).
+    const signups = takesSignups(event);
 
     const reopen = async () => {
         if (busy) return;
@@ -63,14 +81,19 @@ export default function HostTools({ lang, copy, cancelCopy, volunteersCopy, retr
 
     return (
         <section aria-labelledby="host-tools" className="rounded-xl border border-edge bg-surface-raised p-5 shadow-sm">
-            <h2 id="host-tools" className="text-lg font-bold text-ink">{copy.heading}</h2>
+            <h2 ref={headingRef} id="host-tools" tabIndex={-1} className="text-lg font-bold text-ink">{heading}</h2>
             <p className="mt-1 text-sm text-ink-muted">{copy.intro}</p>
+            <p className="mt-3 text-ink-muted">
+                <CapacityLine signup={signupLine(event, words)} anyJoined={event.volunteerCount > 0} />
+            </p>
             {event.hidden && <p className="mt-3 rounded-lg border border-edge-strong p-3 text-ink">{copy.hiddenNotice}</p>}
             <div className="mt-4 flex flex-wrap gap-3">
-                <IntentLink href={editHref} className={SECONDARY_BUTTON}>{copy.edit}</IntentLink>
-                <button type="button" onClick={() => setVolunteersOpen(true)} className={SECONDARY_BUTTON}>
-                    {fmt(copy.volunteers, { n: event.volunteerCount })}
-                </button>
+                <IntentLink href={editHref} className={PRIMARY_BUTTON}>{copy.edit}</IntentLink>
+                {signups && (
+                    <button type="button" onClick={() => setVolunteersOpen(true)} className={SECONDARY_BUTTON}>
+                        {fmt(copy.volunteers, { n: event.volunteerCount })}
+                    </button>
+                )}
                 <IntentLink href={postAgainHref} className={SECONDARY_BUTTON} aria-describedby="post-again-hint">{copy.postAgain}</IntentLink>
                 {!ended && (cancelled ? (
                     <button type="button" onClick={reopen} aria-disabled={busy || undefined} className={SECONDARY_BUTTON}>
@@ -138,6 +161,7 @@ function VolunteersBody({ onClose, copy, retry, lang }: { onClose: () => void; c
         } catch { /* nothing copied; the details are on screen */ }
     };
 
+    const r = room(event);
     const people = Array.isArray(list) ? list : [];
     const emails = people.map((v) => v.email).filter(Boolean);
     const phones = people.map((v) => v.phone).filter(Boolean);
@@ -146,7 +170,9 @@ function VolunteersBody({ onClose, copy, retry, lang }: { onClose: () => void; c
         <div className="p-5">
             <h2 id="volunteers-title" tabIndex={-1} data-initial-focus className="text-lg font-bold text-ink">{copy.title}</h2>
             <p className="mt-1 text-sm text-ink-muted [overflow-wrap:anywhere]">{event.title}</p>
-            <p className="mt-1 text-sm text-ink">{fmt(copy.count, { count: event.volunteerCount, spots: event.spots })}</p>
+            <p className="mt-1 text-sm text-ink">
+                {r.mode === 'limited' ? fmt(copy.count, { count: r.joined, spots: r.spots }) : fmt(copy.countNoLimit, { count: event.volunteerCount })}
+            </p>
             {list === null && <p role="status" className="mt-4 text-ink-muted">{copy.loading}</p>}
             {list === 'failed' && (
                 <div className="mt-4">
@@ -157,7 +183,7 @@ function VolunteersBody({ onClose, copy, retry, lang }: { onClose: () => void; c
                             setList(null);
                             setAttempt((n) => n + 1);
                         }}
-                        className="mt-2 font-semibold text-accent-text underline"
+                        className="mt-2 font-semibold text-link underline"
                     >
                         {retry}
                     </button>
@@ -176,7 +202,7 @@ function VolunteersBody({ onClose, copy, retry, lang }: { onClose: () => void; c
                                 {v.email && (
                                     <p className="mt-1 flex flex-wrap items-center gap-2 text-sm">
                                         <EnvelopeIcon className="h-4 w-4 text-ink-muted" aria-hidden="true" />
-                                        <a href={`mailto:${v.email}`} aria-label={fmt(copy.email, { name: v.name })} className="text-accent-text underline [overflow-wrap:anywhere]">{v.email}</a>
+                                        <a href={`mailto:${v.email}`} aria-label={fmt(copy.email, { name: v.name })} className="text-link underline [overflow-wrap:anywhere]">{v.email}</a>
                                         <button type="button" onClick={() => copyText(v.email, copy.copied)} aria-label={fmt(copy.copyEmail, { name: v.name })} className="rounded p-1.5 text-ink-muted hover:bg-edge/60 hover:text-ink">
                                             <ClipboardIcon className="h-4 w-4" aria-hidden="true" />
                                         </button>
@@ -185,7 +211,7 @@ function VolunteersBody({ onClose, copy, retry, lang }: { onClose: () => void; c
                                 {v.phone && (
                                     <p className="mt-1 flex flex-wrap items-center gap-2 text-sm">
                                         <PhoneIcon className="h-4 w-4 text-ink-muted" aria-hidden="true" />
-                                        <a href={telUrl(v.phone)} aria-label={fmt(copy.call, { name: v.name })} className="text-accent-text underline">{v.phone}</a>
+                                        <a href={telUrl(v.phone)} aria-label={fmt(copy.call, { name: v.name })} className="text-link underline">{v.phone}</a>
                                         <button type="button" onClick={() => copyText(v.phone, copy.copied)} aria-label={fmt(copy.copyPhone, { name: v.name })} className="rounded p-1.5 text-ink-muted hover:bg-edge/60 hover:text-ink">
                                             <ClipboardIcon className="h-4 w-4" aria-hidden="true" />
                                         </button>
@@ -268,9 +294,15 @@ function CancelBody({ onClose, copy, onSeeVolunteers, onCancelled }: {
     return (
         <div className="p-5">
             <h2 id="cancel-title" className="text-lg font-bold text-ink">{copy.title}</h2>
-            <p className="mt-2 text-ink">{copy.body}</p>
-            <button type="button" onClick={onSeeVolunteers} className="mt-2 font-semibold text-accent-text underline">{copy.seeVolunteers}</button>
-            <Field id="cancel-note" label={copy.note} hint={copy.noteHint} className="mt-4">
+            {takesSignups(event) ? (
+                <>
+                    <p className="mt-2 text-ink">{copy.body}</p>
+                    <button type="button" onClick={onSeeVolunteers} className="mt-2 font-semibold text-link underline">{copy.seeVolunteers}</button>
+                </>
+            ) : (
+                <p className="mt-2 text-ink">{copy.bodyNoSignup}</p>
+            )}
+            <Field id="cancel-note" label={takesSignups(event) ? copy.note : copy.noteNoSignup} hint={copy.noteHint} className="mt-4">
                 {(c) => (
                     <>
                         <textarea

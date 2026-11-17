@@ -1,11 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useMinute } from '@/app/components/useMinute';
 import {
     EMPTY_PROGRESS,
     isNewerProgress,
     parseProgress,
     withCardReview,
+    withCheckpoint,
     withLessonComplete,
     withTopicQuiz,
     withVisit,
@@ -16,7 +18,8 @@ import type { QuizScore } from '@/lib/learn/quiz';
 // Learn Punjabi's progress, kept in this browser only. The rules live in
 // lib/learn/progress.ts; this hook reads the saved copy once the page has
 // hydrated (the server renders no progress) and follows other tabs. One
-// island per page uses it.
+// island per page uses it; a lesson page's parts share it through
+// LessonProgress.
 //
 // Each change is made to the saved copy as it is at that moment, not to this
 // page's copy of it, so a page that missed another tab's writes (one restored
@@ -48,7 +51,7 @@ function readSaved(): Saved {
 export function useLearnProgress() {
     const [progress, setProgress] = useState<LearnProgress>(EMPTY_PROGRESS);
     // When the saved copy was read, or null before then. Render reads the
-    // clock only through this, so it stays pure.
+    // clock only through this and useMinute (useLiveNow), so it stays pure.
     const [loadedAt, setLoadedAt] = useState<number | null>(null);
     // Set when the saved copy can't be written: changes then stay in the page.
     const memoryOnly = useRef(false);
@@ -84,8 +87,12 @@ export function useLearnProgress() {
             if (saved.writable) {
                 const next = apply(saved.progress);
                 try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-                    setProgress(next);
+                    // A change that changes nothing (a checkpoint already
+                    // passed, a lesson opened again) isn't written or shown.
+                    if (next !== saved.progress) {
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+                        setProgress(next);
+                    }
                     return;
                 } catch { /* storage full: this visit only, from now on */ }
             }
@@ -99,6 +106,11 @@ export function useLearnProgress() {
     const visitLesson = useCallback((slug: string) => {
         const now = Date.now();
         change((p) => withVisit(p, slug, now));
+    }, [change]);
+
+    const reachCheckpoint = useCallback((slug: string, checkpoint: number) => {
+        const now = Date.now();
+        change((p) => withCheckpoint(p, slug, checkpoint, now));
     }, [change]);
 
     const completeLesson = useCallback((slug: string, score: QuizScore) => {
@@ -128,19 +140,39 @@ export function useLearnProgress() {
         setProgress(EMPTY_PROGRESS);
     }, []);
 
-    return {
+    // One object until something in it changes, so a context that passes it
+    // on (LessonProgress) re-renders its readers only then.
+    return useMemo(() => ({
         progress,
         hydrated: loadedAt !== null,
         // When the saved copy was last read: it changes when another tab or
         // a restored page brings a new copy, never for this page's changes.
         loadedAt,
-        // What due flashcards are counted against: the later of the read and
-        // the last change, so a card just missed counts as due at once.
+        // The floor due flashcards are counted against: the later of the read
+        // and the last change, so a card just missed counts as due at once.
+        // It stands still while the page is open; an island that shows due
+        // counts raises it with the minute (useLiveNow).
         now: loadedAt === null ? null : Math.max(loadedAt, progress.updatedAt),
         visitLesson,
+        reachCheckpoint,
         completeLesson,
         recordTopicQuiz,
         reviewCard,
         reset,
-    };
+    }), [progress, loadedAt, visitLesson, reachCheckpoint, completeLesson, recordTopicQuiz, reviewCard, reset]);
+}
+
+// The time due flashcards are counted against, moving: the later of
+// useLearnProgress().now (so a card just missed counts at once, which a
+// minute rounded down might not) and the current minute, so a page left open
+// sees cards come due. Null until progress is read. Only the islands that
+// show due counts call it; a lesson page, which reads progress through
+// LessonProgress, never renders again for the clock.
+export function useLiveNow(now: number | null): number | null {
+    return liveTime(now, useMinute());
+}
+
+// The rule itself, pure for the tests.
+export function liveTime(now: number | null, minute: number | null): number | null {
+    return now === null ? null : Math.max(now, minute ?? 0);
 }
