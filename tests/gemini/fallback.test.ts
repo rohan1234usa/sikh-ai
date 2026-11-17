@@ -1,4 +1,4 @@
-import { afterEach, test } from 'node:test';
+import { afterEach, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { MIN_FALLBACK_MS, withModelFallback, withTransport } from '@/lib/gemini/fallback';
 import type { GeminiCallLog } from '@/lib/gemini/log';
@@ -22,6 +22,14 @@ function scripted(errors: Record<string, Error>) {
     return { calls, call };
 }
 
+// No feature has a fallback model by default, so these tests name one, as
+// an env var would; the tests of a disabled or missing one take it away.
+// The primary is the pinned model, whatever the shell has set.
+const FALLBACK = 'gemini-3.6-flash';
+beforeEach(() => {
+    delete process.env.GEMINI_CHAT_MODEL;
+    process.env.GEMINI_CHAT_FALLBACK_MODEL = FALLBACK;
+});
 afterEach(() => { delete process.env.GEMINI_CHAT_FALLBACK_MODEL; });
 
 test('the pinned model answers without the fallback being touched', async () => {
@@ -34,9 +42,9 @@ test('the pinned model answers without the fallback being touched', async () => 
 test('a rate-limited pinned model is answered by the fallback', async () => {
     const { calls, call } = scripted({ 'gemini-3.8-flash': new FakeApiError(429) });
     const result = await withModelFallback('chat', call, { log: quiet });
-    assert.equal(result.model, 'gemini-3.7-flash');
+    assert.equal(result.model, FALLBACK);
     assert.equal(result.depth, 1);
-    assert.deepEqual(calls, ['gemini-3.8-flash', 'gemini-3.7-flash']);
+    assert.deepEqual(calls, ['gemini-3.8-flash', FALLBACK]);
 });
 
 for (const status of [500, 502, 503, 504, 404]) {
@@ -58,7 +66,7 @@ for (const status of [400, 401, 402, 403]) {
 test('when both models are overloaded, the fallback error surfaces', async () => {
     const { call } = scripted({
         'gemini-3.8-flash': new FakeApiError(429),
-        'gemini-3.7-flash': new FakeApiError(503),
+        [FALLBACK]: new FakeApiError(503),
     });
     await assert.rejects(withModelFallback('chat', call, { log: quiet }), { status: 503 });
 });
@@ -66,7 +74,7 @@ test('when both models are overloaded, the fallback error surfaces', async () =>
 test('a misconfigured fallback does not hide that the primary was overloaded', async () => {
     const { call } = scripted({
         'gemini-3.8-flash': new FakeApiError(429),
-        'gemini-3.7-flash': new FakeApiError(404),
+        [FALLBACK]: new FakeApiError(404),
     });
     await assert.rejects(withModelFallback('chat', call, { log: quiet }), { status: 429 });
 });
@@ -95,6 +103,13 @@ test('a disabled fallback means one attempt only', async () => {
     const { calls, call } = scripted({ 'gemini-3.8-flash': new FakeApiError(503) });
     await assert.rejects(withModelFallback('chat', call, { log: quiet }), { status: 503 });
     assert.equal(calls.length, 1);
+});
+
+test('with no fallback named, the default, one attempt only', async () => {
+    delete process.env.GEMINI_CHAT_FALLBACK_MODEL;
+    const { calls, call } = scripted({ 'gemini-3.8-flash': new FakeApiError(503) });
+    await assert.rejects(withModelFallback('chat', call, { log: quiet }), { status: 503 });
+    assert.deepEqual(calls, ['gemini-3.8-flash']);
 });
 
 test('each failed attempt is logged with its status and outcome', async () => {

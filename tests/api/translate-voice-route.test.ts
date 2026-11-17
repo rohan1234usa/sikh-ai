@@ -6,7 +6,7 @@ import { parseLiveLines } from '@/lib/translate/live';
 import { LINES_MAX_OUTPUT_TOKENS } from '@/lib/translate/prompts';
 import { ROMANIZATION_CAPITALS, ROMANIZATION_RULES } from '@/lib/translate/romanization';
 import { MAX_AUDIO_BASE64_CHARS } from '@/lib/translate/voice';
-import { captured, instructionOf, logged, postJson, readStream, spendDay, startRouteMock } from '../helpers/routes';
+import { captured, instructionOf, logged, postJson, readStream, spendDay, startRouteMock, TEST_FALLBACK_MODEL, withFallbackModel } from '../helpers/routes';
 
 let mock: MockGemini;
 let POST: (req: Request) => Promise<Response>;
@@ -112,17 +112,30 @@ test('a clip heard in English, and a clip with no speech, stream through as they
     assert.deepEqual(parseLiveLines((await readStream(res)).text, true), { input: 'none' });
 });
 
-test('a rate-limited pinned model is answered by the fallback', async () => {
-    const { result: res, requests } = await captured(mock, () => voice(clip('MOCK_429_FIRST voice')));
+test('a rate-limited pinned model is answered by a fallback named for Talk', async () => {
+    const { result: res, requests } = await withFallbackModel('GEMINI_TRANSLATE_VOICE_FALLBACK_MODEL', () =>
+        captured(mock, () => voice(clip('MOCK_429_FIRST voice'))));
     assert.equal(res.status, 200);
     await readStream(res);
-    assert.deepEqual(requests.map((r) => r.model), ['gemini-3.8-flash', 'gemini-3.7-flash']);
+    assert.deepEqual(requests.map((r) => r.model), ['gemini-3.8-flash', TEST_FALLBACK_MODEL]);
 });
 
 test('both models busy: 429 or 503 translate_voice_busy', async () => {
     for (const [trigger, status] of [['MOCK_429', 429], ['MOCK_503', 503]] as const) {
-        const res = await voice(clip(trigger));
+        const { result: res, requests } = await withFallbackModel('GEMINI_TRANSLATE_VOICE_FALLBACK_MODEL', () =>
+            captured(mock, () => voice(clip(trigger))));
         assert.equal(res.status, status, trigger);
+        assert.equal(requests.length, 2, trigger);
+        assert.equal(res.headers.get('cache-control'), 'no-store');
+        assert.equal((await res.json()).code, 'translate_voice_busy');
+    }
+});
+
+test('with no fallback named, the default, a busy model is 429 or 503 translate_voice_busy after one call', async () => {
+    for (const [trigger, status] of [['MOCK_429', 429], ['MOCK_503', 503]] as const) {
+        const { result: res, requests } = await captured(mock, () => voice(clip(trigger)));
+        assert.equal(res.status, status, trigger);
+        assert.equal(requests.length, 1, trigger);
         assert.equal(res.headers.get('cache-control'), 'no-store');
         assert.equal((await res.json()).code, 'translate_voice_busy');
     }

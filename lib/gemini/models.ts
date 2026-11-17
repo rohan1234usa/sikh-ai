@@ -16,24 +16,31 @@
 // scripts' letters into Gurmukhi. On the free tier, pointing translate at a
 // different model gives it its own daily quota, apart from chat's.
 //
-// Each feature also names one fallback model, tried only when the pinned one
-// is overloaded, rate-limited, unavailable, or too slow (lib/gemini/fallback.ts).
-// For chat, 3.7 Flash was checked with `npm run eval:chat` (Sept 2026): every
-// Gurbani quote in its answers to the twelve questions verified, as with 3.8.
-// Before pointing the fallback at an unchecked model, run that eval, or set the
-// env var to "off": a "busy" message is better than a misquoted tuk.
+// No feature has a fallback model by default. One can be named per feature in
+// its env var, to be tried only when the pinned one is overloaded,
+// rate-limited, unavailable, or too slow (lib/gemini/fallback.ts); without
+// one, the route answers "busy" (the translator tries Cloud Translation
+// first). Every feature named 3.7 Flash, but Google deprecated it on 8 Oct
+// 2026 and has served its requests with 3.8 Flash since, so the second try
+// asked the same model again. A deprecated name is not a second model: the
+// changelog says which model serves it. Nothing else has passed this app's
+// checks: 3.6 Flash and Flash-Lite lost the side-by-side above, Flash-Lite
+// failed `npm run eval:chat` again in Nov 2026, and Gemini 4 Hydrogen (Nov
+// 2026) is untested. Before naming a fallback, run that eval (and `npm run
+// eval:translate` for the translator): a "busy" message is better than a
+// misquoted tuk.
 //
-// Every route sets `thinkingLevel`, a Gemini 3.x parameter — an override
-// should name a 3.x model.
+// Every route sets `thinkingLevel` to LOW, a Gemini 3.x parameter that Gemini
+// 4 Hydrogen also takes — an override should name a model that accepts it.
 
 const MODELS = {
     chat: {
         env: 'GEMINI_CHAT_MODEL', pinned: 'gemini-3.8-flash',
-        fallbackEnv: 'GEMINI_CHAT_FALLBACK_MODEL', fallback: 'gemini-3.7-flash',
+        fallbackEnv: 'GEMINI_CHAT_FALLBACK_MODEL', fallback: null,
     },
     translate: {
         env: 'GEMINI_TRANSLATE_MODEL', pinned: 'gemini-3.8-flash',
-        fallbackEnv: 'GEMINI_TRANSLATE_FALLBACK_MODEL', fallback: 'gemini-3.7-flash',
+        fallbackEnv: 'GEMINI_TRANSLATE_FALLBACK_MODEL', fallback: null,
     },
     // The live translator (/api/translate/live), which answers while the
     // user types. Its own entry, so a preview can try a faster, cheaper
@@ -41,22 +48,22 @@ const MODELS = {
     // button's full result stays on the model it was tuned for.
     translateLive: {
         env: 'GEMINI_TRANSLATE_LIVE_MODEL', pinned: 'gemini-3.8-flash',
-        fallbackEnv: 'GEMINI_TRANSLATE_LIVE_FALLBACK_MODEL', fallback: 'gemini-3.7-flash',
+        fallbackEnv: 'GEMINI_TRANSLATE_LIVE_FALLBACK_MODEL', fallback: null,
     },
     // Talk's voice route (/api/translate/voice): a recorded clip in, the
     // live translator's four lines out. Its own entry, so a model that hears
-    // better, or charges less for audio, can be tried on clips alone. Both
-    // models must take audio input, as 3.8 and 3.7 Flash do.
+    // better, or charges less for audio, can be tried on clips alone. Its
+    // model, and any fallback named for it, must take audio input.
     translateVoice: {
         env: 'GEMINI_TRANSLATE_VOICE_MODEL', pinned: 'gemini-3.8-flash',
-        fallbackEnv: 'GEMINI_TRANSLATE_VOICE_FALLBACK_MODEL', fallback: 'gemini-3.7-flash',
+        fallbackEnv: 'GEMINI_TRANSLATE_VOICE_FALLBACK_MODEL', fallback: null,
     },
     // The Punjabi tutor (/api/learn). Its own entry, so a preview can try
     // another model on the tutor alone, and on the free tier an override
     // gives it a daily quota of its own.
     learn: {
         env: 'GEMINI_LEARN_MODEL', pinned: 'gemini-3.8-flash',
-        fallbackEnv: 'GEMINI_LEARN_FALLBACK_MODEL', fallback: 'gemini-3.7-flash',
+        fallbackEnv: 'GEMINI_LEARN_FALLBACK_MODEL', fallback: null,
     },
 } as const;
 
@@ -71,11 +78,12 @@ export function geminiModel(feature: GeminiFeature): string {
     return process.env[env]?.trim() || pinned;
 }
 
-// null when disabled, or when it would just repeat the primary model.
+// null when none is named or it is switched off, or when it would just repeat
+// the primary model.
 export function geminiFallbackModel(feature: GeminiFeature): string | null {
     const { fallbackEnv, fallback } = MODELS[feature];
     const raw = process.env[fallbackEnv];
     const model = raw === undefined ? fallback : raw.trim();
-    if (OFF.has(model.toLowerCase())) return null;
+    if (model === null || OFF.has(model.toLowerCase())) return null;
     return model === geminiModel(feature) ? null : model;
 }
