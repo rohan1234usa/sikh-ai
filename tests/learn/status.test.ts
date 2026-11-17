@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import en from '@/lib/i18n/dictionaries/en';
+import en from '@/lib/i18n/learn/en';
 import { placeWords, reviewLabel, timeWords } from '@/lib/learn/status';
 
 // 60 + 90 + 30 seconds of sections and 140 of quiz: 320 in all.

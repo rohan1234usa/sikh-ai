@@ -9,18 +9,18 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import LessonOutline from '@/app/components/learn/LessonOutline';
 import LessonSections from '@/app/components/learn/LessonSections';
-import { getDictionary } from '@/lib/i18n';
+import { getLearnCopy } from '@/lib/i18n/learn';
 import { LESSON_META, sectionAnchor } from '@/lib/learn/config';
 import { getLesson } from '@/lib/learn/curriculum';
 import { lessonPace } from '@/lib/learn/pace';
 import { placeHash } from '@/lib/learn/progress';
 
-const t = getDictionary('en');
+const learn = getLearnCopy('en');
 const LESSONS = LESSON_META.map((meta) => getLesson(meta.slug));
 
 test("every section's heading carries the anchor its checkpoint reopens", () => {
     for (const lesson of LESSONS) {
-        const html = renderToStaticMarkup(createElement(LessonSections, { t, sections: lesson.sections }));
+        const html = renderToStaticMarkup(createElement(LessonSections, { learn, sections: lesson.sections }));
         const ids = [...html.matchAll(/<h2[^>]*\sid="([^"]+)"/g)].map((match) => match[1]);
         assert.deepEqual(ids, lesson.sections.map((_, i) => sectionAnchor(i)), lesson.slug);
         lesson.sections.forEach((_, index) => {
@@ -32,7 +32,7 @@ test("every section's heading carries the anchor its checkpoint reopens", () => 
 
 test("a lesson's examples are ruled rows with no copy button", () => {
     for (const lesson of LESSONS) {
-        const html = renderToStaticMarkup(createElement(LessonSections, { t, sections: lesson.sections }));
+        const html = renderToStaticMarkup(createElement(LessonSections, { learn, sections: lesson.sections }));
         assert.doesNotMatch(html, /<button/, lesson.slug);
         const rows = lesson.sections.reduce((n, section) => n + (section.examples?.length ?? 0), 0);
         assert.equal(html.split('<li class="border-b border-edge py-3">').length - 1, rows, lesson.slug);
@@ -42,15 +42,15 @@ test("a lesson's examples are ruled rows with no copy button", () => {
 test('the outline links every section, with its time, and is closed on a phone', () => {
     for (const lesson of LESSONS) {
         const pace = lessonPace(lesson);
-        const html = renderToStaticMarkup(createElement(LessonOutline, { t, headings: lesson.sections.map((s) => s.heading), pace }));
+        const html = renderToStaticMarkup(createElement(LessonOutline, { learn, headings: lesson.sections.map((s) => s.heading), pace }));
         const hrefs = new Set([...html.matchAll(/href="#([^"]+)"/g)].map((match) => match[1]));
         assert.deepEqual([...hrefs], lesson.sections.map((_, i) => sectionAnchor(i)), lesson.slug);
         assert.match(html, /<details class="[^"]*"><summary/, `${lesson.slug}: the phone's outline starts closed`);
     }
     const first = LESSONS[0];
-    const html = renderToStaticMarkup(createElement(LessonOutline, { t, headings: first.sections.map((s) => s.heading), pace: lessonPace(first) }));
+    const html = renderToStaticMarkup(createElement(LessonOutline, { learn, headings: first.sections.map((s) => s.heading), pace: lessonPace(first) }));
     assert.match(html, /4 sections · about 6 min/);
     const tones = getLesson('tones');
-    const tonesHtml = renderToStaticMarkup(createElement(LessonOutline, { t, headings: tones.sections.map((s) => s.heading), pace: lessonPace(tones) }));
+    const tonesHtml = renderToStaticMarkup(createElement(LessonOutline, { learn, headings: tones.sections.map((s) => s.heading), pace: lessonPace(tones) }));
     assert.match(tonesHtml, /under 1 min/, 'a short section says so');
 });

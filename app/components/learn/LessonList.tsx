@@ -2,11 +2,11 @@
 
 import { CheckIcon } from '@heroicons/react/24/outline';
 import IntentLink from '@/app/components/IntentLink';
-import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { LessonPace } from '@/lib/learn/pace';
 import { lessonPlace, lessonRecord, placeHash } from '@/lib/learn/progress';
 import { placeWords, timeWords } from '@/lib/learn/status';
+import { useLearnCopy } from './LearnCopy';
 import { useLearnProgress } from './useLearnProgress';
 import Mixed from './Mixed';
 
@@ -24,7 +24,7 @@ export type LessonLink = {
 // one started and not finished says which section the learner reached and
 // how long the rest takes, and its link reopens it there.
 export default function LessonList({ lessons }: { lessons: LessonLink[] }) {
-    const t = useT();
+    const learn = useLearnCopy();
     const { progress, hydrated } = useLearnProgress();
 
     return (
@@ -32,7 +32,7 @@ export default function LessonList({ lessons }: { lessons: LessonLink[] }) {
             {lessons.map((lesson, i) => {
                 const record = hydrated ? lessonRecord(progress, lesson.slug) : undefined;
                 const place = hydrated ? lessonPlace(progress, lesson.slug, lesson.pace.sections.length) : { kind: 'new' as const };
-                const status = record ? `${t.learn.lesson.done} · ${fmt(t.learn.lesson.best, record.best)}` : placeWords(t, place, lesson.pace);
+                const status = record ? `${learn.lesson.done} · ${fmt(learn.lesson.best, record.best)}` : placeWords(learn, place, lesson.pace);
                 return (
                     <li key={lesson.slug} className="border-b border-edge">
                         <IntentLink
@@ -51,7 +51,7 @@ export default function LessonList({ lessons }: { lessons: LessonLink[] }) {
                                 {/* The time is on the server's page too, so progress only adds to this line. */}
                                 <span className="block text-xs">
                                     {status && <><span className="font-semibold text-accent-text">{status}</span> · </>}
-                                    <span className="text-ink-muted">{timeWords(t, place, lesson.pace)}</span>
+                                    <span className="text-ink-muted">{timeWords(learn, place, lesson.pace)}</span>
                                 </span>
                             </span>
                         </IntentLink>

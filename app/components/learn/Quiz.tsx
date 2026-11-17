@@ -3,10 +3,10 @@
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { PRIMARY_BUTTON, SECONDARY_BUTTON } from '@/app/components/buttons';
-import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { QuizQuestion } from '@/lib/learn/config';
 import { isCorrect, otherSpellings, scoreQuiz, seededShuffle, type QuizScore } from '@/lib/learn/quiz';
+import { useLearnCopy } from './LearnCopy';
 import { useSwapGuard } from './useSwapGuard';
 import Mixed from './Mixed';
 
@@ -36,7 +36,7 @@ const choiceLang = (question: QuizQuestion) =>
 // never teaches a wrong spelling. The parent remounts it (key) for a fresh
 // set of questions.
 export default function Quiz({ questions, seed, onChecked, onNewQuestions, promptLang, focusFirst }: Props) {
-    const t = useT();
+    const learn = useLearnCopy();
     const id = useId();
     const [answers, setAnswers] = useState<(string | null)[]>(() => questions.map(() => null));
     const [checked, setChecked] = useState<boolean[]>(() => questions.map(() => false));
@@ -54,8 +54,8 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
     const finished = checked.every(Boolean);
     const result = finished ? scoreQuiz(questions, answers) : null;
     // The answer is styled on its own, wherever the language puts it.
-    const [answerBefore, answerAfter] = t.learn.quiz.answer.split('{answer}');
-    const [alsoBefore, alsoAfter] = t.learn.quiz.alsoAccepted.split('{spellings}');
+    const [answerBefore, answerAfter] = learn.quiz.answer.split('{answer}');
+    const [alsoBefore, alsoAfter] = learn.quiz.alsoAccepted.split('{spellings}');
     // How forgiving typed answers are, said once, above the first of them.
     const firstTyped = questions.findIndex((question) => question.kind === 'typed');
     const hintId = `${id}-hint`;
@@ -132,14 +132,14 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                     return (
                         <li key={i}>
                             {i === firstTyped && (
-                                <p id={hintId} className="mb-3 border-l-2 border-edge-strong py-0.5 pl-3 text-sm text-ink-muted">{t.learn.quiz.typedHint}</p>
+                                <p id={hintId} className="mb-3 border-l-2 border-edge-strong py-0.5 pl-3 text-sm text-ink-muted">{learn.quiz.typedHint}</p>
                             )}
                             <fieldset disabled={done} className="space-y-3">
                                 {/* The word asked about is part of the legend, so it is
                                     read out with the question. */}
                                 <legend className="space-y-3">
                                     <span className="block text-sm font-semibold text-ink">
-                                        <span className="mr-1 text-accent-text">{fmt(t.learn.quiz.questionN, { n: i + 1 })}.</span>
+                                        <span className="mr-1 text-accent-text">{fmt(learn.quiz.questionN, { n: i + 1 })}.</span>
                                         <span lang={promptLang}><Mixed text={question.prompt} /></span>
                                     </span>
                                     {question.promptPa && (
@@ -174,7 +174,7 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                     </div>
                                 ) : (
                                     <div>
-                                        <label htmlFor={inputId} className="sr-only">{t.learn.quiz.typedLabel}</label>
+                                        <label htmlFor={inputId} className="sr-only">{learn.quiz.typedLabel}</label>
                                         <input
                                             id={inputId}
                                             type="text"
@@ -188,10 +188,10 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                             value={answer ?? ''}
                                             onChange={(e) => setAnswer(i, e.target.value)}
                                             onKeyDown={(e) => onTypedKey(e, i)}
-                                            placeholder={t.learn.quiz.typedPlaceholder}
+                                            placeholder={learn.quiz.typedPlaceholder}
                                             className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-base text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-focus-ring sm:max-w-md"
                                         />
-                                        {strict && <p id={`${inputId}-strict`} className="mt-1.5 text-sm text-ink-muted">{t.learn.quiz.strictNote}</p>}
+                                        {strict && <p id={`${inputId}-strict`} className="mt-1.5 text-sm text-ink-muted">{learn.quiz.strictNote}</p>}
                                     </div>
                                 )}
 
@@ -202,10 +202,10 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                         type="button"
                                         onClick={() => check(i)}
                                         onKeyDown={noRepeat}
-                                        aria-label={fmt(t.learn.quiz.checkAria, { n: i + 1 })}
+                                        aria-label={fmt(learn.quiz.checkAria, { n: i + 1 })}
                                         className={SECONDARY_BUTTON}
                                     >
-                                        {t.learn.quiz.check}
+                                        {learn.quiz.check}
                                     </button>
                                 )}
                             </fieldset>
@@ -225,7 +225,7 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
                                             {right
                                                 ? <CheckCircleIcon className="h-5 w-5" aria-hidden="true" />
                                                 : <XCircleIcon className="h-5 w-5" aria-hidden="true" />}
-                                            {right ? t.learn.quiz.correct : answer === null || answer.trim() === '' ? t.learn.quiz.unanswered : t.learn.quiz.incorrect}
+                                            {right ? learn.quiz.correct : answer === null || answer.trim() === '' ? learn.quiz.unanswered : learn.quiz.incorrect}
                                         </p>
                                         {(question.kind === 'typed' || !right) && (
                                             <p className="text-ink">
@@ -255,24 +255,24 @@ export default function Quiz({ questions, seed, onChecked, onNewQuestions, promp
             <div className="flex flex-wrap items-center gap-4">
                 {finished && (
                     <button type="button" onClick={(e) => allowed(e) && again()} onKeyDown={noRepeat} className={PRIMARY_BUTTON}>
-                        {onNewQuestions ? t.learn.quiz.newQuestions : t.learn.quiz.tryAgain}
+                        {onNewQuestions ? learn.quiz.newQuestions : learn.quiz.tryAgain}
                     </button>
                 )}
                 {/* Once one is checked, a way to finish with any left; it
                     gives way to Try again in the same place. */}
                 {!finished && checkedCount > 0 && (
                     <button type="button" onClick={(e) => allowed(e) && checkRest()} onKeyDown={noRepeat} className={SECONDARY_BUTTON}>
-                        {t.learn.quiz.checkRest}
+                        {learn.quiz.checkRest}
                     </button>
                 )}
                 {/* How many are checked, until the score takes its place. */}
                 {!finished && (
                     <p className="text-sm text-ink-muted">
-                        {fmt(t.learn.quiz.progress, { n: checkedCount, total: questions.length })}
+                        {fmt(learn.quiz.progress, { n: checkedCount, total: questions.length })}
                     </p>
                 )}
                 <p ref={scoreRef} tabIndex={-1} aria-live="polite" className="font-semibold text-ink outline-none">
-                    {result && fmt(t.learn.quiz.score, result.score)}
+                    {result && fmt(learn.quiz.score, result.score)}
                 </p>
             </div>
         </div>

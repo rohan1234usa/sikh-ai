@@ -1,4 +1,4 @@
-import type { Dictionary } from '@/lib/i18n';
+import type { LearnCopy } from '@/lib/i18n/learn';
 import { sectionAnchor, type LessonSection } from '@/lib/learn/config';
 import ExampleRow from './ExampleRow';
 import LetterGrid from './LetterGrid';
@@ -8,7 +8,7 @@ import Mixed from './Mixed';
 // in every UI language, and every Punjabi example comes in all three
 // renditions, as ruled rows like the tracks' lessons. Each heading carries
 // the anchor its checkpoint links to.
-export default function LessonSections({ t, sections }: { t: Dictionary; sections: LessonSection[] }) {
+export default function LessonSections({ learn, sections }: { learn: LearnCopy; sections: LessonSection[] }) {
     return (
         <div className="space-y-10">
             {sections.map((section, i) => (
@@ -17,9 +17,9 @@ export default function LessonSections({ t, sections }: { t: Dictionary; section
                     {section.body.map((paragraph, j) => (
                         <p key={j} lang="en" className="leading-relaxed text-ink-muted"><Mixed text={paragraph} /></p>
                     ))}
-                    {section.letters && <LetterGrid letters={section.letters} label={t.learn.lesson.lettersAria} />}
+                    {section.letters && <LetterGrid letters={section.letters} label={learn.lesson.lettersAria} />}
                     {section.examples && (
-                        <ul aria-label={t.learn.lesson.examplesAria} className="border-t border-edge">
+                        <ul aria-label={learn.lesson.examplesAria} className="border-t border-edge">
                             {section.examples.map((example, j) => (
                                 <li key={j} className="border-b border-edge py-3">
                                     <ExampleRow example={example} />
@@ -29,7 +29,7 @@ export default function LessonSections({ t, sections }: { t: Dictionary; section
                     )}
                     {section.tip && (
                         <p className="border-l-2 border-accent-text py-1 pl-4 text-sm text-ink">
-                            <span className="font-semibold text-accent-text">{t.learn.lesson.tip}: </span>
+                            <span className="font-semibold text-accent-text">{learn.lesson.tip}: </span>
                             <span lang="en"><Mixed text={section.tip} /></span>
                         </p>
                     )}

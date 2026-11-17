@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import LearnHero from '@/app/components/learn/LearnHero';
 import LearnHub from '@/app/components/learn/LearnHub';
+import { getLearnCopy } from '@/lib/i18n/learn';
 import { localePath } from '@/lib/i18n/paths';
-import { getServerT } from '@/lib/i18n/server';
+import { getLang, getServerT } from '@/lib/i18n/server';
 import { LESSON_META, TRACK_IDS, lessonPath } from '@/lib/learn/config';
 import { VOCAB, getLessonPace } from '@/lib/learn/curriculum';
 import { pageMetadata } from '@/lib/metadata';
@@ -16,12 +17,12 @@ export async function generateMetadata(): Promise<Metadata> {
 // depend on this browser's progress fill in once it is read (LearnHub). It
 // reads each lesson only for numbers: no lesson text reaches the browser.
 export default async function LearnPage() {
-  const { lang, t } = await getServerT();
+  const lang = await getLang();
   const to = (path: string) => localePath(lang, path);
 
   return (
     <main className="flex-1 flex flex-col">
-      <LearnHero t={t} />
+      <LearnHero learn={getLearnCopy(lang)} />
       <div className="max-w-5xl mx-auto w-full p-6 flex-1">
         <LearnHub
           lessons={LESSON_META.map((meta) => ({

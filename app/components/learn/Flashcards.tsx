@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState, type SetStateAction } from 'react';
 import IntentLink from '@/app/components/IntentLink';
 import { PRIMARY_BUTTON } from '@/app/components/StatusPage';
-import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { FlashcardWord } from '@/lib/learn/config';
 import { seededShuffle } from '@/lib/learn/quiz';
 import { cardCounts, dueQueue, reviewQueue, type CardState } from '@/lib/learn/srs';
+import { useLearnCopy } from './LearnCopy';
 import { useSwapGuard } from './useSwapGuard';
 import Mixed from './Mixed';
 
@@ -48,7 +48,7 @@ export default function Flashcards(props: Props) {
     // Set in a review, which brings in no new words: the way to them instead.
     const topicsHref = props.mode === 'review' ? props.topicsHref : null;
     const reviewing = topicsHref !== null;
-    const t = useT();
+    const learn = useLearnCopy();
     const ids = words.map((word) => word.id);
     // What a session takes, from the schedule as it is at `at`.
     const queueAt = (at: number) => (reviewing ? dueQueue : reviewQueue)(ids, cards, at, SESSION_SIZE);
@@ -105,7 +105,7 @@ export default function Flashcards(props: Props) {
     const practiceAll = () => change(startSession(seededShuffle(ids, String(Date.now())).slice(0, SESSION_SIZE)));
 
     const directionPicker = (
-        <div role="group" aria-label={t.learn.cards.directionAria} className="flex flex-wrap gap-2">
+        <div role="group" aria-label={learn.cards.directionAria} className="flex flex-wrap gap-2">
             {(['pa', 'en'] as const).map((side) => (
                 <button
                     key={side}
@@ -116,7 +116,7 @@ export default function Flashcards(props: Props) {
                         ? 'border-ink bg-ink text-surface font-semibold'
                         : 'border-edge bg-surface-raised text-ink-muted hover:text-ink'}`}
                 >
-                    {side === 'pa' ? t.learn.cards.punjabiFirst : t.learn.cards.englishFirst}
+                    {side === 'pa' ? learn.cards.punjabiFirst : learn.cards.englishFirst}
                 </button>
             ))}
         </div>
@@ -132,11 +132,11 @@ export default function Flashcards(props: Props) {
         return (
             <div ref={doneRef} tabIndex={-1} className="space-y-4 rounded-xl border border-edge bg-surface-raised p-6 text-center outline-none">
                 <p aria-live="polite" className="text-ink-muted">
-                    {dueNow > 0 ? fmt(t.learn.cards.dueNow, { n: dueNow }) : reviewing ? t.learn.review.nothingDue : t.learn.cards.nothingDue}
+                    {dueNow > 0 ? fmt(learn.cards.dueNow, { n: dueNow }) : reviewing ? learn.review.nothingDue : learn.cards.nothingDue}
                 </p>
                 <div className="flex flex-wrap justify-center gap-3">
                     <button type="button" onClick={(e) => allowed(e) && reviewAgain()} className={checkLook}>
-                        {t.learn.cards.checkAgain}
+                        {learn.cards.checkAgain}
                     </button>
                     {topicsHref !== null ? (
                         // A link, but in a button's place: a click that lands on
@@ -146,10 +146,10 @@ export default function Flashcards(props: Props) {
                             onClick={(e) => { if (!allowed(e)) e.preventDefault(); }}
                             className={otherLook}
                         >
-                            {t.learn.review.practiceTopic}
+                            {learn.review.practiceTopic}
                         </IntentLink>
                     ) : (
-                        <button type="button" onClick={(e) => allowed(e) && practiceAll()} className={otherLook}>{t.learn.cards.practice}</button>
+                        <button type="button" onClick={(e) => allowed(e) && practiceAll()} className={otherLook}>{learn.cards.practice}</button>
                     )}
                 </div>
             </div>
@@ -159,9 +159,9 @@ export default function Flashcards(props: Props) {
     if (!word) {
         return (
             <div ref={doneRef} tabIndex={-1} className="space-y-4 rounded-xl border border-edge bg-surface-raised p-6 text-center outline-none">
-                <p className="text-xl font-bold text-ink">{t.learn.cards.doneTitle}</p>
-                <p className="text-ink-muted">{fmt(t.learn.cards.doneBody, { right: session.right, wrong: session.wrong })}</p>
-                <button type="button" onClick={(e) => allowed(e) && reviewAgain()} className={PRIMARY_BUTTON}>{t.learn.cards.again}</button>
+                <p className="text-xl font-bold text-ink">{learn.cards.doneTitle}</p>
+                <p className="text-ink-muted">{fmt(learn.cards.doneBody, { right: session.right, wrong: session.wrong })}</p>
+                <button type="button" onClick={(e) => allowed(e) && reviewAgain()} className={PRIMARY_BUTTON}>{learn.cards.again}</button>
             </div>
         );
     }
@@ -178,13 +178,13 @@ export default function Flashcards(props: Props) {
         <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 {directionPicker}
-                <p className="text-sm text-ink-muted">{fmt(t.learn.cards.progress, { n: session.index + 1, total: session.queue.length })}</p>
+                <p className="text-sm text-ink-muted">{fmt(learn.cards.progress, { n: session.index + 1, total: session.queue.length })}</p>
             </div>
 
             <div className="flex min-h-64 flex-col items-center justify-center gap-4 rounded-2xl border border-edge bg-surface-raised p-6 text-center">
                 {/* A review mixes the topics, and a word can be in two (ਖਾਣਾ is
                     food, and to eat), so each card says where it is from. */}
-                {reviewing && <p className="text-xs font-bold uppercase tracking-widest text-accent-text">{t.learn.topics[word.topic]}</p>}
+                {reviewing && <p className="text-xs font-bold uppercase tracking-widest text-accent-text">{learn.topics[word.topic]}</p>}
                 {direction === 'pa' ? punjabi : english}
                 {session.revealed && (
                     <div ref={answerRef} tabIndex={-1} className="w-full space-y-2 border-t border-edge pt-4 outline-none">
@@ -202,10 +202,10 @@ export default function Flashcards(props: Props) {
                         onKeyDown={noRepeat}
                         className={PLAIN_BUTTON}
                     >
-                        {t.learn.cards.notYet}
+                        {learn.cards.notYet}
                     </button>
                     <button type="button" onClick={(e) => allowed(e) && answer(true)} onKeyDown={noRepeat} className={`${PRIMARY_BUTTON} text-center`}>
-                        {t.learn.cards.knewIt}
+                        {learn.cards.knewIt}
                     </button>
                 </div>
             ) : (
@@ -216,7 +216,7 @@ export default function Flashcards(props: Props) {
                     onKeyDown={noRepeat}
                     className={`${PRIMARY_BUTTON} w-full text-center`}
                 >
-                    {t.learn.cards.show}
+                    {learn.cards.show}
                 </button>
             )}
         </div>

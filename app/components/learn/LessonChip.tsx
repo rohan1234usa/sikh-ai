@@ -1,15 +1,15 @@
 'use client';
 
 import { AcademicCapIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useT } from '@/app/context/LanguageContext';
+import { useLearnCopy } from './LearnCopy';
 import Mixed from './Mixed';
 
 // The lesson the tutor was opened from, shown in the composer like the
 // chat's passage chip. Dismissing it stops the tutor using the lesson.
 export default function LessonChip({ title, onDismiss }: { title: string; onDismiss: () => void }) {
-    const t = useT();
+    const learn = useLearnCopy();
     // Only the title is English: the label around it is in the site's language.
-    const [before, after] = t.learn.tutor.aboutLesson.split('{title}');
+    const [before, after] = learn.tutor.aboutLesson.split('{title}');
     return (
         <div className="flex max-w-full items-center gap-2 rounded border border-accent-text/50 py-1.5 pl-3 pr-1.5 text-xs text-accent-text">
             <AcademicCapIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -17,7 +17,7 @@ export default function LessonChip({ title, onDismiss }: { title: string; onDism
             <button
                 type="button"
                 onClick={onDismiss}
-                aria-label={t.learn.tutor.stopLessonAria}
+                aria-label={learn.tutor.stopLessonAria}
                 className="shrink-0 rounded p-0.5 transition-colors hover:bg-edge/60"
             >
                 <XMarkIcon className="h-4 w-4" />

@@ -1,10 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import type { FlashcardWord } from '@/lib/learn/config';
 import { cardCounts } from '@/lib/learn/srs';
+import { useLearnCopy } from './LearnCopy';
 import Flashcards from './Flashcards';
 import { useLearnProgress, useLiveNow } from './useLearnProgress';
 
@@ -14,7 +14,7 @@ import { useLearnProgress, useLiveNow } from './useLearnProgress';
 // learner with more than twenty sees what Review again will bring. It owns
 // the page's progress, as VocabTopic does a topic's.
 export default function ReviewSession({ words, topicsHref }: { words: FlashcardWord[]; topicsHref: string }) {
-    const t = useT();
+    const learn = useLearnCopy();
     const { progress, now, loadedAt, reviewCard } = useLearnProgress();
     const liveNow = useLiveNow(now);
     const ids = useMemo(() => words.map((word) => word.id), [words]);
@@ -25,8 +25,8 @@ export default function ReviewSession({ words, topicsHref }: { words: FlashcardW
             {/* New words aren't counted: a review brings none in. */}
             <p className="min-h-5 text-sm font-semibold text-accent-text">
                 {counts && [
-                    counts.due > 0 ? fmt(t.learn.vocab.due, { n: counts.due }) : null,
-                    fmt(t.learn.vocab.learned, { n: counts.learned }),
+                    counts.due > 0 ? fmt(learn.vocab.due, { n: counts.due }) : null,
+                    fmt(learn.vocab.learned, { n: counts.learned }),
                 ].filter(Boolean).join(' · ')}
             </p>
 

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import en from '@/lib/i18n/dictionaries/en';
+import en from '@/lib/i18n/learn/en';
 import { TRACK_IDS } from '@/lib/learn/config';
 import { FIRST_WORDS, orderLine, stepKind, trackLine } from '@/lib/learn/hub';
 import { EMPTY_PROGRESS, withCheckpoint, withLessonComplete, withVisit } from '@/lib/learn/progress';

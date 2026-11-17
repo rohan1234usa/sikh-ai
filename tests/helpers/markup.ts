@@ -4,8 +4,10 @@
 
 import { createElement, type ComponentProps, type ReactElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { LearnCopyProvider } from '@/app/components/learn/LearnCopy';
 import { LanguageProvider } from '@/app/context/LanguageContext';
 import type { Lang } from '@/lib/i18n/config';
+import { getLearnCopy } from '@/lib/i18n/learn';
 
 export const renderIn = (lang: Lang, element: ReactElement): string =>
     renderToStaticMarkup(createElement(
@@ -13,5 +15,14 @@ export const renderIn = (lang: Lang, element: ReactElement): string =>
         // The child goes as an argument (the lint rule against a children
         // prop), which the props' type doesn't know.
         { lang } as ComponentProps<typeof LanguageProvider>,
+        element,
+    ));
+
+// A Learn component, inside the provider of Learn's words as well, as Learn's
+// layout gives it (app/[lang]/learn/layout.tsx).
+export const renderLearnIn = (lang: Lang, element: ReactElement): string =>
+    renderIn(lang, createElement(
+        LearnCopyProvider,
+        { copy: getLearnCopy(lang) } as ComponentProps<typeof LearnCopyProvider>,
         element,
     ));

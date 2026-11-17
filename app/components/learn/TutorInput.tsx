@@ -6,6 +6,7 @@ import { PaperAirplaneIcon, StopIcon } from '@heroicons/react/24/solid';
 import { useLocalePath, useT } from '@/app/context/LanguageContext';
 import { fmt } from '@/lib/i18n/fmt';
 import { MAX_TUTOR_MESSAGE_CHARS } from '@/lib/learn/tutor';
+import { useLearnCopy } from './LearnCopy';
 
 type Props = {
     value: string;
@@ -28,6 +29,7 @@ function fitHeight(el: HTMLTextAreaElement) {
 // question; Enter sends, Shift+Enter starts a new line.
 export default function TutorInput({ value, onChange, onSend, onStop, isStreaming, canSend, lessonChip, textareaRef }: Props) {
     const t = useT();
+    const learn = useLearnCopy();
     const to = useLocalePath();
     const countId = useId();
     const nearCap = value.length >= MAX_TUTOR_MESSAGE_CHARS * 0.8;
@@ -85,7 +87,7 @@ export default function TutorInput({ value, onChange, onSend, onStop, isStreamin
                             ref={textareaRef}
                             rows={1}
                             enterKeyHint="send"
-                            aria-label={t.learn.tutor.messageAria}
+                            aria-label={learn.tutor.messageAria}
                             value={value}
                             onChange={(e) => onChange(e.target.value)}
                             onKeyDown={(e) => {
@@ -96,7 +98,7 @@ export default function TutorInput({ value, onChange, onSend, onStop, isStreamin
                                     submit();
                                 }
                             }}
-                            placeholder={t.learn.tutor.inputPlaceholder}
+                            placeholder={learn.tutor.inputPlaceholder}
                             maxLength={MAX_TUTOR_MESSAGE_CHARS}
                             aria-describedby={nearCap ? countId : undefined}
                             className="block max-h-40 min-w-0 flex-1 resize-none overflow-y-auto bg-transparent px-4 pt-3 pb-1 text-base text-ink outline-none placeholder:text-ink-faint"
@@ -105,7 +107,7 @@ export default function TutorInput({ value, onChange, onSend, onStop, isStreamin
                             of a double-click on Send lands on Stop and is ignored. */}
                         <button
                             type={isStreaming ? 'button' : 'submit'}
-                            aria-label={isStreaming ? t.learn.tutor.stopAria : t.learn.tutor.sendAria}
+                            aria-label={isStreaming ? learn.tutor.stopAria : learn.tutor.sendAria}
                             aria-disabled={!isStreaming && !canSubmit ? true : undefined}
                             onClick={isStreaming ? (e) => { if (e.detail <= 1) onStop(); } : undefined}
                             onKeyDown={isStreaming ? (e) => { if (e.repeat) e.preventDefault(); } : undefined}
@@ -120,18 +122,18 @@ export default function TutorInput({ value, onChange, onSend, onStop, isStreamin
             </form>
             <div className="mx-auto mt-2 flex max-w-3xl items-start justify-between gap-3 text-[11px] text-ink-muted">
                 <p>
-                    {t.learn.tutor.disclaimer}{' '}
+                    {learn.tutor.disclaimer}{' '}
                     <Link href={to('/privacy')} className="underline hover:text-link">{t.footer.privacy}</Link>
                     {' · '}
                     <Link href={to('/terms')} className="underline hover:text-link">{t.footer.terms}</Link>
                 </p>
                 {nearCap && (
                     <span id={countId} className={`shrink-0 tabular-nums ${atCap ? 'font-semibold text-red-700 dark:text-red-400' : ''}`}>
-                        {fmt(t.learn.tutor.charCount, { n: value.length, max: MAX_TUTOR_MESSAGE_CHARS })}
+                        {fmt(learn.tutor.charCount, { n: value.length, max: MAX_TUTOR_MESSAGE_CHARS })}
                     </span>
                 )}
                 <span className="sr-only" aria-live="polite">
-                    {atCap ? fmt(t.learn.tutor.charLimit, { max: MAX_TUTOR_MESSAGE_CHARS }) : ''}
+                    {atCap ? fmt(learn.tutor.charLimit, { max: MAX_TUTOR_MESSAGE_CHARS }) : ''}
                 </span>
             </div>
         </div>

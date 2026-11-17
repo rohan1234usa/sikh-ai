@@ -1,5 +1,5 @@
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
-import type { Dictionary } from '@/lib/i18n';
+import type { LearnCopy } from '@/lib/i18n/learn';
 import { fmt } from '@/lib/i18n/fmt';
 import { sectionAnchor } from '@/lib/learn/config';
 import { minutes, secondsFrom, sectionMinutes, type LessonPace } from '@/lib/learn/pace';
@@ -10,11 +10,11 @@ import Mixed from './Mixed';
 // phone, one line ("4 sections · about 6 min") that opens to the list.
 // Rendered on the server, from headings already on the page; the hidden
 // copy of the list is out of the tab order and the reading order.
-export default function LessonOutline({ t, headings, pace }: { t: Dictionary; headings: string[]; pace: LessonPace }) {
-    const count = fmt(t.learn.lesson.outlineSummary, { n: headings.length, min: minutes(secondsFrom(pace)) });
+export default function LessonOutline({ learn, headings, pace }: { learn: LearnCopy; headings: string[]; pace: LessonPace }) {
+    const count = fmt(learn.lesson.outlineSummary, { n: headings.length, min: minutes(secondsFrom(pace)) });
     const time = (seconds: number) => {
         const n = sectionMinutes(seconds);
-        return n === null ? t.learn.lesson.underAMinute : fmt(t.learn.lesson.sectionMinutes, { n });
+        return n === null ? learn.lesson.underAMinute : fmt(learn.lesson.sectionMinutes, { n });
     };
     const list = (
         <ol className="space-y-1.5">
@@ -31,7 +31,7 @@ export default function LessonOutline({ t, headings, pace }: { t: Dictionary; he
     );
 
     return (
-        <nav aria-label={t.learn.lesson.outline} className="border-y border-edge py-3 text-sm">
+        <nav aria-label={learn.lesson.outline} className="border-y border-edge py-3 text-sm">
             <details className="group sm:hidden">
                 <summary className="flex min-h-6 cursor-pointer list-none items-center gap-1.5 font-semibold text-ink [&::-webkit-details-marker]:hidden">
                     <ChevronRightIcon className="h-4 w-4 shrink-0 text-ink-muted transition-transform group-open:rotate-90" aria-hidden="true" />
@@ -40,7 +40,7 @@ export default function LessonOutline({ t, headings, pace }: { t: Dictionary; he
                 <div className="pt-3">{list}</div>
             </details>
             <div className="hidden space-y-2 sm:block">
-                <p className="text-xs font-bold uppercase tracking-widest text-accent-text">{t.learn.lesson.outline} · {count}</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-accent-text">{learn.lesson.outline} · {count}</p>
                 {list}
             </div>
         </nav>
