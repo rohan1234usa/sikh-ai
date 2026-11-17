@@ -474,7 +474,7 @@ Contributions are welcome. Any contributions you make are **greatly appreciated*
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
-The Gurbani text, transliterations and translations come from [GurbaniNow](https://gurbaninow.com), the site's source for them, and aren't covered by this license. That includes the copies recorded for the tests (`tests/gurbani/fixtures/`).
+The Gurbani text, transliterations and translations come from [GurbaniNow](https://gurbaninow.com), the site's source for them, and aren't covered by this license, wherever they appear in the repo: the copies recorded for the tests (`tests/gurbani/fixtures/`) and for the chat eval (`scripts/chat-eval/passages.json` and its `cache.json`).
 
 ## 👤 Contact
 
