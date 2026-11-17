@@ -2,9 +2,9 @@ import { FinishReason, GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 import { limitVisitor } from "@/lib/api/allowance";
 import { refuseCrossSite } from "@/lib/api/guard";
-import { TRANSLATE_ATTEMPT_MS, TRANSLATE_BUDGET_MS } from "@/lib/gemini/budgets";
-import { isCapacityError, statusOf, withModelFallback, withTransport } from "@/lib/gemini/fallback";
-import { logGeminiCall, usageFields } from "@/lib/gemini/log";
+import { TRANSLATE_BUDGET_MS, TRANSLATE_FIRST_TEXT_MS, TRANSLATE_GOOGLE_TIMEOUT_MS } from "@/lib/gemini/budgets";
+import { isCapacityError, statusOf, withModelFallback } from "@/lib/gemini/fallback";
+import { openTextStream, readWholeText } from "@/lib/gemini/stream";
 import { logEvent, logRouteError, withRequestLog } from "@/lib/log";
 import {
   MAX_TRANSLATE_CHARS,
@@ -20,12 +20,14 @@ import { parseTranslationResult } from "@/lib/translate/parse";
 
 export const maxDuration = 30;
 
-// Budget for Gemini, fallback model included, sized so the Cloud Translation
-// fallback (8 s timeout) still fits inside maxDuration after it. A full
-// 1,000-character input glossed word by word takes ~11 s on 3.8 Flash. The
-// numbers, and why the gap between them matters, live in lib/gemini/budgets.
-const GEMINI_BUDGET_MS = TRANSLATE_BUDGET_MS;
-const ATTEMPT_TIMEOUT_MS = TRANSLATE_ATTEMPT_MS;
+// Gemini's reply is read as a stream, though the page gets one JSON result: a
+// full answer to 1,000 characters takes up to about 21 s on 3.8 Flash, and
+// its first text about 2 s. So a call with no text after
+// TRANSLATE_FIRST_TEXT_MS is stuck, and one that is writing gets until
+// TRANSLATE_BUDGET_MS, which leaves the Cloud Translation fallback (8 s
+// timeout) its turn inside maxDuration. The numbers, as measured, live in
+// lib/gemini/budgets, with TRANSLATE_GOOGLE_TIMEOUT_MS: Google is told the
+// function's own limit, not the budget, which it would cut short (#83).
 
 const FRIENDLY_ERROR = "Sorry, the translation failed. Please try again.";
 const TOO_LONG_ERROR = "That text is too long. Please try up to 1,000 characters.";
@@ -33,6 +35,9 @@ const TOO_LONG_ERROR = "That text is too long. Please try up to 1,000 characters
 // wrapper. Anything larger is refused before it is parsed.
 const MAX_BODY_CHARS = 2 * MAX_TRANSLATE_CHARS + 1000;
 const BUSY_ERROR = "The translator is busy right now. Please wait a moment and try again.";
+// Kept back from maxDuration for the answer itself, so Cloud Translation's
+// wait never runs the function past its limit.
+const ANSWER_MARGIN_MS = 1000;
 
 // Gemini is the only source of the learning aids, so when it fails we fall
 // back to a plain Cloud Translation rendering rather than nothing at all.
@@ -41,12 +46,19 @@ const BUSY_ERROR = "The translator is busy right now. Please wait a moment and t
 //
 // Kept here rather than in lib/translate/cloud.ts: shaping a TranslationResult
 // is this route's policy, while cloud.ts stays a generic transport.
+//
+// `until` is when Cloud must have answered by. Gemini can use up to
+// TRANSLATE_BUDGET_MS, so after a reply cut at that deadline Cloud gets what
+// is left of the function's limit rather than its usual 8 s: a platform 504
+// would leave the visitor no answer at all (#84 review).
 async function attemptCloudFallback(
   text: string,
   hint: SourceHint,
   detectedScript: 'gurmukhi' | 'latin',
+  until: number,
 ): Promise<TranslationResult | null> {
   const trimmed = text.trim();
+  const timeoutMs = until - Date.now();
 
   const synthesize = (
     detectedInput: DetectedInput,
@@ -65,7 +77,7 @@ async function attemptCloudFallback(
 
   // Gurmukhi input is unambiguous regardless of what the chip claims.
   if (detectedScript === 'gurmukhi') {
-    const res = await cloudTranslate({ text: trimmed, source: 'pa', target: 'en', purpose: 'fallback' });
+    const res = await cloudTranslate({ text: trimmed, source: 'pa', target: 'en', purpose: 'fallback', timeoutMs });
     return res ? synthesize('punjabi-gurmukhi', trimmed, res.translatedText) : null;
   }
 
@@ -82,18 +94,20 @@ async function attemptCloudFallback(
   if (hint === 'auto' && looksRomanizedPunjabi(trimmed)) return null;
 
   if (hint === 'english') {
-    const res = await cloudTranslate({ text: trimmed, source: 'en', target: 'pa', purpose: 'fallback' });
+    const res = await cloudTranslate({ text: trimmed, source: 'en', target: 'pa', purpose: 'fallback', timeoutMs });
     return res ? synthesize('english', res.translatedText, trimmed) : null;
   }
 
   // 'auto' + Latin that reads as English: let Cloud confirm. Its own verdict is
   // a second line of defence, not the only one — see the screen above.
-  const res = await cloudTranslate({ text: trimmed, target: 'pa', purpose: 'fallback' });
+  const res = await cloudTranslate({ text: trimmed, target: 'pa', purpose: 'fallback', timeoutMs });
   if (!res || res.detectedSourceLanguage !== 'en') return null;
   return synthesize('english', res.translatedText, trimmed);
 }
 
 async function handlePost(req: Request) {
+  // When the answer must be out by, whatever happens below.
+  const until = Date.now() + maxDuration * 1000 - ANSWER_MARGIN_MS;
   // Hoisted so the catch block can tell whether Gemini was actually attempted:
   // a body that can't be read, or a validation throw, lands in the same catch,
   // and those must not spend Cloud Translation credit.
@@ -160,59 +174,66 @@ async function handlePost(req: Request) {
             : 'english';
 
     const ai = new GoogleGenAI({ apiKey });
-    const deadline = Date.now() + GEMINI_BUDGET_MS;
-    const started = Date.now();
-    const { value: result, model, depth } = await withModelFallback(
+    const deadline = Date.now() + TRANSLATE_BUDGET_MS;
+    const reply = await withModelFallback(
       "translate",
-      m => ai.models.generateContent(withTransport(
-        buildTranslateRequest(m, text, { sourceHint: hint, detectedScript }),
-        { signal: req.signal, timeoutMs: Math.min(ATTEMPT_TIMEOUT_MS, deadline - Date.now()) },
-      )),
+      m => openTextStream(ai, buildTranslateRequest(m, text, { sourceHint: hint, detectedScript }), {
+        signal: req.signal,
+        deadline,
+        firstTextMs: TRANSLATE_FIRST_TEXT_MS,
+        serverTimeoutMs: TRANSLATE_GOOGLE_TIMEOUT_MS,
+      }),
       { signal: req.signal, deadline },
-    ).catch((error: unknown) => {
-      // Each attempt's failure is already a gemini_call line, at the level it
-      // deserves (lib/gemini/log.ts): a timeout or an unreachable Gemini
-      // passes on its own, and mustn't become a route_error, which goes to
-      // Sentry (lib/log.ts).
-      geminiFailed = true;
-      throw error;
-    });
-    const finishReason = result.candidates?.[0]?.finishReason;
-    const blockReason = result.promptFeedback?.blockReason;
-    const logCall = (outcome: "ok" | "truncated" | "unusable" | "blocked") => logGeminiCall({
-      feature: "translate", model, depth, outcome, ms: Date.now() - started,
-      modelVersion: result.modelVersion, ...usageFields(result.usageMetadata), finishReason, blockReason,
-    });
+    )
+      // The rest of the reply, read to its end. A fallback model, if one is
+      // named, is only for a call that never started writing.
+      .then(({ value: opened, model, depth }) => readWholeText(opened, { feature: "translate", model, depth }, req.signal))
+      .catch((error: unknown) => {
+        // Each attempt's failure is already a gemini_call line, at the level
+        // it deserves (lib/gemini/log.ts), and so is a reply that failed
+        // while it was being read: a timeout or an unreachable Gemini passes
+        // on its own, and mustn't become a route_error, which goes to Sentry
+        // (lib/log.ts).
+        geminiFailed = true;
+        throw error;
+      });
+    const { finishReason, filtered } = reply;
 
     // The SDK returns a truncated response as ordinary text, so it would only
     // fail later at JSON.parse. Catch it here to give advice the user can
     // actually act on.
     if (finishReason === FinishReason.MAX_TOKENS) {
-      logCall("truncated");
+      reply.settle("truncated");
       // MAX_TOKENS is an output-budget signal, not an input-length one: the
       // model's own thinking trace draws from the same budget, so a short input
       // can truncate while a near-cap one does not. "Shorten it" is therefore
       // often wrong advice — try a basic rendering before falling back to it.
-      const viaCloud = await attemptCloudFallback(text, hint, detectedScript);
+      const viaCloud = await attemptCloudFallback(text, hint, detectedScript, until);
       logEvent("cloud_fallback", { feature: "translate", reason: "truncated", served: !!viaCloud });
       if (viaCloud) return NextResponse.json(viaCloud, { headers: { "Cache-Control": "no-store" } });
       return NextResponse.json({ error: TOO_LONG_ERROR, code: "translate_too_long" }, { status: 400 });
     }
 
-    const parsed = parseTranslationResult(result.text ?? "", fallbackDetected);
+    // A reply a filter stopped is never served, even if what came parses.
+    const parsed = filtered ? null : parseTranslationResult(reply.text, fallbackDetected);
 
     if (!parsed) {
       // Blocked or filtered replies land here too: the SDK returns them with
-      // no text rather than throwing.
-      logCall(blockReason ? "blocked" : "unusable");
+      // no text, or cut short, rather than throwing. A reply with text and no
+      // finish reason broke off before its last chunk (the SDK drops an error
+      // Google sends mid-reply): the service failed, not the reply, so it
+      // gets the busy answer a timeout gets.
+      const brokeOff = finishReason === undefined && !filtered && reply.text !== "";
+      reply.settle(filtered ? "blocked" : brokeOff ? "cut" : "unusable");
       // Gemini answered, just not usably — a plain rendering still beats an error.
-      const viaCloud = await attemptCloudFallback(text, hint, detectedScript);
-      logEvent("cloud_fallback", { feature: "translate", reason: "unusable", served: !!viaCloud });
+      const viaCloud = await attemptCloudFallback(text, hint, detectedScript, until);
+      logEvent("cloud_fallback", { feature: "translate", reason: brokeOff ? "gemini_failed" : "unusable", served: !!viaCloud });
       if (viaCloud) return NextResponse.json(viaCloud, { headers: { "Cache-Control": "no-store" } });
+      if (brokeOff) return NextResponse.json({ error: BUSY_ERROR, code: "translate_busy" }, { status: 503 });
       return NextResponse.json({ error: FRIENDLY_ERROR, code: "translate_failed" }, { status: 502 });
     }
 
-    logCall("ok");
+    reply.settle("ok");
     return NextResponse.json(parsed, { headers: { "Cache-Control": "no-store" } });
 
   } catch (error) {
@@ -227,11 +248,12 @@ async function handlePost(req: Request) {
     // would otherwise 500 with nothing in the host's log to explain it.
     if (!text || !geminiFailed) logRouteError(error);
 
-    // Both models failed (overloaded, rate-limited, out of prepaid credit, or
-    // timed out) or the request itself was rejected. Either way a basic
-    // translation beats an error — that is the whole point of this path.
+    // Gemini failed (overloaded, rate-limited, out of prepaid credit, stuck
+    // before its first text, or still writing at the deadline) or the request
+    // itself was rejected. Either way a basic translation beats an error —
+    // that is the whole point of this path.
     if (text) {
-      const viaCloud = await attemptCloudFallback(text, hint, detectedScript);
+      const viaCloud = await attemptCloudFallback(text, hint, detectedScript, until);
       logEvent("cloud_fallback", { feature: "translate", reason: "gemini_failed", served: !!viaCloud });
       if (viaCloud) return NextResponse.json(viaCloud, { headers: { "Cache-Control": "no-store" } });
     }

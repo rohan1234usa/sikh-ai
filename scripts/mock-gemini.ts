@@ -14,11 +14,16 @@
 //   MOCK_HANG         never answers                 MOCK_EMPTY       no text at all
 //   MOCK_BLOCKED      prompt refused                MOCK_SAFETY      text, then cut by a filter
 //   MOCK_MAX_TOKENS   hits the output cap           MOCK_GARBAGE     translator gets non-JSON
+//   MOCK_ENDS_EARLY   a stream that stops before its last chunk, as when the
+//                     SDK drops an error Google sends mid-reply (translator)
+// The translator's MOCK_SAFETY is its whole JSON, then a filter's stop.
 //   MOCK_REPLY:<name> a canned chat reply (CANNED below, or a citation fixture id)
 //   MOCK_LONG         a reply as long as a whole Ang explained line by line,
 //                     in small pieces (for profiling the chat's rendering)
-// Anything else gets a normal reply naming the model that served it; a
-// streamed translator request (/api/translate/live) gets its four lines.
+// Anything else gets a normal reply naming the model that served it. A
+// request for JSON (/api/translate) gets the translator's result, streamed in
+// a few slices when it asks for a stream; any other streamed request with a
+// fenced text (/api/translate/live) gets the live translator's four lines.
 //
 // A request with an audio clip (Talk's /api/translate/voice) gets the four
 // lines of a clip heard in Punjabi, or in English when the clip, or the
@@ -46,7 +51,8 @@ import type { AddressInfo } from 'node:net';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-export type MockRequest = { model: string; op: string; text: string; body: unknown };
+// `headers` as Node read them: lower-cased, a repeated one joined with ", ".
+export type MockRequest = { model: string; op: string; text: string; body: unknown; headers: http.IncomingHttpHeaders };
 
 export type MockGemini = {
     url: string;
@@ -231,6 +237,17 @@ function pieces(text: string, count = 4): string[] {
     return out;
 }
 
+// A reply in at most `count` slices of equal length, cut anywhere, as Gemini
+// cuts JSON (mid-string included), so a slow mock's timing doesn't depend on
+// the words in it. Cut between code points: a character is never split.
+function slices(text: string, count = 4): string[] {
+    const chars = Array.from(text);
+    const size = Math.max(1, Math.ceil(chars.length / count));
+    const out: string[] = [];
+    for (let i = 0; i < chars.length; i += size) out.push(chars.slice(i, i + size).join(''));
+    return out;
+}
+
 export async function startMockGemini(opts: MockOptions = {}): Promise<MockGemini> {
     const requests: MockRequest[] = [];
     const calls = new Map<string, number>();
@@ -261,7 +278,7 @@ export async function startMockGemini(opts: MockOptions = {}): Promise<MockGemin
             try {
                 claims = JSON.parse(Buffer.from(assertion.split('.')[1] ?? '', 'base64url').toString('utf8')) as Json;
             } catch { /* answered below */ }
-            requests.push({ model: '', op: 'token', text: '', body: { grantType: form.get('grant_type'), assertion, claims } });
+            requests.push({ model: '', op: 'token', text: '', body: { grantType: form.get('grant_type'), assertion, claims }, headers: req.headers });
             const wellFormed = form.get('grant_type') === 'urn:ietf:params:oauth:grant-type:jwt-bearer'
                 && assertion.split('.').length === 3 && typeof claims.iss === 'string';
             if (!wellFormed || String(claims.iss).includes('MOCK_OAUTH_400')) {
@@ -282,7 +299,7 @@ export async function startMockGemini(opts: MockOptions = {}): Promise<MockGemin
             let body: Json = {};
             try { body = JSON.parse(raw) as Json; } catch { /* answered below */ }
             const text = String((body.input as Json | undefined)?.text ?? '');
-            requests.push({ model: String((body.voice as Json | undefined)?.name ?? ''), op: 'synthesize', text, body });
+            requests.push({ model: String((body.voice as Json | undefined)?.name ?? ''), op: 'synthesize', text, body, headers: req.headers });
             const auth = /^Bearer (.+)$/.exec(String(req.headers.authorization ?? ''))?.[1];
             if (!auth || !tokens.has(auth)) {
                 return json(401, { error: { code: 401, message: 'Request had invalid authentication credentials.', status: 'UNAUTHENTICATED' } });
@@ -308,7 +325,7 @@ export async function startMockGemini(opts: MockOptions = {}): Promise<MockGemin
         const model = match?.[1] ?? '?';
         const op = match?.[2] ?? '?';
         const text = lastUserText(body);
-        requests.push({ model, op, text, body });
+        requests.push({ model, op, text, body, headers: req.headers });
         // Triggers are read from the text and from a clip that is plain text.
         const audio = lastUserAudio(body);
         const probe = audio ? `${text}\n${clipText(audio.data)}` : text;
@@ -360,6 +377,24 @@ export async function startMockGemini(opts: MockOptions = {}): Promise<MockGemin
                 send({ ...candidate([{ text: '' }], { finishReason: 'STOP' }), usageMetadata: usage });
                 return res.end();
             }
+            // The translator (/api/translate) asks for JSON, and reads it as a
+            // stream: its result, or a cut or spoiled one, as the unstreamed
+            // reply below gives it.
+            if ((body.generationConfig as Json | undefined)?.responseMimeType === 'application/json') {
+                const capped = probe.includes('MOCK_MAX_TOKENS');
+                const early = probe.includes('MOCK_ENDS_EARLY');
+                const reply = capped || early ? '{"detectedInput":"engl'
+                    : probe.includes('MOCK_GARBAGE') ? 'not json'
+                        : JSON.stringify(translation(text));
+                for (const slice of slices(reply)) {
+                    await sleep(delay);
+                    send(candidate([{ text: slice }]));
+                }
+                if (early) return res.end();
+                const finishReason = capped ? 'MAX_TOKENS' : probe.includes('MOCK_SAFETY') ? 'SAFETY' : 'STOP';
+                send({ ...candidate([{ text: '' }], { finishReason }), usageMetadata: { ...usage, candidatesTokenCount: 340 } });
+                return res.end();
+            }
             if (probe.includes('MOCK_SAFETY')) {
                 send(candidate([{ text: 'Partial answer before the filter' }]));
                 await sleep(delay);
@@ -368,7 +403,8 @@ export async function startMockGemini(opts: MockOptions = {}): Promise<MockGemin
             }
             const canned = /MOCK_REPLY:([\w:-]+)/.exec(probe)?.[1];
             const long = probe.includes('MOCK_LONG');
-            // Only the translators fence their text, and only the live one streams.
+            // Only the translators fence their text, and the JSON one was
+            // answered above.
             const live = /--- BEGIN TEXT [0-9a-f]+ ---/.test(text);
             const reply = (long ? longReply() : canned && cannedReply(canned))
                 || (audio ? voiceLines(probe) : '')

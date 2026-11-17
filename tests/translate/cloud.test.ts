@@ -9,7 +9,7 @@ import { logged as capture } from '../helpers/routes';
 const realFetch = globalThis.fetch;
 let calls = 0;
 let lastUrl = '';
-let answer: () => Response;
+let answer: (init?: RequestInit) => Response | Promise<Response>;
 let cloud: typeof Cloud;
 
 const translated = () => Response.json({ data: { translations: [{ translatedText: 'ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ' }] } });
@@ -17,10 +17,10 @@ const translated = () => Response.json({ data: { translations: [{ translatedText
 before(async () => {
     process.env.GOOGLE_TRANSLATE_API_KEY = 'test-key';
     delete process.env.TRANSLATE_FALLBACK;
-    globalThis.fetch = (async (url: string | URL) => {
+    globalThis.fetch = (async (url: string | URL, init?: RequestInit) => {
         calls++;
         lastUrl = String(url);
-        return answer();
+        return answer(init);
     }) as typeof fetch;
     cloud = await import('@/lib/translate/cloud');
 });
@@ -59,6 +59,16 @@ test('a failed request still spends: a broken API can never be called forever', 
     const before = cloud.cloudAllowances.fallback.remaining();
     assert.equal(await cloud.cloudTranslate({ text: 'abc', target: 'pa', purpose: 'fallback' }), null);
     assert.equal(cloud.cloudAllowances.fallback.remaining(), before - 3);
+});
+
+test('a caller with less time left than the usual 8 s gives up when it runs out', async () => {
+    // A Cloud that never answers: only the request's own timeout ends it.
+    answer = (init) => new Promise((_, reject) => {
+        init?.signal?.addEventListener('abort', () => reject(init.signal?.reason));
+    });
+    const started = Date.now();
+    assert.equal(await cloud.cloudTranslate({ text: 'hi', target: 'pa', purpose: 'fallback', timeoutMs: 100 }), null);
+    assert.ok(Date.now() - started < 2000, `it waited ${Date.now() - started} ms, not the 100 ms it had`);
 });
 
 test('whether a call would go out: Cloud on, a key, and enough of that day left', async () => {

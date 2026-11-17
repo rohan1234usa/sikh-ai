@@ -20,6 +20,9 @@ export type CloudTranslateOpts = {
     source?: CloudLang;  // omit to let Cloud detect (resolves English vs romanized)
     target: CloudLang;
     purpose: CloudPurpose;
+    // How long to wait, when the caller has less than the usual 8 s left
+    // (the translator, after a Gemini reply cut at its deadline). Never longer.
+    timeoutMs?: number;
 };
 
 export type CloudTranslateResult = {
@@ -145,7 +148,8 @@ export async function cloudTranslate(opts: CloudTranslateOpts): Promise<CloudTra
                 target: opts.target,
                 format: 'text', // plain text in, plain text out — no HTML entities
             }),
-            signal: AbortSignal.timeout(TIMEOUT_MS),
+            // Whole and at least 1 ms: AbortSignal.timeout throws for anything else.
+            signal: AbortSignal.timeout(Math.max(1, Math.floor(Math.min(TIMEOUT_MS, opts.timeoutMs ?? TIMEOUT_MS)))),
         });
 
         if (!res.ok) {
